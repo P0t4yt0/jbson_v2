@@ -26,7 +26,22 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'jbson_pms.urls'
 TEMPLATES = [{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.debug','django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages']}}]
 WSGI_APPLICATION = 'jbson_pms.wsgi.application'
-DATABASES = {'default':{'ENGINE':'django.db.backends.sqlite3','NAME':BASE_DIR/'jbson_dev.db'}}
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'jbson_dev',               # Matches your DBeaver database name
+        'USER': 'root',                   # Change to 'root' unless you made a specific 'jbson_user'
+        'PASSWORD': 'Dsinday2005', # Put your MySQL Workbench/DBeaver password here
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
+    }
+}
+
 # MySQL 8.4 Production (uncomment when deploying on LAN):
 # DATABASES = {'default':{'ENGINE':'django.db.backends.mysql','NAME':'jbson_db','USER':'jbson_user','PASSWORD':'your_password','HOST':'localhost','PORT':'3306','OPTIONS':{'charset':'utf8mb4','init_command':"SET sql_mode='STRICT_TRANS_TABLES'"}}}
 AUTH_USER_MODEL = 'security.User'
