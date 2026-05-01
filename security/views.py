@@ -1,3 +1,18 @@
+"""
+security/views.py
+─────────────────────────────────────────────────────────────────────────────
+Security Module – Authentication Views
+Product Management System with POS for JBSON Hardware
+
+Handles:
+  - User Login  (GET renders form / POST authenticates via Django's bcrypt hasher)
+  - User Logout
+  - Role-based redirect after login:
+      • Administrator  → /dashboard/admin/
+      • Employee       → /dashboard/employee/
+─────────────────────────────────────────────────────────────────────────────
+"""
+
 import logging
 
 from django.contrib import messages
@@ -8,7 +23,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from activity_log.models import ActivityLog
+from .models import ActivityLog  # Imported for audit logging
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +51,7 @@ def _log_activity(user, action: str, description: str, request=None):
             action=action,
             description=description,
             ip_address=_get_client_ip(request) if request else None,
-            date_created=timezone.now(),
+            timestamp=timezone.now(),
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning("ActivityLog write failed: %s", exc)
@@ -187,3 +202,119 @@ def register_view(request):
         return redirect("security:register")
 
     return render(request, "security/register.html", {"form": form}, status=400)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Account Recovery / Forgot Password View
+# ─────────────────────────────────────────────────────────────────────────────
+
+@require_http_methods(["GET", "POST"])
+def forgot_password_view(request):
+    """
+    Handles the 4-step account recovery process.
+    Step 1: Employee requests reset (Enter username)
+    Step 2: Pending admin approval screen
+    Step 3: Employee verifies 16-character recovery key
+    Step 4: Employee sets new password
+    """
+    from django.contrib.auth import get_user_model
+    # We import EmployeeProfile locally to prevent circular imports, 
+    # assuming you add this to your models.py!
+    from .models import EmployeeProfile 
+
+    User = get_user_model()
+    
+    # Default state
+    context = {'step': 'request'} 
+    
+    # Check if the user is already in the middle of the recovery process via sessions
+    current_username = request.session.get('reset_username', None)
+
+    if current_username:
+        try:
+            profile = EmployeeProfile.objects.get(user__username=current_username)
+            if profile.reset_approved_by_admin:
+                context['step'] = 'verify_key'
+            elif profile.reset_requested:
+                context['step'] = 'pending_approval'
+        except EmployeeProfile.DoesNotExist:
+            request.session.pop('reset_username', None)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        # ── FLOW 1: Request Reset ──────────────────────────────────────────
+        if action == "request_reset":
+            username = request.POST.get("username", "").strip()
+            
+            try:
+                user = User.objects.get(username=username)
+                profile, created = EmployeeProfile.objects.get_or_create(user=user)
+                
+                profile.reset_requested = True
+                profile.save()
+                
+                request.session['reset_username'] = username
+                
+                # Log the request
+                _log_activity(
+                    user=user,
+                    action="PASSWORD_RESET_REQUEST",
+                    description=f"User '{username}' requested a password reset.",
+                    request=request,
+                )
+                messages.success(request, "Your request has been forwarded to the Administrator.")
+                
+            except User.DoesNotExist:
+                # Security Best Practice: Don't reveal if a username exists or not
+                messages.success(request, "If that username exists, a request has been forwarded to the Administrator.")
+            
+            return redirect("security:forgot_password") # Adjust namespace if needed
+
+        # ── FLOW 2: Verify Recovery Key ────────────────────────────────────
+        elif action == "verify_key":
+            input_key = request.POST.get("recovery_key", "").strip()
+            profile = EmployeeProfile.objects.get(user__username=current_username)
+
+            if input_key == profile.recovery_key:
+                context['step'] = 'set_new_password'
+                messages.success(request, "Key verified! You may now create a new password.")
+            else:
+                messages.error(request, "Invalid Recovery Key. Please check your spelling and try again.")
+                context['step'] = 'verify_key'
+
+        # ── FLOW 3: Set New Password ───────────────────────────────────────
+        elif action == "set_password":
+            new_password = request.POST.get("new_password")
+            confirm_password = request.POST.get("confirm_password")
+
+            if new_password and new_password == confirm_password:
+                user = User.objects.get(username=current_username)
+                
+                # set_password() routes through Django's bcrypt hasher securely
+                user.set_password(new_password)
+                user.save()
+
+                # Reset the profile flags
+                profile = EmployeeProfile.objects.get(user=user)
+                profile.reset_requested = False
+                profile.reset_approved_by_admin = False
+                profile.save()
+
+                # Audit logging
+                _log_activity(
+                    user=user,
+                    action="PASSWORD_CHANGED",
+                    description=f"User '{user.username}' successfully reset their password via recovery key.",
+                    request=request,
+                )
+
+                # Clear session data
+                request.session.pop('reset_username', None)
+                
+                messages.success(request, "Password successfully updated. You may now log in.")
+                return redirect("security:login")
+            else:
+                messages.error(request, "Passwords do not match. Please try again.")
+                context['step'] = 'set_new_password'
+
+    return render(request, "security/forgot_password.html", context)
