@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 
 urlpatterns = [
-    path('',            lambda r: redirect('admin:index')),
+    path('',            lambda r: redirect('security:login')),
     path('admin/',      admin.site.urls),
     path('auth/',       include('security.urls',             namespace='auth')),
     path('inventory/',  include('inventory.urls',            namespace='inventory')),

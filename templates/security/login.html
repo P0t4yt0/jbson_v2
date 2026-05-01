@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In - JBSON Hardware</title>
+    
+    <!-- Importing Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Reset & Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(172deg, #FFFFFF 53%, #FDF0F2 53%);
+            position: relative;
+            overflow: hidden; 
+            color: #4A5568;
+            min-height: 100vh;       /* Tells the body to take up 100% of the screen height */
+        }
+
+        /* --- Background Geometric Accents --- */
+        .bg-shape-left {
+            position: absolute;
+            left: -5vw;
+            top: 55%;
+            width: 30vw;
+            height: 35px;
+            background-color: #851618;
+            transform: rotate(-8deg);
+            z-index: 0;
+        }
+        .bg-shape-left::before {
+            content: '';
+            position: absolute;
+            top: -25px;
+            left: 10%;
+            width: 80%;
+            height: 35px;
+            background-color: #851618;
+        }
+        .bg-shape-left::after {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 20%;
+            width: 90%;
+            height: 35px;
+            background-color: #851618;
+        }
+
+        .bg-shape-right {
+            position: absolute;
+            right: -5vw;
+            top: 45%;
+            width: 35vw;
+            height: 60px;
+            background-color: #0A192F;
+            transform: rotate(-8deg);
+            z-index: 0;
+        }
+
+        /* --- Header / Logo Section --- */
+
+        .header-logo {
+   
+            text-align: center;
+    
+            margin-bottom: 30px;
+            z-index: 10;
+            display: flex;
+    
+            justify-content: center; /* This ensures the image stays perfectly centered */
+        }
+
+        .logo-image {
+            max-width: 250px; /* Adjust this number to make the logo larger or smaller */
+            height: auto;
+        }
+        
+        .hardhat-icon {
+            position: absolute;
+            top: -12px;
+            left: 12px;
+            width: 20px;
+            fill: #E8751A; 
+        }
+
+        /* --- Login Card Container --- */
+        .card {
+            background-color: #FFFFFF;
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            z-index: 10;
+        }
+
+        .card-header {
+            margin-bottom: 24px;
+        }
+        .card-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1A202C;
+            margin-bottom: 8px;
+        }
+        .card-header p {
+            font-size: 12px;
+            color: #A0AEC0;
+            font-weight: 400;
+        }
+
+        /* --- Django Error Messages Logic --- */
+        .error-message {
+            background-color: #FDF0F2; /* Soft pink matching the background */
+            color: #851618; /* Maroon accent */
+            border: 1px solid #DD5A43; /* Orange-red border */
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4A5568;
+            margin-bottom: 6px;
+        }
+        .required-asterisk {
+            color: #DD5A43;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 40px 12px 14px; 
+            font-size: 13px;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            outline: none;
+            color: #1A202C;
+            transition: border-color 0.2s ease;
+        }
+        .form-control::placeholder {
+            color: #A0AEC0;
+        }
+        .form-control:focus {
+            border-color: #851618;
+        }
+        
+        .input-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #A0AEC0;
+            pointer-events: none; 
+        }
+        .password-toggle {
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        /* Form Options */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 12px;
+        }
+        .remember-wrapper {
+            display: flex;
+            align-items: center;
+            color: #A0AEC0;
+            cursor: pointer;
+        }
+        .remember-wrapper input[type="checkbox"] {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #E2E8F0;
+            border-radius: 3px;
+            margin-right: 8px;
+            cursor: pointer;
+            position: relative;
+            background-color: #FFFFFF;
+        }
+        .remember-wrapper input[type="checkbox"]:checked {
+            background-color: #851618;
+            border-color: #851618;
+        }
+        .remember-wrapper input[type="checkbox"]:checked::after {
+            content: '✔';
+            color: white;
+            position: absolute;
+            font-size: 10px;
+            left: 2px;
+            top: 0px;
+        }
+        .forgot-link {
+            color: #DD5A43;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .forgot-link:hover {
+            opacity: 0.8;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #851618;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 24px;
+        }
+        .btn-submit:hover {
+            background-color: #6a1112;
+        }
+
+        /* Footer Link */
+        .card-footer {
+            text-align: left;
+            font-size: 12px;
+            color: #A0AEC0;
+        }
+        .card-footer a {
+            color: #4A5568;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .card-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .card {
+             margin: 0 15px;      /* Slightly reduced margin so it fits better */
+             padding: 25px 15px;  /* Slightly reduced padding */
+            }
+    
+            .header-logo .logo-image {
+             max-width: 10px; /* Adjust this number if you want the logo bigger/smaller on phones */
+            }
+            .header-logo h1 {
+                font-size: 28px;
+            }
+            .header-logo h2 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Accents -->
+    <div class="bg-shape-left"></div>
+    <div class="bg-shape-right"></div>
+
+    <!-- Logo Section -->
+    <div class="header-logo">
+    <img 
+        src="{% static 'images/jbson-logo.png' %}" 
+        alt="JbSon Hardware and Construction Supplies"
+        class="logo-image">
+    </div>
+
+    <!-- Login Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Log In</h3>
+            <p>Access the JBSON Hardware panel using your email and passcode.</p>
+        </div>
+
+        <!-- DJANGO LOGIC INJECTED HERE -->
+        {% if messages %}
+            <div class="error-message">
+                {% for message in messages %}
+                    {{ message }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Working Form Structure -->
+        <form method="POST" action="">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="username">Username <span class="required-asterisk">*</span></label>
+                <div class="input-wrapper">
+                    <input type="text" id="username" name="username" class="form-control" required autocomplete="username">
+                    <!-- Mail Icon SVG -->
+                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password <span class="required-asterisk">*</span></label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                    <!-- Eye Slash Icon SVG -->
+                    <svg class="input-icon password-toggle" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-wrapper">
+                    <input type="checkbox" name="remember_me">
+                    Remember Me
+                </label>
+                <a href="{% url 'security:forgot_password' %}" class="forgot-link">Forgot Password?</a>            
+            </div>
+
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+    </div>
+
+</body>
+</html>
