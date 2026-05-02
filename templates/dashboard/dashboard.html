@@ -404,8 +404,12 @@
 
     <!-- Fixed Left Sidebar -->
     <aside class="sidebar">
-        <div class="logo-container">
-            <div class="logo-text">JBSON HARDWARE<br><span style="font-size: 16px;">AND CONSTRUCTION SUPPLIES</span></div>
+        <div class="logo-container" style="display: flex; justify-content: center; align-items: center; padding: 20px;">
+            <a href="/">
+            <img src="{% static 'images/jbson-logo.png' %}" 
+                alt="JBSON Hardware Logo" 
+                style="max-width: 100%; height: auto; max-height: 80px; object-fit: contain;">
+         </a>
         </div>
 
         <a href="#" class="nav-item active">
@@ -476,9 +480,16 @@
                     </button>
                     <!-- Sample Dropdown -->
                     <div class="dropdown-menu" id="notif-menu">
-                        <div class="dropdown-item"><strong>Low Stock Alert:</strong> BOYSEN Paint (8 left)</div>
-                        <div class="dropdown-item"><strong>System:</strong> Daily backup successful.</div>
+                     {% if notifications %}
+                        {% for notif in notifications %}
+                    <div class="dropdown-item">
+                        <strong>{{ notif.created_at|timesince }} ago:</strong> {{ notif.message }}
                     </div>
+                        {% endfor %}
+                        {% else %}
+                <div class="dropdown-item text-secondary">No new activity logs.</div>
+                     {% endif %}
+                </div>
                 </div>
 
                 <button class="icon-btn"><i class="ph ph-gear"></i></button>
