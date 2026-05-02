@@ -139,6 +139,18 @@
             border-radius: 6px;
         }
 
+        .success-message { 
+            background-color: #F0FDF4; 
+            color: #166534; 
+            border: 1px solid #22C55E; 
+            font-size: 13px; 
+            font-weight: 500; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            padding: 10px; 
+            border-radius: 6px; 
+        }
+
         /* --- Form Elements --- */
         .form-group {
             margin-bottom: 20px;
@@ -311,11 +323,12 @@
 
         <!-- DJANGO LOGIC INJECTED HERE -->
         {% if messages %}
-            <div class="error-message">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
+            {% for message in messages %}
+                <!-- Dito natin chine-check kung 'success' ba yung message o 'error' -->
+                <div class="{% if message.tags == 'success' %}success-message{% else %}error-message{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
         {% endif %}
 
         <!-- Working Form Structure -->

@@ -24,7 +24,22 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 ROOT_URLCONF = 'jbson_pms.urls'
-TEMPLATES = [{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.debug','django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages']}}]
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'security.context_processors.admin_notifications', 
+            ],
+        },
+    },
+]
 WSGI_APPLICATION = 'jbson_pms.wsgi.application'
 
 DATABASES = {
@@ -32,7 +47,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'jbson_dev',               # Matches your DBeaver database name
         'USER': 'root',                   # Change to 'root' unless you made a specific 'jbson_user'
-        'PASSWORD': 'January152005', # Put your MySQL Workbench/DBeaver password here
+        'PASSWORD': 'july122005', # Put your MySQL Workbench/DBeaver password here
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
