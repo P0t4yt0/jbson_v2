@@ -359,6 +359,23 @@
             color: var(--text-primary);
         }
 
+        .logout-form {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+            color:var(--primary-red);
+        }
+
         .view-all {
             font-size: 13px;
             color: var(--text-secondary);
@@ -452,7 +469,12 @@
         <!-- NEW CATEGORY: SETTINGS -->
         <div class="nav-category">Settings</div>
         <a href="#" class="nav-item"><i class="ph ph-gear"></i> General Settings</a>
-        <a href="#" class="nav-item"><i class="ph ph-sign-out"></i> Logout</a>
+        <form action="{% url 'security:logout' %}" method="POST" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="nav-item btn-logout">
+                <i class="ph ph-sign-out"></i> Logout
+            </button>
+        </form>
     </aside>
 
     <!-- Main Wrapper -->
