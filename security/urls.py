@@ -19,7 +19,7 @@ from django.urls import path
 
 from . import views
 
-app_name = "security"  # namespace for {% url 'security:login' %} etc.
+app_name = 'security'
 
 urlpatterns = [
     # ── Authentication ───────────────────────────────────────────────────────

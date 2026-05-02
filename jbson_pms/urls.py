@@ -3,12 +3,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from django.views.generic import TemplateView
+from activity_log import views
 
 urlpatterns = [
     path('',            lambda r: redirect('security:login')),
-    path('admin/',      admin.site.urls),
-    path('auth/',       include('security.urls',             namespace='auth')),
-    path('inventory/',  include('inventory.urls',            namespace='inventory')),
+    path('auth/', include('security.urls')),
+    path('dashboard/admin/', TemplateView.as_view(template_name='dashboard/dashboard.html'), name='admin_dashboard'),
+    path('inventory/', include('inventory.urls', namespace='inventory')),
     path('products/',   include('product_registration.urls', namespace='products')),
     path('pos/',        include('point_of_sale.urls',        namespace='pos')),
     path('billing/',    include('billing_payment.urls',      namespace='billing')),
