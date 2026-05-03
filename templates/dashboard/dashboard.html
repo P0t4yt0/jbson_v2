@@ -751,6 +751,36 @@
         }
     });
 </script>
+
+<script>
+    function updateDashboardDate() {
+        const dateElement = document.getElementById('current-date-range');
+        
+        // Safety check: only run if the element exists on this page
+        if (dateElement) {
+            const now = new Date();
+            
+            // Calculate current week (Sunday to Saturday)
+            const first = now.getDate() - now.getDay(); 
+            const last = first + 6; 
+
+            const firstDay = new Date(new Date().setDate(first));
+            const lastDay = new Date(new Date().setDate(last));
+
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            
+            const startString = firstDay.toLocaleDateString('en-GB', options);
+            const endString = lastDay.toLocaleDateString('en-GB', options);
+
+            dateElement.innerText = `${startString} - ${endString}`;
+        }
+    }
+
+    // This ensures the script runs only after the full page is ready
+    document.addEventListener("DOMContentLoaded", function() {
+        updateDashboardDate();
+    });
+</script>
 </body>
 </html>
 
