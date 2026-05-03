@@ -13,6 +13,9 @@
     
     <!-- Pinasok ko ang Phosphor Icons para gumana yung classes na ph-eye at ph-eye-closed -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Include SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         /* CSS Reset & Global Styles */
@@ -77,7 +80,6 @@
         }
 
         /* --- Header / Logo Section --- */
-
         .header-logo {
             text-align: center;
             margin-bottom: 30px;
@@ -115,31 +117,6 @@
             font-size: 12px;
             color: #A0AEC0;
             font-weight: 400;
-        }
-
-        /* --- Django Error Messages Logic --- */
-        .error-message {
-            background-color: #FDF0F2; 
-            color: #851618; 
-            border: 1px solid #DD5A43; 
-            font-size: 13px;
-            font-weight: 500;
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 6px;
-        }
-
-        .success-message { 
-            background-color: #F0FDF4; 
-            color: #166534; 
-            border: 1px solid #22C55E; 
-            font-size: 13px; 
-            font-weight: 500; 
-            text-align: center; 
-            margin-bottom: 20px; 
-            padding: 10px; 
-            border-radius: 6px; 
         }
 
         /* --- Form Elements --- */
@@ -183,7 +160,7 @@
             right: 14px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 18px; /* Tinalakay ko yung size para sumakto */
+            font-size: 18px; 
             color: #A0AEC0;
         }
         .password-toggle {
@@ -290,15 +267,6 @@
             <p>Access the JBSON Hardware panel using your email and passcode.</p>
         </div>
 
-        <!-- DJANGO LOGIC INJECTED HERE -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="{% if message.tags == 'success' %}success-message{% else %}error-message{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
         <!-- Working Form Structure -->
         <form method="POST" action="">
             {% csrf_token %}
@@ -307,15 +275,14 @@
                 <label for="username">Username <span class="required-asterisk">*</span></label>
                 <div class="input-wrapper">
                     <input type="text" id="username" name="username" class="form-control" required autocomplete="username">
-                    <!-- Naka-keep yung SVG para sa username (kung gusto mo rin palitan to Phosphor, ok lang) -->
-                        <i class="ph ph-envelope input-icon" style="pointer-events: none;"></i>                </div>
+                    <i class="ph ph-envelope input-icon" style="pointer-events: none;"></i>                
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="password">Password <span class="required-asterisk">*</span></label>
                 <div class="input-wrapper">
                     <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
-                    <!-- Pinalitan yung SVG ng tag ng Phosphor icon at nilagyan ng onclick -->
                     <i class="ph ph-eye-closed input-icon password-toggle" onclick="togglePassword('password', this)"></i>
                 </div>
             </div>
@@ -325,12 +292,29 @@
                     <input type="checkbox" name="remember_me">
                     Remember Me
                 </label>
-                    <a href="{% url 'security:forgot_password' %}" class="forgot-link">Forgot Password?</a>        
+                <a href="{% url 'security:forgot_password' %}" class="forgot-link">Forgot Password?</a>        
             </div>
 
             <button type="submit" class="btn-submit">Sign In</button>
         </form>
     </div>
+
+    <!-- SweetAlert Trigger for Django Messages -->
+    {% if messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                {% for message in messages %}
+                    Swal.fire({
+                        // Kung error ang tag, magiging 'error' yung icon. Kung iba, 'success'.
+                        icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
+                        title: "{% if message.tags == 'error' %}Login Failed{% else %}Success!{% endif %}",
+                        text: "{{ message|escapejs }}",
+                        confirmButtonColor: "#851618"
+                    });
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
 
     <!-- JavaScript for Toggle Password -->
     <script>
@@ -338,12 +322,10 @@
             const input = document.getElementById(inputId);
             if (input.type === "password") {
                 input.type = "text";
-                // Pag pinakita yung password, magiging nakamulat na mata
                 iconElement.classList.remove("ph-eye-closed");
                 iconElement.classList.add("ph-eye");
             } else {
                 input.type = "password";
-                // Pag tinago yung password, babalik sa nakapikit na mata
                 iconElement.classList.remove("ph-eye");
                 iconElement.classList.add("ph-eye-closed");
             }

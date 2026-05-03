@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Review Reset Requests - JBSON Hardware</title>
+    
+    <!-- Importing Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(172deg, #FFFFFF 53%, #FDF0F2 53%); position: relative; overflow: hidden; color: #4A5568; }
@@ -25,10 +31,6 @@
         .card-header { margin-bottom: 24px; text-align: center; }
         .card-header h3 { font-size: 24px; font-weight: 700; color: #1A202C; margin-bottom: 8px; }
         .card-header p { font-size: 13px; color: #A0AEC0; font-weight: 400; line-height: 1.5; }
-
-        .message-box { font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 20px; padding: 16px; border-radius: 6px; }
-        .message-success { background-color: #F0FDF4; color: #166534; border: 1px solid #22C55E; }
-        .message-error { background-color: #FDF0F2; color: #851618; border: 1px solid #DD5A43; }
 
         .request-list { display: flex; flex-direction: column; gap: 16px; }
         .request-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid #E2E8F0; border-radius: 8px; background: #F8F9FA; }
@@ -65,14 +67,6 @@
             <p>Review employee account recovery requests below.</p>
         </div>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message-box {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
         <div class="request-list">
             {% if pending_requests %}
                 {% for profile in pending_requests %}
@@ -82,17 +76,20 @@
                         <span>Role: {{ profile.user.get_role_display }}</span>
                     </div>
                     <div class="actions">
-                        <form method="POST" style="display:inline;">
+                        <!-- Approval Form -->
+                        <form method="POST" id="approve-form-{{ profile.id }}" style="display:inline;">
                             {% csrf_token %}
                             <input type="hidden" name="profile_id" value="{{ profile.id }}">
                             <input type="hidden" name="action" value="approve">
-                            <button type="submit" class="btn btn-approve">Approve</button>
+                            <button type="button" class="btn btn-approve" onclick="confirmAction('approve', '{{ profile.id }}', '{{ profile.user.username }}')">Approve</button>
                         </form>
-                        <form method="POST" style="display:inline;">
+                        
+                        <!-- Rejection Form -->
+                        <form method="POST" id="reject-form-{{ profile.id }}" style="display:inline;">
                             {% csrf_token %}
                             <input type="hidden" name="profile_id" value="{{ profile.id }}">
                             <input type="hidden" name="action" value="reject">
-                            <button type="submit" class="btn btn-reject">Reject</button>
+                            <button type="button" class="btn btn-reject" onclick="confirmAction('reject', '{{ profile.id }}', '{{ profile.user.username }}')">Reject</button>
                         </form>
                     </div>
                 </div>
@@ -106,6 +103,44 @@
 
         <div class="card-footer">
             <a href="/dashboard/admin/">&larr; Back to Dashboard</a>
+        </div>
     </div>
+
+    <!-- Django Messages to SweetAlert2 -->
+    {% if messages %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            {% for message in messages %}
+                Swal.fire({
+                    icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
+                    title: "{% if message.tags == 'error' %}Oops...{% else %}Success!{% endif %}",
+                    text: "{{ message|escapejs }}",
+                    confirmButtonColor: "#851618"
+                });
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+
+    <!-- Script for Confirmation Dialogs -->
+    <script>
+        function confirmAction(action, id, username) {
+            const isApprove = action === 'approve';
+            
+            Swal.fire({
+                title: isApprove ? 'Approve Request?' : 'Reject Request?',
+                text: `Are you sure you want to ${action} the password reset for ${username}?`,
+                icon: isApprove ? 'question' : 'warning',
+                showCancelButton: true,
+                confirmButtonColor: isApprove ? '#166534' : '#851618',
+                cancelButtonColor: '#A0AEC0',
+                confirmButtonText: isApprove ? 'Yes, Approve' : 'Yes, Reject'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`${action}-form-${id}`).submit();
+                }
+            });
+        }
+    </script>
 </body>
 </html>

@@ -177,9 +177,6 @@ def register_view(request):
 
 @require_http_methods(["GET", "POST"])
 def forgot_password_view(request):
-    """
-    Handles the 4-step account recovery process.
-    """
     context = {'step': 'request'} 
     current_username = request.session.get('reset_username', None)
 
@@ -187,16 +184,26 @@ def forgot_password_view(request):
         try:
             profile = EmployeeProfile.objects.get(user__username=current_username)
             
-            # STATE CHECKING (Na-update para sa seamless redirecting)
+            # Kuhanin ang "check" parameter mula sa URL
+            check_mode = request.GET.get('check') == 'status'
+
             if request.session.get('key_verified'):
                 context['step'] = 'set_new_password'
+            
             elif profile.reset_approved_by_admin:
                 context['step'] = 'verify_key'
+                # Kung galing sa button click, ipakita ang SUCCESS
+                if check_mode:
+                    messages.success(request, "Success! Request approved. Please enter the Recovery Key from your Admin.")
+            
             elif profile.reset_requested:
                 context['step'] = 'pending_approval'
+                # Kung galing sa button click, ipakita ang PENDING error
+                if check_mode:
+                    messages.error(request, "Your request is still pending. Please contact your Admin for approval.")
+                    
         except EmployeeProfile.DoesNotExist:
             request.session.pop('reset_username', None)
-            request.session.pop('key_verified', None)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -308,7 +315,7 @@ def admin_review_resets_view(request):
                 
                 messages.success(
                     request, 
-                    f"✅ APPROVED: Securely share this Recovery Key with {profile.user.username}: {profile.recovery_key}"
+                    f"Securely share this Recovery Key with {profile.user.username}: {profile.recovery_key}"
                 )
                 
                 _log_activity(
@@ -323,7 +330,7 @@ def admin_review_resets_view(request):
                 profile.reset_approved_by_admin = False
                 profile.save()
                 
-                messages.error(request, f"❌ REJECTED: Reset request for {profile.user.username} was denied.")
+                messages.error(request, f"Reset request for {profile.user.username} was denied.")
                 
         except EmployeeProfile.DoesNotExist:
             messages.error(request, "Employee profile not found.")
