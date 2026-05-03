@@ -84,7 +84,7 @@
             <!-- Price -->
             <div style="margin-bottom: 30px;">
                 <label style="display: block; font-size: 13px; margin-bottom: 8px;">Price <span style="color: red;">*</span></label>
-                <input type="number" step="0.01" name="price" value="{{ item.price }}" required 
+                <input type="number" step="0.01" name="price" min="0" value="{{ item.price }}" required 
                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none;">
             </div>
             
@@ -233,6 +233,12 @@ function submitNewSupplier() {
         } else {
             alert("Error: " + data.message);
         }
+    
+        document.getElementById('productPrice').addEventListener('input', function() {
+    if (this.value < 0) {
+        this.value = 0;
+    }
+    
     });
 }
 </script>
