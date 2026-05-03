@@ -6,29 +6,33 @@ ABC logic: items sorted by value (price × qty), cumulative % determines class.
   B = 70-90%   (mid-value)
   C = 90-100%  (low-value)
 """
+import re
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
 
 class Category(models.Model):
-    """Product categories (e.g. Paint, Cement, Tools, Fasteners)."""
-    name        = models.CharField(max_length=100, unique=True)
+    """Product categories with prefix for ID generation."""
+    name = models.CharField(max_length=100, unique=True)
+    # New Field: Prefix (e.g., PT, CM, TL)
+    prefix = models.CharField(max_length=5, unique=True, help_text="2-5 letter code for IDs")
     description = models.TextField(blank=True)
-    created_at  = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table  = 'categories'
-        ordering  = ['name']
+        db_table = 'categories'
+        ordering = ['name']
         verbose_name_plural = 'Categories'
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.prefix})"
 
 
 class Supplier(models.Model):
     """Supplier / vendor information."""
-    name         = models.CharField(max_length=150)
+    supplier_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    name = models.CharField(max_length=100)
     contact_name = models.CharField(max_length=100, blank=True)
     phone        = models.CharField(max_length=20, blank=True)
     email        = models.EmailField(blank=True)
@@ -46,8 +50,7 @@ class Supplier(models.Model):
 class InventoryItem(models.Model):
     """
     Core inventory record.
-    Each item has a barcode (scanned or system-generated 1D),
-    ABC classification, and real-time stock tracking.
+    Automated product_id generation based on Category prefix.
     """
     ABC_CHOICES = [
         ('A', 'Class A — High Value'),
@@ -57,7 +60,8 @@ class InventoryItem(models.Model):
     ]
 
     # ── Identity ───────────────────────────────────────────────────────────
-    product_id   = models.CharField(max_length=20, unique=True)    # e.g. PT001
+    # Set editable=False because the system generates this automatically
+    product_id   = models.CharField(max_length=20, unique=True, editable=False) 
     item_name    = models.CharField(max_length=200)
     category     = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='items')
     supplier     = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True, related_name='items')
@@ -65,13 +69,13 @@ class InventoryItem(models.Model):
 
     # ── Barcode ────────────────────────────────────────────────────────────
     barcode_id         = models.CharField(max_length=50, unique=True)
-    barcode_generated  = models.BooleanField(default=False)  # True = system-generated 1D
-    barcode_image      = models.ImageField(upload_to='barcodes/', blank=True, null=True)
+    barcode_generated  = models.BooleanField(default=False)
+    barcode_image       = models.ImageField(upload_to='barcodes/', blank=True, null=True)
 
     # ── Pricing & Stock ────────────────────────────────────────────────────
     price        = models.DecimalField(max_digits=10, decimal_places=2)
     quantity     = models.PositiveIntegerField(default=0)
-    min_stock    = models.PositiveIntegerField(default=10)   # Low-stock threshold
+    min_stock    = models.PositiveIntegerField(default=10)
 
     # ── ABC Classification ─────────────────────────────────────────────────
     abc_classification = models.CharField(max_length=1, choices=ABC_CHOICES, default='U')
@@ -97,13 +101,36 @@ class InventoryItem(models.Model):
     def __str__(self):
         return f'[{self.product_id}] {self.item_name}'
 
+    def save(self, *args, **kwargs):
+        """Automates the generation of category-based Product IDs[cite: 1]"""
+        if not self.product_id:
+            # 1. Get Prefix from the chosen Category
+            prefix = self.category.prefix.upper()
+            
+            # 2. Look for the latest item in this specific category[cite: 1]
+            last_item = InventoryItem.objects.filter(category=self.category).order_by('id').last()
+            
+            if not last_item:
+                new_no = 1
+            else:
+                # 3. Extract the numeric part of the ID (e.g., PT015 -> 15)[cite: 1]
+                numeric_matches = re.findall(r'\d+', last_item.product_id)
+                if numeric_matches:
+                    new_no = int(numeric_matches[-1]) + 1
+                else:
+                    new_no = 1
+
+            # 4. Final Format: Prefix + 3-digit number (e.g., PT001)[cite: 1]
+            self.product_id = f"{prefix}{new_no:03d}"
+            
+        super().save(*args, **kwargs)
+
     @property
     def is_low_stock(self):
         return self.quantity <= self.min_stock
 
     @property
     def stock_value(self):
-        """Total value of stock on hand (price × quantity)."""
         return self.price * self.quantity
 
     @property
