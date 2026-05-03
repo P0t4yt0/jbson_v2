@@ -1,0 +1,242 @@
+{% extends 'dashboard/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Overlay to dim the background dashboard -->
+<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+    
+    <!-- Modal Window -->
+    <div style="background: white; width: 600px; border-radius: 15px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;">
+        
+        <form method="POST" action="{% url 'inventory:create_product' %}">
+            {% csrf_token %}
+            
+            <!-- Product Name & ID Row -->
+            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 13px; margin-bottom: 8px;">Product Name <span style="color: red;">*</span></label>
+                    <input type="text" name="item_name" value="{{ item.item_name }} " required placeholder="Enter product name" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none;">
+                </div>
+                <div style="flex: 1;">
+    <label style="font-size: 13px;">Product ID</label>
+    <!-- We added value="{{ item.product_id }}" -->
+    <input type="text" 
+           name="product_id"
+           value="{{ item.product_id|default:'' }}" 
+           placeholder="Auto-generated" 
+           readonly 
+           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9; cursor: not-allowed;">
+</div>
+            </div>
+
+            <!-- Category & Qty Row -->
+            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-size: 13px;">Category <span style="color: red;">*</span></label>
+                        <a href="javascript:void(0)" onclick="openCatModal()" style="color: #2f855a; font-size: 12px; text-decoration: none; font-weight: 600;">+ Add New</a>
+                    </div>
+                    <select name="category" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: white;">
+                        <option value="">Select</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if item.category.id == cat.id %}selected{% endif %}>
+                        {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 13px; margin-bottom: 8px;">Qty</label>
+                    <input type="number" name="quantity" value="{{ item.quantity|default:'0' }}" min="0" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none;">
+                </div>
+            </div>
+
+
+<!-- Supplier Row -->
+<div style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <label style="font-size: 13px;">Supplier</label>
+    <!-- Make sure this says openSupModal() exactly -->
+    <a href="javascript:void(0)" onclick="openSupModal()" style="color: #2f855a; text-decoration: none; font-size: 12px; font-weight: 700;">+ Add New</a>
+</div>
+    <select name="supplier" id="supplierSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: white; outline: none;">
+        <option value="">Select Supplier</option>
+        {% for sup in suppliers %}
+        <option value="{{ sup.id }}" {% if item.supplier.id == sup.id %}selected{% endif %}>
+            {{ sup.name }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+            <!-- Barcode ID -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 13px; margin-bottom: 8px;">Barcode ID <span style="color: red;">*</span></label>
+                <div style="display: flex; gap: 0;">
+                    <input type="text" name="barcode_id" value="{{ item.barcode_id }}" required 
+                           style="flex: 1; padding: 10px; border: 1px solid #ddd; border-top-right-radius: 0; border-bottom-right-radius: 0; border-radius: 6px; outline: none;">
+                    <button type="button" style="background: #8B0000; color: white; border: none; padding: 0 15px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">SCAN</button>
+                </div>
+            </div>
+
+            <!-- Price -->
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; font-size: 13px; margin-bottom: 8px;">Price <span style="color: red;">*</span></label>
+                <input type="number" step="0.01" name="price" min="0" value="{{ item.price }}" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none;">
+            </div>
+            
+
+            <!-- Footer Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="submit" style="background: #8B0000; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                {% if item %}Update Product{% else %}Confirm{% endif %}
+                </button>
+                <a href="{% url 'inventory:inventory_list' %}" style="background: white; color: #333; border: 1px solid #ddd; padding: 10px 30px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center;">Cancel</a>
+            </div>
+        </form>
+
+        <!-- Quick Add Category Modal -->
+<div id="categoryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:25px; border-radius:12px; width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; font-size:18px;">New Category</h3>
+        
+        <label style="font-size:12px; display:block; margin-bottom:5px;">Category Name</label>
+        <input type="text" id="modal_cat_name" placeholder="e.g. Paints" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:15px;">
+        
+        <label style="font-size:12px; display:block; margin-bottom:5px;">Prefix (2-3 letters)</label>
+        <input type="text" id="modal_cat_prefix" placeholder="e.g. PN" maxlength="3" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:20px;">
+        
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" onclick="closeCatModal()" style="background:#eee; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Cancel</button>
+            <button type="button" onclick="submitNewCategory()" style="background:#8B0000; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Save</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Supplier Modal -->
+<div id="supModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:12px; width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; font-size:18px;">New Supplier</h3>
+        
+        <label style="font-size:12px; display:block; margin-bottom:5px;">Supplier ID (Auto-generated)</label>
+        <input type="text" id="newSupID" readonly style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:15px; background:#f9f9f9; cursor:not-allowed; outline:none;">
+        
+        <label style="font-size:12px; display:block; margin-bottom:5px;">Supplier Name</label>
+        <input type="text" id="newSupName" placeholder="e.g. ABC Hardware" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:20px; outline: none;">
+        
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button type="button" onclick="closeSupModal()" style="background:#eee; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:600;">Cancel</button>
+            <button type="button" onclick="submitNewSupplier()" style="background:#8B0000; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:600;">Save</button>
+        </div>
+    </div>
+</div>
+
+</div>
+
+    </div>
+</div>
+
+<script>
+// --- CATEGORY FUNCTIONS ---
+function openCatModal() {
+    document.getElementById('categoryModal').style.display = 'flex';
+}
+
+function closeCatModal() {
+    document.getElementById('categoryModal').style.display = 'none';
+}
+
+function submitNewCategory() {
+    const name = document.getElementById('modal_cat_name').value;
+    const prefix = document.getElementById('modal_cat_prefix').value;
+
+    fetch("{% url 'inventory:add_category_ajax' %}", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}" 
+        },
+        body: JSON.stringify({ name: name, prefix: prefix })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            const select = document.querySelector('select[name="category"]');
+            const newOption = new Option(data.name, data.id);
+            select.add(newOption);
+            select.value = data.id;
+            closeCatModal();
+            document.getElementById('modal_cat_name').value = '';
+            document.getElementById('modal_cat_prefix').value = '';
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+} // <--- This was missing! It closes Category so Supplier can start.
+
+// --- SUPPLIER FUNCTIONS ---
+function openSupModal() {
+    // Generate a random 4-character string
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomPart = '';
+    for (let i = 0; i < 4; i++) {
+        randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    // Combine with a prefix
+    const generatedID = "SUP-" + randomPart;
+    
+    // Set the value into the input field
+    document.getElementById('newSupID').value = generatedID;
+    
+    // Show the modal
+    document.getElementById('supModal').style.display = 'flex';
+}
+
+function closeSupModal() {
+    document.getElementById('supModal').style.display = 'none';
+}
+
+function submitNewSupplier() {
+    const supID = document.getElementById('newSupID').value;
+    const name = document.getElementById('newSupName').value;
+
+    if (!supID || !name) {
+        alert("Please fill in both fields");
+        return;
+    }
+
+    fetch("{% url 'inventory:add_supplier_ajax' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ 
+            supplier_id: supID, 
+            name: name 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const select = document.getElementById('supplierSelect');
+            const option = new Option(data.name, data.id);
+            select.add(option);
+            select.value = data.id; 
+            closeSupModal();
+            document.getElementById('newSupID').value = '';
+            document.getElementById('newSupName').value = '';
+        } else {
+            alert("Error: " + data.message);
+        }
+    
+        
+    });
+}
+</script>
+
+{% endblock %}

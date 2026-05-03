@@ -21,12 +21,13 @@
             --status-green: #22C55E;
             --status-red: #EF4444;
             --status-yellow: #FACC15;
-            
+           
             /* Typography & Spacing */
             --font-family: 'Inter', 'Poppins', 'Roboto', sans-serif;
             --border-radius: 10px;
             --shadow-subtle: 0 1px 3px rgba(0,0,0,0.1);
         }
+
 
         * {
             margin: 0;
@@ -35,6 +36,7 @@
             font-family: var(--font-family);
         }
 
+
         body {
             background-color: var(--bg-main);
             color: var(--text-primary);
@@ -42,6 +44,7 @@
             height: 100vh;
             overflow: hidden;
         }
+
 
         /* --- Sidebar Navigation --- */
         .sidebar {
@@ -53,32 +56,38 @@
             padding: 20px 0;
             flex-shrink: 0;
             /* Add vertical scrolling */
-            overflow-y: auto; 
+            overflow-y: auto;
         }
+
 
         /* Custom Scrollbar specifically for the sidebar */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
 
+
         .sidebar::-webkit-scrollbar-track {
             background: transparent;
         }
+
 
         .sidebar::-webkit-scrollbar-thumb {
             background-color: #E5E7EB; /* Matches your subtle border color */
             border-radius: 10px;
         }
 
+
         .sidebar::-webkit-scrollbar-thumb:hover {
             background-color: #D1D5DB; /* Darkens slightly on hover */
         }
+
 
         .logo-container {
             padding: 0 24px 24px 24px;
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 20px;
         }
+
 
         .logo-text {
             font-family: 'Impact', sans-serif;
@@ -89,6 +98,7 @@
             letter-spacing: -0.5px;
         }
 
+
         .nav-category {
             font-size: 12px;
             color: var(--text-secondary);
@@ -97,6 +107,7 @@
             margin: 16px 24px 8px 24px;
             letter-spacing: 0.5px;
         }
+
 
         .nav-item {
             display: flex;
@@ -110,20 +121,24 @@
             cursor: pointer;
         }
 
+
         .nav-item i {
             margin-right: 12px;
             font-size: 20px;
         }
 
+
         .nav-item:hover {
             background-color: #f3f4f6;
         }
+
 
         .nav-item.active {
             background-color: var(--sidebar-active);
             color: var(--primary-red);
             border-right: 4px solid var(--primary-red);
         }
+
 
         /* --- Main Content Area --- */
         .main-wrapper {
@@ -132,6 +147,7 @@
             flex-direction: column;
             overflow: hidden;
         }
+
 
         /* --- Header --- */
         .top-header {
@@ -145,6 +161,7 @@
             flex-shrink: 0;
         }
 
+
         .search-bar {
             display: flex;
             align-items: center;
@@ -154,6 +171,7 @@
             padding: 8px 16px;
             width: 300px;
         }
+
 
         .search-bar input {
             border: none;
@@ -165,11 +183,13 @@
             color: var(--text-primary);
         }
 
+
         .header-actions {
             display: flex;
             align-items: center;
             gap: 16px;
         }
+
 
         .btn {
             display: flex;
@@ -184,17 +204,21 @@
             transition: opacity 0.2s;
         }
 
+
         .btn:hover { opacity: 0.9; }
+
 
         .btn-primary {
             background-color: var(--primary-red);
             color: #FFF;
         }
 
+
         .btn-secondary {
             background-color: var(--primary-navy);
             color: #FFF;
         }
+
 
         .icon-btn {
             background: transparent;
@@ -210,6 +234,7 @@
             font-size: 20px;
             position: relative;
         }
+
 
         /* Dropdown Alert */
         .dropdown-menu {
@@ -229,12 +254,14 @@
         .dropdown-item { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
 
+
         /* --- Scrollable Content Grid --- */
         .content-scroll {
             flex: 1;
             overflow-y: auto;
             padding: 32px;
         }
+
 
         .welcome-header {
             display: flex;
@@ -243,10 +270,12 @@
             margin-bottom: 24px;
         }
 
+
         .welcome-header h1 {
             font-size: 28px;
             font-weight: 700;
         }
+
 
         .date-filter {
             display: flex;
@@ -260,6 +289,7 @@
             color: var(--text-secondary);
         }
 
+
         /* Cards Layout */
         .metrics-grid {
             display: grid;
@@ -267,6 +297,7 @@
             gap: 15px;
             margin-bottom: 24px;
         }
+
 
         .metric-card {
             background-color: var(--bg-card);
@@ -280,8 +311,10 @@
             position: relative;
         }
 
+
         .metric-card.solid-red { background-color: var(--primary-red); color: white; border: none; }
         .metric-card.solid-navy { background-color: var(--primary-navy); color: white; border: none; }
+
 
         .card-icon-wrapper {
             width: 48px;
@@ -294,6 +327,7 @@
             background: rgba(255,255,255,0.1);
         }
 
+
         .metric-card:not(.solid-red):not(.solid-navy) .card-icon-wrapper {
             background: #F3F4F6;
             color: var(--text-secondary);
@@ -302,18 +336,21 @@
             right: 24px;
         }
 
+
         .card-label {
             font-size: 14px;
             font-weight: 400;
             opacity: 0.9;
         }
-        
+       
         .metric-card:not(.solid-red):not(.solid-navy) .card-label { color: var(--text-secondary); }
+
 
         .card-value {
             font-size: 24px;
             font-weight: 700;
         }
+
 
         .trend-badge {
             display: inline-flex;
@@ -326,8 +363,10 @@
             width: max-content;
         }
 
+
         .trend-badge.positive { color: var(--status-green); background: rgba(34, 197, 94, 0.1); }
         .trend-badge.negative { color: var(--status-red); background: rgba(239, 68, 68, 0.1); }
+
 
         /* Lower Grid (Charts & Tables) */
         .lower-grid {
@@ -335,6 +374,7 @@
             grid-template-columns: 2fr 1fr;
             gap: 24px;
         }
+
 
         .chart-card, .list-card {
             background: var(--bg-card);
@@ -344,12 +384,14 @@
             border: 1px solid var(--border-color);
         }
 
+
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
+
 
         .card-header h3 {
             display: flex;
@@ -359,11 +401,13 @@
             color: var(--text-primary);
         }
 
+
         .logout-form {
             width: 100%;
             margin: 0;
             padding: 0;
         }
+
 
         .btn-logout {
             background: transparent;
@@ -376,12 +420,14 @@
             color:var(--primary-red);
         }
 
+
         .view-all {
             font-size: 13px;
             color: var(--text-secondary);
             text-decoration: underline;
             cursor: pointer;
         }
+
 
         /* Low Stock List Items */
         .stock-item {
@@ -392,16 +438,20 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+
         .stock-item:last-child { border-bottom: none; }
+
 
         .item-info { display: flex; flex-direction: column; gap: 4px; }
         .item-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
         .item-id { font-size: 12px; color: var(--text-secondary); }
 
+
         .item-stock { text-align: right; }
         .stock-label { font-size: 12px; color: var(--text-secondary); display: block;}
         .stock-count { font-size: 14px; font-weight: 700; color: var(--status-green); }
         .stock-count.critical { color: var(--status-red); }
+
 
         /* Chart Placeholder styling */
         .chart-placeholder {
@@ -418,25 +468,28 @@
 </head>
 <body>
 
+
     <!-- Fixed Left Sidebar -->
     <aside class="sidebar">
         <div class="logo-container" style="display: flex; justify-content: center; align-items: center; padding: 5px;">
             <a href="/">
-            <img src="{% static 'images/jbson-logo.png' %}" 
-                alt="JBSON Hardware Logo" 
+            <img src="{% static 'images/jbson-logo.png' %}"
+                alt="JBSON Hardware Logo"
                 style="max-width: 100%; height: auto; max-height: 100px; object-fit: contain;">
          </a>
         </div>
+
 
         <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.path == '/dashboard/admin/' %}active{% endif %}">
             <i class="ph ph-squares-four"></i> Dashboard
         </a>
 
+
         <div class="nav-category">Inventory</div>
         <a href="{% url 'inventory:inventory_list' %}" class="nav-item">
     <i class="ph ph-package"></i> Products
 </a>
-        
+       
         <a href="{% url 'inventory:create_product' %}" class="nav-item">
     <i class="ph ph-plus-circle"></i> Create Product
 </a>
@@ -447,12 +500,13 @@
         <a href="#" class="nav-item"><i class="ph ph-barcode"></i> Scan Barcode</a>
         <a href="#" class="nav-item"><i class="ph ph-archive"></i> Manage Stock</a>
 
+
         <div class="nav-category">Sales</div>
         <a href="#" class="nav-item"><i class="ph ph-shopping-cart"></i> Sales</a>
         <a href="#" class="nav-item"><i class="ph ph-receipt"></i> Invoices</a>
         <a href="#" class="nav-item"><i class="ph ph-arrow-u-down-left"></i> Sales Return</a>
         <a href="#" class="nav-item"><i class="ph ph-monitor"></i> POS</a>
-        
+       
         <div class="nav-category">Reports and Analytics</div>
         <a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Sales Report</a>
         <a href="#" class="nav-item"><i class="ph ph-clock"></i> Purchase Report</a>
@@ -466,6 +520,7 @@
         <a href="#" class="nav-item"><i class="ph ph-scales"></i> Profit & Loss</a>
         <a href="#" class="nav-item"><i class="ph ph-book-open"></i> Annual Report</a>
 
+
         <!-- NEW CATEGORY: USER MANAGEMENT -->
         <div class="nav-category">User Management</div>
         <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
@@ -474,6 +529,7 @@
         <a href="#" class="nav-item"><i class="ph ph-list-checks"></i> Roles & Permissions</a>
         <a href="#" class="nav-item"><i class="ph ph-clock-counter-clockwise"></i> Activity Logs</a>
         <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
+
 
         <!-- NEW CATEGORY: SETTINGS -->
         <div class="nav-category">Settings</div>
@@ -488,9 +544,10 @@
         </form>
     </aside>
 
+
     <!-- Main Wrapper -->
     <main class="main-wrapper">
-        
+       
         <!-- Top Header Bar -->
         <header class="top-header">
             <div class="search-bar">
@@ -498,14 +555,15 @@
                 <input type="text" placeholder="Search...">
             </div>
 
+
             <div class="header-actions">
-                <button class="btn btn-primary" onclick="alert('Routing to: /inventory/product/add/')">
-                    <i class="ph ph-plus-circle"></i> Add Product
-                </button>
+                <a href="{% url 'inventory:create_product' %}" class="btn btn-primary" style="text-decoration: none;">
+    <i class="ph ph-plus-circle"></i> Add Product
+</a>
                 <button class="btn btn-secondary" onclick="alert('Routing to: /sales/pos/')">
                     <i class="ph ph-monitor"></i> POS
                 </button>
-                
+               
                 <div style="position: relative;">
                     <!-- BELL ICON NA MAY DYNAMIC BADGE -->
                     <button class="icon-btn" id="bell-btn">
@@ -516,10 +574,10 @@
                             </span>
                         {% endif %}
                     </button>
-                    
+                   
                     <!-- NOTIFICATION DROPDOWN MENU -->
                     <div class="dropdown-menu" id="notif-menu">
-                        
+                       
                         <!-- 1. DYNAMIC PASSWORD RESET REQUESTS (Ito 'yung bago) -->
                         {% if pending_resets %}
                             {% for profile in pending_resets %}
@@ -530,6 +588,7 @@
                             </div>
                             {% endfor %}
                         {% endif %}
+
 
                         <!-- 2. EXISTING ACTIVITY LOGS / NOTIFICATIONS -->
                         {% if notifications %}
@@ -542,9 +601,10 @@
                             <!-- Kung walang reset request AT walang activity logs -->
                             <div class="dropdown-item text-secondary">No new activity logs.</div>
                         {% endif %}
-                        
+                       
                     </div>
                 </div>
+
 
                 <button class="icon-btn"><a href="{% url 'settings_hub' %}">
                     <i class="ph ph-gear"></i>
@@ -554,152 +614,98 @@
             </div>
         </header>
 
-        
+
+       
         <!-- Scrollable Grid System -->
         <div class="content-scroll">
             {% block content %}
-            
+           
             <div class="welcome-header">
                 <h1>Welcome, Admin</h1>
                 <div class="date-filter">
-                    <i class="ph ph-calendar"></i>
-                    <span>01 Jan 2024 - 07 Jan 2024</span>
+                    <i class="ph ph-calendar"></i> 
+                    <span id="current-date-range">Loading date...</span>
                 </div>
             </div>
 
-            <!-- Top Level Metric Cards (Row 1 & 2) -->
+
+             <!-- Row 1: Primary Metrics (Dynamic) -->
             <div class="metrics-grid">
-                
-                <!-- Row 1: Solid Colors -->
                 <div class="metric-card solid-red">
-                    <div style="display: flex; gap: 16px; align-items: center;">
-                        <div class="card-icon-wrapper"><i class="ph ph-file-text"></i></div>
-                        <div>
-                            <span class="card-label">Total Sales</span>
-                            <div class="card-value">{{ metrics.total_sales }}</div>
-                        </div>
-                    </div>
-                    <span class="trend-badge positive" style="background: rgba(255,255,255,0.9); color: var(--status-green);">↑ +22%</span>
+                    <span class="card-label">Total Sales</span>
+                    <div class="card-value">₱{{ metrics.total_sales|default:"0.00" }}</div>
                 </div>
-
                 <div class="metric-card solid-navy">
-                    <div style="display: flex; gap: 16px; align-items: center;">
-                        <div class="card-icon-wrapper"><i class="ph ph-arrows-left-right"></i></div>
-                        <div>
-                            <span class="card-label">Total Sales Return</span>
-                            <div class="card-value">{{ metrics.total_sales_return }}</div>
-                        </div>
-                    </div>
-                    <span class="trend-badge negative" style="background: rgba(255,255,255,0.9); color: var(--status-red);">↓ -22%</span>
+                    <span class="card-label">Total Sales Return</span>
+                    <div class="card-value">₱{{ metrics.sales_return|default:"0.00" }}</div>
                 </div>
-
                 <div class="metric-card solid-red">
-                    <div style="display: flex; gap: 16px; align-items: center;">
-                        <div class="card-icon-wrapper"><i class="ph ph-package"></i></div>
-                        <div>
-                            <span class="card-label">Total Purchase</span>
-                            <div class="card-value">{{ metrics.total_purchase }}</div>
-                        </div>
-                    </div>
-                    <span class="trend-badge negative" style="background: rgba(255,255,255,0.9); color: var(--status-red);">↓ -22%</span>
+                    <span class="card-label">Total Purchase</span>
+                    <div class="card-value">₱{{ metrics.total_purchase|default:"0.00" }}</div>
                 </div>
-
                 <div class="metric-card solid-navy">
-                    <div style="display: flex; gap: 16px; align-items: center;">
-                        <div class="card-icon-wrapper"><i class="ph ph-shield-check"></i></div>
-                        <div>
-                            <span class="card-label">Total Purchase Return</span>
-                            <div class="card-value">{{ metrics.total_purchase_return }}</div>
-                        </div>
-                    </div>
-                    <span class="trend-badge negative" style="background: rgba(255,255,255,0.9); color: var(--status-red);">↓ -22%</span>
+                    <span class="card-label">Total Purchase Return</span>
+                    <div class="card-value">₱{{ metrics.purchase_return|default:"0.00" }}</div>
                 </div>
+            </div>
 
-                <!-- Row 2: Light Colors -->
+            <!-- Row 2: Secondary Metrics (Dynamic) -->
+            <div class="metrics-grid">
                 <div class="metric-card">
-                    <div class="card-icon-wrapper"><i class="ph ph-stack"></i></div>
                     <span class="card-label">Profit</span>
-                    <div class="card-value">{{ metrics.profit }}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                        <span class="trend-badge positive">↑ +35% <span style="color:var(--text-secondary); font-weight:400; background:none;">vs Last Month</span></span>
-                        <span class="view-all">View All</span>
-                    </div>
+                    <div class="card-value">₱{{ metrics.profit|default:"0.00" }}</div>
                 </div>
-
                 <div class="metric-card">
-                    <div class="card-icon-wrapper"><i class="ph ph-clock"></i></div>
                     <span class="card-label">Invoice Due</span>
-                    <div class="card-value">{{ metrics.invoice_due }}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                        <span class="trend-badge negative">↓ -19% <span style="color:var(--text-secondary); font-weight:400; background:none;">vs Last Month</span></span>
-                        <span class="view-all">View All</span>
-                    </div>
+                    <div class="card-value">₱{{ metrics.invoice_due|default:"0.00" }}</div>
                 </div>
-
                 <div class="metric-card">
-                    <div class="card-icon-wrapper"><i class="ph ph-coin-vertical"></i></div>
                     <span class="card-label">Total Expenses</span>
-                    <div class="card-value">{{ metrics.total_expenses }}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                        <span class="trend-badge positive">↑ +41% <span style="color:var(--text-secondary); font-weight:400; background:none;">vs Last Month</span></span>
-                        <span class="view-all">View All</span>
-                    </div>
+                    <div class="card-value">₱{{ metrics.expenses|default:"0.00" }}</div>
                 </div>
-
                 <div class="metric-card">
-                    <div class="card-icon-wrapper"><i class="ph ph-hash"></i></div>
-                    <span class="card-label">Total Payment Returns</span>
-                    <div class="card-value">{{ metrics.total_payment_returns }}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                        <span class="trend-badge negative">↓ -20% <span style="color:var(--text-secondary); font-weight:400; background:none;">vs Last Month</span></span>
-                        <span class="view-all">View All</span>
-                    </div>
+                    <span class="card-label">Payment Returns</span>
+                    <div class="card-value">₱{{ metrics.payment_return|default:"0.00" }}</div>
                 </div>
-
             </div>
 
-            <!-- Chart & Low Stock Section -->
+            <!-- Lower Grid: Charts & Stock (Dynamic) -->
             <div class="lower-grid">
-                <!-- Placeholder Chart Card -->
                 <div class="chart-card">
-                    <div class="card-header">
-                        <h3><i class="ph ph-chart-bar" style="color: var(--status-green); font-size: 20px;"></i> Sales & Purchase</h3>
-                        <div class="date-filter">1D | 1W | 1M | 3M | 6M | <strong style="color: var(--status-yellow)">1Y</strong></div>
-                    </div>
-                    <div class="chart-placeholder">
-                        <p>[ Render Dynamic Django/JS Bar Chart Here ]</p>
+                    <h3 style="margin-bottom:20px; font-size:16px;"><i class="ph ph-shopping-cart-simple"></i> Sales & Purchase</h3>
+                    <div style="height:300px; border:1px dashed #ddd; display:flex; align-items:center; justify-content:center; color:#999; border-radius: 8px;">
+                        [ Chart Placeholder ]
                     </div>
                 </div>
 
-                <!-- Low Stock Products Loop -->
                 <div class="list-card">
-                    <div class="card-header">
-                        <h3 style="color: var(--status-red);"><i class="ph ph-warning-circle"></i> Low Stock Products</h3>
-                        <span class="view-all">View All</span>
-                    </div>
-                    
-                    <div class="stock-list">
-                        {% for item in low_stock_products %}
-                        <div class="stock-item">
-                            <div class="item-info">
-                                <span class="item-name">{{ item.name }}</span>
-                                <span class="item-id">ID : {{ item.id }}</span>
-                            </div>
-                            <div class="item-stock">
-                                <span class="stock-label">Instock</span>
-                                <!-- Dynamically apply critical class if stock is below 15 -->
-                                <span class="stock-count {% if item.stock_count < 15 %}critical{% endif %}">
-                                    {% if item.stock_count < 10 %}0{% endif %}{{ item.stock_count }}
-                                </span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endblock content %}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 style="color:var(--status-red); font-size:16px;"><i class="ph ph-warning-circle"></i> Low Stock</h3>
+            <a href="{% url 'inventory:low_stock_view' %}" style="font-size:12px; color:var(--text-secondary); text-decoration:none;">View All</a>
         </div>
+
+        {% for item in low_stock_products %}
+        <div class="stock-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+            <div>
+                <strong style="font-size: 14px;">{{ item.item_name }}</strong><br>
+                <small style="color: var(--text-secondary);">ID: #{{ item.product_id }}</small>
+            </div>
+            <div style="text-align:right;">
+                <small style="color: var(--text-secondary);">Instock</small><br>
+                <span class="{% if item.quantity < 5 %}text-critical{% else %}text-normal{% endif %}" style="font-weight:700;">
+    {{ item.quantity }}
+</span>
+            </div>
+        </div>
+        {% empty %}
+        <p style="font-size: 13px; color: var(--text-secondary); padding: 20px 0; text-align: center;">No low stock items.</p>
+        {% endfor %}
+    </div> <!-- This properly closes list-card -->
+
+{% endblock %} <!-- Block ends here -->
+
     </main>
+
 
     <!-- Interactive Logic -->
     <script>
@@ -707,10 +713,12 @@
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');
 
+
         bellBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notifMenu.classList.toggle('show');
         });
+
 
         // Close dropdown when clicking outside
         window.addEventListener('click', () => {
@@ -720,19 +728,21 @@
         });
     </script>
 
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
         // Find the sidebar element using your existing class
             const sidebar = document.querySelector('.sidebar');
-        
+       
             if (sidebar) {
             // 1. When the page loads, check if we saved a scroll position
                 const savedScrollPosition = localStorage.getItem('sidebarScrollPos');
-            
+           
             // If we did, instantly scroll the sidebar to that exact pixel
                 if (savedScrollPosition !== null) {
                 sidebar.scrollTop = parseInt(savedScrollPosition, 10);
                 }
+
 
             // 2. Right before the user leaves the page, save the current scroll position
                 window.addEventListener('beforeunload', function() {
@@ -741,5 +751,36 @@
         }
     });
 </script>
+
+<script>
+    function updateDashboardDate() {
+        const dateElement = document.getElementById('current-date-range');
+        
+        // Safety check: only run if the element exists on this page
+        if (dateElement) {
+            const now = new Date();
+            
+            // Calculate current week (Sunday to Saturday)
+            const first = now.getDate() - now.getDay(); 
+            const last = first + 6; 
+
+            const firstDay = new Date(new Date().setDate(first));
+            const lastDay = new Date(new Date().setDate(last));
+
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            
+            const startString = firstDay.toLocaleDateString('en-GB', options);
+            const endString = lastDay.toLocaleDateString('en-GB', options);
+
+            dateElement.innerText = `${startString} - ${endString}`;
+        }
+    }
+
+    // This ensures the script runs only after the full page is ready
+    document.addEventListener("DOMContentLoaded", function() {
+        updateDashboardDate();
+    });
+</script>
 </body>
 </html>
+

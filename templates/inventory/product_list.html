@@ -1,0 +1,79 @@
+{% extends 'dashboard/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* CSS classes to fix the red squiggle errors in VS Code */
+    .stock-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; }
+    .stock-low { background: #fff5f5; color: #c53030; }
+    .stock-good { background: #f0fff4; color: #2f855a; }
+</style>
+
+<div class="main-content" style="padding: 20px; background-color: #f8f9fa; min-height: 100vh;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h1 style="font-size: 24px; font-weight: 700; margin: 0;">Products</h1>
+        <a href="{% url 'inventory:create_product' %}" style="background: #8B0000; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            + Add Product
+        </a>
+    </div>
+
+    <div style="background: white; border-radius: 10px; border: 1px solid #edf2f7; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
+                <tr>
+                    <th style="padding: 15px; width: 40px;"><input type="checkbox"></th>
+                    <th style="padding: 15px;">ID</th>
+                    <th style="padding: 15px;">Product Name</th>
+                    <th style="padding: 15px;">Category</th>
+                    <th style="padding: 15px;">Price</th>
+                    <th style="padding: 15px;">Barcode</th>
+                    <th style="padding: 15px;">Qty</th>
+                    <th style="padding: 15px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 15px;"><input type="checkbox"></td>
+                    <td style="padding: 15px; font-family: monospace;">{{ item.product_id }}</td>
+                    <td style="padding: 15px; font-weight: 600;">{{ item.item_name }}</td>
+                    <td style="padding: 15px;">{{ item.category.name }}</td>
+                    <td style="padding: 15px;">₱{{ item.price }}</td>
+                    <td style="padding: 15px;">{{ item.barcode_id }}</td>
+                    <td style="padding: 15px;">
+                        <span class="stock-badge {% if item.quantity <= item.min_stock %}stock-low{% else %}stock-good{% endif %}">
+                            {{ item.quantity }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                            
+                            <!-- UPDATED EDIT BUTTON -->
+                            <a href="{% url 'inventory:edit_product' item.pk %}" 
+                               style="border: 1px solid #ddd; background: white; padding: 5px; border-radius: 4px; cursor: pointer; text-decoration: none; display: flex; align-items: center;">
+                                <i class="ph ph-pencil" style="color: #333;"></i>
+                            </a>
+
+                            <!-- UPDATED DELETE BUTTON -->
+                            <form action="{% url 'inventory:delete_product' item.pk %}" method="POST" 
+                                  onsubmit="return confirm('Are you sure you want to delete {{ item.item_name }}?');" 
+                                  style="margin: 0; display: flex; align-items: center;">
+                                {% csrf_token %}
+                                <button type="submit" style="border: 1px solid #fed7d7; background: #fff5f5; color: #c53030; padding: 5px; border-radius: 4px; cursor: pointer; display: flex; align-items: center;">
+                                    <i class="ph ph-trash"></i>
+                                </button>
+                            </form>
+
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="padding: 40px; text-align: center; color: #999;">No products found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
