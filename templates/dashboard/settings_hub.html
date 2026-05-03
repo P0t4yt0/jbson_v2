@@ -1,0 +1,26 @@
+{% extends 'dashboard/dashboard.html' %} 
+<!-- ^ Change 'dashboard/base.html' to whatever file contains your sidebar/navbar -->
+
+{% block content %}
+<div style="padding: 30px;">
+    <h2 style="font-family: 'Oswald', sans-serif; color: #0A192F; font-size: 2rem; margin-bottom: 20px;">General Settings</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+        
+        <!-- Maintenance Card (Placeholder) -->
+        <a href="#" style="background: white; padding: 30px; border-radius: 10px; text-decoration: none; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; transition: 0.2s; text-align: center; display: block;">
+            <i class="ph ph-wrench" style="font-size: 3rem; color: #888; margin-bottom: 15px;"></i>
+            <h3 style="margin: 0; font-size: 1.2rem; color: #0A192F;">System Maintenance</h3>
+            <p style="color: #777; font-size: 0.9rem; margin-top: 10px;">Run diagnostics and clean database.</p>
+        </a>
+
+        <!-- Backup Card (Placeholder) -->
+        <a href="#" style="background: white; padding: 30px; border-radius: 10px; text-decoration: none; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; transition: 0.2s; text-align: center; display: block;">
+            <i class="ph ph-database" style="font-size: 3rem; color: #888; margin-bottom: 15px;"></i>
+            <h3 style="margin: 0; font-size: 1.2rem; color: #0A192F;">Backup & Recovery</h3>
+            <p style="color: #777; font-size: 0.9rem; margin-top: 10px;">Secure and restore inventory data.</p>
+        </a>        
+
+    </div>
+</div>
+{% endblock content %}

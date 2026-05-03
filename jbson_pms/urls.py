@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
 from activity_log import views
+from security import views as security_views
 
 urlpatterns = [
     path('',            lambda r: redirect('security:login')),
@@ -20,4 +21,6 @@ urlpatterns = [
     path('maintenance/',include('maintenance.urls',          namespace='maintenance')),
     path('search/',     include('search.urls',               namespace='search')),
     path('manual/',     include('user_manual.urls',          namespace='user_manual')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('dashboard/admin/settings/', security_views.settings_hub_view, name='settings_hub'),
+    path('dashboard/admin/users/', security_views.user_management_view, name='user_management'),
+    ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

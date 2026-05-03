@@ -14,6 +14,7 @@ Handles:
 """
 
 import logging
+from urllib import request
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -23,6 +24,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import get_user_model
+import re # We need this to check password rules
 
 # IMPORT NG MODELS: Idinagdag natin ang EmployeeProfile dito sa taas
 from .models import ActivityLog, EmployeeProfile  
@@ -334,3 +336,60 @@ def admin_review_resets_view(request):
     )
     
     return render(request, "security/admin_review_resets.html", {"pending_requests": pending_requests})
+
+User = get_user_model() 
+
+def user_management_view(request):
+    if request.method == "POST":
+        # 1. Grab the form data
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password') # New field!
+        role = request.POST.get('role')
+        full_name = request.POST.get('full_name')
+
+        # 2. SAFETY CHECK: Stop the database crash before it happens
+        if not full_name:
+            messages.error(request, "Error: Full Name was missing from the form. Please hard-refresh your browser (Ctrl+F5) and try again.")
+            return redirect('user_management')
+
+        # 3. Check for taken usernames
+        if User.objects.filter(username=username).exists():
+            messages.error(request, f"The username '{username}' is already taken.")
+            return redirect('user_management')
+        
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match. Please try again.")
+            return redirect('user_management')
+        
+        if len(password) < 8 or not re.search(r'\d', password) or not re.search(r'[A-Z]', password):
+            messages.error(request, "Password does not meet the security requirements.")
+            return redirect('user_management')
+            
+        # 4. Create the user (Added 'role=role' to keep your database happy!)
+        new_user = User.objects.create_user(
+            username=username, 
+            password=password,
+            full_name=full_name,
+            role=role 
+        )
+        
+        # 5. Apply Django admin permissions based on the role
+        if role == 'Admin':
+            new_user.is_staff = True
+            new_user.is_superuser = True
+        else:
+            new_user.is_staff = False
+            new_user.is_superuser = False
+        
+        new_user.save()
+        messages.success(request, f"Successfully created {role} account for {full_name}.")
+        return redirect('user_management') 
+
+    # 6. Fetch users for the list view
+    users = User.objects.all().order_by('-date_created')
+    return render(request, 'dashboard/user_management.html', {'users': users})
+
+
+def settings_hub_view(request):
+    return render(request, 'dashboard/settings_hub.html')

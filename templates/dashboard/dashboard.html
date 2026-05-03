@@ -428,9 +428,9 @@
          </a>
         </div>
 
-        <a href="{% url 'admin_dashboard' %}" class="nav-item active">
-    <i class="ph ph-squares-four"></i> Dashboard
-</a>
+        <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.path == '/dashboard/admin/' %}active{% endif %}">
+            <i class="ph ph-squares-four"></i> Dashboard
+        </a>
 
         <div class="nav-category">Inventory</div>
         <a href="{% url 'inventory:inventory_list' %}" class="nav-item">
@@ -468,14 +468,18 @@
 
         <!-- NEW CATEGORY: USER MANAGEMENT -->
         <div class="nav-category">User Management</div>
-        <a href="#" class="nav-item"><i class="ph ph-users"></i> Users</a>
+        <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
+            <i class="ph ph-users"></i> Users
+        </a>        
         <a href="#" class="nav-item"><i class="ph ph-list-checks"></i> Roles & Permissions</a>
         <a href="#" class="nav-item"><i class="ph ph-clock-counter-clockwise"></i> Activity Logs</a>
         <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
 
         <!-- NEW CATEGORY: SETTINGS -->
         <div class="nav-category">Settings</div>
-        <a href="#" class="nav-item"><i class="ph ph-gear"></i> General Settings</a>
+        <a href="{% url 'settings_hub' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
+            <i class="ph ph-gear"></i> General Settings
+        </a>
         <form action="{% url 'security:logout' %}" method="POST" class="logout-form">
             {% csrf_token %}
             <button type="submit" class="nav-item btn-logout">
@@ -542,13 +546,18 @@
                     </div>
                 </div>
 
-                <button class="icon-btn"><i class="ph ph-gear"></i></button>
+                <button class="icon-btn"><a href="{% url 'settings_hub' %}">
+                    <i class="ph ph-gear"></i>
+                    </a>
+                </button>
                 <button class="icon-btn"><i class="ph ph-user"></i></button>
             </div>
         </header>
 
+        
         <!-- Scrollable Grid System -->
         <div class="content-scroll">
+            {% block content %}
             
             <div class="welcome-header">
                 <h1>Welcome, Admin</h1>
@@ -688,7 +697,7 @@
                     </div>
                 </div>
             </div>
-
+            {% endblock content %}
         </div>
     </main>
 
@@ -710,5 +719,27 @@
             }
         });
     </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+        // Find the sidebar element using your existing class
+            const sidebar = document.querySelector('.sidebar');
+        
+            if (sidebar) {
+            // 1. When the page loads, check if we saved a scroll position
+                const savedScrollPosition = localStorage.getItem('sidebarScrollPos');
+            
+            // If we did, instantly scroll the sidebar to that exact pixel
+                if (savedScrollPosition !== null) {
+                sidebar.scrollTop = parseInt(savedScrollPosition, 10);
+                }
+
+            // 2. Right before the user leaves the page, save the current scroll position
+                window.addEventListener('beforeunload', function() {
+                localStorage.setItem('sidebarScrollPos', sidebar.scrollTop);
+            });
+        }
+    });
+</script>
 </body>
 </html>

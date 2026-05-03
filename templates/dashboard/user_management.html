@@ -1,0 +1,202 @@
+{% extends 'dashboard/dashboard.html' %} 
+
+{% block content %}
+<!-- Include SweetAlert2 for beautiful popups -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    /* Card Layout */
+    .card-container { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+    .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; }
+    
+    /* Table Styling */
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; padding: 12px 10px; color: #888; font-weight: 600; border-bottom: 2px solid #eee; }
+    td { padding: 12px 10px; border-bottom: 1px solid #eee; color: #444; }
+    .role-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .role-admin { background: #fdeaea; color: #851618; }
+    .role-employee { background: #e6f2ff; color: #0056b3; }
+
+    /* Form Styling */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #555; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
+    .btn-submit { background-color: #851618; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; margin-top: 10px; }
+    .btn-submit:hover { background-color: #6a1113; }
+
+    /* Password Specific UI */
+    .password-wrapper { position: relative; }
+    .toggle-password { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; font-size: 1.2rem; }
+    .toggle-password:hover { color: #333; }
+    
+    /* Dynamic Password Rules */
+    .password-rules { font-size: 0.75rem; color: #888; margin-top: 8px; padding-left: 5px; }
+    .rule { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; transition: 0.2s; }
+    .rule i { font-size: 1rem; }
+    .rule.valid { color: #155724; font-weight: 600; }
+    .rule.valid i::before { content: "\e13c"; } /* Phosphor CheckCircle */
+</style>
+
+<div style="padding: 30px;">
+    
+    <!-- Header & Breadcrumbs -->
+    <div style="margin-bottom: 30px;">
+        <h1 style="font-family: 'Oswald', sans-serif; font-size: 1.8rem; margin: 0; color: #111;">User Management</h1>
+        <div style="font-size: 0.85rem; color: #777; margin-top: 5px;">
+            User Management > <span style="color: #333; font-weight: 500;">Users</span>
+        </div>
+    </div>
+
+    <!-- SweetAlert Trigger for Django Messages -->
+    {% if messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                {% for message in messages %}
+                    Swal.fire({
+                        icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
+                        title: "{% if message.tags == 'error' %}Oops...{% else %}Success!{% endif %}",
+                        text: "{{ message|escapejs }}",
+                        confirmButtonColor: "#851618"
+                    });
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+
+    <div class="card-container">
+        
+        <!-- LEFT CARD: List View -->
+        <div class="card">
+            <h2 style="font-size: 1.1rem; color: #0A192F; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">System Users</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Date Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.full_name }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>
+                            {% if user.is_superuser %}
+                                <span class="role-badge role-admin">Admin</span>
+                            {% else %}
+                                <span class="role-badge role-employee">Employee</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.date_created|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #888;">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- RIGHT CARD: Register Form -->
+        <div class="card">
+            <h2 style="font-size: 1.1rem; color: #0A192F; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">Register New Account</h2>
+            
+            <form method="POST" action="{% url 'user_management' %}" id="registerForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" class="form-control" required placeholder="Enter full name">
+                </div>
+
+                <div class="form-group">
+                    <label>System Role</label>
+                    <select name="role" class="form-control" required>
+                        <option value="Employee">Employee</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control" required>
+                </div>
+
+                <!-- Password Field with rules -->
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="main_password" class="form-control" required>
+                        <i class="ph ph-eye toggle-password" onclick="togglePassword('main_password', this)"></i>
+                    </div>
+                    
+                    <!-- Dynamic Rules Box -->
+                    <div class="password-rules">
+                        <div class="rule" id="rule-length"><i class="ph ph-x-circle"></i> Minimum 8 characters</div>
+                        <div class="rule" id="rule-upper"><i class="ph ph-x-circle"></i> 1 Uppercase letter</div>
+                        <div class="rule" id="rule-number"><i class="ph ph-x-circle"></i> 1 Number</div>
+                    </div>
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
+                        <i class="ph ph-eye toggle-password" onclick="togglePassword('confirm_password', this)"></i>
+                    </div>
+                    <div class="password-rules">
+                        <div class="rule" id="rule-match"><i class="ph ph-x-circle"></i> Passwords match</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Register User</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<!-- JavaScript for Passwords -->
+<script>
+    // 1. Function to toggle Hide/Show Password
+    function togglePassword(inputId, iconElement) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            iconElement.classList.remove("ph-eye");
+            iconElement.classList.add("ph-eye-closed");
+        } else {
+            input.type = "password";
+            iconElement.classList.remove("ph-eye-closed");
+            iconElement.classList.add("ph-eye");
+        }
+    }
+
+    // 2. Real-time Password Rules Checker
+    const passInput = document.getElementById('main_password');
+    const confirmInput = document.getElementById('confirm_password');
+
+    function checkRules() {
+        const val = passInput.value;
+        const confirmVal = confirmInput.value;
+
+        // Check Length
+        document.getElementById('rule-length').className = val.length >= 8 ? 'rule valid' : 'rule';
+        // Check Uppercase
+        document.getElementById('rule-upper').className = /[A-Z]/.test(val) ? 'rule valid' : 'rule';
+        // Check Number
+        document.getElementById('rule-number').className = /\d/.test(val) ? 'rule valid' : 'rule';
+        // Check Match
+        document.getElementById('rule-match').className = (val === confirmVal && val.length > 0) ? 'rule valid' : 'rule';
+    }
+
+    // Run the checker every time the user types in either box
+    passInput.addEventListener('input', checkRules);
+    confirmInput.addEventListener('input', checkRules);
+</script>
+
+{% endblock content %}
