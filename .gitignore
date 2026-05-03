@@ -1,0 +1,9 @@
+# Local Django settings
+jbson_pms/settings.py
+
+# Python cache / compiled files
+__pycache__/
+*.pyc
+
+# Environment files (optional but common)
+.env
