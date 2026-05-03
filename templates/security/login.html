@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Pinasok ko ang Phosphor Icons para gumana yung classes na ph-eye at ph-eye-closed -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
         /* CSS Reset & Global Styles */
@@ -30,7 +33,6 @@
             position: relative;
             overflow: hidden; 
             color: #4A5568;
-            min-height: 100vh;       /* Tells the body to take up 100% of the screen height */
         }
 
         /* --- Background Geometric Accents --- */
@@ -77,27 +79,16 @@
         /* --- Header / Logo Section --- */
 
         .header-logo {
-   
             text-align: center;
-    
             margin-bottom: 30px;
             z-index: 10;
             display: flex;
-    
-            justify-content: center; /* This ensures the image stays perfectly centered */
+            justify-content: center; 
         }
 
         .logo-image {
-            max-width: 250px; /* Adjust this number to make the logo larger or smaller */
+            max-width: 250px; 
             height: auto;
-        }
-        
-        .hardhat-icon {
-            position: absolute;
-            top: -12px;
-            left: 12px;
-            width: 20px;
-            fill: #E8751A; 
         }
 
         /* --- Login Card Container --- */
@@ -128,9 +119,9 @@
 
         /* --- Django Error Messages Logic --- */
         .error-message {
-            background-color: #FDF0F2; /* Soft pink matching the background */
-            color: #851618; /* Maroon accent */
-            border: 1px solid #DD5A43; /* Orange-red border */
+            background-color: #FDF0F2; 
+            color: #851618; 
+            border: 1px solid #DD5A43; 
             font-size: 13px;
             font-weight: 500;
             text-align: center;
@@ -186,19 +177,22 @@
             border-color: #851618;
         }
         
+        /* Updated Icon Styling for Phosphor */
         .input-icon {
             position: absolute;
             right: 14px;
             top: 50%;
             transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
+            font-size: 18px; /* Tinalakay ko yung size para sumakto */
             color: #A0AEC0;
-            pointer-events: none; 
         }
         .password-toggle {
             cursor: pointer;
             pointer-events: auto;
+            transition: color 0.2s;
+        }
+        .password-toggle:hover {
+            color: #4A5568;
         }
 
         /* Form Options */
@@ -266,36 +260,11 @@
             background-color: #6a1112;
         }
 
-        /* Footer Link */
-        .card-footer {
-            text-align: left;
-            font-size: 12px;
-            color: #A0AEC0;
-        }
-        .card-footer a {
-            color: #4A5568;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .card-footer a:hover {
-            text-decoration: underline;
-        }
-
         /* Responsive adjustments */
         @media (max-width: 480px) {
             .card {
-             margin: 0 15px;      /* Slightly reduced margin so it fits better */
-             padding: 25px 15px;  /* Slightly reduced padding */
-            }
-    
-            .header-logo .logo-image {
-             max-width: 10px; /* Adjust this number if you want the logo bigger/smaller on phones */
-            }
-            .header-logo h1 {
-                font-size: 28px;
-            }
-            .header-logo h2 {
-                font-size: 16px;
+             margin: 0 15px; 
+             padding: 25px 15px; 
             }
         }
     </style>
@@ -324,7 +293,6 @@
         <!-- DJANGO LOGIC INJECTED HERE -->
         {% if messages %}
             {% for message in messages %}
-                <!-- Dito natin chine-check kung 'success' ba yung message o 'error' -->
                 <div class="{% if message.tags == 'success' %}success-message{% else %}error-message{% endif %}">
                     {{ message }}
                 </div>
@@ -339,17 +307,16 @@
                 <label for="username">Username <span class="required-asterisk">*</span></label>
                 <div class="input-wrapper">
                     <input type="text" id="username" name="username" class="form-control" required autocomplete="username">
-                    <!-- Mail Icon SVG -->
-                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                </div>
+                    <!-- Naka-keep yung SVG para sa username (kung gusto mo rin palitan to Phosphor, ok lang) -->
+                        <i class="ph ph-envelope input-icon" style="pointer-events: none;"></i>                </div>
             </div>
 
             <div class="form-group">
                 <label for="password">Password <span class="required-asterisk">*</span></label>
                 <div class="input-wrapper">
                     <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
-                    <!-- Eye Slash Icon SVG -->
-                    <svg class="input-icon password-toggle" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>
+                    <!-- Pinalitan yung SVG ng tag ng Phosphor icon at nilagyan ng onclick -->
+                    <i class="ph ph-eye-closed input-icon password-toggle" onclick="togglePassword('password', this)"></i>
                 </div>
             </div>
 
@@ -364,6 +331,24 @@
             <button type="submit" class="btn-submit">Sign In</button>
         </form>
     </div>
+
+    <!-- JavaScript for Toggle Password -->
+    <script>
+        function togglePassword(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                // Pag pinakita yung password, magiging nakamulat na mata
+                iconElement.classList.remove("ph-eye-closed");
+                iconElement.classList.add("ph-eye");
+            } else {
+                input.type = "password";
+                // Pag tinago yung password, babalik sa nakapikit na mata
+                iconElement.classList.remove("ph-eye");
+                iconElement.classList.add("ph-eye-closed");
+            }
+        }
+    </script>
 
 </body>
 </html>

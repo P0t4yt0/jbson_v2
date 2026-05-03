@@ -30,11 +30,13 @@
     .toggle-password:hover { color: #333; }
     
     /* Dynamic Password Rules */
-    .password-rules { font-size: 0.75rem; color: #888; margin-top: 8px; padding-left: 5px; }
-    .rule { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; transition: 0.2s; }
-    .rule i { font-size: 1rem; }
+    .password-rules { font-size: 0.8rem; color: #888; margin-top: 8px; padding-left: 5px; }
+    .rule { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; transition: 0.2s; color: #888; }
+    .rule i { font-size: 1.1rem; }
+    
+    /* Valid State Styling */
     .rule.valid { color: #155724; font-weight: 600; }
-    .rule.valid i::before { content: "\e13c"; } /* Phosphor CheckCircle */
+    .rule.valid i { color: #155724; }
 </style>
 
 <div style="padding: 30px;">
@@ -180,18 +182,29 @@
     const passInput = document.getElementById('main_password');
     const confirmInput = document.getElementById('confirm_password');
 
+    // Helper function para magpalit ng class at icon
+    function updateRuleState(ruleId, isValid) {
+        const ruleElement = document.getElementById(ruleId);
+        const iconElement = ruleElement.querySelector('i');
+
+        if (isValid) {
+            ruleElement.className = 'rule valid';
+            iconElement.className = 'ph ph-check-circle'; // Magiging Check mark
+        } else {
+            ruleElement.className = 'rule';
+            iconElement.className = 'ph ph-x-circle'; // Babalik sa X mark
+        }
+    }
+
     function checkRules() {
         const val = passInput.value;
         const confirmVal = confirmInput.value;
 
-        // Check Length
-        document.getElementById('rule-length').className = val.length >= 8 ? 'rule valid' : 'rule';
-        // Check Uppercase
-        document.getElementById('rule-upper').className = /[A-Z]/.test(val) ? 'rule valid' : 'rule';
-        // Check Number
-        document.getElementById('rule-number').className = /\d/.test(val) ? 'rule valid' : 'rule';
-        // Check Match
-        document.getElementById('rule-match').className = (val === confirmVal && val.length > 0) ? 'rule valid' : 'rule';
+        // I-check ang bawat rule
+        updateRuleState('rule-length', val.length >= 8);
+        updateRuleState('rule-upper', /[A-Z]/.test(val));
+        updateRuleState('rule-number', /\d/.test(val));
+        updateRuleState('rule-match', (val === confirmVal && val.length > 0));
     }
 
     // Run the checker every time the user types in either box
