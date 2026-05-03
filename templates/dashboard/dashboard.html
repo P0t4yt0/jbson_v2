@@ -428,14 +428,21 @@
          </a>
         </div>
 
-        <a href="#" class="nav-item active">
-            <i class="ph ph-squares-four"></i> Dashboard
-        </a>
+        <a href="{% url 'admin_dashboard' %}" class="nav-item active">
+    <i class="ph ph-squares-four"></i> Dashboard
+</a>
 
         <div class="nav-category">Inventory</div>
-        <a href="#" class="nav-item"><i class="ph ph-package"></i> Products</a>
-        <a href="#" class="nav-item"><i class="ph ph-plus-circle"></i> Create Product</a>
-        <a href="#" class="nav-item"><i class="ph ph-trend-down"></i> Low Stocks</a>
+        <a href="{% url 'inventory:inventory_list' %}" class="nav-item">
+    <i class="ph ph-package"></i> Products
+</a>
+        
+        <a href="{% url 'inventory:create_product' %}" class="nav-item">
+    <i class="ph ph-plus-circle"></i> Create Product
+</a>
+        <a href="{% url 'inventory:low_stock_view' %}" class="nav-item">
+    <i class="ph ph-trend-down"></i> Low Stocks
+</a>
         <a href="#" class="nav-item"><i class="ph ph-squares-four"></i> Category</a>
         <a href="#" class="nav-item"><i class="ph ph-barcode"></i> Scan Barcode</a>
         <a href="#" class="nav-item"><i class="ph ph-archive"></i> Manage Stock</a>

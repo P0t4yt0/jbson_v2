@@ -47,7 +47,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'jbson_dev',               # Matches your DBeaver database name
         'USER': 'root',                   # Change to 'root' unless you made a specific 'jbson_user'
-        'PASSWORD': 'july122005', # Put your MySQL Workbench/DBeaver password here
+        'PASSWORD': 'January152005', # Put your MySQL Workbench/DBeaver password here
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {

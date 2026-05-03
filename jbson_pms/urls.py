@@ -10,7 +10,7 @@ urlpatterns = [
     path('',            lambda r: redirect('security:login')),
     path('auth/', include('security.urls')),
     path('dashboard/admin/', TemplateView.as_view(template_name='dashboard/dashboard.html'), name='admin_dashboard'),
-    path('inventory/', include('inventory.urls', namespace='inventory')),
+    path('inventory/', include('inventory.urls',             namespace='inventory')),
     path('products/',   include('product_registration.urls', namespace='products')),
     path('pos/',        include('point_of_sale.urls',        namespace='pos')),
     path('billing/',    include('billing_payment.urls',      namespace='billing')),
