@@ -1,0 +1,161 @@
+{% extends 'dashboard/dashboard.html' %} 
+
+{% block content %}
+<style>
+    /* Card & Layout */
+    .logs-card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #e0e0e0; overflow: hidden; }
+    
+    /* Top Controls (Search & Filters) */
+    .controls-bar { display: flex; justify-content: space-between; padding: 20px; border-bottom: 1px solid #f0f0f0; }
+    .search-box { position: relative; width: 300px; }
+    .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; }
+    .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; outline: none; }
+    .filter-group { display: flex; gap: 10px; }
+    .filter-select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; color: #555; background: white; cursor: pointer; outline: none; }
+
+    /* Table Styling */
+    .logs-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .logs-table th { text-align: left; padding: 15px 20px; color: #555; font-weight: 600; background-color: #fcfcfc; border-bottom: 1px solid #e0e0e0; }
+    .logs-table td { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; color: #444; }
+    .logs-table tr:hover { background-color: #f9f9f9; }
+    .logs-table tr:last-child td { border-bottom: none; }
+
+    /* Pagination Footer */
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-top: 1px solid #e0e0e0; font-size: 0.85rem; color: #777; }
+    .page-numbers { display: flex; gap: 5px; align-items: center; }
+    .page-btn { padding: 6px 12px; border-radius: 4px; border: 1px solid transparent; color: #555; text-decoration: none; cursor: pointer; }
+    .page-btn:hover { background-color: #f0f0f0; }
+    .page-btn.active { background-color: #851618; color: white; border-color: #851618; }
+</style>
+
+<div style="padding: 30px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div>
+            <h1 style="font-family: 'Oswald', sans-serif; font-size: 1.6rem; margin: 0; color: #111;">Activity Logs</h1>
+            <div style="font-size: 0.85rem; color: #777; margin-top: 5px;">
+                User Management > <span style="color: #333; font-weight: 500;">Activity Logs</span>
+            </div>
+        </div>
+        <button style="background: white; border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; cursor: pointer; color: #555;" onclick="location.reload();">
+            <i class="ph ph-arrows-clockwise" style="font-size: 1.2rem;"></i>
+        </button>
+    </div>
+
+    <div class="logs-card">
+        
+        <form method="GET" class="controls-bar" id="filterForm">
+            <input type="hidden" name="page" id="pageInput" value="{{ logs.number }}">
+            
+            <div class="search-box">
+                <i class="ph ph-magnifying-glass"></i>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search by username or action...">
+                <button type="submit" style="display: none;"></button>
+            </div>
+            
+            <div class="filter-group">
+                <select name="role" class="filter-select" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
+                    <option value="">Filter by Role</option>
+                    <option value="Admin" {% if role_filter == 'Admin' %}selected{% endif %}>Admin</option>
+                    <option value="Employee" {% if role_filter == 'Employee' %}selected{% endif %}>Employee</option>
+                </select>
+                
+                <select name="action" class="filter-select" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
+                    <option value="">All Actions</option>
+                    <option value="LOGIN" {% if action_filter == 'LOGIN' %}selected{% endif %}>Login</option>
+                    <option value="LOGOUT" {% if action_filter == 'LOGOUT' %}selected{% endif %}>Logout</option>
+                    <option value="USER_CREATED" {% if action_filter == 'USER_CREATED' %}selected{% endif %}>User Created</option>
+                    <option value="USER_MODIFIED" {% if action_filter == 'USER_MODIFIED' %}selected{% endif %}>User Modified</option>
+                </select>
+            </div>
+        </form>
+
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>ID <i class="ph ph-arrows-down-up" style="font-size: 0.75rem;"></i></th>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.id|stringformat:"03d" }}</td>
+                    
+                    <td>
+                        {% if log.user %}
+                            {{ log.user.username }}
+                        {% else %}
+                            <span style="color: #999; font-style: italic;">Deleted User</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        {% if log.user %}
+                            {% if log.user.is_superuser %}Admin{% else %}Employee{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    
+                    <td>{{ log.get_action_display }}</td>
+                    
+                    <td>{{ log.timestamp|date:"m-d-Y" }}</td>
+                    <td>{{ log.timestamp|time:"H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #888; padding: 30px;">
+                        No activity logs found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="pagination-bar">
+            <div>
+                Row Per Page 
+                <select name="rows" form="filterForm" style="margin: 0 10px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; outline: none;" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
+                    <option value="10" {% if rows == 10 %}selected{% endif %}>10</option>
+                    <option value="20" {% if rows == 20 %}selected{% endif %}>20</option>
+                    <option value="50" {% if rows == 50 %}selected{% endif %}>50</option>
+                </select> 
+                Entries
+                <span style="margin-left: 15px; color: #999;">Showing {{ logs.start_index }} to {{ logs.end_index }} of {{ logs.paginator.count }}</span>
+            </div>
+            
+            <div class="page-numbers">
+                {% if logs.has_previous %}
+                    <a href="javascript:void(0);" onclick="goToPage({{ logs.previous_page_number }})" class="page-btn"><i class="ph ph-caret-left"></i></a>
+                {% endif %}
+
+                {% for num in logs.paginator.page_range %}
+                    {% if logs.number == num %}
+                        <a href="javascript:void(0);" class="page-btn active">{{ num }}</a>
+                    {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
+                        <a href="javascript:void(0);" onclick="goToPage({{ num }})" class="page-btn">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if logs.has_next %}
+                    <a href="javascript:void(0);" onclick="goToPage({{ logs.next_page_number }})" class="page-btn"><i class="ph ph-caret-right"></i></a>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    function goToPage(pageNumber) {
+        // Set the hidden page input to the number we clicked
+        document.getElementById('pageInput').value = pageNumber;
+        // Submit the form (which remembers our search and filters!)
+        document.getElementById('filterForm').submit();
+    }
+</script>
+{% endblock content %}

@@ -486,7 +486,7 @@
 
 
         <div class="nav-category">Inventory</div>
-        <a href="{% url 'inventory:inventory_list' %}" class="nav-item">
+        <a href="{% url 'inventory:inventory_list' %}" class="nav-item {% if '/products/' in request.path %}active{% endif %}">
     <i class="ph ph-package"></i> Products
 </a>
        
@@ -527,7 +527,9 @@
             <i class="ph ph-users"></i> Users
         </a>        
         <a href="#" class="nav-item"><i class="ph ph-list-checks"></i> Roles & Permissions</a>
-        <a href="#" class="nav-item"><i class="ph ph-clock-counter-clockwise"></i> Activity Logs</a>
+        <a href="{% url 'activity_logs' %}" class="nav-item {% if '/activity-logs/' in request.path %}active{% endif %}">
+            <i class="ph ph-clock-counter-clockwise"></i> Activity Logs
+        </a>        
         <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
 
 

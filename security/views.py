@@ -14,24 +14,24 @@ Handles:
 """
 
 import logging
+import re # We need this to check password rules
 from urllib import request
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth import get_user_model
-import re # We need this to check password rules
+from django.core.paginator import Paginator
+from django.db.models import Q
 
-# IMPORT NG MODELS: Idinagdag natin ang EmployeeProfile dito sa taas
-from .models import ActivityLog, EmployeeProfile  
+# IMPORT NG MODELS: Pinagsama na natin ang ActivityLog at EmployeeProfile dito!
+from .models import ActivityLog, EmployeeProfile 
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
@@ -400,3 +400,44 @@ def user_management_view(request):
 
 def settings_hub_view(request):
     return render(request, 'dashboard/settings_hub.html')
+
+def activity_logs_view(request):
+    # 1. Start with ALL logs
+    logs = ActivityLog.objects.select_related('user').all().order_by('timestamp')
+    # 2. Handle the SEARCH bar
+    search_query = request.GET.get('search', '')
+    if search_query:
+        # Q objects let us search across multiple columns at the same time!
+        logs = logs.filter(
+            Q(user__username__icontains=search_query) |
+            Q(action__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        )
+
+    # 3. Handle the ROLE Filter
+    role_filter = request.GET.get('role', '')
+    if role_filter == 'Admin':
+        logs = logs.filter(user__is_superuser=True)
+    elif role_filter == 'Employee':
+        logs = logs.filter(user__is_superuser=False)
+
+    # 4. Handle the ACTION Filter
+    action_filter = request.GET.get('action', '')
+    if action_filter:
+        logs = logs.filter(action=action_filter)
+
+    # 5. Handle PAGINATION (Rows per page)
+    rows = request.GET.get('rows', 10) # Default to 10 rows
+    paginator = Paginator(logs, int(rows))
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # 6. Pass everything back to the template
+    context = {
+        'logs': page_obj,  # We pass the PAGINATED object now, not the raw logs
+        'search_query': search_query,
+        'role_filter': role_filter,
+        'action_filter': action_filter,
+        'rows': int(rows),
+    }
+    return render(request, 'dashboard/activity_logs.html', context)

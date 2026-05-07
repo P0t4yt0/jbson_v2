@@ -8,7 +8,8 @@ from activity_log import views
 from security import views as security_views
 
 urlpatterns = [
-    path('',            lambda r: redirect('security:login')),
+    path('',            lambda r: redirect('security:login'), name='home'),
+    path('admin/', admin.site.urls),
     path('auth/', include('security.urls')),
     path('dashboard/admin/', TemplateView.as_view(template_name='dashboard/dashboard.html'), name='admin_dashboard'),
     path('inventory/', include('inventory.urls',             namespace='inventory')),
@@ -16,7 +17,7 @@ urlpatterns = [
     path('pos/',        include('point_of_sale.urls',        namespace='pos')),
     path('billing/',    include('billing_payment.urls',      namespace='billing')),
     path('reports/',    include('reports_analytics.urls',    namespace='reports')),
-    path('logs/',       include('activity_log.urls',         namespace='activity_log')),
+    path('dashboard/admin/activity-logs/', security_views.activity_logs_view, name='activity_logs'),
     path('notifications/', include('notifications.urls',     namespace='notifications')),
     path('maintenance/',include('maintenance.urls',          namespace='maintenance')),
     path('search/',     include('search.urls',               namespace='search')),
