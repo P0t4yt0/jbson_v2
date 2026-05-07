@@ -7,88 +7,134 @@
     .stock-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; }
     .stock-low { background: #fff5f5; color: #c53030; }
     .stock-good { background: #f0fff4; color: #2f855a; }
+    
+    /* Hover effects for buttons */
+    .btn-filter:hover { background: #edf2f7 !important; }
+    .search-input:focus { border-color: #a0aec0 !important; }
 </style>
 
-<div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 20px;">
+<form method="GET" action="{% url 'inventory:inventory_list' %}" id="inventory-filter-form">
     
-    <a href="{% url 'inventory:run_abc_analysis' %}" 
-       style="background: #2f855a; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: background 0.2s;">
-       <span>📊</span> Analyze Inventory
-    </a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 12px 20px; border-radius: 8px; border: 1px solid #edf2f7; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+        
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="position: relative;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #a0aec0;"></i>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search name or barcode..." 
+                       onchange="this.form.submit()"
+                       style="padding: 8px 12px 8px 32px; border: 1px solid #e2e8f0; border-radius: 6px; outline: none; font-size: 13px; width: 250px; color: #2d3748;">
+            </div>
+            
+            {% if search_query or selected_category or low_stock or selected_priority %}
+                <a href="{% url 'inventory:inventory_list' %}" style="font-size: 12px; color: #e53e3e; text-decoration: none; padding: 6px 10px; border-radius: 4px; background: #fff5f5; border: 1px solid #fed7d7;">Clear Filters</a>
+            {% endif %}
+        </div>
 
-    <a href="{% url 'product_registration:create_product' %}" 
-       style="background: #8B0000; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-       <span>+</span> Add Product
-    </a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{% url 'inventory:run_abc_analysis' %}" 
+               style="background: #2f855a; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+               <i class="ph ph-chart-bar"></i> Analyze Priority Level
+            </a>
 
-</div>
+            <a href="#" 
+               style="background: #2b6cb0; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+               <i class="ph ph-barcode"></i> Scan Barcode
+            </a>
+        </div>
+    </div>
 
-<div style="background: white; border-radius: 10px; border: 1px solid #edf2f7; overflow: hidden;">
-    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
-        <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
-            <tr>
-                <th style="padding: 15px; width: 40px;"><input type="checkbox"></th>
-                <th style="padding: 15px;">ID</th>
-                <th style="padding: 15px;">Product Name</th>
-                <th style="padding: 15px;">Category</th>
-                <th style="padding: 15px;">Price</th>
-                <th style="padding: 15px;">Priority Level</th> <th style="padding: 15px;">Barcode</th>
-                <th style="padding: 15px;">Qty</th>
-                <th style="padding: 15px; text-align: center;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px;"><input type="checkbox"></td>
-                <td style="padding: 15px; font-family: monospace;">{{ item.product_id }}</td>
-                <td style="padding: 15px; font-weight: 600;">{{ item.item_name }}</td>
-                <td style="padding: 15px;">{{ item.category.name }}</td>
-                <td style="padding: 15px;">₱{{ item.price }}</td>
-                
-                <td style="padding: 15px;">
-    {% if item.abc_classification == 'A' %}
-        <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">
-            Critical Stock
-        </span>
-    {% elif item.abc_classification == 'B' %}
-        <span style="background: #BEE3F8; color: #2A4365; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">
-            Standard Stock
-        </span>
-    {% elif item.abc_classification == 'C' %}
-        <span style="background: #FED7D7; color: #822727; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">
-            Low Priority
-        </span>
-    {% else %}
-        <span style="color: #cbd5e0;">Unclassified</span>
-    {% endif %}
-</td>
+<div style="background: white; border-radius: 10px; border: 1px solid #edf2f7; overflow: hidden; padding-bottom: 10px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
+                <tr>
+                    <th style="padding: 15px 10px; width: 40px; text-align: center;"><input type="checkbox"></th>
+                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">ID</th>
+                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">Product Name</th>
+                    
+                    <th style="padding: 15px 10px;">
+                        <select name="category" onchange="this.form.submit()" style="font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit;">
+                            <option value="" style="font-weight: normal;">Category (All)</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" style="font-weight: normal;" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </th>
+                    
+                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">Price</th>
+                    
+                    <th style="padding: 15px 10px;">
+                        <select name="priority" onchange="this.form.submit()" style="font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit;">
+                            <option value="" style="font-weight: normal;">Priority Level (All)</option>
+                            <option value="A" style="font-weight: normal;" {% if selected_priority == 'A' %}selected{% endif %}>Always in Stock</option>
+                            <option value="B" style="font-weight: normal;" {% if selected_priority == 'B' %}selected{% endif %}>Regular Check</option>
+                            <option value="C" style="font-weight: normal;" {% if selected_priority == 'C' %}selected{% endif %}>Bulk Order</option>
+                        </select>
+                    </th>
 
-                <td style="padding: 15px;">{{ item.barcode_id }}</td>
-                <td style="padding: 15px;">
-                    <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}">
-                        {{ item.quantity }}
-                    </span>
-                </td>
-                <td style="padding: 15px; text-align: center;">
-                    <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                        <a href="{% url 'inventory:edit_product' item.pk %}" 
-                           style="border: 1px solid #ddd; background: white; padding: 5px; border-radius: 4px; text-decoration: none; display: flex; align-items: center;">
-                            <i class="ph ph-pencil" style="color: #333;"></i>
-                        </a>
+                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">Barcode</th>
+                    
+                    <th style="padding: 15px 10px;">
+                        <select name="low_stock" onchange="this.form.submit()" style="font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit;">
+                            <option value="" style="font-weight: normal;">Quantity (All)</option>
+                            <option value="on" style="font-weight: normal;" {% if low_stock == 'on' %}selected{% endif %}>Low Stock Only</option>
+                        </select>
+                    </th>
+                    
+                    <th style="padding: 15px 10px; text-align: center; color: #4a5568; font-weight: 600;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 15px 10px; text-align: center;"><input type="checkbox"></td>
+                    <td style="padding: 15px 10px; font-family: monospace; color: #4a5568;">{{ item.product_id }}</td>
+                    <td style="padding: 15px 10px; font-weight: 600; color: #2d3748;">{{ item.item_name }}</td>
+                    <td style="padding: 15px 10px; color: #4a5568;">{{ item.category.name }}</td>
+                    <td style="padding: 15px 10px; color: #4a5568;">₱{{ item.price }}</td>
+                    
+                    <td style="padding: 15px 10px;">
+                        {% if item.abc_classification == 'A' %}
+                            <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">Always in Stock</span>
+                        {% elif item.abc_classification == 'B' %}
+                            <span style="background: #BEE3F8; color: #2A4365; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">Regular Check</span>
+                        {% elif item.abc_classification == 'C' %}
+                            <span style="background: #E2E8F0; color: #4A5568; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">Bulk Order</span>
+                        {% else %}
+                            <span style="color: #a0aec0; font-size: 12px;">Unclassified</span>
+                        {% endif %}
+                    </td>
 
-                        <form action="{% url 'inventory:delete_product' item.pk %}" method="POST" 
-                              onsubmit="return confirm('Are you sure?');" style="margin: 0;">
-                            {% csrf_token %}
-                            <button type="submit" style="border: 1px solid #fed7d7; background: #fff5f5; color: #c53030; padding: 5px; border-radius: 4px; cursor: pointer;">
-                                <i class="ph ph-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                    <td style="padding: 15px 10px; color: #4a5568;">{{ item.barcode_id }}</td>
+                    <td style="padding: 15px 10px;">
+                        <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 13px; {% if item.quantity <= item.reorder_point %}background: #fff5f5; color: #c53030;{% else %}background: #f0fff4; color: #2f855a;{% endif %}">
+                            {{ item.quantity }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px 10px; text-align: center;">
+                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                            <a href="{% url 'inventory:edit_product' item.pk %}" style="border: 1px solid #e2e8f0; background: white; padding: 6px; border-radius: 4px; text-decoration: none; color: #4a5568;">
+                                <i class="ph ph-pencil"></i>
+                            </a>
+                            <form action="{% url 'inventory:delete_product' item.pk %}" method="POST" onsubmit="return confirm('Are you sure?');" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="border: 1px solid #fed7d7; background: #fff5f5; color: #c53030; padding: 6px; border-radius: 4px; cursor: pointer;">
+                                    <i class="ph ph-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="padding: 30px; text-align: center; color: #a0aec0; font-style: italic;">
+                        No products match your current filters.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
 {% endblock %}
