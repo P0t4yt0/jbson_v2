@@ -351,6 +351,25 @@
             font-weight: 700;
         }
 
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+}
+
+        .modal-card {
+            background: #fff;
+            width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 16px;
+            padding: 30px;
+        }
+
 
         .trend-badge {
             display: inline-flex;
@@ -367,7 +386,9 @@
         .trend-badge.positive { color: var(--status-green); background: rgba(34, 197, 94, 0.1); }
         .trend-badge.negative { color: var(--status-red); background: rgba(239, 68, 68, 0.1); }
 
-
+        a {
+        text-decoration: none;
+        }
         /* Lower Grid (Charts & Tables) */
         .lower-grid {
             display: grid;
@@ -490,9 +511,6 @@
     <i class="ph ph-package"></i> Products
 </a>
        
-        <a href="{% url 'product_registration:create_product' %}" class="nav-item">
-    <i class="ph ph-plus-circle"></i> Create Product
-</a>
         <a href="{% url 'inventory:low_stock_view' %}" class="nav-item">
     <i class="ph ph-trend-down"></i> Low Stocks
 </a>
@@ -560,7 +578,7 @@
 
 
             <div class="header-actions">
-                <a href="{% url 'product_registration:create_product' %}" class="btn btn-primary" style="text-decoration: none;">
+                <a href="#" class="btn btn-primary" onclick="openCreateProduct(event)">
     <i class="ph ph-plus-circle"></i> Add Product
 </a>
                 <button class="btn btn-secondary" onclick="alert('Routing to: /sales/pos/')">
@@ -784,6 +802,22 @@
         updateDashboardDate();
     });
 </script>
+<script>
+function openCreateProduct(e) {
+    e.preventDefault();
+
+    fetch("{% url 'product_registration:create_product' %}")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('global-modal-root').innerHTML = html;
+        });
+}
+
+function closeGlobalModal() {
+    document.getElementById('global-modal-root').innerHTML = '';
+}
+</script>
+<div id="global-modal-root"></div>
 </body>
 </html>
 
