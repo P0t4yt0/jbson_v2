@@ -490,7 +490,7 @@
     <i class="ph ph-package"></i> Products
 </a>
        
-        <a href="{% url 'inventory:create_product' %}" class="nav-item">
+        <a href="{% url 'product_registration:create_product' %}" class="nav-item">
     <i class="ph ph-plus-circle"></i> Create Product
 </a>
         <a href="{% url 'inventory:low_stock_view' %}" class="nav-item">
@@ -557,7 +557,7 @@
 
 
             <div class="header-actions">
-                <a href="{% url 'inventory:create_product' %}" class="btn btn-primary" style="text-decoration: none;">
+                <a href="{% url 'product_registration:create_product' %}" class="btn btn-primary" style="text-decoration: none;">
     <i class="ph ph-plus-circle"></i> Add Product
 </a>
                 <button class="btn btn-secondary" onclick="alert('Routing to: /sales/pos/')">

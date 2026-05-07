@@ -22,7 +22,8 @@ class ProductRegistrationLog(models.Model):
     ]
 
     inventory_item = models.ForeignKey(
-        'inventory.InventoryItem', on_delete=models.CASCADE,
+        'inventory.InventoryItem', # Use a string here!
+        on_delete=models.CASCADE,
         related_name='registration_logs'
     )
     registered_by  = models.ForeignKey(

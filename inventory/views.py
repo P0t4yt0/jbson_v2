@@ -3,98 +3,90 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
 from .models import InventoryItem, Category, Supplier
+from decimal import Decimal
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status."""
     items = InventoryItem.objects.all().order_by('-id')
     return render(request, 'inventory/product_list.html', {'items': items})
 
-def create_product(request):
-    categories = Category.objects.all()
-    suppliers = Supplier.objects.all()
+def run_abc_analysis(request):
+    items = InventoryItem.objects.all()
+    
+    # --- STEP 1: PRE-CALCULATION LOGIC ---
+    # We create a list of tuples: (item_object, effective_value)
+    # This avoids recalculating the math multiple times
+    item_value_pairs = []
+    total_store_value = Decimal('0')
 
-    if request.method == 'POST':
-        # Get data from the POST request
-        item_name = request.POST.get('item_name')
-        product_id = request.POST.get('product_id')
-        category_id = request.POST.get('category')
-        quantity = request.POST.get('quantity')
-        barcode_id = request.POST.get('barcode_id')
-        price = request.POST.get('price')
+    for item in items:
+        # 1. Determine Effective Demand
+        # Logic: If system has real sales data, use it. Otherwise, use manual estimate.
+        # For now, we assume item.actual_sales_count exists in your model.
+        actual_sales = getattr(item, 'actual_sales_count', 0)
+        manual_est = int(item.annual_demand or 0)
+        
+        effective_demand = actual_sales if actual_sales > 0 else manual_est
+        
+        # 2. Calculate Value (Cost * Effective Demand)
+        unit_cost = Decimal(str(item.unit_cost or 0))
+        item_value = unit_cost * effective_demand
+        
+        item_value_pairs.append((item, item_value))
+        total_store_value += item_value
 
-        # Create and Save the product object
-        category = Category.objects.get(id=category_id)
-        InventoryItem.objects.create(
-            item_name=item_name,
-            product_id=product_id,
-            category=category,
-            quantity=quantity,
-            barcode_id=barcode_id,
-            price=price
-        )
+    if total_store_value == 0:
         return redirect('inventory:inventory_list')
 
-    return render(request, 'inventory/create_product.html', {
-        'categories': categories,
-        'suppliers': suppliers
-    })
+    # --- STEP 2: SORTING & CLASSIFICATION ---
+    # Sort the pairs by the calculated value (Index 1) in descending order
+    item_value_pairs.sort(key=lambda x: x[1], reverse=True)
 
-@csrf_exempt
-def add_category_ajax(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            name = data.get('name')
-            prefix = data.get('prefix')
+    running_sum = Decimal('0')
+    for item, item_value in item_value_pairs:
+        running_sum += item_value
+        cumulative_percentage = (running_sum / total_store_value) * 100
 
-            if name and prefix:
-                # This line creates the record in your database
-                new_cat = Category.objects.create(
-                    name=name, 
-                    prefix=prefix.upper()
-                )
-                return JsonResponse({
-                    'status': 'success',
-                    'id': new_cat.id,
-                    'name': new_cat.name
-                })
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        # Assign Priority based on cumulative contribution to total value
+        if cumulative_percentage <= 70:
+            item.abc_classification = 'A'
+        elif cumulative_percentage <= 90:
+            item.abc_classification = 'B'
+        else:
+            item.abc_classification = 'C'
         
+        item.save()
+
+    return redirect('inventory:inventory_list')
+
 def edit_product(request, pk):
+    # 1. Fetch the existing item
     item = get_object_or_404(InventoryItem, pk=pk)
     
     if request.method == 'POST':
-        # ... your save logic here ...
-        return redirect('inventory:product_list')
+        # 2. Update the item with new data from the form
+        item.item_name = request.POST.get('item_name')
+        item.category_id = request.POST.get('category')
+        item.supplier_id = request.POST.get('supplier')
+        item.quantity = request.POST.get('quantity')
+        item.barcode_id = request.POST.get('barcode_id')
+        item.price = request.POST.get('price')
+        item.unit_cost = request.POST.get('unit_cost', 0)
+        item.annual_demand = request.POST.get('annual_demand', 0)
+        
+        # 3. Save the changes to the existing record (no duplicates!)
+        item.save()
+        return redirect('inventory:inventory_list')
 
+    # 4. Show the form with the item data loaded
     categories = Category.objects.all()
     suppliers = Supplier.objects.all()
-    
-    # We point this to 'create_product.html' so you don't have to maintain two files!
-    return render(request, 'inventory/create_product.html', {
+    return render(request, 'product_registration/create_product.html', {
         'item': item,
         'categories': categories,
         'suppliers': suppliers
     })
 
-@csrf_exempt
-def add_supplier_ajax(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        name = data.get('name')
-        sup_id = data.get('supplier_id') # This is the random "SUP-XXXX"
-
-        try:
-            # IMPORTANT: Make sure the names on the left match your models.py
-            new_sup = Supplier.objects.create(
-                name=name, 
-                # If your model doesn't have supplier_id, comment the line below out:
-                supplier_id=sup_id 
-            )
-            return JsonResponse({'status': 'success', 'id': new_sup.id, 'name': new_sup.name})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 # DELETE VIEW
 def delete_product(request, pk):
