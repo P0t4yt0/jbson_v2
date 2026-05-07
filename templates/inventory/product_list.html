@@ -44,15 +44,17 @@
     </div>
 
 <div style="background: white; border-radius: 10px; border: 1px solid #edf2f7; overflow: hidden; padding-bottom: 10px;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed; word-wrap: break-word;">
             <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
                 <tr>
-                    <th style="padding: 15px 10px; width: 40px; text-align: center;"><input type="checkbox"></th>
-                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">ID</th>
-                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">Product Name</th>
+                    <th style="padding: 15px 10px; width: 40px; text-align: center;">
+                        <input type="checkbox" id="selectAll" style="cursor: pointer;">
+                    </th>                    
+                    <th style="padding: 15px 10px; width: 8%; color: #4a5568; font-weight: 600;">ID</th>
+                    <th style="padding: 15px 10px; width: 20%; color: #4a5568; font-weight: 600;">Product Name</th>
                     
-                    <th style="padding: 15px 10px;">
-                        <select name="category" onchange="this.form.submit()" style="font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit;">
+                    <th style="padding: 15px 10px; width: 14%;">
+                        <select name="category" onchange="this.form.submit()" style="width: 100%; font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit; text-overflow: ellipsis;">
                             <option value="" style="font-weight: normal;">Category (All)</option>
                             {% for cat in categories %}
                                 <option value="{{ cat.id }}" style="font-weight: normal;" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
@@ -62,10 +64,10 @@
                         </select>
                     </th>
                     
-                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">Price</th>
+                    <th style="padding: 15px 10px; width: 8%; color: #4a5568; font-weight: 600;">Price</th>
                     
-                    <th style="padding: 15px 10px;">
-                        <select name="priority" onchange="this.form.submit()" style="font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit;">
+                    <th style="padding: 15px 10px; width: 15%;">
+                        <select name="priority" onchange="this.form.submit()" style="width: 100%; font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit; text-overflow: ellipsis;">
                             <option value="" style="font-weight: normal;">Priority Level (All)</option>
                             <option value="A" style="font-weight: normal;" {% if selected_priority == 'A' %}selected{% endif %}>Always in Stock</option>
                             <option value="B" style="font-weight: normal;" {% if selected_priority == 'B' %}selected{% endif %}>Regular Check</option>
@@ -73,40 +75,44 @@
                         </select>
                     </th>
 
-                    <th style="padding: 15px 10px; color: #4a5568; font-weight: 600;">Barcode</th>
+                    <th style="padding: 15px 10px; width: 12%; color: #4a5568; font-weight: 600;">Barcode</th>
                     
-                    <th style="padding: 15px 10px;">
-                        <select name="low_stock" onchange="this.form.submit()" style="font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit;">
+                    <th style="padding: 15px 10px; width: 12%;">
+                        <select name="low_stock" onchange="this.form.submit()" style="width: 100%; font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit; text-overflow: ellipsis;">
                             <option value="" style="font-weight: normal;">Quantity (All)</option>
                             <option value="on" style="font-weight: normal;" {% if low_stock == 'on' %}selected{% endif %}>Low Stock Only</option>
                         </select>
                     </th>
                     
-                    <th style="padding: 15px 10px; text-align: center; color: #4a5568; font-weight: 600;">Actions</th>
+                    <th style="padding: 15px 10px; width: 90px; text-align: center; color: #4a5568; font-weight: 600;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in items %}
                 <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 15px 10px; text-align: center;"><input type="checkbox"></td>
+                    <td style="padding: 15px 10px; text-align: center;">
+                        <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer;">
+                    </td>
                     <td style="padding: 15px 10px; font-family: monospace; color: #4a5568;">{{ item.product_id }}</td>
-                    <td style="padding: 15px 10px; font-weight: 600; color: #2d3748;">{{ item.item_name }}</td>
-                    <td style="padding: 15px 10px; color: #4a5568;">{{ item.category.name }}</td>
+                    
+                    <td style="padding: 15px 10px; font-weight: 600; color: #2d3748; white-space: normal;">{{ item.item_name }}</td>
+                    <td style="padding: 15px 10px; color: #4a5568; white-space: normal;">{{ item.category.name }}</td>
+                    
                     <td style="padding: 15px 10px; color: #4a5568;">₱{{ item.price }}</td>
                     
                     <td style="padding: 15px 10px;">
                         {% if item.abc_classification == 'A' %}
-                            <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">Always in Stock</span>
+                            <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">Always in Stock</span>
                         {% elif item.abc_classification == 'B' %}
-                            <span style="background: #BEE3F8; color: #2A4365; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">Regular Check</span>
+                            <span style="background: #BEE3F8; color: #2A4365; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">Regular Check</span>
                         {% elif item.abc_classification == 'C' %}
-                            <span style="background: #E2E8F0; color: #4A5568; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px;">Bulk Order</span>
+                            <span style="background: #E2E8F0; color: #4A5568; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">Bulk Order</span>
                         {% else %}
                             <span style="color: #a0aec0; font-size: 12px;">Unclassified</span>
                         {% endif %}
                     </td>
 
-                    <td style="padding: 15px 10px; color: #4a5568;">{{ item.barcode_id }}</td>
+                    <td style="padding: 15px 10px; color: #4a5568; word-break: break-all;">{{ item.barcode_id }}</td>
                     <td style="padding: 15px 10px;">
                         <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 13px; {% if item.quantity <= item.reorder_point %}background: #fff5f5; color: #c53030;{% else %}background: #f0fff4; color: #2f855a;{% endif %}">
                             {{ item.quantity }}
@@ -137,4 +143,27 @@
         </table>
     </div>
 </form>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const selectAllCheckbox = document.getElementById("selectAll");
+        const rowCheckboxes = document.querySelectorAll(".rowCheckbox");
+
+        // Kapag pinindot ang checkbox sa taas
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener("change", function() {
+                rowCheckboxes.forEach(function(checkbox) {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+        }
+
+        // Kapag in-uncheck mo yung isa sa baba, dapat mag-uncheck din yung nasa taas
+        rowCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener("change", function() {
+                const allChecked = document.querySelectorAll(".rowCheckbox:checked").length === rowCheckboxes.length;
+                selectAllCheckbox.checked = allChecked;
+            });
+        });
+    });
+</script>
 {% endblock %}
