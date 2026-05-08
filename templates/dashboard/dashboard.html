@@ -511,11 +511,14 @@
     <i class="ph ph-package"></i> Products
 </a>
        
-        <a href="{% url 'inventory:low_stock_view' %}" class="nav-item">
+        
+    <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
+        <i class="ph ph-folders"></i> <span>Categories</span>
+    </a>    
+    <a href="{% url 'inventory:low_stock_view' %}" class="nav-item">
     <i class="ph ph-trend-down"></i> Low Stocks
-</a>
-        <a href="#" class="nav-item"><i class="ph ph-squares-four"></i> Category</a>
-        <a href="#" class="nav-item"><i class="ph ph-barcode"></i> Scan Barcode</a>
+</a>    
+    <a href="#" class="nav-item"><i class="ph ph-barcode"></i> Scan Barcode</a>
         <a href="#" class="nav-item"><i class="ph ph-archive"></i> Manage Stock</a>
 
 
@@ -524,8 +527,9 @@
         <a href="#" class="nav-item"><i class="ph ph-receipt"></i> Invoices</a>
         <a href="#" class="nav-item"><i class="ph ph-arrow-u-down-left"></i> Sales Return</a>
 </a>
-        <a href="{% url 'point_of_sale:pos_index' %}" class="nav-item"><i class="ph ph-monitor"></i> POS</a>
-       
+        <a href="{% url 'point_of_sale:pos_index' %}" class="nav-item {% if '/pos/' in request.path %}active{% endif %}">
+            <i class="ph ph-desktop"></i> Point-Of-Sales
+        </a>       
         <div class="nav-category">Reports and Analytics</div>
         <a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Sales Report</a>
         <a href="#" class="nav-item"><i class="ph ph-clock"></i> Purchase Report</a>
@@ -828,6 +832,45 @@ function closeGlobalModal() {
 }
 </script>
 <div id="global-modal-root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% if messages %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        {% for message in messages %}
+            Swal.fire({
+                title: "{% if message.tags == 'error' %}Action Failed!{% else %}Success!{% endif %}",
+                text: "{{ message|escapejs }}",
+                icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
+                confirmButtonColor: '#0D9488',
+                confirmButtonText: 'Okay'
+            });
+        {% endfor %}
+    });
+</script>
+{% endif %}
+
+<script>
+    function confirmDelete(event, formElement, itemName) {
+        event.preventDefault(); // Stop the form from submitting immediately
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `You are about to delete ${itemName}. This cannot be undone!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#E53E3E', // Red for delete
+            cancelButtonColor: '#CBD5E0',  // Gray for cancel
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formElement.submit(); // Actually submit the form if they click Yes
+            }
+        });
+    }
+</script>
 </body>
 </html>
 

@@ -1,0 +1,105 @@
+{% extends 'dashboard/dashboard.html' %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="color: #1A365D; margin: 0;">Category Management</h2>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px;">
+    {% for category in categories %}
+    <div style="background: white; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 2px rgba(0,0,0,0.02); overflow: hidden;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white;">
+            
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h3 style="margin: 0; color: #2D3748; font-size: 16px; font-weight: 700; width: 200px;">{{ category.name }}</h3>
+                <span style="background: #F7F9FB; color: #4A5568; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid #EDF2F7;">Prefix: {{ category.prefix }}</span>
+                <span style="color: #718096; font-size: 13px;"><i class="ph ph-package"></i> {{ category.items.count }} Items</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                
+                {% if category.items.all %}
+                <button onclick="toggleProducts('cat-{{ category.id }}')" style="background: transparent; border: 1px solid #CBD5E0; color: #4A5568; padding: 8px 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; transition: background 0.2s;">
+                    View Products <i id="icon-cat-{{ category.id }}" class="ph ph-caret-down" style="transition: transform 0.3s ease;"></i>
+                </button>
+                {% else %}
+                <span style="color: #A0AEC0; font-size: 12px; font-style: italic; margin-right: 15px;">Empty Category</span>
+                {% endif %}
+
+                <div style="height: 20px; width: 1px; background: #E2E8F0; margin: 0 5px;"></div>
+
+                <button onclick="openEditModal('{{ category.id }}', '{{ category.name|escapejs }}')" style="background: #E2E8F0; color: #4A5568; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer;" title="Edit Name">
+                    <i class="ph ph-pencil-simple"></i>
+                </button>
+
+                <form action="{% url 'inventory:delete_category' category.id %}" method="POST" onsubmit="confirmDelete(event, this, '{{ category.name|escapejs }}');" style="margin: 0;">                    {% csrf_token %}
+                    <button type="submit" style="background: #FFF5F5; color: #E53E3E; border: 1px solid #FED7D7; padding: 8px 10px; border-radius: 6px; cursor: pointer;" title="Delete Category">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="cat-{{ category.id }}" style="display: none; background: #F8FAFC; border-top: 1px solid #EDF2F7; padding: 15px 20px;">
+            {% if category.items.all %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+                {% for item in category.items.all %}
+                    <div style="background: white; border: 1px solid #E2E8F0; padding: 10px 12px; border-radius: 6px; display: flex; flex-direction: column;">
+                        <span style="color: #2D3748; font-size: 13px; font-weight: 600;">{{ item.item_name }}</span>
+                        <span style="color: #A0AEC0; font-size: 11px; font-family: monospace;">{{ item.product_id }}</span>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+<div id="editCategoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; padding: 30px; border-radius: 12px; width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-top: 0; color: #1A365D;">Edit Category Name</h3>
+        
+        <form id="editCategoryForm" method="POST" action="">
+            {% csrf_token %}
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #4A5568;">New Category Name:</label>
+            <input type="text" id="editCategoryName" name="name" required style="width: 100%; padding: 12px; border: 1px solid #CBD5E0; border-radius: 6px; margin-bottom: 20px; outline: none; font-size: 14px;">
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeEditModal()" style="padding: 10px 20px; background: white; border: 1px solid #CBD5E0; border-radius: 6px; cursor: pointer; color: #4A5568; font-weight: 600;">Cancel</button>
+                <button type="submit" style="padding: 10px 20px; background: #0D9488; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600;">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Handles the dropdown toggle and arrow rotation
+    function toggleProducts(id) {
+        const productDiv = document.getElementById(id);
+        const icon = document.getElementById('icon-' + id);
+        
+        if (productDiv.style.display === 'none' || productDiv.style.display === '') {
+            productDiv.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            productDiv.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    // Handles the Edit Modal
+    function openEditModal(categoryId, currentName) {
+        document.getElementById('editCategoryModal').style.display = 'flex';
+        document.getElementById('editCategoryName').value = currentName;
+        document.getElementById('editCategoryForm').action = `/inventory/category/edit/${categoryId}/`;
+    }
+
+    function closeEditModal() {
+        document.getElementById('editCategoryModal').style.display = 'none';
+    }
+</script>
+
+{% endblock %}

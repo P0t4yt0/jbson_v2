@@ -148,3 +148,33 @@ def low_stock_view(request):
     """Specifically filters items that are at or below min_stock."""
     low_stock_items = [item for item in InventoryItem.objects.all() if item.is_low_stock]
     return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
+
+def category_list(request):
+    """Displays all categories and the items under them."""
+    # prefetch_related makes loading items much faster!
+    categories = Category.objects.prefetch_related('items').all()
+    return render(request, 'inventory/category_list.html', {'categories': categories})
+
+def edit_category(request, pk):
+    """Allows editing the category name only."""
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == 'POST':
+        new_name = request.POST.get('name')
+        if new_name:
+            category.name = new_name
+            category.save()
+            messages.success(request, f'Category successfully renamed to "{new_name}".')
+    return redirect('inventory:category_list')
+
+def delete_category(request, pk):
+    """Deletes a category ONLY if it has no products."""
+    category = get_object_or_404(Category, pk=pk)
+    try:
+        cat_name = category.name
+        category.delete()
+        messages.success(request, f'Category "{cat_name}" deleted successfully.')
+    except ProtectedError:
+        # This catches the error automatically because of on_delete=models.PROTECT
+        messages.error(request, f'Cannot delete "{category.name}" because there are products currently assigned to it.')
+        
+    return redirect('inventory:category_list')
