@@ -20,8 +20,7 @@ class Category(models.Model):
 
     def __str__(self):
         # Ito ang kukunin ng auditlog para sa 'object_repr'
-        return f"{self.item_name}"
-
+        return self.name
 # --- SUPPLIER MODEL ---
 class Supplier(models.Model):
     supplier_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
@@ -89,8 +88,7 @@ class InventoryItem(models.Model):
             self.product_id = f"{prefix}{new_no:03d}"
         super().save(*args, **kwargs)
     def __str__(self):
-        return self.item_name
-    
+       return f"{self.name} ({self.prefix})"    
 # I-register ang InventoryItem (para ma-track ang edits sa products/quantity/price)
 auditlog.register(InventoryItem)
 
