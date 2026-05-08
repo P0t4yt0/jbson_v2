@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    /* ------------------ EDIT MODAL (THIS IS WHAT YOU WANTED) ------------------ */
+    /* ------------------ EDIT MODAL ------------------ */
     const modal = document.getElementById("edit-product-modal");
     const modalContent = document.getElementById("edit-product-modal-content");
     const closeBtn = document.getElementById("close-edit-modal");
@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
-<!-- EDIT PRODUCT MODAL -->
+
 <div id="edit-product-modal" style="
     display: none;
     position: fixed;
@@ -294,8 +294,40 @@ document.addEventListener("DOMContentLoaded", function () {
         ">✕</button>
 
         <div id="edit-product-modal-content">
-            <!-- AJAX content loads here -->
-        </div>
+            </div>
     </div>
 </div>
+
+{% if messages %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        {% for message in messages %}
+            
+            let iconType = "info";
+            let titleText = "Notice";
+
+            {% if message.tags == 'error' %}
+                iconType = "error";
+                titleText = "Oops!";
+            {% elif message.tags == 'success' %}
+                iconType = "success";
+                titleText = "Success!";
+            {% elif message.tags == 'warning' %}
+                iconType = "warning";
+                titleText = "Warning";
+            {% endif %}
+
+            Swal.fire({
+                title: titleText,
+                text: "{{ message|escapejs }}",
+                icon: iconType,
+                confirmButtonColor: '#8B0000',
+                confirmButtonText: 'OK'
+            });
+
+        {% endfor %}
+    });
+</script>
+{% endif %}
+
 {% endblock %}

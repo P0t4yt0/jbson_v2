@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
-from django.db.models import Q, F
+from django.db.models import Q, F, ProtectedError
 from django.contrib import messages # IDINAGDAG NATIN ITO PARA SA NOTIFICATIONS
 from .models import InventoryItem, Category, Supplier
 from decimal import Decimal
@@ -114,21 +114,34 @@ def edit_product(request, pk):
         'suppliers': suppliers
     })
 
-# SINGLE DELETE VIEW (Inayos nang konti para tumugma sa bagong HTML)
+# SINGLE DELETE VIEW
 def delete_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
-    item.delete()
-    messages.success(request, f'Product "{item.item_name}" deleted successfully.')
+    try:
+        item_name = item.item_name
+        item.delete()
+        messages.success(request, f'Product "{item_name}" deleted successfully.')
+    except ProtectedError:
+        # Kapag may transaction na yung item, sasaluhin nito yung error
+        messages.error(request, f'Cannot delete "{item.item_name}" because it is already linked to existing transactions/sales.')
+        
     return redirect('inventory:inventory_list')
 
-# --- BAGONG BULK DELETE VIEW ---
+
+# BULK DELETE VIEW
 def bulk_delete_products(request):
     if request.method == 'POST':
         ids_string = request.POST.get('product_ids', '')
         if ids_string:
             id_list = ids_string.split(',')
-            deleted_count, _ = InventoryItem.objects.filter(pk__in=id_list).delete()
-            messages.success(request, f'Successfully deleted {deleted_count} product(s).')
+            try:
+                # Subukang burahin lahat ng na-check
+                deleted_count, _ = InventoryItem.objects.filter(pk__in=id_list).delete()
+                messages.success(request, f'Successfully deleted {deleted_count} product(s).')
+            except ProtectedError:
+                # Kung kahit isa sa na-check ay may transaction, iba-block ng database lahat
+                messages.error(request, 'Action failed. Some of the selected products cannot be deleted because they have existing transaction records.')
+                
     return redirect('inventory:inventory_list')
 
 def low_stock_view(request):
