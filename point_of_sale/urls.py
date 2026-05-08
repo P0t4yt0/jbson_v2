@@ -11,4 +11,5 @@ urlpatterns = [
     path('reset/', views.reset_transaction, name='reset_transaction'),
     path('process-payment/', views.process_payment, name='process_payment'),
     path('add-by-barcode/', views.add_by_barcode, name='add_by_barcode'),
+    path('update-cart-item/', views.update_cart_item, name='update_cart_item'),
 ]
