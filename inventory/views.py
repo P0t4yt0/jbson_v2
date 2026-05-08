@@ -6,6 +6,9 @@ from django.db.models import Q, F, ProtectedError
 from django.contrib import messages # IDINAGDAG NATIN ITO PARA SA NOTIFICATIONS
 from .models import InventoryItem, Category, Supplier
 from decimal import Decimal
+import random
+import barcode
+from django.shortcuts import render
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
@@ -182,3 +185,26 @@ def delete_category(request, pk):
         messages.error(request, f'Cannot delete "{category.name}" because there are products currently assigned to it.')
         
     return redirect('inventory:category_list')
+
+import os
+from django.conf import settings
+import barcode
+from barcode.writer import ImageWriter
+import random
+from django.shortcuts import render
+
+def barcode_module_view(request):
+    context = {}
+    
+    if request.method == 'POST':
+        # Generate 480 prefix + 9 random digits
+        base_number = f"480{random.randint(100000000, 999999999)}"
+        
+        # Gagamitin lang natin 'to para kunin yung valid 13-digit code
+        EAN = barcode.get_barcode_class('ean13')
+        my_barcode = EAN(base_number) # Pansinin: Wala nang ImageWriter!
+        
+        # Ipasa diretso sa HTML yung number string (e.g., "480123456789X")
+        context['barcode_id'] = my_barcode.get_fullcode()
+
+    return render(request, 'inventory/generate_barcode.html', context)

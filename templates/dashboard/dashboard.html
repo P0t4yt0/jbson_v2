@@ -518,7 +518,9 @@
     <a href="{% url 'inventory:low_stock_view' %}" class="nav-item">
     <i class="ph ph-trend-down"></i> Low Stocks
 </a>    
-    <a href="#" class="nav-item"><i class="ph ph-barcode"></i> Scan Barcode</a>
+        <a href="{% url 'inventory:generate_barcode_page' %}" class="nav-item {% if '/generate-barcode/' in request.path %}active{% endif %}">
+            <i class="ph ph-barcode"></i> <span>Generate Barcode</span>
+        </a>
         <a href="#" class="nav-item"><i class="ph ph-archive"></i> Manage Stock</a>
 
 

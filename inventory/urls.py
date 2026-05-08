@@ -16,4 +16,5 @@ urlpatterns = [
     path('categories/', views.category_list, name='category_list'),
     path('category/edit/<int:pk>/', views.edit_category, name='edit_category'),
     path('category/delete/<int:pk>/', views.delete_category, name='delete_category'),
+    path('generate-barcode/', views.barcode_module_view, name='generate_barcode_page'),
 ]

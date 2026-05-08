@@ -1,0 +1,153 @@
+{% extends 'dashboard/dashboard.html' %} 
+{% block content %}
+<div class="content-container" style="padding: 20px;">
+    
+    <div style="background-color: #ffffff; border-radius: 8px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 950px; margin: 0 auto; border: 1px solid #e0e0e0;">
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center;">
+
+            <div style="flex: 1; min-width: 300px;">
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <h2 style="margin-bottom: 8px; color: #1a1a1a; font-weight: 700; font-size: 24px;">Barcode Generation</h2>
+                    <p style="color: #7f8c8d; font-size: 15px; line-height: 1.5;">
+                        Create a new barcode for items without an existing code.
+                    </p>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 25px;">
+
+                <form id="barcodeForm" method="POST" style="text-align: left;">
+                    {% csrf_token %}
+                    <button type="button" onclick="confirmGeneration()" style="background-color: #802020; color: white; border: none; padding: 14px 28px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                        <i class="ph ph-barcode" style="font-size: 20px;"></i> Generate New Barcode
+                    </button>
+                </form>
+            </div>
+
+            <div style="flex: 1.2; min-width: 380px;">
+                
+                {% if barcode_id %}
+                    <div style="text-align: center; background-color: #fcfcfc; padding: 30px; border-radius: 12px; border: 1px solid #eef2f3;">
+                        <p style="margin-bottom: 20px; color: #27ae60; font-weight: 600; font-size: 14px; letter-spacing: 1px;">
+                            <i class="ph ph-check-circle"></i> Generation Successful!
+                        </p>
+                        
+                        <div id="printable-barcode" class="print-area" style="background: white; display: inline-block; padding: 20px 30px; border-radius: 4px; border: 1px solid #f0f0f0;">
+                            <svg id="barcode-canvas"></svg>
+                        </div>
+                        
+                        <div style="margin-top: 25px; display: flex; justify-content: center; gap: 12px;">
+                            <button onclick="window.print()" style="background-color: #2ecc71; color: white; border: none; padding: 10px 24px; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                                <i class="ph ph-printer"></i> Print Label
+                            </button>
+                            
+                            <button type="button" onclick="copyBarcodeID()" style="background-color: #3498db; color: white; border: none; padding: 10px 24px; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                                <i class="ph ph-copy"></i> Copy Code
+                            </button>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <small style="color: #95a5a6; font-style: italic;">* Ensure label printer is calibrated to 100% scale</small>
+                        </div>
+
+                        <div style="margin-top: 25px; padding: 15px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #802020; text-align: left; max-width: 450px; margin-left: auto; margin-right: auto;">
+                            <p style="margin: 0; font-size: 13.5px; color: #555; line-height: 1.5;">
+                                <strong><i class="ph ph-info"></i> Next Step:</strong> Affix the printed label to the physical item. Use the copied barcode ID in the <b>Add Product</b> module to complete registration.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            JsBarcode("#barcode-canvas", "{{ barcode_id }}", {
+                                format: "EAN13",
+                                width: 2,
+                                height: 80,
+                                displayValue: true,
+                                fontSize: 22,
+                                margin: 10,
+                                textMargin: 8,
+                                fontOptions: "normal",
+                                font: "Arial"
+                            });
+                        });
+                    </script>
+                {% else %}
+                    <div style="text-align: center; background-color: #f9f9f9; padding: 30px; border-radius: 12px; border: 2px dashed #e0e0e0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 280px;">
+                        <i class="ph ph-barcode" style="font-size: 48px; color: #ccc; margin-bottom: 15px;"></i>
+                        <p style="color: #999; margin: 0; font-size: 15px;">Generated barcode preview will appear here.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+
+        </div> </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function confirmGeneration() {
+        Swal.fire({
+            title: 'Generate New Barcode?',
+            text: "Are you sure you want to create a new barcode?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#802020',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Yes, generate it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('barcodeForm').submit();
+            }
+        });
+    }
+
+    function copyBarcodeID() {
+        navigator.clipboard.writeText("{{ barcode_id }}").then(() => {
+            Swal.fire({
+                title: 'Copied!',
+                text: 'Barcode ID successfully copied to clipboard.',
+                icon: 'success',
+                confirmButtonColor: '#3498db',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+
+    {% if barcode_id %}
+        document.addEventListener("DOMContentLoaded", function() {
+            Swal.fire({
+                title: 'Success!',
+                text: 'A new barcode has been generated successfully.',
+                icon: 'success',
+                confirmButtonColor: '#2ecc71',
+                timer: 1500, 
+                showConfirmButton: false
+            });
+        });
+    {% endif %}
+</script>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden; 
+        }
+        .print-area, .print-area * {
+            visibility: visible; 
+        }
+        .print-area {
+            position: absolute;
+            left: 50%;
+            top: 40%;
+            transform: translate(-50%, -40%);
+            width: fit-content; 
+            border: none !important;
+        }
+    }
+</style>
+{% endblock %}
