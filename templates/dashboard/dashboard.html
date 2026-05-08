@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JBSON Hardware - Admin Dashboard</title>
-    <!-- Phosphor Icons for minimalist outline icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
         :root {
@@ -21,13 +20,12 @@
             --status-green: #22C55E;
             --status-red: #EF4444;
             --status-yellow: #FACC15;
-           
+            
             /* Typography & Spacing */
             --font-family: 'Inter', 'Poppins', 'Roboto', sans-serif;
             --border-radius: 10px;
             --shadow-subtle: 0 1px 3px rgba(0,0,0,0.1);
         }
-
 
         * {
             margin: 0;
@@ -36,7 +34,6 @@
             font-family: var(--font-family);
         }
 
-
         body {
             background-color: var(--bg-main);
             color: var(--text-primary);
@@ -44,7 +41,6 @@
             height: 100vh;
             overflow: hidden;
         }
-
 
         /* --- Sidebar Navigation --- */
         .sidebar {
@@ -55,39 +51,22 @@
             flex-direction: column;
             padding: 20px 0;
             flex-shrink: 0;
-            /* Add vertical scrolling */
             overflow-y: auto;
         }
 
-
-        /* Custom Scrollbar specifically for the sidebar */
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
         .sidebar::-webkit-scrollbar-thumb {
-            background-color: #E5E7EB; /* Matches your subtle border color */
+            background-color: #E5E7EB; 
             border-radius: 10px;
         }
-
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background-color: #D1D5DB; /* Darkens slightly on hover */
-        }
-
+        .sidebar::-webkit-scrollbar-thumb:hover { background-color: #D1D5DB; }
 
         .logo-container {
             padding: 0 24px 24px 24px;
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 20px;
         }
-
 
         .logo-text {
             font-family: 'Impact', sans-serif;
@@ -98,7 +77,6 @@
             letter-spacing: -0.5px;
         }
 
-
         .nav-category {
             font-size: 12px;
             color: var(--text-secondary);
@@ -107,7 +85,6 @@
             margin: 16px 24px 8px 24px;
             letter-spacing: 0.5px;
         }
-
 
         .nav-item {
             display: flex;
@@ -121,24 +98,18 @@
             cursor: pointer;
         }
 
-
         .nav-item i {
             margin-right: 12px;
             font-size: 20px;
         }
 
-
-        .nav-item:hover {
-            background-color: #f3f4f6;
-        }
-
+        .nav-item:hover { background-color: #f3f4f6; }
 
         .nav-item.active {
             background-color: var(--sidebar-active);
             color: var(--primary-red);
             border-right: 4px solid var(--primary-red);
         }
-
 
         /* --- Main Content Area --- */
         .main-wrapper {
@@ -147,7 +118,6 @@
             flex-direction: column;
             overflow: hidden;
         }
-
 
         /* --- Header --- */
         .top-header {
@@ -161,7 +131,6 @@
             flex-shrink: 0;
         }
 
-
         .search-bar {
             display: flex;
             align-items: center;
@@ -171,7 +140,6 @@
             padding: 8px 16px;
             width: 300px;
         }
-
 
         .search-bar input {
             border: none;
@@ -183,13 +151,11 @@
             color: var(--text-primary);
         }
 
-
         .header-actions {
             display: flex;
             align-items: center;
             gap: 16px;
         }
-
 
         .btn {
             display: flex;
@@ -204,21 +170,9 @@
             transition: opacity 0.2s;
         }
 
-
         .btn:hover { opacity: 0.9; }
-
-
-        .btn-primary {
-            background-color: var(--primary-red);
-            color: #FFF;
-        }
-
-
-        .btn-secondary {
-            background-color: var(--primary-navy);
-            color: #FFF;
-        }
-
+        .btn-primary { background-color: var(--primary-red); color: #FFF; }
+        .btn-secondary { background-color: var(--primary-navy); color: #FFF; }
 
         .icon-btn {
             background: transparent;
@@ -235,7 +189,6 @@
             position: relative;
         }
 
-
         /* Dropdown Alert */
         .dropdown-menu {
             display: none;
@@ -246,14 +199,13 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: var(--shadow-subtle);
-            width: 280px; /* In-adjust ko lang ng konti para kasya yung text */
+            width: 280px; 
             padding: 12px;
             z-index: 100;
         }
         .dropdown-menu.show { display: block; }
         .dropdown-item { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
-
 
         /* --- Scrollable Content Grid --- */
         .content-scroll {
@@ -262,7 +214,6 @@
             padding: 32px;
         }
 
-
         .welcome-header {
             display: flex;
             justify-content: space-between;
@@ -270,12 +221,10 @@
             margin-bottom: 24px;
         }
 
-
         .welcome-header h1 {
             font-size: 28px;
             font-weight: 700;
         }
-
 
         .date-filter {
             display: flex;
@@ -289,7 +238,6 @@
             color: var(--text-secondary);
         }
 
-
         /* Cards Layout */
         .metrics-grid {
             display: grid;
@@ -297,7 +245,6 @@
             gap: 15px;
             margin-bottom: 24px;
         }
-
 
         .metric-card {
             background-color: var(--bg-card);
@@ -311,10 +258,8 @@
             position: relative;
         }
 
-
         .metric-card.solid-red { background-color: var(--primary-red); color: white; border: none; }
         .metric-card.solid-navy { background-color: var(--primary-navy); color: white; border: none; }
-
 
         .card-icon-wrapper {
             width: 48px;
@@ -327,7 +272,6 @@
             background: rgba(255,255,255,0.1);
         }
 
-
         .metric-card:not(.solid-red):not(.solid-navy) .card-icon-wrapper {
             background: #F3F4F6;
             color: var(--text-secondary);
@@ -336,15 +280,13 @@
             right: 24px;
         }
 
-
         .card-label {
             font-size: 14px;
             font-weight: 400;
             opacity: 0.9;
         }
-       
+        
         .metric-card:not(.solid-red):not(.solid-navy) .card-label { color: var(--text-secondary); }
-
 
         .card-value {
             font-size: 24px;
@@ -359,7 +301,7 @@
             align-items: center;
             justify-content: center;
             z-index: 5000;
-}
+        }
 
         .modal-card {
             background: #fff;
@@ -369,7 +311,6 @@
             border-radius: 16px;
             padding: 30px;
         }
-
 
         .trend-badge {
             display: inline-flex;
@@ -382,20 +323,19 @@
             width: max-content;
         }
 
-
         .trend-badge.positive { color: var(--status-green); background: rgba(34, 197, 94, 0.1); }
         .trend-badge.negative { color: var(--status-red); background: rgba(239, 68, 68, 0.1); }
 
         a {
-        text-decoration: none;
+            text-decoration: none;
         }
+        
         /* Lower Grid (Charts & Tables) */
         .lower-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 24px;
         }
-
 
         .chart-card, .list-card {
             background: var(--bg-card);
@@ -405,14 +345,12 @@
             border: 1px solid var(--border-color);
         }
 
-
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-
 
         .card-header h3 {
             display: flex;
@@ -422,13 +360,11 @@
             color: var(--text-primary);
         }
 
-
         .logout-form {
             width: 100%;
             margin: 0;
             padding: 0;
         }
-
 
         .btn-logout {
             background: transparent;
@@ -441,14 +377,12 @@
             color:var(--primary-red);
         }
 
-
         .view-all {
             font-size: 13px;
             color: var(--text-secondary);
             text-decoration: underline;
             cursor: pointer;
         }
-
 
         /* Low Stock List Items */
         .stock-item {
@@ -459,20 +393,16 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-
         .stock-item:last-child { border-bottom: none; }
-
 
         .item-info { display: flex; flex-direction: column; gap: 4px; }
         .item-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
         .item-id { font-size: 12px; color: var(--text-secondary); }
 
-
         .item-stock { text-align: right; }
         .stock-label { font-size: 12px; color: var(--text-secondary); display: block;}
         .stock-count { font-size: 14px; font-weight: 700; color: var(--status-green); }
         .stock-count.critical { color: var(--status-red); }
-
 
         /* Chart Placeholder styling */
         .chart-placeholder {
@@ -489,8 +419,6 @@
 </head>
 <body>
 
-
-    <!-- Fixed Left Sidebar -->
     <aside class="sidebar">
         <div class="logo-container" style="display: flex; justify-content: center; align-items: center; padding: 5px;">
             <a href="/">
@@ -506,7 +434,7 @@
         <a href="{% url 'inventory:inventory_list' %}" class="nav-item {% if '/products/' in request.path %}active{% endif %}">
             <i class="ph ph-package"></i> Products
         </a>
-       
+        
         <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
             <i class="ph ph-folders"></i> <span>Categories</span>
         </a>    
@@ -519,9 +447,11 @@
         <a href="#" class="nav-item"><i class="ph ph-shopping-cart"></i> Sales</a>
         <a href="#" class="nav-item"><i class="ph ph-receipt"></i> Invoices</a>
         <a href="#" class="nav-item"><i class="ph ph-arrow-u-down-left"></i> Sales Return</a>
-</a>
         <a href="{% url 'point_of_sale:pos_index' %}" class="nav-item {% if '/pos/' in request.path %}active{% endif %}">
             <i class="ph ph-desktop"></i> Point-Of-Sales
+        </a>
+        <a href="{% url 'billing_payment:customer_list' %}" class="nav-item {% if '/customers/' in request.path %}active{% endif %}">
+            <i class="ph ph-users"></i> Trade Credit
         </a>       
         <div class="nav-category">Reports and Analytics</div>
         <a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Sales Report</a>
@@ -536,8 +466,6 @@
         <a href="#" class="nav-item"><i class="ph ph-scales"></i> Profit & Loss</a>
         <a href="#" class="nav-item"><i class="ph ph-book-open"></i> Annual Report</a>
 
-
-        <!-- NEW CATEGORY: USER MANAGEMENT -->
         <div class="nav-category">User Management</div>
         <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Users
@@ -548,8 +476,6 @@
         </a>        
         <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
 
-
-        <!-- NEW CATEGORY: SETTINGS -->
         <div class="nav-category">Settings</div>
         <a href="{% url 'settings_hub' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
             <i class="ph ph-gear"></i> General Settings
@@ -562,28 +488,23 @@
         </form>
     </aside>
 
-
-    <!-- Main Wrapper -->
     <main class="main-wrapper">
-       
-        <!-- Top Header Bar -->
+        
         <header class="top-header">
             <div class="search-bar">
                 <i class="ph ph-magnifying-glass" style="color: var(--text-secondary)"></i>
                 <input type="text" placeholder="Search...">
             </div>
 
-
             <div class="header-actions">
                 <a href="#" class="btn btn-primary" onclick="openCreateProduct(event)">
-    <i class="ph ph-plus-circle"></i> Add Product
-</a>
+                    <i class="ph ph-plus-circle"></i> Add Product
+                </a>
                 <button class="btn btn-secondary" onclick="alert('Routing to: /sales/pos/')">
                     <i class="ph ph-monitor"></i> POS
                 </button>
-               
+                
                 <div style="position: relative;">
-                    <!-- BELL ICON NA MAY DYNAMIC BADGE -->
                     <button class="icon-btn" id="bell-btn">
                         <i class="ph ph-bell"></i>
                         {% if pending_reset_count > 0 %}
@@ -592,11 +513,9 @@
                             </span>
                         {% endif %}
                     </button>
-                   
-                    <!-- NOTIFICATION DROPDOWN MENU -->
+                    
                     <div class="dropdown-menu" id="notif-menu">
-                       
-                        <!-- 1. DYNAMIC PASSWORD RESET REQUESTS (Ito 'yung bago) -->
+                        
                         {% if pending_resets %}
                             {% for profile in pending_resets %}
                             <div class="dropdown-item" style="border-left: 3px solid var(--primary-red); margin-bottom: 8px; background-color: var(--bg-main);">
@@ -607,8 +526,6 @@
                             {% endfor %}
                         {% endif %}
 
-
-                        <!-- 2. EXISTING ACTIVITY LOGS / NOTIFICATIONS -->
                         {% if notifications %}
                             {% for notif in notifications %}
                             <div class="dropdown-item">
@@ -616,15 +533,13 @@
                             </div>
                             {% endfor %}
                         {% elif not pending_resets %}
-                            <!-- Kung walang reset request AT walang activity logs -->
                             <div class="dropdown-item text-secondary">No new activity logs.</div>
                         {% endif %}
-                       
+                        
                     </div>
                 </div>
-
-
-                <button class="icon-btn"><a href="{% url 'settings_hub' %}">
+            
+                <button class="icon-btn"><a href="{% url 'settings_hub' %}" style="color: inherit; display:flex; align-items:center;">
                     <i class="ph ph-gear"></i>
                     </a>
                 </button>
@@ -632,12 +547,10 @@
             </div>
         </header>
 
-
-       
-        <!-- Scrollable Grid System -->
+        
         <div class="content-scroll">
             {% block content %}
-           
+            
             <div class="welcome-header">
                 <h1>Welcome, Admin</h1>
                 <div class="date-filter">
@@ -646,9 +559,7 @@
                 </div>
             </div>
 
-
-             <!-- Row 1: Primary Metrics (Dynamic) -->
-            <div class="metrics-grid">
+             <div class="metrics-grid">
                 <div class="metric-card solid-red">
                     <span class="card-label">Total Sales</span>
                     <div class="card-value">₱{{ metrics.total_sales|default:"0.00" }}</div>
@@ -667,7 +578,6 @@
                 </div>
             </div>
 
-            <!-- Row 2: Secondary Metrics (Dynamic) -->
             <div class="metrics-grid">
                 <div class="metric-card">
                     <span class="card-label">Profit</span>
@@ -687,7 +597,6 @@
                 </div>
             </div>
 
-            <!-- Lower Grid: Charts & Stock (Dynamic) -->
             <div class="lower-grid">
                 <div class="chart-card">
                     <h3 style="margin-bottom:20px; font-size:16px;"><i class="ph ph-shopping-cart-simple"></i> Sales & Purchase</h3>
@@ -697,46 +606,43 @@
                 </div>
 
                 <div class="list-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="color:var(--status-red); font-size:16px;"><i class="ph ph-warning-circle"></i> Low Stock</h3>
-            <a href="{% url 'inventory:low_stock_view' %}" style="font-size:12px; color:var(--text-secondary); text-decoration:none;">View All</a>
-        </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="color:var(--status-red); font-size:16px;"><i class="ph ph-warning-circle"></i> Low Stock</h3>
+                        <a href="#" style="font-size:12px; color:var(--text-secondary); text-decoration:none;">View All</a>
+                    </div>
+                    
+                    <div style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                        {% for item in low_stock_items %}
+                        <div class="stock-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+                            <div>
+                                <strong style="font-size: 14px;">{{ item.item_name }}</strong><br>
+                                <small style="color: var(--text-secondary);">ID: #{{ item.product_id }}</small>
+                            </div>
+                            <div style="text-align:right;">
+                                <small style="color: var(--text-secondary); display: block;">Quantity</small>
+                                <span class="{% if item.quantity <= 10 %}text-danger{% else %}text-success{% endif %}" style="font-weight:700; color: var(--status-red);">
+                                    {{ item.quantity }}
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p style="font-size: 13px; color: var(--text-secondary); padding: 20px 0; text-align: center;">No low stock items.</p>
+                        {% endfor %}
+                    </div>
+                </div> </div>
 
-        {% for item in low_stock_products %}
-        <div class="stock-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
-            <div>
-                <strong style="font-size: 14px;">{{ item.item_name }}</strong><br>
-                <small style="color: var(--text-secondary);">ID: #{{ item.product_id }}</small>
-            </div>
-            <div style="text-align:right;">
-                <small style="color: var(--text-secondary);">Instock</small><br>
-                <span class="{% if item.quantity < 5 %}text-critical{% else %}text-normal{% endif %}" style="font-weight:700;">
-    {{ item.quantity }}
-</span>
-            </div>
-        </div>
-        {% empty %}
-        <p style="font-size: 13px; color: var(--text-secondary); padding: 20px 0; text-align: center;">No low stock items.</p>
-        {% endfor %}
-    </div> <!-- This properly closes list-card -->
-
-{% endblock %} <!-- Block ends here -->
-
+            {% endblock %} </div>
     </main>
 
-
-    <!-- Interactive Logic -->
     <script>
         // Notification Bell Toggle
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');
 
-
         bellBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notifMenu.classList.toggle('show');
         });
-
 
         // Close dropdown when clicking outside
         window.addEventListener('click', () => {
@@ -746,21 +652,19 @@
         });
     </script>
 
-
     <script>
         document.addEventListener("DOMContentLoaded", function() {
         // Find the sidebar element using your existing class
             const sidebar = document.querySelector('.sidebar');
-       
+        
             if (sidebar) {
             // 1. When the page loads, check if we saved a scroll position
                 const savedScrollPosition = localStorage.getItem('sidebarScrollPos');
-           
+            
             // If we did, instantly scroll the sidebar to that exact pixel
                 if (savedScrollPosition !== null) {
                 sidebar.scrollTop = parseInt(savedScrollPosition, 10);
                 }
-
 
             // 2. Right before the user leaves the page, save the current scroll position
                 window.addEventListener('beforeunload', function() {
@@ -866,4 +770,3 @@ function closeGlobalModal() {
 </script>
 </body>
 </html>
-

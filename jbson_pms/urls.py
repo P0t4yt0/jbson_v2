@@ -6,12 +6,13 @@ from django.shortcuts import redirect
 from django.views.generic import TemplateView
 from activity_log import views as activity_log_views
 from security import views as security_views
+from inventory import views as inventory_views
 
 urlpatterns = [
     path('',            lambda r: redirect('security:login'), name='home'),
     path('admin/', admin.site.urls),
     path('auth/', include('security.urls')),
-    path('dashboard/admin/', TemplateView.as_view(template_name='dashboard/dashboard.html'), name='admin_dashboard'),
+    path('dashboard/admin/', inventory_views.admin_dashboard_view, name='admin_dashboard'),
     path('inventory/', include('inventory.urls',             namespace='inventory')),
     path('products/',   include('product_registration.urls', namespace='products')),
     path('pos/',        include('point_of_sale.urls',        namespace='pos')),

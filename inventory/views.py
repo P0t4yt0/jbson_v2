@@ -8,7 +8,7 @@ from .models import InventoryItem, Category, Supplier
 from decimal import Decimal
 import random
 import barcode
-from django.shortcuts import render
+from .models import InventoryItem
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
@@ -208,3 +208,34 @@ def barcode_module_view(request):
         context['barcode_id'] = my_barcode.get_fullcode()
 
     return render(request, 'inventory/generate_barcode.html', context)
+
+def admin_dashboard_view(request):
+    LOW_STOCK_THRESHOLD = 10
+    
+    # Gamitin ang InventoryItem imbes na Product
+    # At siguraduhin na 'quantity' ang field name sa models.py mo
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=LOW_STOCK_THRESHOLD).order_by('quantity')
+    
+    context = {
+        'low_stock_items': low_stock_items,
+    }
+    
+    return render(request, 'dashboard/dashboard.html', context)
+
+def delete_user(request, user_id):
+    if not request.user.is_superuser:
+        messages.error(request, "Access denied.")
+        return redirect('security:register')
+
+    # Hanapin ang user gamit ang tamang tool
+    user_to_delete = get_object_or_404(User, id=user_id)
+    
+    if user_to_delete == request.user:
+        messages.error(request, "You cannot delete yourself.")
+    else:
+        username_deleted = user_to_delete.username
+        user_to_delete.delete()
+        messages.success(request, f"User '{username_deleted}' deleted.")
+        
+    # Redirect pabalik sa User Management page
+    return redirect('security:register')
