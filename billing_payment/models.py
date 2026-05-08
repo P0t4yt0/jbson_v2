@@ -7,8 +7,102 @@ Generates official receipts and updates inventory on success.
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from datetime import timedelta
 import uuid
 
+class Customer(models.Model):
+    name = models.CharField(max_length=150, unique=True)
+    phone = models.CharField(max_length=20, blank=True)
+    
+    # Trade Credit Core Fields
+    is_credit_customer = models.BooleanField(default=False)
+    credit_limit = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    credit_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) # How much they owe
+    
+    TERMS_CHOICES = [(30, 'Net 30'), (60, 'Net 60'), (90, 'Net 90')]
+    payment_terms = models.IntegerField(choices=TERMS_CHOICES, default=30)
+    
+    STATUS_CHOICES = [('active', 'Active'), ('hold', 'Hold')]
+    credit_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+
+    class Meta:
+        db_table = 'customers'
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def available_credit(self):
+        return self.credit_limit - self.credit_balance
+
+    def check_overdue_status(self):
+        """Rule 3: Overdue protection. Puts account on hold if invoices are overdue."""
+        if self.invoices.filter(status='overdue').exists():
+            self.credit_status = 'hold'
+            self.save(update_fields=['credit_status'])
+            return True
+        return False
+
+# --- 2. INVOICE TABLE (ONLY FOR TRADE CREDIT) ---
+class Invoice(models.Model):
+    STATUS_CHOICES = [('unpaid', 'Unpaid'), ('overdue', 'Overdue'), ('paid', 'Paid')]
+
+    transaction = models.OneToOneField('point_of_sale.Transaction', on_delete=models.CASCADE, related_name='invoice')
+    invoice_no = models.CharField(max_length=20, unique=True, editable=False)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='invoices')
+    
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    balance_due = models.DecimalField(max_digits=12, decimal_places=2)
+    
+    issue_date = models.DateField(default=timezone.now)
+    due_date = models.DateField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unpaid')
+
+    class Meta:
+        db_table = 'invoices'
+
+    def save(self, *args, **kwargs):
+        if not self.invoice_no:
+            today = timezone.now().strftime('%Y%m')
+            short = uuid.uuid4().hex[:5].upper()
+            self.invoice_no = f'INV-{today}-{short}'
+            
+        # Auto-calculate due date based on customer terms
+        if not self.due_date:
+            self.due_date = self.issue_date + timedelta(days=self.customer.payment_terms)
+            
+        super().save(*args, **kwargs)
+
+# --- 3. PAYMENTS AGAINST TRADE CREDIT ---
+class InvoicePayment(models.Model):
+    invoice = models.ForeignKey(
+        'Invoice', 
+        on_delete=models.CASCADE, 
+        related_name='payments' # <--- Adding this makes it easy to call in HTML
+    )    
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    method = models.CharField(max_length=20, choices=[('cash', 'Cash'), ('bank', 'Online Bank')])
+    date = models.DateTimeField(default=timezone.now)
+    processed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        db_table = 'invoice_payments'
+
+    def save(self, *args, **kwargs):
+        # When payment is made, deduct from invoice balance AND customer credit balance
+        if not self.pk: 
+            self.invoice.balance_due -= self.amount
+            if self.invoice.balance_due <= 0:
+                self.invoice.status = 'paid'
+            self.invoice.save()
+
+            self.invoice.customer.credit_balance -= self.amount
+            # If they paid, maybe they are off hold now
+            if self.invoice.customer.credit_balance <= 0:
+                self.invoice.customer.credit_status = 'active'
+            self.invoice.customer.save()
+            
+        super().save(*args, **kwargs)
 
 class Payment(models.Model):
     """

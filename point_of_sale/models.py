@@ -17,18 +17,26 @@ class Transaction(models.Model):
     STATUS_CHOICES = [
         ('open',      'Open'),        # Items being scanned
         ('completed', 'Completed'),   # Payment confirmed
+        ('credit',    'On Credit'), # Trade Credit
         ('voided',    'Voided'),      # Transaction cancelled
     ]
 
     PAYMENT_CHOICES = [
         ('Cash', 'Cash'),
         ('Online Wallet', 'Online Wallet'),
+        ('credit', 'Trade Credit'),
     ]
 
     payment_method = models.CharField(
         max_length=20, 
         choices=PAYMENT_CHOICES, 
         default='Cash'
+    )
+
+    # NEW: Link to the customer
+    customer = models.ForeignKey(
+        'billing_payment.Customer', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='transactions'
     )
 
     transaction_ref = models.CharField(max_length=20, unique=True, editable=False)

@@ -1,0 +1,115 @@
+{% extends 'dashboard/dashboard.html' %}
+{% block content %}
+
+<style>
+    * { font-family: Arial, Helvetica, sans-serif !important; }
+    body { background-color: #F7F9FB; margin: 0; }
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    
+    .btn-primary { 
+        background: #891C1C; color: white; padding: 10px 20px; border-radius: 6px; 
+        border: none; font-weight: 700; cursor: pointer; text-decoration: none;
+    }
+    
+    .table-container { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 15px; color: #718096; border-bottom: 2px solid #EDF2F7; font-size: 14px; }
+    td { padding: 15px; border-bottom: 1px solid #EDF2F7; vertical-align: middle; }
+    
+    .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .status-active { background: #C6F6D5; color: #22543D; }
+    .status-hold { background: #FED7D7; color: #822727; }
+
+    /* Modal Styles */
+    .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal-box { background: white; padding: 30px; border-radius: 12px; width: 400px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 5px; font-size: 13px; color: #4A5568; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #CBD5E0; border-radius: 6px; box-sizing: border-box; }
+</style>
+
+<div style="padding: 20px;">
+    <div class="header-section">
+        <div>
+            <h2 style="margin: 0; color: #1A365D;">Trade Credit Accounts</h2>
+            <p style="color: #718096; margin-top: 5px;">Manage contractor balances, limits, and terms.</p>
+        </div>
+        <button class="btn-primary" onclick="document.getElementById('addCustomerModal').style.display='flex'">+ Add Customer</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Contact</th>
+                    <th>Terms</th>
+                    <th>Credit Limit</th>
+                    <th>Current Balance</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td style="font-weight: 700; color: #2D3748;">{{ customer.name }}</td>
+                    <td style="color: #718096;">{{ customer.phone|default:"N/A" }}</td>
+                    <td>Net {{ customer.payment_terms }}</td>
+                    <td style="font-weight: 600;">₱{{ customer.credit_limit }}</td>
+                    <td style="font-weight: 700; color: {% if customer.credit_balance > 0 %}#C53030{% else %}#38A169{% endif %};">
+                        ₱{{ customer.credit_balance }}
+                    </td>
+                    <td>
+                        {% if customer.credit_status == 'active' %}
+                            <span class="status-badge status-active">Active</span>
+                        {% else %}
+                            <span class="status-badge status-hold">On Hold</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'billing_payment:customer_ledger' customer.pk %}" style="background: #E2E8F0; color: #2D3748; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block;">View Ledger</a>                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align: center; color: #A0AEC0;">No credit customers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="addCustomerModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top: 0; color: #1A365D; border-bottom: 1px solid #EDF2F7; padding-bottom: 10px;">New Credit Account</h3>
+        <form method="POST" action="{% url 'billing_payment:customer_list' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Company / Contractor Name *</label>
+                <input type="text" name="name" required placeholder="e.g., Alpha Builders">
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" name="phone" placeholder="e.g., 0917-123-4567">
+            </div>
+            <div class="form-group">
+                <label>Credit Limit (₱) *</label>
+                <input type="number" name="credit_limit" required step="0.01" value="50000.00">
+            </div>
+            <div class="form-group">
+                <label>Payment Terms *</label>
+                <select name="payment_terms" required>
+                    <option value="30">Net 30 Days</option>
+                    <option value="60">Net 60 Days</option>
+                    <option value="90">Net 90 Days</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('addCustomerModal').style.display='none'" style="flex: 1; padding: 10px; border: 1px solid #CBD5E0; background: white; border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button type="submit" style="flex: 1; padding: 10px; border: none; background: #0D9488; color: white; border-radius: 6px; cursor: pointer; font-weight: 700;">Save Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
