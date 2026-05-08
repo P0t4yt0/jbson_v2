@@ -10,6 +10,8 @@ Models:
 ─────────────────────────────────────────────────────────────────────────────
 """
 
+from auditlog.registry import auditlog
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
@@ -195,3 +197,5 @@ class EmployeeProfile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+    
+auditlog.register(User, exclude_fields=['password', 'last_login'])

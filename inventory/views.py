@@ -94,14 +94,18 @@ def edit_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     
     if request.method == 'POST':
-        item.item_name = request.POST.get('item_name')
-        item.category_id = request.POST.get('category')
-        item.supplier_id = request.POST.get('supplier')
-        item.quantity = request.POST.get('quantity')
-        item.barcode_id = request.POST.get('barcode_id')
-        item.price = request.POST.get('price')
-        item.unit_cost = request.POST.get('unit_cost', 0)
-        item.annual_demand = request.POST.get('annual_demand', 0)
+        # Ginagamit natin yung "or item.<field>" para kung empty yung pinasa sa form, 
+        # ire-retain niya yung dating naka-save sa database.
+        item.item_name = request.POST.get('item_name') or item.item_name
+        item.category_id = request.POST.get('category') or item.category_id
+        item.supplier_id = request.POST.get('supplier') or item.supplier_id
+        item.quantity = request.POST.get('quantity') or item.quantity
+        item.barcode_id = request.POST.get('barcode_id') or item.barcode_id
+        
+        # Pinalitan natin ang fallback from 0/0.00 to their existing values
+        item.price = request.POST.get('price') or item.price
+        item.unit_cost = request.POST.get('unit_cost') or item.unit_cost
+        item.annual_demand = request.POST.get('annual_demand') or item.annual_demand
         
         item.save()
         return redirect('inventory:inventory_list')

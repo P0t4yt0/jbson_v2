@@ -103,53 +103,81 @@
         </td>
         
         <td>
-            {% if log.action == 0 %}<span style="color: #22C55E; font-weight: bold; background: #e8f7ed; padding: 2px 6px; border-radius: 4px;">ADD</span>
-            {% elif log.action == 1 %}<span style="color: #FACC15; font-weight: bold; background: #fffbe6; padding: 2px 6px; border-radius: 4px;">EDIT</span>
-            {% elif log.action == 2 %}<span style="color: #EF4444; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">DELETE</span>{% endif %}
-
-            <span style="margin-left: 8px; font-weight: 600; color: #333;">
-                {% if "object" in log.object_repr %}
-                    {# 1. Hanapin muna sa changes kung may item_name #}
-                    {% if log.changes_dict.item_name %}
-                        {{ log.changes_dict.item_name.1 }}
-                    {# 2. Kung wala, subukan nating i-query ang mismong product name gamit ang ID #}
-                    {% else %}
-                        Item #{{ log.object_id }}
+            {% if log.description %}
+                {# 1. KUNG CUSTOM LOG (Login, Logout, Requests) - WALA NANG BADGES, PURE SENTENCE NA LANG #}
+                <span style="font-weight: 500; color: #333;">
+                    {{ log.description }}
+                </span>
+                
+            {% else %}
+                {# 2. KUNG AUDITLOG (Products, Suppliers, Categories, Users) #}
+                
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    {# A. RETAIN THE ADD/EDIT/DELETE BADGES PARA MADALING MAKITA ANG ACTION #}
+                    {% if log.action == 0 or log.action == "0" %}<span style="color: #22C55E; font-weight: bold; background: #e8f7ed; padding: 2px 6px; border-radius: 4px;">ADD</span>
+                    {% elif log.action == 1 or log.action == "1" %}<span style="color: #FACC15; font-weight: bold; background: #fffbe6; padding: 2px 6px; border-radius: 4px;">EDIT</span>
+                    {% elif log.action == 2 or log.action == "2" %}<span style="color: #EF4444; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">DELETE</span>
                     {% endif %}
-                {% else %}
-                    {# 3. Kung hindi naman "object" ang nakasulat, ipakita ang original #}
-                    {{ log.object_repr }}
-                {% endif %}
-            </span>
 
-            {% if log.action == 1 and log.changes_dict %}
-                <div style="margin-top: 8px; font-size: 0.8rem; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
-                    {% for field, values in log.changes_dict.items %}
-                        {# Kunin ang luma at bago #}
-                        {% with old_val=values.0 new_val=values.1 %}
-                            
-                            {# Strict Comparison: Ipakita lang kung talagang may pinagkaiba at hindi "None" vs "" #}
-                            {% if old_val|stringformat:"s" != new_val|stringformat:"s" %}
-                                {# Dagdag na check para sa mga identikal na pangalan #}
-                                {% if old_val and new_val or old_val != new_val %}
-                                    
-                                    <li style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-weight: 600; color: #666; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
-                                        <span style="color: #EF4444; text-decoration: line-through; background: #fee2e2; padding: 0 4px; border-radius: 2px;">
-                                            {{ old_val|default:"---" }}
-                                        </span> 
-                                        <span style="color: #22C55E; font-weight: bold;">&rarr; {{ new_val|default:"---" }}</span>
-                                    </li>
-
+                    {# B. SENTENCE FORMAT KUNG ANONG MODEL ANG GINALAW #}
+                    <span style="font-weight: 500; color: #555; margin-top: 2px;">
+                        {% if log.action == 0 or log.action == "0" %}
+                            Added new {{ log.model_name|lower }}: 
+                        {% elif log.action == 1 or log.action == "1" %}
+                            Modified {{ log.model_name|lower }}: 
+                        {% elif log.action == 2 or log.action == "2" %}
+                            Deleted {{ log.model_name|lower }}: 
+                        {% endif %}
+                        
+                        {# ACTUAL NA PANGALAN NG ITEM/USER/SUPPLIER #}
+                        <span style="font-weight: 600; color: #111;">
+                            {% if log.action == 2 or log.action == "2" %}
+                                {% if log.object_repr and log.object_repr|stringformat:"s" != "None" and log.object_repr|stringformat:"s" != "" %}
+                                    '{{ log.object_repr }}'
+                                {% else %}
+                                    Item #{{ log.object_id }}
+                                {% endif %}
+                            {% else %}
+                                {% if log.content_object.item_name %}
+                                    '{{ log.content_object.item_name }}'
+                                {% elif log.content_object.name %}
+                                    '{{ log.content_object.name }}'
+                                {% elif log.changes_dict.item_name %}
+                                    '{{ log.changes_dict.item_name.1 }}'
+                                {% elif "object" in log.object_repr %}
+                                    Item ID: #{{ log.object_id }}
+                                {% else %}
+                                    '{{ log.object_repr }}'
                                 {% endif %}
                             {% endif %}
-
-                        {% endwith %}
-                    {% endfor %}
+                        </span>
+                    </span>
                 </div>
+
+                {# C. DETAILS NG CHANGES (Para sa mga edits/updates) #}
+                {% if log.action == 1 or log.action == "1" %}
+                    {% if log.changes_dict %}
+                        <div style="margin-top: 8px; font-size: 0.8rem; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                            {% for field, values in log.changes_dict.items %}
+                                {% with old_val=values.0 new_val=values.1 %}
+                                    {% if old_val|slugify != new_val|slugify %}
+                                        <li style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-weight: 600; color: #666; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
+                                            <span style="color: #EF4444; text-decoration: line-through; background: #fee2e2; padding: 0 4px; border-radius: 2px;">
+                                                {{ old_val|default:"---" }}
+                                            </span> 
+                                            <span style="color: #22C55E; font-weight: bold;">&rarr; {{ new_val|default:"---" }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
             {% endif %}
         </td>
-        
+                
         <td>{{ log.timestamp|date:"m-d-Y" }}</td>
         <td>{{ log.timestamp|time:"H:i:s" }}</td>
     </tr>

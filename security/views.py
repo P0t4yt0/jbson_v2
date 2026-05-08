@@ -158,12 +158,13 @@ def register_view(request):
         new_user.set_password(form.cleaned_data["password1"])
         new_user.save()
 
-        _log_activity(
-            user=request.user,
-            action="USER_CREATED",
-            description=f"Admin '{request.user.username}' created account '{new_user.username}' with role '{new_user.role}'.",
-            request=request,
-        )
+        # TININGGAL NATIN ITO PARA HINDI MAG-DOBLE ANG LOG DAHIL MAY AUDITLOG NA SA MODELS.PY
+        # _log_activity(
+        #     user=request.user,
+        #     action="USER_CREATED",
+        #     description=f"Admin '{request.user.username}' created account '{new_user.username}' with role '{new_user.role}'.",
+        #     request=request,
+        # )
 
         messages.success(request, f"Account for '{new_user.username}' created successfully.")
         return redirect("security:register")

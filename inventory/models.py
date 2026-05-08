@@ -88,7 +88,9 @@ class InventoryItem(models.Model):
                 new_no = int(numeric_matches[-1]) + 1 if numeric_matches else 1
             self.product_id = f"{prefix}{new_no:03d}"
         super().save(*args, **kwargs)
-
+    def __str__(self):
+        return self.item_name
+    
 # I-register ang InventoryItem (para ma-track ang edits sa products/quantity/price)
 auditlog.register(InventoryItem)
 
