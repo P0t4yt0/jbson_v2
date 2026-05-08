@@ -499,30 +499,21 @@
                 style="max-width: 100%; height: auto; max-height: 100px; object-fit: contain;">
          </a>
         </div>
-
-
         <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.path == '/dashboard/admin/' %}active{% endif %}">
             <i class="ph ph-squares-four"></i> Dashboard
         </a>
-
-
         <div class="nav-category">Inventory</div>
         <a href="{% url 'inventory:inventory_list' %}" class="nav-item {% if '/products/' in request.path %}active{% endif %}">
-    <i class="ph ph-package"></i> Products
-</a>
+            <i class="ph ph-package"></i> Products
+        </a>
        
-        
-    <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
-        <i class="ph ph-folders"></i> <span>Categories</span>
-    </a>    
-    <a href="{% url 'inventory:low_stock_view' %}" class="nav-item">
-    <i class="ph ph-trend-down"></i> Low Stocks
-</a>    
+        <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
+            <i class="ph ph-folders"></i> <span>Categories</span>
+        </a>    
+  
         <a href="{% url 'inventory:generate_barcode_page' %}" class="nav-item {% if '/generate-barcode/' in request.path %}active{% endif %}">
             <i class="ph ph-barcode"></i> <span>Generate Barcode</span>
         </a>
-        <a href="#" class="nav-item"><i class="ph ph-archive"></i> Manage Stock</a>
-
 
         <div class="nav-category">Sales</div>
         <a href="#" class="nav-item"><i class="ph ph-shopping-cart"></i> Sales</a>
