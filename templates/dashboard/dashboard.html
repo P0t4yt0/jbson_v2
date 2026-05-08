@@ -809,7 +809,17 @@ function openCreateProduct(e) {
     fetch("{% url 'product_registration:create_product' %}")
         .then(res => res.text())
         .then(html => {
-            document.getElementById('global-modal-root').innerHTML = html;
+            const root = document.getElementById('global-modal-root');
+            root.innerHTML = html;
+            
+            // BAGO: Pilitin ang browser na i-execute ang na-inject na script tags
+            const scripts = root.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
         });
 }
 

@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     /* CSS classes to fix the red squiggle errors in VS Code */
     .stock-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; }
@@ -13,6 +14,7 @@
     .search-input:focus { border-color: #a0aec0 !important; }
 </style>
 
+<!-- MAIN FILTER FORM -->
 <form method="GET" action="{% url 'inventory:inventory_list' %}" id="inventory-filter-form">
     
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 12px 20px; border-radius: 8px; border: 1px solid #edf2f7; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
@@ -31,19 +33,43 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+            <!-- BAGONG BULK DELETE BUTTON (Nakatago by default) -->
+            <button type="button" id="bulk-delete-btn" style="display: none; background: #c53030; color: white; padding: 8px 16px; border-radius: 6px; border: none; font-weight: 500; font-size: 13px; align-items: center; gap: 6px; cursor: pointer;">
+                <i class="ph ph-trash"></i> Delete Selected (<span id="delete-count">0</span>)
+            </button>
+
             <a href="{% url 'inventory:run_abc_analysis' %}" 
                style="background: #2f855a; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                <i class="ph ph-chart-bar"></i> Analyze Priority Level
             </a>
 
-            <a href="#" 
-               style="background: #2b6cb0; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-               <i class="ph ph-barcode"></i> Scan Barcode
+            <a href="#" id="scan-barcode-btn" style="background: #2b6cb0; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                <i class="ph ph-barcode"></i> Scan Barcode
             </a>
         </div>
     </div>
 
-<div style="background: white; border-radius: 10px; border: 1px solid #edf2f7; overflow: hidden; padding-bottom: 10px;">
+    <!-- POS-Style Barcode Scanner Modal -->
+    <div id="scanner-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            
+            <i class="ph ph-barcode" style="font-size: 48px; color: #2b6cb0; margin-bottom: 10px;"></i>
+            <h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 20px;">Ready to Scan</h2>
+            <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">Point your scanner at the barcode.</p>
+            
+            <!-- Dedicated Barcode Input -->
+            <input type="text" id="dedicated-barcode-input" name="search" 
+                   placeholder="Waiting for scanner..." 
+                   autocomplete="off"
+                   style="width: 100%; padding: 12px; border: 2px solid #3182ce; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
+            
+            <button type="button" id="close-scanner-modal" style="background: #edf2f7; color: #4a5568; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%;">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <div style="background: white; border-radius: 10px; border: 1px solid #edf2f7; overflow: hidden; padding-bottom: 10px;">
         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed; word-wrap: break-word;">
             <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
                 <tr>
@@ -123,12 +149,9 @@
                             <a href="{% url 'inventory:edit_product' item.pk %}" style="border: 1px solid #e2e8f0; background: white; padding: 6px; border-radius: 4px; text-decoration: none; color: #4a5568;">
                                 <i class="ph ph-pencil"></i>
                             </a>
-                            <form action="{% url 'inventory:delete_product' item.pk %}" method="POST" onsubmit="return confirm('Are you sure?');" style="margin: 0;">
-                                {% csrf_token %}
-                                <button type="submit" style="border: 1px solid #fed7d7; background: #fff5f5; color: #c53030; padding: 6px; border-radius: 4px; cursor: pointer;">
-                                    <i class="ph ph-trash"></i>
-                                </button>
-                            </form>
+                            <a href="{% url 'inventory:delete_product' item.pk %}" onclick="confirmSingleDelete(event, this.href)" style="border: 1px solid #fed7d7; background: #fff5f5; color: #c53030; padding: 6px; border-radius: 4px; cursor: pointer; text-decoration: none;">
+                                <i class="ph ph-trash"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -143,27 +166,142 @@
         </table>
     </div>
 </form>
+
+<!-- BAGONG HIDDEN FORM PARA SA BULK DELETE -->
+<!-- Nasa labas ito ng filter form para hindi maging nested form error -->
+<form id="bulk-delete-form" method="POST" action="{% url 'inventory:bulk_delete_products' %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="product_ids" id="hidden-delete-ids">
+</form>
+
 <script>
+    // SweetAlert para sa Single Delete (Yung basurahan sa bawat row)
+    function confirmSingleDelete(event, url) {
+        event.preventDefault(); // Pipigilan muna mag-load yung page
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#c53030',
+            cancelButtonColor: '#a0aec0',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url; // Itutuloy ang pag-delete kung nag 'Yes'
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const selectAllCheckbox = document.getElementById("selectAll");
         const rowCheckboxes = document.querySelectorAll(".rowCheckbox");
+        
+        const bulkDeleteBtn = document.getElementById("bulk-delete-btn");
+        const deleteCountSpan = document.getElementById("delete-count");
+        const hiddenIdsInput = document.getElementById("hidden-delete-ids");
+        const bulkDeleteForm = document.getElementById("bulk-delete-form");
 
-        // Kapag pinindot ang checkbox sa taas
+        function toggleBulkDeleteBtn() {
+            const checkedBoxes = document.querySelectorAll(".rowCheckbox:checked");
+            const checkedCount = checkedBoxes.length;
+
+            if (checkedCount > 0) {
+                bulkDeleteBtn.style.display = "flex";
+                deleteCountSpan.innerText = checkedCount; // Dito napupunta yung number na walang space
+            } else {
+                bulkDeleteBtn.style.display = "none";
+            }
+        }
+
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener("change", function() {
                 rowCheckboxes.forEach(function(checkbox) {
                     checkbox.checked = selectAllCheckbox.checked;
                 });
+                toggleBulkDeleteBtn();
             });
         }
 
-        // Kapag in-uncheck mo yung isa sa baba, dapat mag-uncheck din yung nasa taas
         rowCheckboxes.forEach(function(checkbox) {
             checkbox.addEventListener("change", function() {
                 const allChecked = document.querySelectorAll(".rowCheckbox:checked").length === rowCheckboxes.length;
-                selectAllCheckbox.checked = allChecked;
+                if(selectAllCheckbox) selectAllCheckbox.checked = allChecked;
+                toggleBulkDeleteBtn();
             });
         });
+
+        // SweetAlert para sa BULK DELETE
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.addEventListener("click", function() {
+                const checkedBoxes = document.querySelectorAll(".rowCheckbox:checked");
+                const checkedCount = checkedBoxes.length;
+                const totalCount = rowCheckboxes.length;
+                let warningText = "";
+                let warningTitle = "";
+
+                if (checkedCount === totalCount) {
+                    warningTitle = "Delete ALL items?";
+                    warningText = `You are about to delete ALL ${totalCount} products on this page. This cannot be undone.`;
+                } else {
+                    warningTitle = "Are you sure?";
+                    warningText = `You are about to delete ${checkedCount} selected product(s).`;
+                }
+
+                Swal.fire({
+                    title: warningTitle,
+                    text: warningText,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#c53030',
+                    cancelButtonColor: '#a0aec0',
+                    confirmButtonText: 'Yes, delete them!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+                        hiddenIdsInput.value = selectedIds.join(',');
+                        bulkDeleteForm.submit();
+                    }
+                });
+            });
+        }
+
+        // --- Barcode Scanner Setup ---
+        const scanBtn = document.getElementById('scan-barcode-btn');
+        const scannerModal = document.getElementById('scanner-modal');
+        const closeScannerBtn = document.getElementById('close-scanner-modal');
+        const barcodeInput = document.getElementById('dedicated-barcode-input');
+        const searchInput = document.querySelector('input[name="search"]:not(#dedicated-barcode-input)');
+
+        if (scanBtn && scannerModal) {
+            scanBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                scannerModal.style.display = 'flex';
+                if(searchInput) searchInput.disabled = true; 
+                barcodeInput.value = '';
+                barcodeInput.focus();
+            });
+
+            closeScannerBtn.addEventListener('click', function() {
+                scannerModal.style.display = 'none';
+                if(searchInput) searchInput.disabled = false;
+            });
+
+            document.addEventListener('click', function(e) {
+                if (scannerModal.style.display === 'flex' && e.target !== closeScannerBtn) {
+                    barcodeInput.focus();
+                }
+            });
+
+            barcodeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    closeScannerBtn.innerText = "Scanning...";
+                    document.getElementById('inventory-filter-form').submit();
+                }
+            });
+        }
     });
 </script>
 {% endblock %}

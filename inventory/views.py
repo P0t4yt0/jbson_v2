@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
 from django.db.models import Q, F
+from django.contrib import messages # IDINAGDAG NATIN ITO PARA SA NOTIFICATIONS
 from .models import InventoryItem, Category, Supplier
 from decimal import Decimal
 
@@ -113,14 +114,22 @@ def edit_product(request, pk):
         'suppliers': suppliers
     })
 
-# DELETE VIEW
+# SINGLE DELETE VIEW (Inayos nang konti para tumugma sa bagong HTML)
 def delete_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
-    if request.method == 'POST':
-        item.delete()
+    item.delete()
+    messages.success(request, f'Product "{item.item_name}" deleted successfully.')
     return redirect('inventory:inventory_list')
-            
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+# --- BAGONG BULK DELETE VIEW ---
+def bulk_delete_products(request):
+    if request.method == 'POST':
+        ids_string = request.POST.get('product_ids', '')
+        if ids_string:
+            id_list = ids_string.split(',')
+            deleted_count, _ = InventoryItem.objects.filter(pk__in=id_list).delete()
+            messages.success(request, f'Successfully deleted {deleted_count} product(s).')
+    return redirect('inventory:inventory_list')
 
 def low_stock_view(request):
     """Specifically filters items that are at or below min_stock."""

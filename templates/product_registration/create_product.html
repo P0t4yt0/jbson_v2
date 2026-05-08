@@ -70,9 +70,9 @@
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-size: 13px; margin-bottom: 8px;">Barcode ID <span style="color: red;">*</span></label>
                 <div style="display: flex; gap: 0;">
-                    <input type="text" name="barcode_id" value="{{ item.barcode_id }}" required 
-                           style="flex: 1; padding: 10px; border: 1px solid #ddd; border-top-right-radius: 0; border-bottom-right-radius: 0; border-radius: 6px; outline: none;">
-                    <button type="button" style="background: #8B0000; color: white; border: none; padding: 0 15px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">SCAN</button>
+                    <input type="text" id="main-barcode-input" name="barcode_id" value="{{ item.barcode_id }}" required 
+                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-top-right-radius: 0; border-bottom-right-radius: 0; border-radius: 6px; outline: none;">
+                    <button type="button" id="trigger-scan-btn" style="background: #8B0000; color: white; border: none; padding: 0 15px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">SCAN</button>
                 </div>
             </div>
 
@@ -150,6 +150,24 @@
     </div>
 </div>
 
+<!-- POS-Style Scanner Modal -->
+<div id="barcodeScannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        
+        <i class="ph ph-barcode" style="font-size: 48px; color: #8B0000; margin-bottom: 10px;"></i>
+        <h2 style="margin: 0 0 10px 0; color: #333; font-size: 20px;">Ready to Scan</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Point your scanner at the product barcode.</p>
+        
+        <!-- Dedicated Modal Input -->
+        <input type="text" id="modal-barcode-input" placeholder="Waiting for scanner..." autocomplete="off"
+               style="width: 100%; padding: 12px; border: 2px solid #8B0000; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
+        
+        <button type="button" id="close-barcode-modal" style="background: #eee; color: #333; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%;">
+            Cancel
+        </button>
+    </div>
+</div>
+
 </div>
 
     </div>
@@ -191,24 +209,17 @@ function submitNewCategory() {
             alert("Error: " + data.message);
         }
     });
-} // <--- This was missing! It closes Category so Supplier can start.
+}
 
 // --- SUPPLIER FUNCTIONS ---
 function openSupModal() {
-    // Generate a random 4-character string
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randomPart = '';
     for (let i = 0; i < 4; i++) {
         randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
-    // Combine with a prefix
     const generatedID = "SUP-" + randomPart;
-    
-    // Set the value into the input field
     document.getElementById('newSupID').value = generatedID;
-    
-    // Show the modal
     document.getElementById('supModal').style.display = 'flex';
 }
 
@@ -249,14 +260,11 @@ function submitNewSupplier() {
         } else {
             alert("Error: " + data.message);
         }
-    
-        
     });
 }
-// --- GENERAL FORM LOGIC (ABC Analysis Validation) ---
-// This ensures that human errors like negative values don't break your ABC Analysis
-document.addEventListener('DOMContentLoaded', function() {
-    
+
+// --- GENERAL FORM LOGIC & BARCODE SCANNER ---
+// We put all event listeners inside a SINGLE DOMContentLoaded block    
     // Validate Price
     const priceField = document.getElementById('productPrice');
     if(priceField) {
@@ -265,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Validate Unit Cost (Required for ABC Investment Value)
+    // Validate Unit Cost
     const costField = document.getElementById('unitCost');
     if(costField) {
         costField.addEventListener('input', function() {
@@ -273,12 +281,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Validate Annual Demand (Required for ABC Usage Frequency)
+    // Validate Annual Demand
     const demandField = document.getElementById('annualDemand');
     if(demandField) {
         demandField.addEventListener('input', function() {
             if (this.value < 0) this.value = 0;
         });
     }
-});
+    
+    // --- BARCODE SCANNER FUNCTIONS ---
+    const scanBtn = document.getElementById('trigger-scan-btn');
+    const scannerModal = document.getElementById('barcodeScannerModal');
+    const closeScannerBtn = document.getElementById('close-barcode-modal');
+    const modalInput = document.getElementById('modal-barcode-input');
+    const mainInput = document.getElementById('main-barcode-input');
+
+    if (scanBtn && scannerModal) {
+        // 1. Open the modal and auto-focus the hidden input
+        scanBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            scannerModal.style.display = 'flex';
+            modalInput.value = ''; // Clear previous scans
+            modalInput.focus();
+        });
+
+        // 2. Close the modal
+        closeScannerBtn.addEventListener('click', function() {
+            scannerModal.style.display = 'none';
+        });
+
+        // 3. Keep focus locked on the modal input (grocery store behavior)
+        document.addEventListener('click', function(e) {
+            if (scannerModal.style.display === 'flex' && e.target !== closeScannerBtn && e.target !== scanBtn) {
+                modalInput.focus();
+            }
+        });
+
+        // 4. Transfer the value when the scanner hits "Enter"
+        modalInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Stop the main form from saving!
+                
+                // Copy the scanned value to the main form
+                mainInput.value = modalInput.value;
+                
+                // Close the modal
+                scannerModal.style.display = 'none';
+                
+                // Flash the main input green for half a second
+                mainInput.style.backgroundColor = '#f0fff4';
+                setTimeout(() => {
+                    mainInput.style.backgroundColor = '';
+                }, 800);
+            }
+        });
+    };
 </script>
