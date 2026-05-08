@@ -22,6 +22,7 @@ from billing_payment.models import Customer, Invoice, Payment
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from decimal import Decimal
 
 
 def pos_view(request):
@@ -86,28 +87,62 @@ def update_cart_item(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            cart_item = CartItem.objects.get(id=data.get('item_id'))
+            item_id = data.get('item_id')
             action = data.get('action')
-
+            new_qty = data.get('quantity') # Idagdag ito para makuha ang tinype na number
+            
+            try:
+                cart_item = CartItem.objects.get(id=item_id)
+            except CartItem.DoesNotExist:
+                return JsonResponse({'status': 'success'})
+                
+            transaction = cart_item.transaction
+            
+            # 1. Update Quantity
             if action == 'increase':
                 cart_item.quantity += 1
             elif action == 'decrease':
                 if cart_item.quantity > 1:
                     cart_item.quantity -= 1
                 else:
-                    cart_item.delete()
-                    return JsonResponse({'status': 'success'})
-            elif action == 'remove':
+                    action = 'remove'
+            # ─── BAGONG LOGIC PARA SA TYPABLE INPUT ───
+            elif action == 'set':
+                try:
+                    qty_val = int(new_qty)
+                    if qty_val > 0:
+                        cart_item.quantity = qty_val
+                    else:
+                        action = 'remove' # Kapag nag-type ng 0 o negative, buburahin ang item
+                except (ValueError, TypeError):
+                    pass # Kapag invalid ang tinype, i-ignore lang
+            # ──────────────────────────────────────────
+            
+            # 2. Save Item or Delete
+            if action == 'remove':
                 cart_item.delete()
-                return JsonResponse({'status': 'success'})
-
-            cart_item.subtotal = cart_item.quantity * cart_item.unit_price
-            cart_item.save()
-            cart_item.transaction.calculate_totals()
-
+            else:
+                cart_item.subtotal = cart_item.quantity * cart_item.unit_price
+                cart_item.save()
+            
+            # ─── 3. BULLETPROOF TOTAL RECALCULATION ───
+            # Kukunin nito lahat ng items na kapareho ng transaction ID
+            remaining_items = CartItem.objects.filter(transaction=transaction)
+            
+            new_total = 0
+            for item in remaining_items:
+                new_total += item.subtotal
+                
+            transaction.total_amount = new_total
+            transaction.save()
+            # ──────────────────────────────────────────
+            
             return JsonResponse({'status': 'success'})
+            
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
+            # I-print sa terminal para makita natin ang totoong error
+            print(f"POS UPDATE ERROR: {str(e)}") 
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
         
 
 def add_by_barcode(request):
@@ -156,7 +191,7 @@ def process_payment(request):
     transaction = get_object_or_404(Transaction, id=transaction_id, status='open')
 
     method = request.GET.get('method', 'Cash')
-    received = float(request.GET.get('received', 0))
+    received = Decimal(request.GET.get('received', '0'))
     ref_num = request.GET.get('ref_num', '').strip()
     customer_id = request.GET.get('customer_id')
 
@@ -233,7 +268,10 @@ def process_payment(request):
             'transaction': transaction,
             'cart_items': transaction.cart_items.all(),
             'amount_received': received,
-            'change': received - float(transaction.total_amount),
+            
+            # Pinalitan natin ito: Decimal minus Decimal na siya ngayon!
+            'change': received - transaction.total_amount, 
+            
             'ref_num': ref_num
         })
 

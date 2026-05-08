@@ -13,7 +13,7 @@
         z-index: 100000 !important;
     }
     /* Left Section: Inventory */
-    .inventory-section { flex: 2.5; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
+    .inventory-section { flex: 2; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
     .category-tabs { display: flex; gap: 10px; margin-bottom: 5px; overflow-x: auto; padding-bottom: 10px; }
     .tab { 
         padding: 8px 16px; border-radius: 8px; border: 1px solid #E2E8F0; 
@@ -27,7 +27,7 @@
 
     /* Right Section: Sidebar UI Fix */
     
-    .order-section { flex: 1; background: white; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+    .order-section { flex: 1.3; background: white; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; min-width: 450px; }
     .order-header { padding: 20px; border-bottom: 1px solid #EDF2F7; }
     .cart-container { flex-grow: 1; overflow-y: auto; padding: 20px; }
     
@@ -91,12 +91,35 @@
 
         <div class="cart-container">
             {% for item in cart_items %}
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #EDF2F7;">
-                <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #EDF2F7;">
+                <div style="flex: 1;">
                     <h5 style="margin:0; font-size: 14px;">{{ item.inventory_item.item_name }}</h5>
-                    <small style="color: #718096;">₱{{ item.unit_price }} x {{ item.quantity }}</small>
+                    <small style="color: #718096;">₱{{ item.unit_price }} each</small>
                 </div>
-                <div style="font-weight: 700;">₱{{ item.subtotal }}</div>
+
+                <div style="display: flex; align-items: center; gap: 8px; margin-right: 15px;">
+    
+                    <button type="button" onclick="updateQty('{{ item.id }}', 'decrease')" 
+                        style="background: #E2E8F0; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-weight: 900; font-size: 18px; color: #2D3748; display: flex; align-items: center; justify-content: center;">
+                        -
+                    </button>
+                    
+                    <input type="number" min="1" value="{{ item.quantity }}" 
+                        onchange="setQty('{{ item.id }}', this.value)"
+                        style="width: 55px; height: 32px; text-align: center; font-weight: 700; font-size: 15px; border: 1px solid #CBD5E0; border-radius: 6px; outline: none; background: #F8FAFC; color: #1A365D;">
+                    
+                    <button type="button" onclick="updateQty('{{ item.id }}', 'increase')" 
+                        style="background: #E2E8F0; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-weight: 900; font-size: 18px; color: #2D3748; display: flex; align-items: center; justify-content: center;">
+                        +
+                    </button>
+                    
+                    <button type="button" onclick="confirmRemoveItem('{{ item.id }}', '{{ item.inventory_item.item_name|escapejs }}')" 
+                        style="background: #FFF5F5; border: none; color: #E53E3E; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; margin-left: 5px; display: flex; align-items: center; justify-content: center;">
+                        <i class="ph ph-trash" style="font-size: 18px;"></i>
+                    </button>
+                </div>
+
+                <div style="font-weight: 700; min-width: 80px; text-align: right;">₱{{ item.subtotal }}</div>
             </div>
             {% empty %}
             <div style="text-align: center; color: #A0AEC0; margin-top: 40px;">No items yet</div>
@@ -286,6 +309,115 @@ function filterCategory(name) {
         p.style.display = (name === 'All' || p.getAttribute('data-category') === name) ? 'block' : 'none';
     });
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === name || (name === 'All' && t.innerText === 'All Categories')));
-}</script>
+}
+
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken' + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// 2. Ang na-fix na updateQty function
+function updateQty(itemId, action) {
+    const url = "{% url 'point_of_sale:update_cart_item' %}"; 
+    const csrfToken = getCSRFToken(); // Gamitin natin ang function sa taas
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken // Ito na ang malinis na token
+        },
+        body: JSON.stringify({
+            'item_id': itemId,
+            'action': action
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Server error: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload(); // Mag-re-refresh ang page para mag-update ang total
+        } else {
+            Swal.fire('Oops!', data.message || 'Failed to update item.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Connection Error', 'Hindi ma-contact ang server.', 'error');
+    });
+}
+
+// 3. Ang SweetAlert Confirm bago mag-delete
+function confirmRemoveItem(itemId, itemName) {
+    Swal.fire({
+        title: 'Remove Item?',
+        text: `Are you sure you want to remove '${itemName}'?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E53E3E',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            updateQty(itemId, 'remove');
+        }
+    });
+}
+
+function setQty(itemId, newQty) {
+    const url = "{% url 'point_of_sale:update_cart_item' %}"; 
+    const csrfToken = getCSRFToken(); 
+
+    // Kung in-empty ang box, i-reload na lang para bumalik sa dati
+    if (!newQty || isNaN(newQty)) {
+        location.reload();
+        return;
+    }
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken 
+        },
+        body: JSON.stringify({
+            'item_id': itemId,
+            'action': 'set',
+            'quantity': newQty // Ipapasa natin yung eksaktong numero
+        })
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Server error: ' + response.status);
+        return data;
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload(); // Mag-re-refresh para makita ang bagong total
+        } else {
+            Swal.fire('Oops!', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('May Error sa System', error.message, 'error');
+    });
+}
+
+</script>
 
 {% endblock %}
