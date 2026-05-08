@@ -118,16 +118,17 @@ def process_payment(request):
 
     try:
         with db_transaction.atomic():
-            # 3. Stock Deduction Logic
             items_to_deduct = transaction.cart_items.all()
             
             for item in items_to_deduct:
                 product = item.inventory_item 
                 
+                # Check stock validation
                 if product.quantity >= item.quantity:
                     product.quantity -= item.quantity
                     product.save()
                 else:
+                    # DITO MADALAS ANG ERROR: Siguraduhing 'item_name' ito
                     return HttpResponse(f"Insufficient stock for {product.item_name}!")
 
             # 4. I-finalize ang Transaction Details

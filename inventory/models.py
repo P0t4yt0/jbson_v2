@@ -72,6 +72,10 @@ class InventoryItem(models.Model):
         ordering = ['item_name']
 
     @property
+    def name(self):
+        return self.item_name
+
+    @property
     def annual_consumption_value(self):
         """Formula: Unit Cost * Annual Demand"""
         return self.unit_cost * self.annual_demand
@@ -88,7 +92,7 @@ class InventoryItem(models.Model):
             self.product_id = f"{prefix}{new_no:03d}"
         super().save(*args, **kwargs)
     def __str__(self):
-       return f"{self.name} ({self.prefix})"    
+        return f"{self.item_name} ({self.category.prefix})"    
 # I-register ang InventoryItem (para ma-track ang edits sa products/quantity/price)
 auditlog.register(InventoryItem)
 
