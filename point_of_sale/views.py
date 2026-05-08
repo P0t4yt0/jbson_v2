@@ -1,3 +1,4 @@
+import json
 # 1. Django Shortcuts (Rendering and Redirecting)
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -14,6 +15,8 @@ from .models import Transaction, TransactionItem, CartItem
 from inventory.models import InventoryItem, Category
 
 from django.utils import timezone
+
+from django.views.decorators.csrf import csrf_exempt
 
 def pos_view(request):
     # 1. Kunin ang products at categories para sa sidebar/grid
@@ -128,7 +131,7 @@ def process_payment(request):
                     product.quantity -= item.quantity
                     product.save()
                 else:
-                    # DITO MADALAS ANG ERROR: Siguraduhing 'item_name' ito
+    
                     return HttpResponse(f"Insufficient stock for {product.item_name}!")
 
             # 4. I-finalize ang Transaction Details
@@ -187,6 +190,38 @@ def reset_transaction(request):
     ).update(status='voided')
     
     return redirect('point_of_sale:pos_index')
+
+@csrf_exempt # Para hindi mag-error sa security habang nagte-test
+def update_cart_item(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            item_id = data.get('item_id')
+            action = data.get('action')
+            
+            cart_item = CartItem.objects.get(id=item_id)
+            
+            if action == 'increase':
+                cart_item.quantity += 1
+            elif action == 'decrease':
+                if cart_item.quantity > 1:
+                    cart_item.quantity -= 1
+                else:
+                    cart_item.delete()
+                    return JsonResponse({'status': 'success'})
+            elif action == 'remove':
+                cart_item.delete()
+                return JsonResponse({'status': 'success'})
+
+            cart_item.subtotal = cart_item.unit_price * cart_item.quantity
+            cart_item.save()
+            
+            # I-update ang grand total ng transaction
+            cart_item.transaction.calculate_totals()
+            
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
 
 def add_by_barcode(request):
     barcode = request.GET.get('barcode')
