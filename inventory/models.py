@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from auditlog.registry import auditlog
 
 # --- CATEGORY MODEL ---
 class Category(models.Model):
@@ -18,7 +19,8 @@ class Category(models.Model):
         verbose_name_plural = 'Categories'
 
     def __str__(self):
-        return f"{self.name} ({self.prefix})"
+        # Ito ang kukunin ng auditlog para sa 'object_repr'
+        return f"{self.item_name}"
 
 # --- SUPPLIER MODEL ---
 class Supplier(models.Model):
@@ -86,3 +88,10 @@ class InventoryItem(models.Model):
                 new_no = int(numeric_matches[-1]) + 1 if numeric_matches else 1
             self.product_id = f"{prefix}{new_no:03d}"
         super().save(*args, **kwargs)
+
+# I-register ang InventoryItem (para ma-track ang edits sa products/quantity/price)
+auditlog.register(InventoryItem)
+
+# (Optional) Pwede mo rin i-register ang iba kung gusto mo i-track pag may nag-edit ng supplier o category
+auditlog.register(Category)
+auditlog.register(Supplier)

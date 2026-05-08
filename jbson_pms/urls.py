@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from activity_log import views
+from activity_log import views as activity_log_views
 from security import views as security_views
 
 urlpatterns = [
@@ -17,7 +17,7 @@ urlpatterns = [
     path('pos/',        include('point_of_sale.urls',        namespace='pos')),
     path('billing/',    include('billing_payment.urls',      namespace='billing')),
     path('reports/',    include('reports_analytics.urls',    namespace='reports')),
-    path('dashboard/admin/activity-logs/', security_views.activity_logs_view, name='activity_logs'),
+    path('dashboard/admin/activity-logs/', activity_log_views.activity_logs_view, name='activity_logs'),
     path('notifications/', include('notifications.urls',     namespace='notifications')),
     path('maintenance/',include('maintenance.urls',          namespace='maintenance')),
     path('search/',     include('search.urls',               namespace='search')),

@@ -81,40 +81,86 @@
                     <th>Time</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td>{{ log.id|stringformat:"03d" }}</td>
-                    
-                    <td>
-                        {% if log.user %}
-                            {{ log.user.username }}
-                        {% else %}
-                            <span style="color: #999; font-style: italic;">Deleted User</span>
-                        {% endif %}
-                    </td>
-                    
-                    <td>
-                        {% if log.user %}
-                            {% if log.user.is_superuser %}Admin{% else %}Employee{% endif %}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    
-                    <td>{{ log.get_action_display }}</td>
-                    
-                    <td>{{ log.timestamp|date:"m-d-Y" }}</td>
-                    <td>{{ log.timestamp|time:"H:i:s" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" style="text-align: center; color: #888; padding: 30px;">
-                        No activity logs found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
+<tbody>
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.id|stringformat:"03d" }}</td>
+        
+        <td>
+            {% if log.actor %}
+                {{ log.actor.username }}
+            {% else %}
+                <span style="color: #999; font-style: italic;">System</span>
+            {% endif %}
+        </td>
+        
+        <td>
+            {% if log.actor %}
+                {% if log.actor.is_superuser %}Admin{% else %}Employee{% endif %}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        
+        <td>
+            {% if log.action == 0 %}<span style="color: #22C55E; font-weight: bold; background: #e8f7ed; padding: 2px 6px; border-radius: 4px;">ADD</span>
+            {% elif log.action == 1 %}<span style="color: #FACC15; font-weight: bold; background: #fffbe6; padding: 2px 6px; border-radius: 4px;">EDIT</span>
+            {% elif log.action == 2 %}<span style="color: #EF4444; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">DELETE</span>{% endif %}
+
+            <span style="margin-left: 8px; font-weight: 600; color: #333;">
+                {% if "object" in log.object_repr %}
+                    {# 1. Hanapin muna sa changes kung may item_name #}
+                    {% if log.changes_dict.item_name %}
+                        {{ log.changes_dict.item_name.1 }}
+                    {# 2. Kung wala, subukan nating i-query ang mismong product name gamit ang ID #}
+                    {% else %}
+                        Item #{{ log.object_id }}
+                    {% endif %}
+                {% else %}
+                    {# 3. Kung hindi naman "object" ang nakasulat, ipakita ang original #}
+                    {{ log.object_repr }}
+                {% endif %}
+            </span>
+
+            {% if log.action == 1 and log.changes_dict %}
+                <div style="margin-top: 8px; font-size: 0.8rem; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                    {% for field, values in log.changes_dict.items %}
+                        {# Kunin ang luma at bago #}
+                        {% with old_val=values.0 new_val=values.1 %}
+                            
+                            {# Strict Comparison: Ipakita lang kung talagang may pinagkaiba at hindi "None" vs "" #}
+                            {% if old_val|stringformat:"s" != new_val|stringformat:"s" %}
+                                {# Dagdag na check para sa mga identikal na pangalan #}
+                                {% if old_val and new_val or old_val != new_val %}
+                                    
+                                    <li style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-weight: 600; color: #666; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
+                                        <span style="color: #EF4444; text-decoration: line-through; background: #fee2e2; padding: 0 4px; border-radius: 2px;">
+                                            {{ old_val|default:"---" }}
+                                        </span> 
+                                        <span style="color: #22C55E; font-weight: bold;">&rarr; {{ new_val|default:"---" }}</span>
+                                    </li>
+
+                                {% endif %}
+                            {% endif %}
+
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </td>
+        
+        <td>{{ log.timestamp|date:"m-d-Y" }}</td>
+        <td>{{ log.timestamp|time:"H:i:s" }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6" style="text-align: center; color: #888; padding: 30px;">
+            No activity logs found.
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
         </table>
 
         <div class="pagination-bar">
