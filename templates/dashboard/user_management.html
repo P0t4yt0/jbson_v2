@@ -72,12 +72,12 @@
             <h2 style="font-size: 1.1rem; color: #0A192F; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">System Users</h2>
             <table>
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Date Added</th>
-                    </tr>
+                <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Date Added</th>
+                <th style="text-align: center;">Actions</th> </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
@@ -92,6 +92,21 @@
                             {% endif %}
                         </td>
                         <td>{{ user.date_created|date:"M d, Y" }}</td>
+                        
+                        <td style="text-align: center;">
+                            {% if user.id != request.user.id %}
+                            
+                            <a href="{% url 'security:delete_user' user.id %}" 
+                            onclick="event.preventDefault(); showDeleteAlert(this.href, '{{ user.username|escapejs }}');"
+                            style="color: #851618; font-size: 1.2rem; text-decoration: none; padding: 5px;">
+                                <i class="ph ph-trash"></i>
+                            </a>
+
+                            {% else %}
+                            <span style="font-size: 0.7rem; color: #aaa;">(You)</span>
+                            {% endif %}
+                        </td>
+
                     </tr>
                     {% empty %}
                     <tr>
@@ -196,6 +211,7 @@
         }
     }
 
+
     function checkRules() {
         const val = passInput.value;
         const confirmVal = confirmInput.value;
@@ -210,6 +226,40 @@
     // Run the checker every time the user types in either box
     passInput.addEventListener('input', checkRules);
     confirmInput.addEventListener('input', checkRules);
+
+    function confirmDelete(deleteUrl, username) {
+    Swal.fire({
+        title: 'Delete User?',
+        text: `Are you sure you want to delete '${username}'? This action cannot be undone.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#851618',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Dahil pinasa na natin ang kumpletong URL mula sa taas, 
+            // idederetso na lang natin ang browser doon.
+            window.location.href = deleteUrl;
+        }
+    });
+}
+
+function showDeleteAlert(deleteUrl, username) {
+    Swal.fire({
+        title: 'Delete User?',
+        text: `Are you sure you want to delete ${username}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#851618',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = deleteUrl;
+        }
+    });
+}
 </script>
 
 {% endblock content %}

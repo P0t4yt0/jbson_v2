@@ -26,6 +26,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.shortcuts import render, redirect, get_object_or_404
 
 # IMPORT NG MODELS: Pinagsama na natin ang ActivityLog at EmployeeProfile dito!
 from .models import ActivityLog, EmployeeProfile 
@@ -401,3 +402,17 @@ def user_management_view(request):
 
 def settings_hub_view(request):
     return render(request, 'dashboard/settings_hub.html')
+
+def delete_user(request, user_id):
+    # 1. Check permissions
+    if not request.user.is_superuser:
+        messages.error(request, "Access denied.")
+        return redirect('security:register')
+
+    # 2. Hanapin ang user
+    user_to_delete = get_object_or_404(User, id=user_id)
+    user_to_delete.delete()
+    messages.success(request, f"User '{user_to_delete.username}' deleted.")
+    
+    # KUNG ANO ANG NAME NG VIEW NA ITO SA URLS.PY MO, YON ANG ILAGAY DITO:
+    return redirect('user_management')
