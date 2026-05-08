@@ -5,24 +5,23 @@ from inventory.models import InventoryItem
 from django.shortcuts import redirect
 from django.shortcuts import render, redirect, get_object_or_404
 from inventory.models import InventoryItem
+from inventory.models import InventoryItem, Category
 from .models import Transaction, TransactionItem
 
 def pos_view(request):
-    # 1. Get all products for the left-side grid
+    # Get products and categories
     products = InventoryItem.objects.all()
+    categories = Category.objects.all() # Fetch all dynamic categories
     
-    # 2. Get or create an 'open' transaction for the current session
-    # This ensures there is always a "cart" ready to receive items
     transaction, created = Transaction.objects.get_or_create(
         status='open',
         processed_by=request.user if request.user.is_authenticated else None
     )
-    
-    # 3. Get the items currently in this transaction to show in the 'Order List'
     cart_items = transaction.items.all()
 
     context = {
         'products': products,
+        'categories': categories, # Add this to the context
         'transaction': transaction,
         'cart_items': cart_items,
     }
@@ -33,53 +32,50 @@ def add_to_cart(request):
     product_id = request.GET.get('product_id')
     product = get_object_or_404(InventoryItem, id=product_id)
     
-    # Find the current open transaction
-    transaction, _ = Transaction.objects.get_or_create(
+    # Get or create the open transaction
+    transaction, created = Transaction.objects.get_or_create(
         status='open', 
         processed_by=request.user if request.user.is_authenticated else None
     )
     
-    # Create or update the TransactionItem
-    item, created = TransactionItem.objects.get_or_create(
+    # Get or create the specific item in that transaction
+    item, item_created = TransactionItem.objects.get_or_create(
         transaction=transaction,
         inventory_item=product,
         defaults={
             'unit_price': product.price,
+            'quantity': 1,
             'subtotal': product.price
         }
     )
     
-    if not created:
+    if not item_created:
         item.quantity += 1
+        # item.save() will trigger TransactionItem's save() which calculates subtotal
         item.save()
     
-    # Recalculate the Grand Total
-    transaction.calculate_totals()
+    # CRITICAL STEP: Tell the transaction to update its Grand Total
+    transaction.calculate_totals() 
     
     return JsonResponse({'status': 'success'})
 
 def process_payment(request):
-    transaction = Transaction.objects.filter(status='open', processed_by=request.user).first()
+    method = request.GET.get('method', 'Cash')
+    received = request.GET.get('received', 0)
     
-    if not transaction or transaction.items.count() == 0:
-        return JsonResponse({'status': 'error', 'message': 'Cart is empty'})
-
-    # 1. Update Inventory and Sales Counts
-    for item in transaction.items.all():
-        product = item.inventory_item
-        product.quantity -= item.quantity # Deduct Stock
+    transaction = Transaction.objects.filter(status='open').first()
+    
+    if transaction:
+        transaction.payment_method = method
+        transaction.amount_received = float(received)
+        # You can calculate change here too:
+        transaction.change_amount = float(received) - float(transaction.total_amount)
         
-        # This feeds your ABC Analysis!
-        if hasattr(product, 'actual_sales_count'):
-            product.actual_sales_count += item.quantity 
+        transaction.status = 'completed'
+        transaction.save()
+        # ... inventory update logic ...
         
-        product.save()
-
-    # 2. Finalize Transaction
-    transaction.status = 'completed'
-    transaction.save()
-
-    return JsonResponse({'status': 'success', 'message': 'Payment successful!'})
+    return render(request, 'point_of_sale/receipts/thermal_print.html', {'transaction': transaction})
 
 def void_transaction(request):
     # This finds the current active cart and cancels it
@@ -98,3 +94,38 @@ def reset_transaction(request):
     ).update(status='voided')
     
     return redirect('point_of_sale:pos_index')
+
+def add_by_barcode(request):
+    barcode = request.GET.get('barcode')
+    
+    # Try to find the product by its barcode
+    product = InventoryItem.objects.filter(barcode_id=barcode).first()
+    
+    if not product:
+        return JsonResponse({'status': 'error', 'message': f'Product with barcode {barcode} not found!'})
+    
+    # Get or create the open transaction
+    transaction, created = Transaction.objects.get_or_create(
+        status='open', 
+        processed_by=request.user if request.user.is_authenticated else None
+    )
+    
+    # Get or create the item in the transaction
+    item, item_created = TransactionItem.objects.get_or_create(
+        transaction=transaction,
+        inventory_item=product,
+        defaults={
+            'unit_price': product.price,
+            'quantity': 1,
+            'subtotal': product.price
+        }
+    )
+    
+    # If it was already in the cart, increase quantity
+    if not item_created:
+        item.quantity += 1
+        item.save()
+    
+    transaction.calculate_totals() 
+    
+    return JsonResponse({'status': 'success'})

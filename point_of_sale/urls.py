@@ -9,4 +9,6 @@ urlpatterns = [
     path('void/', views.void_transaction, name='void_transaction'),
     path('add-to-cart/', views.add_to_cart, name='add_to_cart'),
     path('reset/', views.reset_transaction, name='reset_transaction'),
+    path('process-payment/', views.process_payment, name='process_payment'),
+    path('add-by-barcode/', views.add_by_barcode, name='add_by_barcode'),
 ]

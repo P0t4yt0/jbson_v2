@@ -84,3 +84,8 @@ def add_supplier_ajax(request):
             return JsonResponse({'status': 'success', 'id': new_sup.id, 'name': new_sup.name})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        
+
+def get_categories_ajax(request):
+    categories = list(Category.objects.values('id', 'name'))
+    return JsonResponse(categories, safe=False)

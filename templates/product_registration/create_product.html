@@ -123,11 +123,16 @@
         <input type="text" id="modal_cat_name" placeholder="e.g. Paints" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:15px;">
         
         <label style="font-size:12px; display:block; margin-bottom:5px;">Prefix (2-3 letters)</label>
-        <input type="text" id="modal_cat_prefix" placeholder="e.g. PN" maxlength="3" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:20px;">
-        
+        <input type="text"
+            id="modal_cat_prefix"
+            placeholder="Auto-generated"
+            maxlength="3"
+            style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:20px;">
         <div style="display:flex; gap:10px; justify-content:flex-end;">
             <button type="button" onclick="closeCatModal()" style="background:#eee; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Cancel</button>
-            <button type="button" onclick="submitNewCategory()" style="background:#8B0000; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Save</button>
+            <button type="button" onclick="submitNewCategory()" style="background:#8B0000; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">
+                Save
+            </button>
         </div>
     </div>
 </div>
@@ -197,20 +202,59 @@ function submitNewCategory() {
     })
     .then(response => response.json())
     .then(data => {
-        if(data.status === 'success') {
-            const select = document.querySelector('select[name="category"]');
-            const newOption = new Option(data.name, data.id);
-            select.add(newOption);
-            select.value = data.id;
+        if (data.status === 'success') {
+
+            fetch("{% url 'product_registration:get_categories_ajax' %}")
+            .then(res => res.json())
+            .then(categories => {
+                const select = document.querySelector('select[name="category"]');
+
+                select.innerHTML = '<option value="">Select</option>';
+
+                categories.forEach(cat => {
+                    const option = new Option(cat.name, cat.id);
+                    select.add(option);
+                });
+
+                select.value = data.id;
+            });
+
             closeCatModal();
-            document.getElementById('modal_cat_name').value = '';
-            document.getElementById('modal_cat_prefix').value = '';
-        } else {
-            alert("Error: " + data.message);
-        }
+    }
     });
 }
 
+document.getElementById('modal_cat_name').addEventListener('input', function () {
+    const name = this.value.trim();
+
+    if (!name) {
+        document.getElementById('modal_cat_prefix').value = '';
+        return;
+    }
+
+    // Remove non-letters and split words
+    const words = name.replace(/[^a-zA-Z ]/g, '').split(' ').filter(Boolean);
+
+    let prefix = '';
+
+    if (words.length === 1) {
+        // Single word: take first 3 consonants or letters
+        prefix = words[0]
+            .replace(/[AEIOUaeiou]/g, '')
+            .substring(0, 3)
+            .toUpperCase();
+
+        // fallback if too short
+        if (prefix.length < 2) {
+            prefix = words[0].substring(0, 3).toUpperCase();
+        }
+    } else {
+        // Multiple words: take first letter of each word
+        prefix = words.map(w => w[0]).join('').substring(0, 3).toUpperCase();
+    }
+
+    document.getElementById('modal_cat_prefix').value = prefix;
+});
 // --- SUPPLIER FUNCTIONS ---
 function openSupModal() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

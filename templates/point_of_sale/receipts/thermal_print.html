@@ -1,0 +1,13 @@
+<body onload="window.print(); window.location='/pos/';" style="font-family: monospace; width: 300px;">
+    <h2>JBSON HARDWARE</h2>
+    <p>Ref: {{ transaction.transaction_ref }}</p>
+    <hr>
+    {% for item in transaction.items.all %}
+    <p>{{ item.inventory_item.item_name }} x {{ item.quantity }} = {{ item.subtotal }}</p>
+    {% endfor %}
+    <hr>
+    <h3>TOTAL: ₱{{ transaction.total_amount }}</h3>
+    <p>Method: {{ transaction.payment_method }}</p>
+    <p>Paid: ₱{{ transaction.amount_received }}</p>
+    <p>Change: ₱{{ transaction.change_amount }}</p>
+</body>
