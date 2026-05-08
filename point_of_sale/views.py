@@ -269,7 +269,6 @@ def process_payment(request):
             'cart_items': transaction.cart_items.all(),
             'amount_received': received,
             
-            # Pinalitan natin ito: Decimal minus Decimal na siya ngayon!
             'change': received - transaction.total_amount, 
             
             'ref_num': ref_num
