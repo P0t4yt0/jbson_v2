@@ -155,7 +155,12 @@
                 <option value="Trade Credit">Trade Credit (Invoice)</option>
             </select>
         </div>
-        
+
+        <div id="ref-number-group" style="display: none; margin-bottom: 20px; text-align: left;">
+            <label style="font-weight: 700; font-size: 13px; color: #1A365D;">Reference Number <span style="color: red;">*</span></label>
+            <input type="text" id="ref-number-input" placeholder="e.g. GCash / Transfer Ref #" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; margin-top: 5px; outline: none; box-sizing: border-box;">
+        </div>
+
         <div id="credit-customer-group" style="display: none; margin-bottom: 20px; text-align: left; background: #FFF5F5; padding: 15px; border-radius: 8px; border: 1px solid #FED7D7;">
             <label style="font-weight: 700; font-size: 13px; color: #C53030;">Select Approved Customer <span style="color: red;">*</span></label>
             <select id="credit-customer" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #FEB2B2; margin-top: 5px;">
@@ -227,15 +232,25 @@ function handleMethodChange(method) {
     selectedMethod = method;
     const customerGroup = document.getElementById('credit-customer-group');
     const amountGroup = document.getElementById('amount-paid-group');
+    const refGroup = document.getElementById('ref-number-group'); // Idinagdag natin ito
     const cashInput = document.getElementById('cash-received');
 
     if (method === 'Trade Credit') {
         customerGroup.style.display = 'block';
         amountGroup.style.display = 'none';
+        refGroup.style.display = 'none'; // Itago ang ref number
         cashInput.value = 0; // Reset cash
     } else {
         customerGroup.style.display = 'none';
         amountGroup.style.display = 'block';
+        
+        // ILABAS ANG REF NUMBER KUNG ONLINE BANK
+        if (method === 'Online Bank') {
+            refGroup.style.display = 'block';
+            document.getElementById('ref-number-input').focus(); // Auto-focus para type agad
+        } else {
+            refGroup.style.display = 'none';
+        }
     }
 }
 
@@ -246,6 +261,7 @@ function finalizeAndPrint() {
     const total = parseFloat(totalText) || 0;
     const paidVal = document.getElementById('cash-received').value || 0;
     const customerId = document.getElementById('credit-customer').value;
+    const refNum = document.getElementById('ref-number-input').value.trim(); // Kunin ang ref number
 
     // 2. Validate based on method
     if (selectedMethod !== 'Trade Credit' && parseFloat(paidVal) < total) { 
@@ -259,12 +275,13 @@ function finalizeAndPrint() {
     }
 
     if (selectedMethod === 'Trade Credit' && !customerId) {
-        Swal.fire({
-            title: 'Missing Customer',
-            text: 'You must select an approved customer for Trade Credit.',
-            icon: 'warning',
-            confirmButtonColor: '#0D9488'
-        });
+        Swal.fire('Missing Customer', 'You must select an approved customer for Trade Credit.', 'warning');
+        return;
+    }
+
+    // CHECK KUNG WALANG LAMAN ANG REFERENCE NUMBER
+    if (selectedMethod === 'Online Bank' && refNum === "") {
+        Swal.fire('Missing Details', 'Reference Number is required for Online Bank transactions.', 'warning');
         return;
     }
 
@@ -287,8 +304,8 @@ function finalizeAndPrint() {
                 didOpen: () => { Swal.showLoading(); }
             });
             
-            // Send the request to the server
-            window.location.href = `/pos/process-payment/?method=${encodeURIComponent(selectedMethod)}&received=${paidVal}&customer_id=${customerId}`;
+            // ISAMA ANG REF NUM SA URL PARA MABASA NG VIEWS.PY
+            window.location.href = `/pos/process-payment/?method=${encodeURIComponent(selectedMethod)}&received=${paidVal}&customer_id=${customerId}&ref_num=${encodeURIComponent(refNum)}`;
         }
     });
 }
