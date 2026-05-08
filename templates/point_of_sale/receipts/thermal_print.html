@@ -1,13 +1,61 @@
-<body onload="window.print(); window.location='/pos/';" style="font-family: monospace; width: 300px;">
-    <h2>JBSON HARDWARE</h2>
-    <p>Ref: {{ transaction.transaction_ref }}</p>
-    <hr>
-    {% for item in transaction.items.all %}
-    <p>{{ item.inventory_item.item_name }} x {{ item.quantity }} = {{ item.subtotal }}</p>
-    {% endfor %}
-    <hr>
-    <h3>TOTAL: ₱{{ transaction.total_amount }}</h3>
-    <p>Method: {{ transaction.payment_method }}</p>
-    <p>Paid: ₱{{ transaction.amount_received }}</p>
-    <p>Change: ₱{{ transaction.change_amount }}</p>
+<body onload="window.print(); setTimeout(function(){ window.location='/pos/'; }, 1000);" style="font-family: 'Courier New', Courier, monospace; width: 280px; padding: 10px; color: #000;">
+    
+    <div style="text-align: center;">
+        <h2 style="margin-bottom: 5px;">JBSON HARDWARE</h2>
+        <p style="font-size: 12px; margin-top: 0;">Quality Tools & Supplies</p>
+    </div>
+
+    <div style="font-size: 13px;">
+        <p>Ref: {{ transaction.transaction_ref }}</p>
+        <p>Date: {{ transaction.date_completed|date:"Y-m-d H:i" }}</p>
+        <p>Cashier: {{ transaction.processed_by.get_full_name|default:transaction.processed_by.username }}</p>
+    </div>
+
+    <hr style="border-top: 1px dashed #000;">
+
+    <div style="font-size: 13px;">
+        {% for item in transaction.cart_items.all %}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>{{ item.inventory_item.item_name }} (x{{ item.quantity }})</span>
+            <span>₱{{ item.subtotal }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <hr style="border-top: 1px dashed #000;">
+
+    <div style="font-size: 14px; margin-top: 10px;">
+    <div style="display: flex; justify-content: space-between;">
+        <span>TOTAL:</span>
+        <span>₱{{ transaction.total_amount }}</span>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+        <span>Method:</span>
+        <span>{{ transaction.payment_method }}</span>
+    </div>
+
+    {% if transaction.reference_number %}
+    <div style="display: flex; justify-content: space-between;">
+        <span>Ref No:</span>
+        <span>{{ transaction.reference_number }}</span>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between;">
+        <span>Paid:</span>
+        <span>₱{{ amount_received|floatformat:2 }}</span>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px solid #000; margin-top: 5px; padding-top: 5px;">
+        <span>CHANGE:</span>
+        <span>₱{{ change|floatformat:2 }}</span>
+    </div>
+</div>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 12px;">
+        <p>Thank you for shopping!</p>
+        <p>Please keep this receipt.</p>
+    </div>
+
 </body>

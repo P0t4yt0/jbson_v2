@@ -42,6 +42,7 @@ class Transaction(models.Model):
     void_reason     = models.TextField(blank=True)
     date_created    = models.DateTimeField(default=timezone.now)
     date_completed  = models.DateTimeField(null=True, blank=True)
+    reference_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         db_table = 'pos_transactions'
@@ -61,18 +62,28 @@ class Transaction(models.Model):
 
     def calculate_totals(self):
         """Recalculate subtotal and total from items."""
-        items = self.items.all()
-        self.subtotal    = sum(item.subtotal for item in items)
+        # Use the NEW related_name here
+        items = self.cart_items.all() 
+        self.subtotal = sum(item.subtotal for item in items)
         self.total_amount = self.subtotal
         self.save(update_fields=['subtotal', 'total_amount'])
 
+class CartItem(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='cart_items')
+    inventory_item = models.ForeignKey('inventory.InventoryItem', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.inventory_item.item_name} (x{self.quantity})"
 
 class TransactionItem(models.Model):
     """
     A single line item within a Transaction.
     Stores a snapshot of price at time of sale (price may change later).
     """
-    transaction     = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='items')
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='sold_items')
     inventory_item  = models.ForeignKey(
         'inventory.InventoryItem', on_delete=models.PROTECT,
         related_name='sold_items'
@@ -90,3 +101,5 @@ class TransactionItem(models.Model):
 
     def __str__(self):
         return f'{self.inventory_item.item_name} × {self.quantity} = ₱{self.subtotal}'
+    
+

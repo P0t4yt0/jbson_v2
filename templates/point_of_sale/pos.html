@@ -1,208 +1,156 @@
 {% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    body { font-family: Arial, Helvetica, sans-serif; background-color: #F7F9FB; }
+    /* 1. FORCE ARIAL FONT ON EVERYTHING */
+    * { font-family: Arial, Helvetica, sans-serif !important; }
+    
+    body { background-color: #F7F9FB; margin: 0; }
     .pos-container { display: flex; height: calc(100vh - 80px); gap: 20px; padding: 20px; }
+    
+    /* Left Section: Inventory */
     .inventory-section { flex: 2.5; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
-    .category-tabs { 
-    display: flex; 
-    gap: 10px; 
-    margin-bottom: 5px; 
-    overflow-x: auto; /* Forces horizontal scroll */
-    padding-bottom: 10px; /* Space for the scrollbar */
-}
-
-/* Custom, sleek scrollbar for the categories */
-.category-tabs::-webkit-scrollbar {
-    height: 6px;
-}
-.category-tabs::-webkit-scrollbar-track {
-    background: #EDF2F7;
-    border-radius: 10px;
-}
-.category-tabs::-webkit-scrollbar-thumb {
-    background: #CBD5E0;
-    border-radius: 10px;
-}
-.category-tabs::-webkit-scrollbar-thumb:hover {
-    background: #A0AEC0;
-}
-
-.tab { 
-    padding: 8px 16px; 
-    border-radius: 8px; 
-    border: none; 
-    font-weight: 600; 
-    cursor: pointer;
-    background: white; 
-    color: #1A365D; 
-    border: 1px solid #E2E8F0;
-    flex-shrink: 0; /* <--- ADD THIS so buttons don't get squished */
-}
+    .category-tabs { display: flex; gap: 10px; margin-bottom: 5px; overflow-x: auto; padding-bottom: 10px; }
     .tab { 
-        padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
-        background: white; color: #1A365D; border: 1px solid #E2E8F0;
+        padding: 8px 16px; border-radius: 8px; border: 1px solid #E2E8F0; 
+        font-weight: 600; cursor: pointer; background: white; color: #1A365D; flex-shrink: 0; 
     }
     .tab.active { background: #1A365D; color: white; }
-    .product-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 15px;
-        overflow-y: auto;
-    }
-    .product-card {
-        background: white; border-radius: 4px; padding: 15px; text-align: center;
-        border: 1px solid #E2E8F0; transition: transform 0.1s; cursor: pointer;
-    }
-    .product-card:hover { border-color: #8B0000; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .product-card .id { font-size: 11px; color: #718096; margin-bottom: 8px; }
-    .product-card .name { font-size: 13px; font-weight: 700; color: #2D3748; min-height: 40px; }
-    .product-card .price { font-size: 14px; font-weight: 700; color: #8B0000; margin-top: 10px; }
-    
-    .order-section {
-        flex: 1; background: white; border-radius: 12px; display: flex;
-        flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
-    }
+
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; overflow-y: auto; }
+    .product-card { background: white; border-radius: 4px; padding: 15px; text-align: center; border: 1px solid #E2E8F0; cursor: pointer; }
+    .product-card .price { color: #8B0000; font-weight: 700; margin-top: 10px; }
+
+    /* Right Section: Sidebar UI Fix */
+    .order-section { flex: 1; background: white; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
     .order-header { padding: 20px; border-bottom: 1px solid #EDF2F7; }
-    .order-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
-    .order-header p { font-size: 12px; color: #718096; margin: 5px 0 0; }
     .cart-container { flex-grow: 1; overflow-y: auto; padding: 20px; }
-    .order-summary { padding: 20px; background: #F8FAFC; border-top: 1px solid #EDF2F7; }
-    .total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 18px; margin-bottom: 20px; }
     
-    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .btn { padding: 12px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; color: white; text-decoration: none; text-align: center;}
-    .btn-void { background: #F56565; }
-    .btn-pay { background: #48BB78; }
-    .btn-view { background: #1A365D; }
-    .btn-reset { background: #4C51BF; }
-    .btn-main {
-        width: 100%; padding: 18px; border-radius: 8px; border: none;
-        background: #0D9488; color: white; font-weight: 700; font-size: 16px; cursor: pointer;
+    .order-summary { padding: 20px; background: #F8FAFC; border-top: 1px solid #EDF2F7; }
+    .total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 24px; margin-bottom: 20px; }
+
+    /* Buttons Fix: No more group grids */
+    .btn-void { 
+        width: 100%; padding: 12px; border-radius: 6px; border: none; 
+        background: #F56565; color: white; font-weight: 600; cursor: pointer; 
+        text-align: center; text-decoration: none; display: block; margin-bottom: 12px;
+        font-size: 14px;
+    }
+    .btn-main { 
+        width: 100%; padding: 20px; border-radius: 8px; border: none; 
+        background: #0D9488; color: white; font-weight: 700; font-size: 18px; cursor: pointer; 
+    }
+
+    /* Modal Fix */
+    #paymentModal > div {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background-color: white; padding: 30px; border-radius: 15px; width: 400px; 
+        text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
 </style>
 
 <div class="pos-container">
     <div class="inventory-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px;">
-    <div style="flex: 1; position: relative;">
-        <i class="ph ph-barcode" style="position: absolute; left: 10px; top: 12px; font-size: 20px; color: #0D9488;"></i>
-        <input type="text" id="barcode-input" placeholder="Scan/Type Barcode" autofocus 
-               style="width: 100%; padding: 12px 10px 12px 35px; border: 2px solid #0D9488; border-radius: 6px; outline: none; font-weight: bold; background: #F0FDFA;">
-    </div>
-    
-    <input type="text" placeholder="Search Name..." style="flex: 1; padding: 12px; border: 1px solid #E2E8F0; border-radius: 6px; outline: none;">
-    
-</div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <div style="flex: 1; position: relative;">
+                <i class="ph ph-barcode" style="position: absolute; left: 10px; top: 12px; font-size: 20px; color: #0D9488;"></i>
+                <input type="text" id="barcode-input" placeholder="Scan Barcode..." autofocus 
+                       style="width: 100%; padding: 12px 10px 12px 35px; border: 2px solid #0D9488; border-radius: 6px; outline: none; background: #F0FDFA;">
+            </div>
+            <input type="text" placeholder="Search product..." style="flex: 1; padding: 12px; border: 1px solid #E2E8F0; border-radius: 6px; outline: none;">
+        </div>
 
-        <div class="category-tabs" id="category-tabs">
-    <button class="tab active" onclick="filterCategory('All')">All Categories</button>
-    {% for category in categories %}
-        <button class="tab" onclick="filterCategory('{{ category.name|escapejs }}')">{{ category.name }}</button>
-    {% endfor %}
-</div>
+        <div class="category-tabs">
+            <button class="tab active" onclick="filterCategory('All')">All Categories</button>
+            {% for category in categories %}
+                <button class="tab" onclick="filterCategory('{{ category.name|escapejs }}')">{{ category.name }}</button>
+            {% endfor %}
+        </div>
 
-<div class="product-grid" id="product-grid">
-    {% for item in products %}
-    <div class="product-card" data-category="{{ item.category.name|escapejs }}" onclick="addToCart('{{ item.id }}')" style="cursor: pointer;">
-        <div class="id">ID: {{ item.product_id }}</div>
-        <div class="name">{{ item.item_name }}</div>
-        <div class="price">₱{{ item.price }}</div>
-    </div>
-    {% endfor %}
-</div>
+        <div class="product-grid">
+            {% for item in products %}
+            <div class="product-card" data-category="{{ item.category.name|escapejs }}" onclick="addToCart('{{ item.id }}')">
+                <div style="font-size: 11px; color: #718096;">ID: {{ item.product_id }}</div>
+                <div style="font-weight: 700; margin-top: 5px;">{{ item.item_name }}</div>
+                <div class="price">₱{{ item.price }}</div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
     <div class="order-section">
         <div class="order-header">
-            <h3>Order List</h3>
-            <p>Transaction id : #{{ transaction.transaction_ref }}</p>
+            <h3 style="margin: 0; font-size: 18px;">Order List</h3>
+            <p style="font-size: 12px; color: #718096;">#{{ transaction.transaction_ref }}</p>
         </div>
 
-        <div class="cart-container" id="cart-items">
+        <div class="cart-container">
             {% for item in cart_items %}
-            <div class="order-item-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #EDF2F7;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #EDF2F7;">
                 <div>
-                    <h5 style="margin:0; font-size: 14px; color: #2D3748;">{{ item.inventory_item.item_name }}</h5>
+                    <h5 style="margin:0; font-size: 14px;">{{ item.inventory_item.item_name }}</h5>
                     <small style="color: #718096;">₱{{ item.unit_price }} x {{ item.quantity }}</small>
                 </div>
-                <div style="font-weight: 700; color: #2D3748;">₱{{ item.subtotal }}</div>
+                <div style="font-weight: 700;">₱{{ item.subtotal }}</div>
             </div>
             {% empty %}
-            <div style="text-align: center; color: #A0AEC0; margin-top: 50px;">
-                <i class="ph ph-shopping-cart" style="font-size: 40px; display: block; margin-bottom: 10px;"></i>
-                Order is empty
-            </div>
+            <div style="text-align: center; color: #A0AEC0; margin-top: 40px;">No items yet</div>
             {% endfor %}
         </div>
 
         <div class="order-summary">
             <div class="total-row">
-                <span>Grand Total</span>
-                <span style="color: #2D3748;">₱<span id="grand-total">{{ transaction.total_amount }}</span></span>
+                <span>Total</span>
+                <span>₱<span id="grand-total">{{ transaction.total_amount }}</span></span>
             </div>
 
-            <div class="btn-group">
-                <a href="{% url 'point_of_sale:void_transaction' %}" class="btn btn-void" onclick="return confirm('Void transaction?')">Void</a>
-                <button type="button" class="btn btn-pay" onclick="openPaymentModal()">Payment</button>
-                <button type="button" class="btn btn-view" onclick="openReviewModal()">View Orders</button>
-                <a href="{% url 'point_of_sale:reset_transaction' %}" class="btn btn-reset">Reset</a>
-            </div>
-
-            <button class="btn-main" onclick="openPaymentModal()">Pay Now</button>
+            <a href="{% url 'point_of_sale:void_transaction' %}" class="btn-void" onclick="return confirm('Void this transaction?')">Void Transaction</a>
+            <button class="btn-main" onclick="openPaymentModal()">PAY NOW</button>
         </div>
     </div>
 </div>
 
-<div id="paymentModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px);">
-    
-    <div id="payment-step-review" style="display: none; background-color: white; margin: 2% auto; padding: 25px; border-radius: 15px; width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="text-align: center; color: #1A365D; border-bottom: 2px solid #F7F9FB; padding-bottom: 10px;">Order Review</h2>
-        <div id="summary-items-list" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div>
-        
-        <div style="border-top: 2px dashed #E2E8F0; padding-top: 15px; text-align: right;">
-            <span style="font-weight: 600; color: #718096;">Total Amount:</span>
-            <strong style="font-size: 24px; color: #2D3748; margin-left: 10px;">₱<span id="rev-total">0.00</span></strong>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 25px;">
-            <button onclick="closePaymentModal()" style="flex: 1; background: #E2E8F0; color: #4A5568; border: none; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer;">CLOSE</button>
-            <button onclick="openPaymentModal()" style="flex: 1; background: #48BB78; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer;">PROCEED TO PAY</button>
-        </div>
-    </div>
-
-    <div id="payment-step-action" style="display: none; background-color: white; margin: 10% auto; padding: 30px; border-radius: 15px; width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="color: #0D9488; margin-bottom: 5px;">Finalize Sale</h2>
+<div id="paymentModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div>
+        <h2 style="color: #0D9488;">Finalize Sale</h2>
         <div style="background: #F8FAFC; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
             <div style="font-size: 14px; color: #718096;">Total Due</div>
             <div style="font-size: 32px; font-weight: 800; color: #1A365D;">₱<span id="sum-total">0.00</span></div>
         </div>
-
+        
         <div style="margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: 700; font-size: 13px;">Payment Method:</label>
-            <select id="final-method" onchange="selectedMethod = this.value" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; margin-top: 5px;">
-                <option value="Cash">Cash</option>
-                <option value="Online Wallet">Online Wallet</option>
-            </select>
+    <label style="font-weight: 700; font-size: 13px;">Payment Method:</label>
+    <select id="final-method" onchange="toggleRefField(this.value)" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; margin-top: 5px;">
+        <option value="Cash">Cash</option>
+        <option value="Online Wallet">Online Wallet</option>
+    </select>
+</div>
+
+<div id="ref-number-container" style="display: none; margin-bottom: 20px; text-align: left;">
+    <label style="font-weight: 700; font-size: 13px; color: #1A365D;">Ref Number (GCash/Maya):</label>
+    <input type="text" id="ref-number-input" placeholder="Enter Ref #" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #4C51BF; margin-top: 5px;">
+</div>
+
+<div id="ref-number-container" style="display: none; margin-bottom: 20px; text-align: left;">
+    <label style="font-weight: 700; font-size: 13px; color: #1A365D;">Ref Number (GCash/Maya):</label>
+    <input type="text" id="ref-number-input" placeholder="Enter Ref #" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #4C51BF; margin-top: 5px;">
+</div>
+
+        <div style="text-align: left; margin-bottom: 20px;">
+            <label style="font-size: 13px; font-weight: 700;">Amount Paid</label>
+            <input type="number" id="cash-received" oninput="calculateChange()" style="width: 100%; padding: 15px; border: 2px solid #0D9488; border-radius: 8px; font-size: 20px;">
         </div>
 
-        <div style="margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: 700; font-size: 13px;">Amount Paid:</label>
-            <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00" style="width: 100%; padding: 15px; border-radius: 8px; border: 2px solid #0D9488; font-size: 24px; font-weight: 700;">
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #F0FFF4; padding: 15px; border-radius: 10px;">
+        <div style="display: flex; justify-content: space-between; background: #F0FFF4; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <span style="font-weight: 600; color: #2F855A;">Change:</span>
-            <span id="sum-change" style="font-size: 24px; font-weight: 800; color: #2F855A;">₱0.00</span>
+            <span id="sum-change" style="font-weight: 800; font-size: 20px; color: #2F855A;">₱0.00</span>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 25px;">
-            <button onclick="finalizeAndPrint()" style="flex: 2; background: #0D9488; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer;">CONFIRM & PRINT</button>
-            <button onclick="closePaymentModal()" style="flex: 1; background: none; border: none; color: #A0AEC0; cursor: pointer;">Cancel</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="finalizeAndPrint()" style="flex: 2; background: #0D9488; color: white; padding: 15px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer;">CONFIRM & PRINT</button>
+            <button onclick="closePaymentModal()" style="flex: 1; border: none; background: none; color: #A0AEC0; cursor: pointer;">Cancel</button>
         </div>
     </div>
 </div>
@@ -211,160 +159,95 @@
 let selectedMethod = "Cash";
 
 function addToCart(productId) {
-    console.log("Adding product ID:", productId); // This helps you check if the click works
     fetch(`/pos/add-to-cart/?product_id=${productId}`)
         .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                location.reload(); 
-            } else {
-                console.error("Server error:", data.message);
-            }
-        })
-        .catch(error => console.error('Fetch error:', error));
-}
-
-// Function specifically for "View Orders" button
-function openReviewModal() {
-    const totalRaw = document.getElementById('grand-total').innerText;
-    const totalNum = parseFloat(totalRaw.replace(/[^\d.-]/g, ''));
-    if (totalNum <= 0) { alert("Cart is empty!"); return; }
-
-    const cartItems = document.querySelectorAll('.order-item-row');
-    let summaryHtml = "";
-    
-    cartItems.forEach(row => {
-        const name = row.querySelector('h5').innerText;
-        const details = row.querySelector('small').innerText;
-        const subtotal = row.querySelector('div[style*="font-weight: 700"]').innerText;
-        
-        // This styling centers the items within a 90% width container for a balanced look
-        summaryHtml += `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #F7F9FB; padding-bottom:8px; width: 90%; margin-left: auto; margin-right: auto;">
-                <div style="text-align: left;">
-                    <strong style="color: #2D3748; font-size: 14px;">${name}</strong><br>
-                    <small style="color: #718096;">${details}</small>
-                </div>
-                <strong style="color: #2D3748;">${subtotal}</strong>
-            </div>`;
-    });
-
-    document.getElementById('summary-items-list').innerHTML = summaryHtml;
-    document.getElementById('rev-total').innerText = totalNum.toFixed(2);
-    
-    // Switch views
-    document.getElementById('payment-step-review').style.display = "block";
-    document.getElementById('payment-step-action').style.display = "none";
-    
-    const modal = document.getElementById('paymentModal');
-    modal.style.display = "block";
+        .then(data => { if (data.status === 'success') location.reload(); });
 }
 
 function openPaymentModal() {
-    const totalRaw = document.getElementById('grand-total').innerText;
-    const totalNum = parseFloat(totalRaw.replace(/[^\d.-]/g, ''));
-    if (totalNum <= 0) { alert("Cart is empty!"); return; }
-
-    document.getElementById('sum-total').innerText = totalNum.toFixed(2);
-    
-    document.getElementById('payment-step-review').style.display = "none";
-    document.getElementById('payment-step-action').style.display = "block";
+    const total = document.getElementById('grand-total').innerText;
+    if (parseFloat(total) <= 0) return alert("Cart is empty");
+    document.getElementById('sum-total').innerText = total;
     document.getElementById('paymentModal').style.display = "block";
-    
-    setTimeout(() => { document.getElementById('cash-received').focus(); }, 100);
+    setTimeout(() => document.getElementById('cash-received').focus(), 100);
 }
 
 function calculateChange() {
     const total = parseFloat(document.getElementById('sum-total').innerText);
-    const received = parseFloat(document.getElementById('cash-received').value) || 0;
-    const change = received - total;
+    const paid = parseFloat(document.getElementById('cash-received').value) || 0;
+    const change = paid - total;
     const display = document.getElementById('sum-change');
-    
-    if (change >= 0) {
-        display.innerText = "₱" + change.toLocaleString(undefined, {minimumFractionDigits: 2});
-        display.style.color = "#2F855A";
-    } else {
-        display.innerText = "Insufficient";
-        display.style.color = "#E53E3E";
-    }
+    display.innerText = "₱" + (change >= 0 ? change.toLocaleString(undefined, {minimumFractionDigits: 2}) : "0.00");
+    display.style.color = change >= 0 ? "#2F855A" : "#E53E3E";
 }
 
 function finalizeAndPrint() {
     const total = parseFloat(document.getElementById('sum-total').innerText);
-    const paidVal = document.getElementById('cash-received').value;
-    if (parseFloat(paidVal) < total) { alert("Insufficient payment amount!"); return; }
-    window.location.href = `{% url 'point_of_sale:process_payment' %}?method=${encodeURIComponent(selectedMethod)}&received=${paidVal}`;
+    const paid = parseFloat(document.getElementById('cash-received').value) || 0;
+    if (paid < total) return alert("Insufficient amount");
+    window.location.href = `{% url 'point_of_sale:process_payment' %}?method=${encodeURIComponent(selectedMethod)}&received=${paid}`;
 }
 
-function closePaymentModal() {
-    document.getElementById('paymentModal').style.display = "none";
-}
+function closePaymentModal() { document.getElementById('paymentModal').style.display = "none"; }
 
-window.onclick = function(event) {
-    let modal = document.getElementById('paymentModal');
-    if (event.target == modal) { closePaymentModal(); }
-}
-
-// --- BARCODE SCANNER LOGIC ---
-const barcodeInput = document.getElementById('barcode-input');
-
-// Listen for the scanner typing and hitting "Enter"
-barcodeInput.addEventListener('keypress', function(e) {
+// Barcode scanner helper
+document.getElementById('barcode-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
-        e.preventDefault(); // Stop normal form submission
-        const barcode = this.value.trim();
-        
-        if (barcode) {
-            scanBarcode(barcode);
-        }
-        
-        // Clear the input instantly so it's ready for the next scan
-        this.value = ''; 
+        const val = this.value.trim();
+        if (val) fetch(`/pos/add-by-barcode/?barcode=${encodeURIComponent(val)}`)
+            .then(r => r.json()).then(d => { if(d.status === 'success') location.reload(); else alert(d.message); });
+        this.value = '';
     }
 });
 
-function scanBarcode(barcode) {
-    fetch(`/pos/add-by-barcode/?barcode=${encodeURIComponent(barcode)}`)        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                location.reload(); // Refresh to update the cart UI
-            } else {
-                // Play an error sound or alert if the barcode isn't in the database
-                alert(data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
+function filterCategory(name) {
+    document.querySelectorAll('.product-card').forEach(p => {
+        p.style.display = (name === 'All' || p.getAttribute('data-category') === name) ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === name || (name === 'All' && t.innerText === 'All Categories')));
 }
 
-// Pro-tip: Keep focus on the barcode scanner so cashiers don't have to keep clicking it
-document.addEventListener('click', function(e) {
-    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
-        barcodeInput.focus();
+function toggleRefField(method) {
+    selectedMethod = method;
+    const refContainer = document.getElementById('ref-number-container');
+    if (method === 'Online Wallet') {
+        refContainer.style.display = 'block';
+        document.getElementById('ref-number-input').focus();
+    } else {
+        refContainer.style.display = 'none';
     }
-});
+}
 
-// --- CATEGORY FILTER LOGIC ---
-function filterCategory(categoryName) {
-    // 1. Update the 'active' styling on the buttons
-    const tabs = document.querySelectorAll('.category-tabs .tab');
-    tabs.forEach(tab => {
-        tab.classList.remove('active');
-        if ((categoryName === 'All' && tab.innerText === 'All Categories') || tab.innerText === categoryName) {
-            tab.classList.add('active');
-        }
-    });
+// I-update ang finalizeAndPrint function para isama ang ref number sa URL
+function finalizeAndPrint() {
+    const total = parseFloat(document.getElementById('sum-total').innerText);
+    const paidInput = document.getElementById('cash-received');
+    const paidVal = parseFloat(paidInput.value) || 0; // Gawing 0 kung empty
+    const method = document.getElementById('final-method').value;
+    const refNum = document.getElementById('ref-number-input').value.trim();
 
-    // 2. Hide or Show the product cards
-    const products = document.querySelectorAll('.product-card');
-    products.forEach(product => {
-        const productCategory = product.getAttribute('data-category');
-        
-        if (categoryName === 'All' || productCategory === categoryName) {
-            product.style.display = 'block'; // Show it
-        } else {
-            product.style.display = 'none';  // Hide it
-        }
-    });
+    // 1. Check kung may nilagay na amount
+    if (paidVal <= 0) {
+        alert("Please enter the amount paid.");
+        paidInput.focus();
+        return;
+    }
+
+    // 2. Check kung kulang ang bayad
+    if (paidVal < total) { 
+        alert("Amount received is less than the total balance!"); 
+        return; 
+    }
+
+    // 3. Validation para sa Reference Number kapag Online Wallet
+    if (method === 'Online Wallet' && refNum === "") {
+        alert("Reference Number is required for Online Wallet transactions.");
+        document.getElementById('ref-number-input').focus();
+        return;
+    }
+    
+    // Proceed to payment
+    window.location.href = `{% url 'point_of_sale:process_payment' %}?method=${encodeURIComponent(method)}&received=${paidVal}&ref_num=${encodeURIComponent(refNum)}`;
 }
 </script>
 
