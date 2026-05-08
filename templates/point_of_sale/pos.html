@@ -2,83 +2,55 @@
 {% block content %}
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    body { font-family: 'Inter', sans-serif; background-color: #F7F9FB; }
-    
-    /* Grid Layout */
-    .pos-container {
-        display: flex;
-        height: calc(100vh - 80px); /* Adjust based on your header height */
-        gap: 20px;
-        padding: 20px;
-    }
-
-    /* Left Side: Product Section */
+    body { font-family: Arial, Helvetica, sans-serif; background-color: #F7F9FB; }
+    .pos-container { display: flex; height: calc(100vh - 80px); gap: 20px; padding: 20px; }
     .inventory-section { flex: 2.5; display: flex; flex-direction: column; gap: 15px; }
-    
     .category-tabs { display: flex; gap: 10px; margin-bottom: 10px; }
     .tab { 
         padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
         background: white; color: #1A365D; border: 1px solid #E2E8F0;
     }
     .tab.active { background: #1A365D; color: white; }
-
     .product-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 15px;
         overflow-y: auto;
     }
-
     .product-card {
-        background: white;
-        border-radius: 4px; /* Matches your UI square style */
-        padding: 15px;
-        text-align: center;
-        border: 1px solid #E2E8F0;
-        transition: transform 0.1s;
-        cursor: pointer;
+        background: white; border-radius: 4px; padding: 15px; text-align: center;
+        border: 1px solid #E2E8F0; transition: transform 0.1s; cursor: pointer;
     }
     .product-card:hover { border-color: #8B0000; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .product-card .id { font-size: 11px; color: #718096; margin-bottom: 8px; }
     .product-card .name { font-size: 13px; font-weight: 700; color: #2D3748; min-height: 40px; }
     .product-card .price { font-size: 14px; font-weight: 700; color: #8B0000; margin-top: 10px; }
-
-    /* Right Side: Order Section */
+    
     .order-section {
-        flex: 1;
-        background: white;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        overflow: hidden;
+        flex: 1; background: white; border-radius: 12px; display: flex;
+        flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
     }
-
     .order-header { padding: 20px; border-bottom: 1px solid #EDF2F7; }
     .order-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
     .order-header p { font-size: 12px; color: #718096; margin: 5px 0 0; }
-
     .cart-container { flex-grow: 1; overflow-y: auto; padding: 20px; }
-
-    /* Summary Buttons */
     .order-summary { padding: 20px; background: #F8FAFC; border-top: 1px solid #EDF2F7; }
     .total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 18px; margin-bottom: 20px; }
-
+    
     .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .btn { padding: 12px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; color: white; }
+    .btn { padding: 12px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; color: white; text-decoration: none; text-align: center;}
     .btn-void { background: #F56565; }
     .btn-pay { background: #48BB78; }
     .btn-view { background: #1A365D; }
     .btn-reset { background: #4C51BF; }
-    
     .btn-main {
         width: 100%; padding: 18px; border-radius: 8px; border: none;
-        background: #0D9488; color: white; font-weight: 700; font-size: 16px;
+        background: #0D9488; color: white; font-weight: 700; font-size: 16px; cursor: pointer;
     }
 </style>
-
 
 <div class="pos-container">
     <div class="inventory-section">
@@ -96,12 +68,12 @@
 
         <div class="product-grid">
             {% for item in products %}
-            <div class="product-card" onclick="addToCart('{{ item.id }}', '{{ item.item_name }}', '{{ item.price }}')">
-                <div class="id">ID: {{ item.product_id|default:"48290832" }}</div>
-                <div class="name">{{ item.item_name }}</div>
-                <div class="price">₱{{ item.price }}</div>
-            </div>
-            {% endfor %}
+<div class="product-card" onclick="addToCart('{{ item.id }}')" style="cursor: pointer;">
+    <div class="id">ID: {{ item.product_id }}</div>
+    <div class="name">{{ item.item_name }}</div>
+    <div class="price">₱{{ item.price }}</div>
+</div>
+{% endfor %}
         </div>
     </div>
 
@@ -111,79 +83,187 @@
             <p>Transaction id : #{{ transaction.transaction_ref }}</p>
         </div>
 
-        <div class="cart-container" id="cart-items" style="flex-grow: 1; overflow-y: auto; padding: 20px;">
-    {% for item in cart_items %}
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #EDF2F7;">
-        <div>
-            <h5 style="margin:0; font-size: 14px; color: #2D3748;">{{ item.inventory_item.item_name }}</h5>
-            <small style="color: #718096;">₱{{ item.unit_price }} x {{ item.quantity }}</small>
+        <div class="cart-container" id="cart-items">
+            {% for item in cart_items %}
+            <div class="order-item-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #EDF2F7;">
+                <div>
+                    <h5 style="margin:0; font-size: 14px; color: #2D3748;">{{ item.inventory_item.item_name }}</h5>
+                    <small style="color: #718096;">₱{{ item.unit_price }} x {{ item.quantity }}</small>
+                </div>
+                <div style="font-weight: 700; color: #2D3748;">₱{{ item.subtotal }}</div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; color: #A0AEC0; margin-top: 50px;">
+                <i class="ph ph-shopping-cart" style="font-size: 40px; display: block; margin-bottom: 10px;"></i>
+                Order is empty
+            </div>
+            {% endfor %}
         </div>
-        <div style="font-weight: 700; color: #2D3748;">₱{{ item.subtotal }}</div>
-    </div>
-    {% empty %}
-    <div style="text-align: center; color: #A0AEC0; margin-top: 50px;">
-        <i class="ph ph-shopping-cart" style="font-size: 40px; display: block; margin-bottom: 10px;"></i>
-        Order is empty
-    </div>
-    {% endfor %}
-</div>
 
         <div class="order-summary">
             <div class="total-row">
                 <span>Grand Total</span>
-                <span style="color: #2D3748;">₱<span id="grand-total">0.00</span></span>
+                <span style="color: #2D3748;">₱<span id="grand-total">{{ transaction.total_amount }}</span></span>
             </div>
 
             <div class="btn-group">
-                <a href="{% url 'point_of_sale:void_transaction' %}" 
-   class="btn btn-void" 
-   onclick="return confirm('Are you sure you want to void this transaction?')"
-   style="text-decoration: none; text-align: center; display: block;">
-    Void
-</a>
-                <button class="btn btn-pay">Payment</button>
-                <button class="btn btn-view">View Orders</button>
-                
-                <a href="{% url 'point_of_sale:reset_transaction' %}" 
-   class="btn btn-reset"
-   style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center;">
-    Reset
-</a>
+                <a href="{% url 'point_of_sale:void_transaction' %}" class="btn btn-void" onclick="return confirm('Void transaction?')">Void</a>
+                <button type="button" class="btn btn-pay" onclick="openPaymentModal()">Payment</button>
+                <button type="button" class="btn btn-view" onclick="openReviewModal()">View Orders</button>
+                <a href="{% url 'point_of_sale:reset_transaction' %}" class="btn btn-reset">Reset</a>
             </div>
 
-            <button class="btn-main">Pay : ₱<span id="btn-total">0.00</span></button>
+            <button class="btn-main" onclick="openPaymentModal()">Pay Now</button>
+        </div>
+    </div>
+</div>
+
+<div id="paymentModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px);">
+    
+    <div id="payment-step-review" style="display: none; background-color: white; margin: 2% auto; padding: 25px; border-radius: 15px; width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h2 style="text-align: center; color: #1A365D; border-bottom: 2px solid #F7F9FB; padding-bottom: 10px;">Order Review</h2>
+        <div id="summary-items-list" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div>
+        
+        <div style="border-top: 2px dashed #E2E8F0; padding-top: 15px; text-align: right;">
+            <span style="font-weight: 600; color: #718096;">Total Amount:</span>
+            <strong style="font-size: 24px; color: #2D3748; margin-left: 10px;">₱<span id="rev-total">0.00</span></strong>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="closePaymentModal()" style="flex: 1; background: #E2E8F0; color: #4A5568; border: none; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer;">CLOSE</button>
+            <button onclick="openPaymentModal()" style="flex: 1; background: #48BB78; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer;">PROCEED TO PAY</button>
+        </div>
+    </div>
+
+    <div id="payment-step-action" style="display: none; background-color: white; margin: 10% auto; padding: 30px; border-radius: 15px; width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h2 style="color: #0D9488; margin-bottom: 5px;">Finalize Sale</h2>
+        <div style="background: #F8FAFC; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="font-size: 14px; color: #718096;">Total Due</div>
+            <div style="font-size: 32px; font-weight: 800; color: #1A365D;">₱<span id="sum-total">0.00</span></div>
+        </div>
+
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label style="font-weight: 700; font-size: 13px;">Payment Method:</label>
+            <select id="final-method" onchange="selectedMethod = this.value" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; margin-top: 5px;">
+                <option value="Cash">Cash</option>
+                <option value="Online Wallet">Online Wallet</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label style="font-weight: 700; font-size: 13px;">Amount Paid:</label>
+            <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00" style="width: 100%; padding: 15px; border-radius: 8px; border: 2px solid #0D9488; font-size: 24px; font-weight: 700;">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #F0FFF4; padding: 15px; border-radius: 10px;">
+            <span style="font-weight: 600; color: #2F855A;">Change:</span>
+            <span id="sum-change" style="font-size: 24px; font-weight: 800; color: #2F855A;">₱0.00</span>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="finalizeAndPrint()" style="flex: 2; background: #0D9488; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer;">CONFIRM & PRINT</button>
+            <button onclick="closePaymentModal()" style="flex: 1; background: none; border: none; color: #A0AEC0; cursor: pointer;">Cancel</button>
         </div>
     </div>
 </div>
 
 <script>
-function addToCart(productId) {
-    // The URL here must match the path we just added in urls.py
-    fetch(`/pos/add-to-cart/?product_id=${productId}`)
-    .then(response => response.json())
-    .then(data => {
-        if(data.status === 'success') {
-            // This reloads the page so the Order List updates with the new item
-            location.reload(); 
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+let selectedMethod = "Cash";
 
-function processPayment() {
-    if(confirm("Proceed with payment?")) {
-        fetch(`/pos/process-payment/`)
+function addToCart(productId) {
+    console.log("Adding product ID:", productId); // This helps you check if the click works
+    fetch(`/pos/add-to-cart/?product_id=${productId}`)
         .then(response => response.json())
         .then(data => {
-            if(data.status === 'success') {
-                alert("Transaction Completed!");
-                window.location.href = "/pos/"; // Reloads a fresh TXN
+            if (data.status === 'success') {
+                location.reload(); 
+            } else {
+                console.error("Server error:", data.message);
             }
-        });
+        })
+        .catch(error => console.error('Fetch error:', error));
+}
+
+// Function specifically for "View Orders" button
+function openReviewModal() {
+    const totalRaw = document.getElementById('grand-total').innerText;
+    const totalNum = parseFloat(totalRaw.replace(/[^\d.-]/g, ''));
+    if (totalNum <= 0) { alert("Cart is empty!"); return; }
+
+    const cartItems = document.querySelectorAll('.order-item-row');
+    let summaryHtml = "";
+    
+    cartItems.forEach(row => {
+        const name = row.querySelector('h5').innerText;
+        const details = row.querySelector('small').innerText;
+        const subtotal = row.querySelector('div[style*="font-weight: 700"]').innerText;
+        
+        // This styling centers the items within a 90% width container for a balanced look
+        summaryHtml += `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #F7F9FB; padding-bottom:8px; width: 90%; margin-left: auto; margin-right: auto;">
+                <div style="text-align: left;">
+                    <strong style="color: #2D3748; font-size: 14px;">${name}</strong><br>
+                    <small style="color: #718096;">${details}</small>
+                </div>
+                <strong style="color: #2D3748;">${subtotal}</strong>
+            </div>`;
+    });
+
+    document.getElementById('summary-items-list').innerHTML = summaryHtml;
+    document.getElementById('rev-total').innerText = totalNum.toFixed(2);
+    
+    // Switch views
+    document.getElementById('payment-step-review').style.display = "block";
+    document.getElementById('payment-step-action').style.display = "none";
+    
+    const modal = document.getElementById('paymentModal');
+    modal.style.display = "block";
+}
+
+function openPaymentModal() {
+    const totalRaw = document.getElementById('grand-total').innerText;
+    const totalNum = parseFloat(totalRaw.replace(/[^\d.-]/g, ''));
+    if (totalNum <= 0) { alert("Cart is empty!"); return; }
+
+    document.getElementById('sum-total').innerText = totalNum.toFixed(2);
+    
+    document.getElementById('payment-step-review').style.display = "none";
+    document.getElementById('payment-step-action').style.display = "block";
+    document.getElementById('paymentModal').style.display = "block";
+    
+    setTimeout(() => { document.getElementById('cash-received').focus(); }, 100);
+}
+
+function calculateChange() {
+    const total = parseFloat(document.getElementById('sum-total').innerText);
+    const received = parseFloat(document.getElementById('cash-received').value) || 0;
+    const change = received - total;
+    const display = document.getElementById('sum-change');
+    
+    if (change >= 0) {
+        display.innerText = "₱" + change.toLocaleString(undefined, {minimumFractionDigits: 2});
+        display.style.color = "#2F855A";
+    } else {
+        display.innerText = "Insufficient";
+        display.style.color = "#E53E3E";
     }
 }
 
+function finalizeAndPrint() {
+    const total = parseFloat(document.getElementById('sum-total').innerText);
+    const paidVal = document.getElementById('cash-received').value;
+    if (parseFloat(paidVal) < total) { alert("Insufficient payment amount!"); return; }
+    window.location.href = `{% url 'point_of_sale:process_payment' %}?method=${encodeURIComponent(selectedMethod)}&received=${paidVal}`;
+}
 
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = "none";
+}
+
+window.onclick = function(event) {
+    let modal = document.getElementById('paymentModal');
+    if (event.target == modal) { closePaymentModal(); }
+}
 </script>
 
 {% endblock %}

@@ -20,6 +20,17 @@ class Transaction(models.Model):
         ('voided',    'Voided'),      # Transaction cancelled
     ]
 
+    PAYMENT_CHOICES = [
+        ('Cash', 'Cash'),
+        ('Online Wallet', 'Online Wallet'),
+    ]
+
+    payment_method = models.CharField(
+        max_length=20, 
+        choices=PAYMENT_CHOICES, 
+        default='Cash'
+    )
+
     transaction_ref = models.CharField(max_length=20, unique=True, editable=False)
     processed_by    = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
