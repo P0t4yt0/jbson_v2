@@ -54,10 +54,17 @@
 
 <div class="pos-container">
     <div class="inventory-section">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <input type="text" placeholder="Search Product..." style="width: 70%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 4px;">
-            <button class="btn" style="background: #8B0000;">View All Categories</button>
-        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px;">
+    <div style="flex: 1; position: relative;">
+        <i class="ph ph-barcode" style="position: absolute; left: 10px; top: 12px; font-size: 20px; color: #0D9488;"></i>
+        <input type="text" id="barcode-input" placeholder="Scan/Type Barcode" autofocus 
+               style="width: 100%; padding: 12px 10px 12px 35px; border: 2px solid #0D9488; border-radius: 6px; outline: none; font-weight: bold; background: #F0FDFA;">
+    </div>
+    
+    <input type="text" placeholder="Search Name..." style="flex: 1; padding: 12px; border: 1px solid #E2E8F0; border-radius: 6px; outline: none;">
+    
+    <button class="btn" style="background: #8B0000;">Categories</button>
+</div>
 
         <div class="category-tabs">
             <button class="tab active">All Categories</button>
@@ -264,6 +271,44 @@ window.onclick = function(event) {
     let modal = document.getElementById('paymentModal');
     if (event.target == modal) { closePaymentModal(); }
 }
+
+// --- BARCODE SCANNER LOGIC ---
+const barcodeInput = document.getElementById('barcode-input');
+
+// Listen for the scanner typing and hitting "Enter"
+barcodeInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Stop normal form submission
+        const barcode = this.value.trim();
+        
+        if (barcode) {
+            scanBarcode(barcode);
+        }
+        
+        // Clear the input instantly so it's ready for the next scan
+        this.value = ''; 
+    }
+});
+
+function scanBarcode(barcode) {
+    fetch(`/pos/add-by-barcode/?barcode=${encodeURIComponent(barcode)}`)        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload(); // Refresh to update the cart UI
+            } else {
+                // Play an error sound or alert if the barcode isn't in the database
+                alert(data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Pro-tip: Keep focus on the barcode scanner so cashiers don't have to keep clicking it
+document.addEventListener('click', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+        barcodeInput.focus();
+    }
+});
 </script>
 
 {% endblock %}

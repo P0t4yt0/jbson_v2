@@ -95,3 +95,38 @@ def reset_transaction(request):
     ).update(status='voided')
     
     return redirect('point_of_sale:pos_index')
+
+def add_by_barcode(request):
+    barcode = request.GET.get('barcode')
+    
+    # Try to find the product by its barcode
+    product = InventoryItem.objects.filter(barcode_id=barcode).first()
+    
+    if not product:
+        return JsonResponse({'status': 'error', 'message': f'Product with barcode {barcode} not found!'})
+    
+    # Get or create the open transaction
+    transaction, created = Transaction.objects.get_or_create(
+        status='open', 
+        processed_by=request.user if request.user.is_authenticated else None
+    )
+    
+    # Get or create the item in the transaction
+    item, item_created = TransactionItem.objects.get_or_create(
+        transaction=transaction,
+        inventory_item=product,
+        defaults={
+            'unit_price': product.price,
+            'quantity': 1,
+            'subtotal': product.price
+        }
+    )
+    
+    # If it was already in the cart, increase quantity
+    if not item_created:
+        item.quantity += 1
+        item.save()
+    
+    transaction.calculate_totals() 
+    
+    return JsonResponse({'status': 'success'})
