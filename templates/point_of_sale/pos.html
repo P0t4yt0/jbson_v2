@@ -7,8 +7,42 @@
 <style>
     body { font-family: Arial, Helvetica, sans-serif; background-color: #F7F9FB; }
     .pos-container { display: flex; height: calc(100vh - 80px); gap: 20px; padding: 20px; }
-    .inventory-section { flex: 2.5; display: flex; flex-direction: column; gap: 15px; }
-    .category-tabs { display: flex; gap: 10px; margin-bottom: 10px; }
+    .inventory-section { flex: 2.5; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
+    .category-tabs { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 5px; 
+    overflow-x: auto; /* Forces horizontal scroll */
+    padding-bottom: 10px; /* Space for the scrollbar */
+}
+
+/* Custom, sleek scrollbar for the categories */
+.category-tabs::-webkit-scrollbar {
+    height: 6px;
+}
+.category-tabs::-webkit-scrollbar-track {
+    background: #EDF2F7;
+    border-radius: 10px;
+}
+.category-tabs::-webkit-scrollbar-thumb {
+    background: #CBD5E0;
+    border-radius: 10px;
+}
+.category-tabs::-webkit-scrollbar-thumb:hover {
+    background: #A0AEC0;
+}
+
+.tab { 
+    padding: 8px 16px; 
+    border-radius: 8px; 
+    border: none; 
+    font-weight: 600; 
+    cursor: pointer;
+    background: white; 
+    color: #1A365D; 
+    border: 1px solid #E2E8F0;
+    flex-shrink: 0; /* <--- ADD THIS so buttons don't get squished */
+}
     .tab { 
         padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
         background: white; color: #1A365D; border: 1px solid #E2E8F0;
@@ -66,22 +100,22 @@
     <button class="btn" style="background: #8B0000;">Categories</button>
 </div>
 
-        <div class="category-tabs">
-            <button class="tab active">All Categories</button>
-            <button class="tab">Paint</button>
-            <button class="tab">Hand Tools</button>
-            <button class="tab">Power Tools</button>
-        </div>
-
-        <div class="product-grid">
-            {% for item in products %}
-<div class="product-card" onclick="addToCart('{{ item.id }}')" style="cursor: pointer;">
-    <div class="id">ID: {{ item.product_id }}</div>
-    <div class="name">{{ item.item_name }}</div>
-    <div class="price">₱{{ item.price }}</div>
+        <div class="category-tabs" id="category-tabs">
+    <button class="tab active" onclick="filterCategory('All')">All Categories</button>
+    {% for category in categories %}
+        <button class="tab" onclick="filterCategory('{{ category.name|escapejs }}')">{{ category.name }}</button>
+    {% endfor %}
 </div>
-{% endfor %}
-        </div>
+
+<div class="product-grid" id="product-grid">
+    {% for item in products %}
+    <div class="product-card" data-category="{{ item.category.name|escapejs }}" onclick="addToCart('{{ item.id }}')" style="cursor: pointer;">
+        <div class="id">ID: {{ item.product_id }}</div>
+        <div class="name">{{ item.item_name }}</div>
+        <div class="price">₱{{ item.price }}</div>
+    </div>
+    {% endfor %}
+</div>
     </div>
 
     <div class="order-section">
@@ -309,6 +343,30 @@ document.addEventListener('click', function(e) {
         barcodeInput.focus();
     }
 });
+
+// --- CATEGORY FILTER LOGIC ---
+function filterCategory(categoryName) {
+    // 1. Update the 'active' styling on the buttons
+    const tabs = document.querySelectorAll('.category-tabs .tab');
+    tabs.forEach(tab => {
+        tab.classList.remove('active');
+        if ((categoryName === 'All' && tab.innerText === 'All Categories') || tab.innerText === categoryName) {
+            tab.classList.add('active');
+        }
+    });
+
+    // 2. Hide or Show the product cards
+    const products = document.querySelectorAll('.product-card');
+    products.forEach(product => {
+        const productCategory = product.getAttribute('data-category');
+        
+        if (categoryName === 'All' || productCategory === categoryName) {
+            product.style.display = 'block'; // Show it
+        } else {
+            product.style.display = 'none';  // Hide it
+        }
+    });
+}
 </script>
 
 {% endblock %}

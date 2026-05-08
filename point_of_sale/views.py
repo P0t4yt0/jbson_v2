@@ -5,24 +5,23 @@ from inventory.models import InventoryItem
 from django.shortcuts import redirect
 from django.shortcuts import render, redirect, get_object_or_404
 from inventory.models import InventoryItem
+from inventory.models import InventoryItem, Category
 from .models import Transaction, TransactionItem
 
 def pos_view(request):
-    # 1. Get all products for the left-side grid
+    # Get products and categories
     products = InventoryItem.objects.all()
+    categories = Category.objects.all() # Fetch all dynamic categories
     
-    # 2. Get or create an 'open' transaction for the current session
-    # This ensures there is always a "cart" ready to receive items
     transaction, created = Transaction.objects.get_or_create(
         status='open',
         processed_by=request.user if request.user.is_authenticated else None
     )
-    
-    # 3. Get the items currently in this transaction to show in the 'Order List'
     cart_items = transaction.items.all()
 
     context = {
         'products': products,
+        'categories': categories, # Add this to the context
         'transaction': transaction,
         'cart_items': cart_items,
     }
