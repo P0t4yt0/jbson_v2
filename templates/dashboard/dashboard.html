@@ -480,7 +480,7 @@
         <a href="{% url 'settings_hub' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
             <i class="ph ph-gear"></i> General Settings
         </a>
-        <form action="{% url 'security:logout' %}" method="POST" class="logout-form">
+        <form action="{% url 'security:logout' %}" method="POST" class="logout-form" onsubmit="confirmLogout(event, this)">
             {% csrf_token %}
             <button type="submit" class="nav-item btn-logout">
                 <i class="ph ph-sign-out"></i> Logout
@@ -500,9 +500,9 @@
                 <a href="#" class="btn btn-primary" onclick="openCreateProduct(event)">
                     <i class="ph ph-plus-circle"></i> Add Product
                 </a>
-                <button class="btn btn-secondary" onclick="alert('Routing to: /sales/pos/')">
-                    <i class="ph ph-monitor"></i> POS
-                </button>
+                <a href="{% url 'point_of_sale:pos_index' %}" class="btn btn-secondary" style="text-decoration: none;">
+                    <i class="ph ph-desktop"></i> POS
+                </a>
                 
                 <div style="position: relative;">
                     <button class="icon-btn" id="bell-btn">
@@ -764,6 +764,26 @@ function closeGlobalModal() {
         }).then((result) => {
             if (result.isConfirmed) {
                 formElement.submit(); // Actually submit the form if they click Yes
+            }
+        });
+    }
+</script>
+<script>
+    function confirmLogout(event, formElement) {
+        event.preventDefault(); // Pipigilan nito ang agad-agad na pag-logout
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You are about to log out from the admin dashboard.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#891C1C', // Tumutugma sa var(--primary-red) mo
+            cancelButtonColor: '#6B7280',  // Tumutugma sa var(--text-secondary) mo
+            confirmButtonText: 'Yes, log out',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formElement.submit(); // Kung pinindot ang Yes, saka pa lang isu-submit ang form
             }
         });
     }

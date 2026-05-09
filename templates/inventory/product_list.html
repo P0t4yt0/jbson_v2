@@ -38,7 +38,8 @@
                 <i class="ph ph-trash"></i> Delete Selected (<span id="delete-count">0</span>)
             </button>
 
-            <a href="{% url 'inventory:run_abc_analysis' %}" 
+            <!-- NILAGYAN NG ID ANG ANALYZE BUTTON -->
+            <a href="{% url 'inventory:run_abc_analysis' %}" id="analyze-priority-btn"
                style="background: #2f855a; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
                <i class="ph ph-chart-bar"></i> Analyze Priority Level
             </a>
@@ -58,7 +59,7 @@
             <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">Point your scanner at the barcode.</p>
             
             <!-- Dedicated Barcode Input -->
-            <input type="text" id="dedicated-barcode-input" name="search" 
+            <input type="text" id="dedicated-barcode-input"
                    placeholder="Waiting for scanner..." 
                    autocomplete="off"
                    style="width: 100%; padding: 12px; border: 2px solid #3182ce; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
@@ -179,6 +180,92 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+
+    /* ------------------ ABC ANALYSIS LOGIC ------------------ */
+    const analyzeBtn = document.getElementById("analyze-priority-btn");
+
+    analyzeBtn?.addEventListener("click", function (e) {
+        e.preventDefault(); // Pipigilan muna ang pag-load agad ng kabilang page
+        const targetUrl = this.href;
+
+        // Ipakita ang Loading na SweetAlert
+        Swal.fire({
+            title: 'Analyzing Inventory...',
+            text: 'Please wait while we calculate the priority levels.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // I-fetch ang backend process sa background
+        fetch(targetUrl)
+            .then(response => {
+                if (response.ok) {
+                    // Pagkatapos, ipakita ang Success Alert
+                    Swal.fire({
+                        title: 'Analysis Complete!',
+                        text: 'Priority levels have been successfully updated.',
+                        icon: 'success',
+                        confirmButtonColor: '#2f855a'
+                    }).then(() => {
+                        // I-reload ang page para makita ang mga pagbabago
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Something went wrong while analyzing priority levels.',
+                        icon: 'error',
+                        confirmButtonColor: '#c53030'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Connection Error!',
+                    text: 'Unable to connect to the server.',
+                    icon: 'error',
+                    confirmButtonColor: '#c53030'
+                });
+            });
+    });
+
+    /* ------------------ BARCODE SCANNER LOGIC ------------------ */
+    const scannerModal = document.getElementById("scanner-modal");
+    const scanBtn = document.getElementById("scan-barcode-btn");
+    const closeScannerBtn = document.getElementById("close-scanner-modal");
+    const barcodeInput = document.getElementById("dedicated-barcode-input");
+    const filterForm = document.getElementById("inventory-filter-form");
+    const mainSearchInput = document.querySelector('input[name="search"]');
+
+    scanBtn?.addEventListener("click", function (e) {
+        e.preventDefault();
+        scannerModal.style.display = "flex";
+        barcodeInput.value = ""; 
+        
+        // Timeout ensures the modal is rendered before attempting to focus
+        setTimeout(() => {
+            barcodeInput.focus();
+        }, 100);
+    });
+
+    closeScannerBtn?.addEventListener("click", function () {
+        scannerModal.style.display = "none";
+    });
+
+    barcodeInput?.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault(); // Iwasan ang default action
+            
+            // Ipasa ang na-scan sa main search input
+            mainSearchInput.value = barcodeInput.value;
+            
+            // Isara ang modal at i-submit ang form
+            scannerModal.style.display = "none";
+            filterForm.submit();
+        }
+    });
 
     /* ------------------ SINGLE DELETE ------------------ */
     window.confirmSingleDelete = function(event, url) {
