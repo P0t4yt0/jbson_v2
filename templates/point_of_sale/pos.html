@@ -1,6 +1,9 @@
 {% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Phosphor Icons -->
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
@@ -90,7 +93,7 @@
         </div>
 
         <div class="cart-container">
-            {% for item in cart_items %}
+            {% for item in sold_items %}
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #EDF2F7;">
                 <div style="flex: 1;">
                     <h5 style="margin:0; font-size: 14px;">{{ item.inventory_item.item_name }}</h5>
@@ -132,8 +135,35 @@
                 <span>₱<span id="grand-total">{{ transaction.total_amount }}</span></span>
             </div>
 
-            <a href="{% url 'point_of_sale:void_transaction' %}" class="btn-void" onclick="return confirm('Void this transaction?')">Void Transaction</a>
-            <button class="btn-main" onclick="openPaymentModal()">PAY NOW</button>
+            <!-- Main Container para sa lahat ng buttons -->
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 15px;">
+                
+                <!-- ROW 1: Void at Quotation (Magkabilaan) -->
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    
+                <a href="{% url 'point_of_sale:void_transaction' %}" class="btn-void" style="flex: 1; margin: 0; display: flex; align-items: center; justify-content: center; text-align: center;" onclick="confirmVoid(event, this.href)">
+                    Void Transaction
+                </a>
+
+                <!-- Save as Quotation Form -->
+                <form action="{% url 'pos:save_quotation' transaction.id %}" method="POST" style="flex: 1; margin: 0; display: flex;">
+                    {% csrf_token %}
+                    
+                    <button type="submit" class="btn-void" style="width: 100%; margin: 0; background-color: #1a202c; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <!-- Tinanggal ko ang icon para pantay na pantay sila sa text lang, pero pwede mo ibalik kung gusto mo: <i class="ph ph-file-text"></i> -->
+                        Save as Quotation
+                    </button>
+                </form>
+
+                </div>
+
+                <!-- ROW 2: Pay Now (Full Width) -->
+                <button class="btn-main" style="width: 100%; margin: 0;" onclick="openPaymentModal()">
+                    PAY NOW
+                </button>
+
+            </div>
+
         </div>
     </div>
 </div>
@@ -204,7 +234,14 @@ function addToCart(productId) {
 
 function openPaymentModal() {
     const total = document.getElementById('grand-total').innerText;
-    if (parseFloat(total) <= 0) return alert("Cart is empty");
+    if (parseFloat(total) <= 0) {
+        return Swal.fire({
+            title: 'Empty Cart',
+            text: 'Please add items to the cart before checking out.',
+            icon: 'warning',
+            confirmButtonColor: '#0D9488'
+        });
+    }
     document.getElementById('modal-total-due').innerText = total;
     // VERY IMPORTANT: Use 'flex' here so it centers properly
     document.getElementById('paymentModal').style.display = "flex"; 
@@ -213,6 +250,24 @@ function openPaymentModal() {
 
 function closePaymentModal() { 
     document.getElementById('paymentModal').style.display = "none"; 
+}
+
+// Custom SweetAlert Void confirmation
+function confirmVoid(event, targetUrl) {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Void Transaction?',
+        text: 'Are you sure you want to void this transaction? This cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#F56565',
+        cancelButtonColor: '#CBD5E0',
+        confirmButtonText: 'Yes, Void It'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = targetUrl;
+        }
+    });
 }
 
 // Calculate the change dynamically
@@ -315,7 +370,18 @@ document.getElementById('barcode-input').addEventListener('keypress', function(e
     if (e.key === 'Enter') {
         const val = this.value.trim();
         if (val) fetch(`/pos/add-by-barcode/?barcode=${encodeURIComponent(val)}`)
-            .then(r => r.json()).then(d => { if(d.status === 'success') location.reload(); else alert(d.message); });
+            .then(r => r.json()).then(d => { 
+                if(d.status === 'success') {
+                    location.reload(); 
+                } else {
+                    Swal.fire({
+                        title: 'Scan Error',
+                        text: d.message,
+                        icon: 'error',
+                        confirmButtonColor: '#0D9488'
+                    });
+                }
+            });
         this.value = '';
     }
 });

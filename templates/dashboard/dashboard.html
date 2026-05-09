@@ -447,12 +447,15 @@
         <a href="#" class="nav-item"><i class="ph ph-shopping-cart"></i> Sales</a>
         <a href="#" class="nav-item"><i class="ph ph-receipt"></i> Invoices</a>
         <a href="#" class="nav-item"><i class="ph ph-arrow-u-down-left"></i> Sales Return</a>
-        <a href="{% url 'point_of_sale:pos_index' %}" class="nav-item {% if '/pos/' in request.path %}active{% endif %}">
-            <i class="ph ph-desktop"></i> Point-Of-Sales
+        <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
+            <i class="ph ph-desktop"></i> Point Of Sales
         </a>
         <a href="{% url 'billing_payment:customer_list' %}" class="nav-item {% if '/customers/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Trade Credit
-        </a>       
+        </a>
+        <a href="{% url 'pos:quotation_list' %}" class="nav-item {% if '/pos/quotations/' in request.path %}active{% endif %}">
+            <i class="ph ph-files"></i> Quotations
+        </a>      
         <div class="nav-category">Reports and Analytics</div>
         <a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Sales Report</a>
         <a href="#" class="nav-item"><i class="ph ph-clock"></i> Purchase Report</a>

@@ -1,23 +1,18 @@
-"""
-Module 4 — Point of Sale (POS)
-Handles sales transactions. Each Transaction contains multiple TransactionItems.
-On completion, inventory stock is automatically decremented.
-"""
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import uuid
 
-
 class Transaction(models.Model):
     """
     A single POS sales session/transaction.
-    Status flow: open → completed | voided
+    Status flow: open -> quotation (optional) -> completed | voided
     """
     STATUS_CHOICES = [
-        ('open',      'Open'),        # Items being scanned
-        ('completed', 'Completed'),   # Payment confirmed
-        ('credit',    'On Credit'), # Trade Credit
+        ('open',      'Open'),        # Items being scanned (Parang Cart)
+        ('quotation', 'Quotation'),   # NEW: Para sa mga nagca-canvass pa lang
+        ('completed', 'Completed'),   # Payment confirmed / Official Sale
+        ('credit',    'On Credit'),   # Trade Credit
         ('voided',    'Voided'),      # Transaction cancelled
     ]
 
@@ -33,7 +28,6 @@ class Transaction(models.Model):
         default='Cash'
     )
 
-    # NEW: Link to the customer
     customer = models.ForeignKey(
         'billing_payment.Customer', on_delete=models.SET_NULL,
         null=True, blank=True, related_name='transactions'
@@ -44,7 +38,7 @@ class Transaction(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, related_name='transactions'
     )
-    status          = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    status          = models.CharField(max_length=15, choices=STATUS_CHOICES, default='open')
     subtotal        = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_amount    = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     void_reason     = models.TextField(blank=True)
@@ -69,27 +63,19 @@ class Transaction(models.Model):
         return f'{self.transaction_ref} — ₱{self.total_amount} ({self.get_status_display()})'
 
     def calculate_totals(self):
-        """Recalculate subtotal and total from items."""
-        # Use the NEW related_name here
-        items = self.cart_items.all() 
+        """Recalculate subtotal and total from sold_items."""
+        # BINAGO NATIN ITO: Gagamitin na natin ang 'sold_items' imbes na 'cart_items'
+        items = self.sold_items.all() 
         self.subtotal = sum(item.subtotal for item in items)
         self.total_amount = self.subtotal
         self.save(update_fields=['subtotal', 'total_amount'])
 
-class CartItem(models.Model):
-    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='cart_items')
-    inventory_item = models.ForeignKey('inventory.InventoryItem', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.inventory_item.item_name} (x{self.quantity})"
+# TINANGGAL NA ANG CartItem PARA HINDI REDUNDANT
 
 class TransactionItem(models.Model):
     """
     A single line item within a Transaction.
-    Stores a snapshot of price at time of sale (price may change later).
+    Stores a snapshot of price at time of sale/quotation (price may change later).
     """
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='sold_items')
     inventory_item  = models.ForeignKey(
@@ -97,17 +83,16 @@ class TransactionItem(models.Model):
         related_name='sold_items'
     )
     quantity        = models.PositiveIntegerField(default=1)
-    unit_price      = models.DecimalField(max_digits=10, decimal_places=2)  # Price at time of sale
+    unit_price      = models.DecimalField(max_digits=10, decimal_places=2)  # Price at time of scan
     subtotal        = models.DecimalField(max_digits=12, decimal_places=2)
 
     class Meta:
         db_table = 'pos_transaction_items'
 
     def save(self, *args, **kwargs):
+        # Auto compute subtotal bago i-save sa database
         self.subtotal = self.unit_price * self.quantity
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.inventory_item.item_name} × {self.quantity} = ₱{self.subtotal}'
-    
-

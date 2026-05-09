@@ -1,0 +1,136 @@
+{% extends 'dashboard/dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid" style="padding: 20px;">
+    
+    <!-- Header Section (Kopya sa format ng Trade Credit Accounts) -->
+    <div style="margin-bottom: 20px;">
+        <h2 style="color: #1a202c; font-weight: bold; margin-bottom: 4px;">Quotations / Draft Orders</h2>
+        <p style="color: #718096; margin: 0;">List of canvassed or drafted items that have not yet been paid.</p>
+    </div>
+
+    <!-- White Card Container para sa Table -->
+    <div style="background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 0; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr>
+                    <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Reference No.</th>
+                    <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Date</th>
+                    <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Total Amount</th>
+                    
+                    <!-- NEW: Status Column -->
+                    <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Status</th>
+                    
+                    <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quote in quotations %}
+                <tr>
+                    <td style="padding: 16px 24px; border-bottom: 1px solid #EDF2F7;">
+                        <span onclick="viewOrderDetails('{{ quote.transaction_ref }}')" 
+                            style="color: #1A365D; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                            {{ quote.transaction_ref }}
+                        </span>
+                    </td>
+                    <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; color: #2d3748;">{{ quote.date_created|date:"M d, Y" }}</td>
+                    <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; color: #2d3748; font-weight: 500;">₱{{ quote.total_amount }}</td>
+                    
+                    <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+                        <!-- Status Badge (Light Blue pill design para sa Quotation) -->
+                        <!-- Note: get_status_display ang gamit para 'Quotation' ang lumabas at hindi 'quotation' (small letter) -->
+                        <span style="background-color: #ebf4ff; color: #3182ce; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+                            {{ quote.get_status_display }}
+                        </span>
+                    </td>
+                    
+                    <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: center;">
+                        <!-- Ginawa nating <a> tag at nilagyan ng href papunta sa bagong URL natin -->
+                        <a href="{% url 'pos:load_quotation' quote.id %}" class="btn btn-sm" style="background-color: #edf2f7; color: #4a5568; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block;">
+                            <!-- Pinalitan ang icon ng shopping-cart -->
+                            <i class="ph ph-shopping-cart" style="margin-right: 4px;"></i> Load to POS
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <!-- Empty State na kapareho nung "No credit customers found" -->
+                    <td colspan="5" style="padding: 40px; text-align: center; color: #a0aec0; font-size: 15px;">
+                        There are currently no saved quotations.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+<script>
+function viewOrderDetails(refNumber) {
+    Swal.fire({
+        title: 'Loading Details...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    fetch(`/pos/get-quotation-details/?ref=${refNumber}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                
+                // Inilipat natin ang title dito sa loob at niliitan ang font
+                // Nilagyan din natin ng mas malinaw na borders ang header at bawat row
+                let itemsHtml = `
+                    <div style="border-bottom: 2px solid #1A365D; padding-bottom: 10px; margin-bottom: 15px;">
+                        <h3 style="margin: 0; color: #1A365D; font-size: 18px; text-align: left; font-weight: 700;">
+                            Quotation: ${refNumber}
+                        </h3>
+                    </div>
+                    <table style="width: 100%; text-align: left; font-size: 14px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #CBD5E0;">
+                                <th style="padding: 8px 0; color: #4A5568;">Item Name</th>
+                                <th style="padding: 8px 0; text-align: center; color: #4A5568;">Qty</th>
+                                <th style="padding: 8px 0; text-align: right; color: #4A5568;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.items.forEach(item => {
+                    itemsHtml += `
+                        <tr style="border-bottom: 1px solid #EDF2F7;">
+                            <td style="padding: 10px 0; color: #2D3748;">${item.name}</td>
+                            <td style="padding: 10px 0; text-align: center; color: #2D3748;">${item.qty}</td>
+                            <td style="padding: 10px 0; text-align: right; color: #2D3748;">₱${item.subtotal}</td>
+                        </tr>
+                    `;
+                });
+                
+                itemsHtml += `
+                        </tbody>
+                    </table>
+                    <h4 style="text-align: right; margin-top: 15px; color: #1A365D; font-size: 16px; font-weight: 700;">
+                        Total: ₱${data.total_amount}
+                    </h4>
+                `;
+
+                Swal.fire({
+                    // Pansinin na tinanggal ko na yung 'title' attribute dito
+                    html: itemsHtml,
+                    width: 500,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Close',
+                    confirmButtonColor: '#1A365D' // Navy Blue din ang button
+                });
+            } else {
+                Swal.fire('Error', 'Could not load details.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'Connection error.', 'error');
+        });
+}
+</script>
+{% endblock %}

@@ -10,7 +10,7 @@ from django.http import JsonResponse, HttpResponse
 from django.db import transaction as db_transaction
 
 # 4. POS Models
-from .models import Transaction, TransactionItem, CartItem
+from .models import Transaction, TransactionItem
 
 # 5. Inventory Models
 from inventory.models import InventoryItem, Category
@@ -43,14 +43,14 @@ def pos_view(request):
         )
         request.session['transaction_id'] = transaction.id
 
-    cart_items = transaction.cart_items.all()
+    sold_items = transaction.sold_items.all()
 
     return render(request, 'point_of_sale/pos.html', {
         'products': products,
         'categories': categories,
         'credit_customers': credit_customers,
         'transaction': transaction,
-        'cart_items': cart_items,
+        'sold_items': sold_items,
     })
 
 def add_to_cart(request):
@@ -64,7 +64,7 @@ def add_to_cart(request):
     )
     request.session['transaction_id'] = transaction.id
 
-    cart_item, created = CartItem.objects.get_or_create(
+    cart_item, created = TransactionItem.objects.get_or_create(
         transaction=transaction,
         inventory_item=product,
         defaults={
@@ -92,8 +92,8 @@ def update_cart_item(request):
             new_qty = data.get('quantity') # Idagdag ito para makuha ang tinype na number
             
             try:
-                cart_item = CartItem.objects.get(id=item_id)
-            except CartItem.DoesNotExist:
+                cart_item = TransactionItem.objects.get(id=item_id)
+            except TransactionItem.DoesNotExist:
                 return JsonResponse({'status': 'success'})
                 
             transaction = cart_item.transaction
@@ -127,7 +127,7 @@ def update_cart_item(request):
             
             # ─── 3. BULLETPROOF TOTAL RECALCULATION ───
             # Kukunin nito lahat ng items na kapareho ng transaction ID
-            remaining_items = CartItem.objects.filter(transaction=transaction)
+            remaining_items = TransactionItem.objects.filter(transaction=transaction)
             
             new_total = 0
             for item in remaining_items:
@@ -199,7 +199,7 @@ def process_payment(request):
         with db_transaction.atomic():
 
             # STOCK DEDUCTION
-            for item in transaction.cart_items.all():
+            for item in transaction.sold_items.all():
                 product = item.inventory_item
                 if product.quantity < item.quantity:
                     return HttpResponse(f"Insufficient stock for {product.item_name}")
@@ -266,7 +266,7 @@ def process_payment(request):
 
         return render(request, 'point_of_sale/receipts/thermal_print.html', {
             'transaction': transaction,
-            'cart_items': transaction.cart_items.all(),
+            'sold_items': transaction.sold_items.all(),
             'amount_received': received,
             
             'change': received - transaction.total_amount, 
@@ -289,3 +289,75 @@ def void_transaction(request):
 def reset_transaction(request):
     return void_transaction(request)
 
+def quotation_list_view(request):
+    """Kukunin lang natin yung mga transactions na may status na 'quotation'"""
+    # Kukunin lahat ng naka-draft pa lang
+    quotations = Transaction.objects.filter(status='quotation').order_by('-date_created')
+    
+    context = {
+        'quotations': quotations
+    }
+    return render(request, 'point_of_sale/quotation_list.html', context)
+
+def save_as_quotation(request, transaction_id):
+    """Ise-save ang current open transaction bilang draft/quotation"""
+    # Hanapin yung open transaction
+    transaction = get_object_or_404(Transaction, id=transaction_id, status='open')
+    
+    # I-check kung may laman ba yung cart bago i-save as quotation
+    if not transaction.sold_items.exists():
+        messages.error(request, "No items in cart! Unable to save as quotation.")
+        return redirect('pos:pos_index') # Palitan ng tamang pangalan ng main POS view niyo
+
+    # Kung may laman, palitan ang status!
+    transaction.status = 'quotation'
+    transaction.save()
+    
+    messages.success(request, f"Quotation {transaction.transaction_ref} saved successfully!")
+    
+    # I-redirect pabalik sa POS screen para makapag-transact ng bago
+    return redirect('pos:pos_index')
+
+def load_quotation_to_pos(request, transaction_id):
+    """Kukunin ang quotation at ilo-load pabalik sa mismong POS screen"""
+    # 1. Hanapin yung quotation gamit ang ID
+    transaction = get_object_or_404(Transaction, id=transaction_id, status='quotation')
+    
+    # 2. Ibalik ang status niya sa 'open' para maging active na cart ulit siya
+    transaction.status = 'open'
+    transaction.save()
+    
+    # 3. I-set sa session yung ID para pag-load ng POS view, ito yung bubuksan niya
+    request.session['transaction_id'] = transaction.id
+    
+    messages.success(request, f"Quotation {transaction.transaction_ref} loaded to POS!")
+    
+    # 4. I-redirect pabalik sa main POS screen
+    return redirect('pos:pos_index')
+
+def get_quotation_details(request):
+    ref_number = request.GET.get('ref')
+    
+    try:
+        transaction = Transaction.objects.get(transaction_ref=ref_number)
+        
+        # DITO TAYO MAGPAPALIT: Ginamit natin ang TransactionItem
+        items = TransactionItem.objects.filter(transaction=transaction)
+        
+        items_data = []
+        for item in items:
+            items_data.append({
+                # Note: I-check mo rin kung 'inventory_item' ba talaga ang field name
+                # ng product sa loob ng TransactionItem model mo. Kung iba, palitan mo rin ito.
+                'name': item.inventory_item.item_name,
+                'qty': item.quantity,
+                'subtotal': float(item.subtotal) 
+            })
+            
+        return JsonResponse({
+            'status': 'success',
+            'total_amount': float(transaction.total_amount),
+            'items': items_data
+        })
+    except Transaction.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Quotation not found'})
