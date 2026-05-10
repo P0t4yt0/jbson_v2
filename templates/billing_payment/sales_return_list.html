@@ -1,0 +1,239 @@
+
+{% extends 'dashboard/dashboard.html' %} 
+{% block content %}
+<div style="padding: 30px; background: #F8FAFC; min-height: 100vh; font-family: 'Inter', sans-serif; position: relative;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div>
+            <h1 style="font-size: 1.7rem; color: #1E293B; margin: 0; font-weight: 700;">Sales Returns</h1>
+            <p style="color: #64748B; font-size: 0.9rem;">Track returned hardware items and customer refunds.</p>
+        </div>
+        <button onclick="openReturnModal()" style="background: #1E293B; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i class="ph ph-arrow-counter-clockwise" style="font-size: 1.2rem;"></i> Process New Return
+        </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
+        <div style="background: white; padding: 25px; border-radius: 12px; border-left: 6px solid #EF4444; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <p style="color: #64748B; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Total Refunded Value</p>
+            <h2 style="font-size: 2rem; color: #1E293B; margin: 10px 0 0 0;">₱{{ total_refunds|floatformat:2 }}</h2>
+        </div>
+        <div style="background: white; padding: 25px; border-radius: 12px; border-left: 6px solid #6366F1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <p style="color: #64748B; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Total Returns Processed</p>
+            <h2 style="font-size: 2rem; color: #1E293B; margin: 10px 0 0 0;">{{ return_count }}</h2>
+        </div>
+    </div>
+
+    <div style="background: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center;">
+        <form method="GET" style="display: flex; gap: 10px; width: 50%;">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search Return ID or Original TXN..." style="width: 100%; padding: 10px 15px; border: 1px solid #CBD5E1; border-radius: 6px; outline: none;">
+            <button type="submit" style="background: #F1F5F9; border: 1px solid #CBD5E1; padding: 10px 15px; border-radius: 6px; cursor: pointer; color: #475569;">
+                <i class="ph ph-magnifying-glass"></i>
+            </button>
+            {% if query %}
+                <a href="{% url 'billing_payment:sales_return_list' %}" style="padding: 10px 15px; color: #EF4444; text-decoration: none; font-size: 0.9rem; display: flex; align-items: center;">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div style="background: white; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #F8FAFC;">
+                <tr style="border-bottom: 1px solid #E2E8F0;">
+                    <th style="padding: 18px 24px; text-align: left; font-size: 0.75rem; color: #475569; font-weight: 700;">RETURN ID</th>
+                    <th style="padding: 18px 24px; text-align: left; font-size: 0.75rem; color: #475569; font-weight: 700;">ORIGINAL TXN</th>
+                    <th style="padding: 18px 24px; text-align: left; font-size: 0.75rem; color: #475569; font-weight: 700;">DATE</th>
+                    <th style="padding: 18px 24px; text-align: left; font-size: 0.75rem; color: #475569; font-weight: 700;">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for return in returns %}
+                <tr style="border-bottom: 1px solid #F1F5F9;">
+                    <td style="padding: 18px 24px; font-weight: 700; color: #1E293B;">#{{ return.return_id }}</td>
+                    <td style="padding: 18px 24px; color: #64748B;">{{ return.transaction.transaction_ref }}</td>
+                    <td style="padding: 18px 24px; color: #64748B;">{{ return.created_at|date:"M d, Y" }}</td>
+                    <td style="padding: 18px 24px; font-weight: 700; color: #EF4444;">₱{{ return.total_refund|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="padding: 60px; text-align: center; color: #94A3B8;">
+                        <i class="ph ph-prohibit" style="font-size: 3rem; display: block; margin-bottom: 15px; color: #CBD5E1;"></i>
+                        <p style="margin: 0; font-size: 1rem; color: #64748B;">No sales return records found.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="returnModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        
+        <div style="background: white; width: 90%; max-width: 700px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden;">
+            
+            <div style="padding: 20px 25px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
+                <h3 style="margin: 0; color: #1E293B; font-size: 1.2rem;">Process Sales Return</h3>
+                <button onclick="closeReturnModal()" style="background: transparent; border: none; font-size: 1.5rem; color: #64748B; cursor: pointer;">&times;</button>
+            </div>
+
+            <div style="padding: 25px; max-height: 70vh; overflow-y: auto;">
+                <form method="POST" action="{% url 'billing_payment:process_return' %}">
+                    {% csrf_token %}
+                    
+                    <div style="margin-bottom: 25px;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 8px;">Original Transaction ID *</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none;">
+                            <button type="button" onclick="verifyTxn()" style="background: #1E293B; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 600; cursor: pointer;">Verify</button>
+                        </div>
+                        <p id="verify_msg" style="font-size: 0.8rem; margin-top: 8px;"></p>
+                    </div>
+
+                    <div id="items_section" style="display: none; border-top: 1px solid #E2E8F0; padding-top: 20px;">
+                        <h4 style="color: #1E293B; margin-bottom: 15px; font-size: 1rem;">Select Items to Return</h4>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <thead style="background: #F1F5F9;">
+                                <tr>
+                                    <th style="padding: 10px; text-align: left; font-size: 0.8rem; color: #64748B;">Select</th>
+                                    <th style="padding: 10px; text-align: left; font-size: 0.8rem; color: #64748B;">Item</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 0.8rem; color: #64748B;">Qty</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 0.8rem; color: #64748B;">Return Qty</th>
+                                    <th style="padding: 10px; text-align: left; font-size: 0.8rem; color: #64748B;">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items_tbody">
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
+                        <button type="button" onclick="closeReturnModal()" style="background: white; border: 1px solid #CBD5E1; padding: 10px 20px; border-radius: 6px; color: #475569; font-weight: 600; cursor: pointer;">Cancel</button>
+                        <button type="submit" id="submit_return_btn" style="background: #990000; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; display: none;">Confirm Return</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // --- SWEETALERT LOGIC (Lalabas pagkatapos ng redirect) ---
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    title: "{% if message.tags == 'success' %}Success!{% else %}Oops!{% endif %}",
+                    text: "{{ message|escapejs }}",
+                    icon: "{% if message.tags == 'success' %}success{% else %}error{% endif %}",
+                    confirmButtonColor: "{% if message.tags == 'success' %}#1E293B{% else %}#EF4444{% endif %}",
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            {% endfor %}
+        {% endif %}
+    });
+
+    // --- MODAL CONTROL FUNCTIONS ---
+    function openReturnModal() {
+        document.getElementById('returnModal').style.display = 'flex';
+    }
+
+    function closeReturnModal() {
+        document.getElementById('returnModal').style.display = 'none';
+        document.getElementById('txn_input').value = '';
+        document.getElementById('verify_msg').innerText = '';
+        document.getElementById('items_section').style.display = 'none';
+        document.getElementById('submit_return_btn').style.display = 'none';
+    }
+
+    // --- AJAX VERIFICATION LOGIC ---
+    function verifyTxn() {
+        const txnId = document.getElementById('txn_input').value;
+        const msg = document.getElementById('verify_msg');
+        const itemsSection = document.getElementById('items_section');
+        const tbody = document.getElementById('items_tbody');
+        const submitBtn = document.getElementById('submit_return_btn');
+
+        if (!txnId) {
+            msg.innerText = "Please enter a Transaction ID.";
+            msg.style.color = "#EF4444";
+            return;
+        }
+
+        msg.innerText = "Verifying...";
+        msg.style.color = "#64748B";
+
+        // Kinukuha ang URL gamit ang Django template tag
+        const url = "{% url 'billing_payment:verify_transaction' %}?txn_ref=" + encodeURIComponent(txnId);
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error("Server Error: " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    msg.innerText = "Transaction found. Select items below.";
+                    msg.style.color = "#10B981";
+                    tbody.innerHTML = ""; 
+
+                    data.items.forEach(item => {
+                        tbody.innerHTML += `
+                            <tr style="border-bottom: 1px solid #E2E8F0;">
+                                <td style="padding: 15px 10px;">
+                                    <input type="checkbox" name="product_id[]" value="${item.id}" onclick="toggleInputs(this, '${item.id}')" style="cursor: pointer; transform: scale(1.2);">
+                                </td>
+                                <td style="padding: 15px 10px; font-weight: 600; color: #334155;">${item.name}</td>
+                                <td style="padding: 15px 10px; text-align: center; color: #64748B;">${item.max_qty}</td>
+                                <td style="padding: 15px 10px; text-align: center;">
+                                    <input type="number" name="return_qty[]" id="qty_${item.id}" max="${item.max_qty}" min="1" disabled style="width: 60px; padding: 5px; border-radius: 4px; border: 1px solid #CBD5E1;">
+                                </td>
+                                <td style="padding: 15px 10px;">
+                                    <select name="reason[]" id="reason_${item.id}" disabled style="padding: 5px; border-radius: 4px; border: 1px solid #CBD5E1; width: 100%;">
+                                        <option value="Defective">Defective / Damaged</option>
+                                        <option value="Wrong Item">Wrong Item</option>
+                                        <option value="Customer Change Mind">Customer Change Mind</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    itemsSection.style.display = "block";
+                    submitBtn.style.display = "block"; 
+                } else {
+                    msg.innerText = data.message;
+                    msg.style.color = "#EF4444";
+                    itemsSection.style.display = "none";
+                    submitBtn.style.display = "none";
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                msg.innerText = "System error. Check terminal.";
+                msg.style.color = "#EF4444";
+            });
+    }
+
+    // --- FORM INPUT TOGGLE ---
+    function toggleInputs(checkbox, id) {
+        const qtyInput = document.getElementById(`qty_${id}`);
+        const reasonInput = document.getElementById(`reason_${id}`);
+        
+        if (checkbox.checked) {
+            qtyInput.disabled = false;
+            reasonInput.disabled = false;
+            qtyInput.value = 1; 
+            qtyInput.required = true;
+        } else {
+            qtyInput.disabled = true;
+            reasonInput.disabled = true;
+            qtyInput.value = "";
+            qtyInput.required = false;
+        }
+    }
+</script>
+
+{% endblock %}

@@ -27,6 +27,8 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path('forgot-password/', views.forgot_password_view, name='forgot_password'),   
     path('admin/review-resets/', views.admin_review_resets_view, name='review_resets'),
+    
+    path('dashboard/admin/', views.admin_dashboard, name='admin_dashboard'),
 
     # Account Management
     path("register/", views.register_view, name="register"),

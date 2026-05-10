@@ -456,12 +456,19 @@
             <i class="ph ph-shopping-cart"></i> Sales
         </a>
 
-        <a href="{% url 'billing_payment:invoice_list' %}" class="nav-item {% if request.resolver_match.view_name == 'billing_payment:invoice_list' %}active{% endif %}">
-            <i class="ph ph-receipt"></i> Invoices
+        <a href="{% url 'billing_payment:invoice_list' %}" 
+        class="nav-item {% if 'invoice_list' in request.resolver_match.view_name %}active{% endif %}">
+            <i class="ph ph-receipt"></i>
+            <span>Invoices</span>
         </a>
         
+        <a href="{% url 'billing_payment:sales_return_list' %}" 
+        class="nav-item {% if 'sales_return_list' in request.resolver_match.view_name %}active{% endif %}">
+            <i class="ph ph-arrow-counter-clockwise"></i>
+            <span>Sales Return</span>
+        </a>
+
         
-        <a href="#" class="nav-item"><i class="ph ph-arrow-u-down-left"></i> Sales Return</a>
         <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
             <i class="ph ph-desktop"></i> Point Of Sales
         </a>

@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Customer, Invoice, InvoicePayment 
-from .forms import InvoiceForm, InvoiceItemFormSet
+from .models import Customer, Invoice, InvoicePayment
 from decimal import Decimal
 from point_of_sale.models import Transaction
 from django.http import JsonResponse
-from django.utils import timezone  
-from django.db import models
+from django.utils import timezone
+from django.db.models import Sum, Q
+from .models import SalesReturn, SalesReturnItem
+import uuid
+from inventory.models import InventoryItem
 
 def customer_list(request):
     # Handle Adding a New Customer
@@ -205,3 +207,105 @@ def invoice_items_json(request, invoice_id):
         ]
     }
     return JsonResponse(data)
+
+def sales_return_list(request):
+    query = request.GET.get('q', '')
+    returns = SalesReturn.objects.all().order_by('-created_at')
+    
+    # Search Filter Logic
+    if query:
+        returns = returns.filter(
+            Q(return_id__icontains=query) |
+            Q(transaction__transaction_ref__icontains=query)
+        )
+    
+    # Summary Data
+    total_refunds = returns.aggregate(Sum('total_refund'))['total_refund__sum'] or 0
+    return_count = returns.count()
+    
+    context = {
+        'returns': returns,
+        'total_refunds': total_refunds,
+        'return_count': return_count,
+        'query': query,
+    }
+    return render(request, 'billing_payment/sales_return_list.html', context)
+
+def process_return(request):
+    if request.method == 'POST':
+        txn_ref = request.POST.get('transaction_ref')
+        product_ids = request.POST.getlist('product_id[]')
+        return_qtys = request.POST.getlist('return_qty[]')
+        reasons = request.POST.getlist('reason[]')
+
+        txn = get_object_or_404(Transaction, transaction_ref=txn_ref)
+        return_id = f"RET-{uuid.uuid4().hex[:6].upper()}"
+
+        # 1. Gawa muna ng base record
+        sales_return = SalesReturn.objects.create(
+            transaction=txn,
+            return_id=return_id,
+            reason=reasons[0] if reasons else "Multiple Items",
+            total_refund=0 # Temporary zero
+        )
+
+        running_total = 0 # Dito natin ipon-ipunin ang presyo
+
+        for i, prod_id in enumerate(product_ids):
+            qty = int(return_qtys[i])
+            if qty > 0:
+                product = InventoryItem.objects.get(id=prod_id)
+                # Kunin ang unit price mula sa TransactionItem (hindi sa Inventory para accurate sa receipt)
+                item_in_txn = txn.sold_items.get(inventory_item=product)
+                
+                line_total = item_in_txn.unit_price * qty
+                running_total += line_total # I-add sa grand total
+
+                SalesReturnItem.objects.create(
+                    sales_return=sales_return,
+                    product=product,
+                    quantity=qty,
+                    subtotal=line_total
+                )
+
+                # Update Inventory Stock
+                product.quantity += qty
+                product.save()
+
+        # 2. KRITIKAL: I-save ang final total sa database!
+        sales_return.total_refund = running_total
+        sales_return.save()
+
+        messages.success(request, f"Return {return_id} processed! Refund Amount: ₱{running_total}")
+        return redirect('billing_payment:sales_return_list')
+
+def verify_transaction(request):
+    txn_ref = request.GET.get('txn_ref')
+    try:
+        # 1. Hanapin ang Transaction
+        txn = Transaction.objects.get(transaction_ref=txn_ref)
+        
+        # 2. Gamitin ang 'sold_items' (ito ang related_name sa model mo)
+        txn_items = txn.sold_items.all()
+
+        if not txn_items.exists():
+            return JsonResponse({'success': False, 'message': 'This transaction has no items.'})
+
+        items_data = []
+        for item in txn_items:
+            # Base sa screenshot mo: item.inventory_item ang ForeignKey
+            product = item.inventory_item 
+            
+            items_data.append({
+                'id': product.id,
+                'name': product.item_name,
+                'price': str(item.unit_price), # Snapshot price nung binili
+                'max_qty': item.quantity,
+            })
+            
+        return JsonResponse({'success': True, 'items': items_data})
+        
+    except Transaction.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Transaction ID not found.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error: {str(e)}'})

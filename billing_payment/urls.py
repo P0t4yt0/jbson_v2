@@ -12,4 +12,7 @@ urlpatterns = [
     path('invoices/', views.invoice_list_view, name='invoice_list'),
     path('create/', views.create_invoice_view, name='create_invoice'),
     path('invoice/<int:invoice_id>/items-json/', views.invoice_items_json, name='invoice_items_json'),
+    path('sales-returns/', views.sales_return_list, name='sales_return_list'),
+    path('sales-returns/new/', views.process_return, name='process_return'),
+    path('sales-returns/verify/', views.verify_transaction, name='verify_transaction'),
 ]

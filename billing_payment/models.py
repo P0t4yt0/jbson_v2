@@ -177,3 +177,21 @@ class Receipt(models.Model):
 
     def __str__(self):
         return f'Receipt {self.receipt_number} — {self.date_issued:%Y-%m-%d %H:%M}'
+    
+class SalesReturn(models.Model):
+    transaction = models.ForeignKey('point_of_sale.Transaction', on_delete=models.CASCADE, related_name='returns')
+    return_id = models.CharField(max_length=50, unique=True)
+    reason = models.TextField()
+    total_refund = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.return_id
+
+class SalesReturnItem(models.Model):
+    sales_return = models.ForeignKey(SalesReturn, on_delete=models.CASCADE, related_name='returned_items')
+    
+    product = models.ForeignKey('inventory.InventoryItem', on_delete=models.CASCADE)
+    
+    quantity = models.PositiveIntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)

@@ -7,50 +7,71 @@ from point_of_sale.models import Transaction, TransactionItem
 from inventory.models import Category
 from django.utils import timezone
 from datetime import datetime
-from inventory.models import Supplier, PurchaseOrder # Importing from your inventory app!
+from inventory.models import Supplier, PurchaseOrder
+from billing_payment.models import SalesReturn
+from django.db.models import Sum, Count, F, ExpressionWrapper, DecimalField
+from django.db.models.functions import Coalesce
 
 def sales_report_view(request):
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
 
-    # 1. Kunin lahat ng completed transactions
+    # 1. Base queries
     transactions = Transaction.objects.filter(status__in=['completed', 'paid', 'credit'])
+    returns = SalesReturn.objects.all()
 
     if start_date_str and end_date_str:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
         transactions = transactions.filter(date_completed__range=[start_date, end_date])
+        returns = returns.filter(created_at__range=[start_date, end_date])
 
-    # --- REQUIREMENT 1: TOTAL GROSS SALES ---
+    # --- SUMMARY COMPUTATIONS ---
     summary = transactions.aggregate(
-        total_revenue=Sum('total_amount'),
-        total_orders=Count('id')
+        total_rev=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()),
+        total_ord=Count('id')
     )
-    total_rev = summary['total_revenue'] or 0
-    total_ord = summary['total_orders'] or 0
+    gross_rev = summary['total_rev']
+    total_ret_amt = returns.aggregate(total=Coalesce(Sum('total_refund'), 0, output_field=DecimalField()))['total']
+    net_revenue = gross_rev - total_ret_amt
 
-    # --- REQUIREMENT 2: PAYMENT METHOD BREAKDOWN ---
-    # I-group ang benta base sa mode of payment (Cash, Online Bank, etc.)
+    # --- PAYMENT METHOD BREAKDOWN (NET) ---
+    # Binabawas na natin ang returns dito para accurate ang 'Amount Collected'
     payment_methods = transactions.values('payment_method').annotate(
-        total_collected=Sum('total_amount')
-    ).order_by('-total_collected')
+        gross=Sum('total_amount'),
+        refunds=Coalesce(Sum('returns__total_refund'), 0, output_field=DecimalField())
+    ).annotate(
+        net_collected=F('gross') - F('refunds')
+    ).order_by('-net_collected')
 
-    # --- REQUIREMENT 4: TOP SELLING PRODUCTS ---
+    # --- TOP SELLING PRODUCTS (NET) ---
     sold_items = TransactionItem.objects.filter(transaction__in=transactions)
     product_sales = sold_items.values(
-        'inventory_item__product_id', 
+        'inventory_item__id', 
         'inventory_item__item_name'
     ).annotate(
         total_sold_qty=Sum('quantity'),
-        total_sold_amount=Sum('subtotal')
-    ).order_by('-total_sold_amount')[:10] # Kukunin lang natin ang Top 10 para di sobrang haba
+        # Gross subtotal minus any returns for this specific product
+        # NOTE: Para maging 100% accurate ito, dapat naka-link ang SalesReturnItem sa product.
+        total_sold_amount=Sum('subtotal') 
+    ).order_by('-total_sold_amount')[:10]
+
+    # --- ANNOTATE TRANSACTIONS FOR TABLE ---
+    transactions = transactions.annotate(
+        refunded_amount=Coalesce(Sum('returns__total_refund'), 0, output_field=DecimalField())
+    ).annotate(
+        adjusted_total=ExpressionWrapper(F('total_amount') - F('refunded_amount'), output_field=DecimalField())
+    ).order_by('-date_completed')
 
     context = {
-        'total_revenue': total_rev,
-        'total_orders': total_ord,
-        'payment_methods': payment_methods,      # BAGONG DATA
-        'transactions': transactions.order_by('-date_completed'), # BAGONG DATA (Resibo)
+        'total_revenue': gross_rev,
+        'total_returns': total_ret_amt,
+        'net_revenue': net_revenue,
+        'total_orders': summary['total_ord'],
+        'payment_methods': payment_methods,
+        'transactions': transactions,
         'product_sales': product_sales,
+        'return_logs': returns.order_by('-created_at'),
         'start_date': start_date_str,
         'end_date': end_date_str,
     }

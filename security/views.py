@@ -29,7 +29,13 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 
 # IMPORT NG MODELS: Pinagsama na natin ang ActivityLog at EmployeeProfile dito!
-from .models import ActivityLog, EmployeeProfile 
+from .models import ActivityLog, EmployeeProfile
+
+from django.db.models import Sum, DecimalField
+from django.db.models.functions import Coalesce
+from point_of_sale.models import Transaction
+from billing_payment.models import SalesReturn
+from inventory.models import InventoryItem
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -347,6 +353,59 @@ def admin_review_resets_view(request):
     return render(request, "security/admin_review_resets.html", {"pending_requests": pending_requests})
 
 User = get_user_model() 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Admin Dashboard View
+# ─────────────────────────────────────────────────────────────────────────────
+@login_required
+def admin_dashboard(request):
+    # 1. Security Check: Admin lang dapat ang makapasok
+    if getattr(request.user, "role", "employee") != "admin":
+        messages.error(request, "Access denied. Admin privileges required.")
+        return redirect("/dashboard/employee/")
+
+    # 2. Computations (Gross Sales at Sales Return)
+    total_sales = Transaction.objects.filter(status__in=['completed', 'paid']).aggregate(
+        total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField())
+    )['total']
+
+    sales_return = SalesReturn.objects.aggregate(
+        total=Coalesce(Sum('total_refund'), 0, output_field=DecimalField())
+    )['total']
+
+    # 3. Profit Computation (Net Sales logic for now)
+    profit = total_sales - sales_return
+
+    # 4. Low Stock Items (10 or below)
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=10).order_by('quantity')[:5]
+
+    # 5. Pending Notifications (Para sa Bell Icon dropdown)
+    pending_resets = EmployeeProfile.objects.filter(
+        reset_requested=True, 
+        reset_approved_by_admin=False
+    )
+
+    # 6. Default zeros para sa wala pang module
+    metrics = {
+        'total_sales': total_sales,
+        'sales_return': sales_return,
+        'profit': profit,
+        'total_purchase': 0.00,
+        'purchase_return': 0.00,
+        'invoice_due': 0.00,
+        'expenses': 0.00,
+        'payment_return': 0.00,
+    }
+
+    context = {
+        'metrics': metrics,
+        'low_stock_items': low_stock_items,
+        'pending_resets': pending_resets,
+        'pending_reset_count': pending_resets.count(),
+    }
+
+    # Siguraduhing tugma ito sa pangalan ng HTML file mo!
+    return render(request, 'dashboard/dashboard.html', context)
 
 def user_management_view(request):
     if request.method == "POST":
