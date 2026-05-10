@@ -22,7 +22,10 @@ urlpatterns = [
     path('purchase-orders/create/', views.create_po, name='create_po'), # <-- ADD THIS LINE
     path('suppliers/<int:supplier_id>/edit/', views.edit_supplier, name='edit_supplier'),
 
-    
+
     path('purchase-orders/', views.po_list, name='po_list'),
     path('purchase-orders/<int:po_id>/receive/', views.receive_po, name='receive_po'),
+
+    path('suppliers/<int:supplier_id>/delete/', views.delete_supplier, name='delete_supplier'),
+    path('suppliers/<int:supplier_id>/unarchive/', views.unarchive_supplier, name='unarchive_supplier'),
 ]

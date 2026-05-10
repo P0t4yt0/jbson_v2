@@ -56,14 +56,32 @@
                     <td style="color: #718096;">{{ supplier.phone|default:"--" }}</td>
                     <td style="color: #718096;">{{ supplier.email|default:"--" }}</td>
                     <td>
-                        <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">Active</span>
+                        {% if supplier.is_active %}
+                            <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">Active</span>
+                        {% else %}
+                            <span style="background: #E2E8F0; color: #4A5568; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">Archived</span>
+                        {% endif %}
                     </td>
-                    <td>
-                        <td>
-                            <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='flex'" style="background: #EDF2F7; color: #4A5568; padding: 6px 12px; border: 1px solid #CBD5E0; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s;">
-                                Edit
-                            </button>
-                        </td>
+                    <td style="display: flex; gap: 5px;">
+                        <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='flex'" style="background: #EDF2F7; color: #4A5568; padding: 6px 12px; border: 1px solid #CBD5E0; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s;">
+                            Edit
+                        </button>
+                        
+                        {% if supplier.is_active %}
+                            <form method="POST" action="{% url 'inventory:delete_supplier' supplier.id %}" onsubmit="return confirm('Are you sure you want to archive {{ supplier.name|escapejs }}? They will be hidden from new orders.');" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: #FFF5F5; color: #E53E3E; padding: 6px 12px; border: 1px solid #FED7D7; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s;">
+                                    Archive
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{% url 'inventory:unarchive_supplier' supplier.id %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: #E0F2FE; color: #0369A1; padding: 6px 12px; border: 1px solid #BAE6FD; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s;">
+                                    Restore
+                                </button>
+                            </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
