@@ -17,10 +17,6 @@
                     <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Reference No.</th>
                     <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Date</th>
                     <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Total Amount</th>
-                    
-                    <!-- NEW: Status Column -->
-                    <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px;">Status</th>
-                    
                     <th style="padding: 16px 24px; border-bottom: 2px solid #e2e8f0; color: #4a5568; font-weight: 600; font-size: 14px; text-align: center;">Actions</th>
                 </tr>
             </thead>
@@ -34,16 +30,7 @@
                         </span>
                     </td>
                     <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; color: #2d3748;">{{ quote.date_created|date:"M d, Y" }}</td>
-                    <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; color: #2d3748; font-weight: 500;">₱{{ quote.total_amount }}</td>
-                    
-                    <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
-                        <!-- Status Badge (Light Blue pill design para sa Quotation) -->
-                        <!-- Note: get_status_display ang gamit para 'Quotation' ang lumabas at hindi 'quotation' (small letter) -->
-                        <span style="background-color: #ebf4ff; color: #3182ce; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
-                            {{ quote.get_status_display }}
-                        </span>
-                    </td>
-                    
+                    <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; color: #2d3748; font-weight: 500;">₱{{ quote.total_amount }}</td>                 
                     <td style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: center;">
                         <!-- Ginawa nating <a> tag at nilagyan ng href papunta sa bagong URL natin -->
                         <a href="{% url 'pos:load_quotation' quote.id %}" class="btn btn-sm" style="background-color: #edf2f7; color: #4a5568; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block;">

@@ -361,3 +361,20 @@ def get_quotation_details(request):
         })
     except Transaction.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Quotation not found'})
+    
+def reprint_receipt(request, txn_id):
+    transaction = get_object_or_404(Transaction, id=txn_id)
+    
+    # Kukunin natin yung nai-save na amount_received kung meron. 
+    # Kung walang 'amount_received' field sa model mo, ifa-fallback natin sa total_amount.
+    received = getattr(transaction, 'amount_received', transaction.total_amount)
+    ref_num = getattr(transaction, 'reference_number', '')
+
+    context = {
+        'transaction': transaction,
+        'sold_items': transaction.sold_items.all(),
+        'amount_received': received,
+        'change': received - transaction.total_amount,
+        'ref_num': ref_num
+    }
+    return render(request, 'point_of_sale/receipts/thermal_print.html', context)

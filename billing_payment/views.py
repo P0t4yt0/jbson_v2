@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Customer, Invoice, InvoicePayment # <--- Make sure InvoicePayment is imported
 from decimal import Decimal
-
+from point_of_sale.models import Transaction
+from django.http import JsonResponse
 def customer_list(request):
     # Handle Adding a New Customer
     if request.method == 'POST':
@@ -73,3 +74,50 @@ def pay_invoice(request, invoice_id):
         return redirect('billing_payment:customer_ledger', pk=invoice.customer.id)
         
     return redirect('billing_payment:customer_list')
+
+def sales_list(request):
+    # Kukunin natin yung mga successful transactions mula sa POS
+    transactions = Transaction.objects.filter(
+        status__in=['completed', 'credit']
+    ).select_related('customer', 'processed_by').order_by('-date_completed')
+    
+    context = {
+        'transactions': transactions
+    }
+    return render(request, 'billing_payment/sales_list.html', context)
+
+def transaction_details(request, txn_id):
+    # Hanapin ang transaction gamit ang ID
+    transaction = get_object_or_404(Transaction, id=txn_id)
+    
+    # Kunin lahat ng items na binili sa transaction na ito
+    items = transaction.sold_items.all()
+    
+    context = {
+        'transaction': transaction,
+        'items': items
+    }
+    return render(request, 'billing_payment/transaction_details.html', context)
+
+def get_sale_details_api(request, txn_id):
+    try:
+        transaction = Transaction.objects.get(id=txn_id)
+        # Kukunin natin ang mga items sa loob ng transaction
+        items = transaction.sold_items.all() 
+        
+        items_data = []
+        for item in items:
+            items_data.append({
+                'name': item.inventory_item.item_name,
+                'qty': item.quantity,
+                'subtotal': float(item.subtotal)
+            })
+            
+        return JsonResponse({
+            'status': 'success',
+            'ref': transaction.transaction_ref or transaction.id,
+            'total_amount': float(transaction.total_amount),
+            'items': items_data
+        })
+    except Transaction.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Transaction not found'})

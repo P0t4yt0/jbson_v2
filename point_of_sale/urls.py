@@ -16,4 +16,5 @@ urlpatterns = [
     path('update-cart-item/', views.update_cart_item, name='update_cart_item'),
     path('load-quotation/<int:transaction_id>/', views.load_quotation_to_pos, name='load_quotation'),
     path('get-quotation-details/', views.get_quotation_details, name='get_quotation_details'),
+    path('receipt/reprint/<int:txn_id>/', views.reprint_receipt, name='reprint_receipt'),
 ]
