@@ -438,10 +438,6 @@
         <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
             <i class="ph ph-folders"></i> <span>Categories</span>
         </a>    
-  
-        <a href="{% url 'inventory:generate_barcode_page' %}" class="nav-item {% if '/generate-barcode/' in request.path %}active{% endif %}">
-            <i class="ph ph-barcode"></i> <span>Generate Barcode</span>
-        </a>
 
         <a href="{% url 'inventory:create_po' %}" class="nav-item {% if '/purchase-orders/create/' in request.path %}active{% endif %}">
             <i class="ph ph-file-plus"></i> Create Purchase Order
@@ -450,13 +446,16 @@
         <a href="{% url 'inventory:po_list' %}" class="nav-item {% if '/purchase-orders/' in request.path and 'create' not in request.path %}active{% endif %}">
             <i class="ph ph-clipboard-text"></i> Purchase Orders
         </a>
-
-        
+  
+        <a href="{% url 'inventory:generate_barcode_page' %}" class="nav-item {% if '/generate-barcode/' in request.path %}active{% endif %}">
+            <i class="ph ph-barcode"></i> <span>Generate Barcode</span>
+        </a>
 
         <div class="nav-category">Sales</div>
-        <a href="{% url 'billing:sales_list' %}" class="nav-item {% if '/sales/' in request.path %}active{% endif %}">
+        <a href="{% url 'billing:sales_list' %}" class="nav-item {% if request.resolver_match.view_name == 'billing:sales_list' %}active{% endif %}">
             <i class="ph ph-shopping-cart"></i> Sales
         </a>
+
         <a href="#" class="nav-item"><i class="ph ph-receipt"></i> Invoices</a>
         <a href="#" class="nav-item"><i class="ph ph-arrow-u-down-left"></i> Sales Return</a>
         <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
@@ -468,8 +467,14 @@
         <a href="{% url 'pos:quotation_list' %}" class="nav-item {% if '/pos/quotations/' in request.path %}active{% endif %}">
             <i class="ph ph-files"></i> Quotations
         </a>      
+
         <div class="nav-category">Reports and Analytics</div>
-        <a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Sales Report</a>
+        
+        <a href="{% url 'reports_analytics:sales_report' %}" class="nav-item {% if '/reports/sales/' in request.path %}active{% endif %}">
+            <i class="ph ph-chart-line-up"></i> Sales Report
+        </a>
+
+    
         <a href="#" class="nav-item"><i class="ph ph-clock"></i> Purchase Report</a>
         <a href="#" class="nav-item"><i class="ph ph-shield-check"></i> Inventory Report</a>
         <a href="#" class="nav-item"><i class="ph ph-file-text"></i> Invoice Report</a>
@@ -484,11 +489,12 @@
         <div class="nav-category">User Management</div>
         <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Users
-        </a>        
-
+        </a> 
+        
         <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
             <i class="ph ph-truck"></i> Suppliers
         </a>
+
 
         <a href="#" class="nav-item"><i class="ph ph-list-checks"></i> Roles & Permissions</a>
         <a href="{% url 'activity_logs' %}" class="nav-item {% if '/activity-logs/' in request.path %}active{% endif %}">
