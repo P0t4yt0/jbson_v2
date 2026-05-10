@@ -11,6 +11,7 @@ import barcode
 from .models import InventoryItem
 from .models import Supplier, PurchaseOrder, PurchaseOrderItem, InventoryItem
 from .models import Supplier # <-- Make sure Supplier is imported
+from django.db.models import RestrictedError
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
@@ -116,7 +117,7 @@ def edit_product(request, pk):
         return redirect('inventory:inventory_list')
 
     categories = Category.objects.all()
-    suppliers = Supplier.objects.all()
+    suppliers = Supplier.objects.filter(is_active=True) # <-- Change this back!
     return render(request, 'product_registration/create_product.html', {
         'item': item,
         'categories': categories,
@@ -385,3 +386,27 @@ def edit_supplier(request, supplier_id):
     return render(request, 'inventory/edit_supplier.html', {
         'supplier': supplier
     })
+
+def delete_supplier(request, supplier_id):
+    if request.method == 'POST':
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        
+        # Soft Delete: Just mark them as inactive instead of wiping the data!
+        supplier.is_active = False
+        supplier.save()
+        
+        messages.success(request, f"Supplier '{supplier.name}' has been archived and hidden from the system.")
+            
+    return redirect('inventory:supplier_list')
+
+def unarchive_supplier(request, supplier_id):
+    if request.method == 'POST':
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        
+        # Restore the supplier!
+        supplier.is_active = True
+        supplier.save()
+        
+        messages.success(request, f"Supplier '{supplier.name}' has been restored and is active again.")
+            
+    return redirect('inventory:supplier_list')

@@ -1,0 +1,59 @@
+{% extends 'dashboard/dashboard.html' %}
+{% block content %}
+
+<style>
+    .edit-container { max-width: 600px; margin: 40px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
+    
+    .edit-container h2 { margin-top: 0; color: #1A365D; font-weight: 800; border-bottom: 2px solid #EDF2F7; padding-bottom: 15px; margin-bottom: 25px; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: #1A365D; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #E2E8F0; border-radius: 8px; outline: none; font-size: 14px; transition: 0.2s; box-sizing: border-box; }
+    .form-group input:focus, .form-group textarea:focus { border-color: #0D9488; background: #F0FDFA; }
+    
+    .btn-row { display: flex; gap: 15px; margin-top: 30px; }
+    .btn-cancel { flex: 1; padding: 12px; background: white; border: 2px solid #CBD5E0; color: #4A5568; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 700; transition: 0.2s; }
+    .btn-cancel:hover { background: #F8FAFC; border-color: #A0AEC0; }
+    .btn-save { flex: 1; padding: 12px; background: #0D9488; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2); }
+    .btn-save:hover { background: #0F766E; transform: translateY(-2px); }
+</style>
+
+<div class="edit-container">
+    <h2>Edit Supplier Profile</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Company / Supplier Name *</label>
+            <input type="text" name="name" value="{{ supplier.name }}" required>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Contact Person</label>
+                <input type="text" name="contact_name" value="{{ supplier.contact_name|default:'' }}">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Phone Number</label>
+                <input type="text" name="phone" value="{{ supplier.phone|default:'' }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" value="{{ supplier.email|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Business Address</label>
+            <textarea name="address" rows="3">{{ supplier.address|default:'' }}</textarea>
+        </div>
+        
+        <div class="btn-row">
+            <a href="{% url 'inventory:supplier_list' %}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
