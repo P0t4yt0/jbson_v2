@@ -99,3 +99,61 @@ auditlog.register(InventoryItem)
 # (Optional) Pwede mo rin i-register ang iba kung gusto mo i-track pag may nag-edit ng supplier o category
 auditlog.register(Category)
 auditlog.register(Supplier)
+
+# --- PURCHASE ORDER (PO) SYSTEM ---
+
+class PurchaseOrder(models.Model):
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),                     # Creating the list
+        ('pending', 'Pending Delivery'),        # Sent to supplier, waiting
+        ('received', 'Received / Completed'),   # Items arrived and stocked!
+        ('cancelled', 'Cancelled'),
+    )
+    
+    po_number = models.CharField(max_length=50, unique=True, blank=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.RESTRICT, related_name='purchase_orders')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    
+    order_date = models.DateTimeField(default=timezone.now)
+    expected_delivery = models.DateField(blank=True, null=True)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    
+    class Meta:
+        db_table = 'purchase_orders'
+        ordering = ['-order_date']
+
+    def save(self, *args, **kwargs):
+        # Automatically generate a professional PO number
+        if not self.po_number:
+            import uuid
+            self.po_number = f"PO-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.po_number} - {self.supplier.name}"
+
+
+class PurchaseOrderItem(models.Model):
+    purchase_order = models.ForeignKey(PurchaseOrder, related_name='items', on_delete=models.CASCADE)
+    
+    # Linked directly to your existing InventoryItem!
+    product = models.ForeignKey(InventoryItem, on_delete=models.RESTRICT) 
+    
+    quantity_ordered = models.PositiveIntegerField()
+    quantity_received = models.PositiveIntegerField(default=0)
+    
+    # This is the cost from the supplier (which might differ from your current unit_cost)
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2) 
+    
+    class Meta:
+        db_table = 'purchase_order_items'
+
+    @property
+    def subtotal(self):
+        return self.quantity_ordered * self.unit_cost
+
+    def __str__(self):
+        return f"{self.quantity_ordered}x {self.product.item_name} for {self.purchase_order.po_number}"
+
+# (Optional) Track Purchase Orders in your audit log
+auditlog.register(PurchaseOrder)

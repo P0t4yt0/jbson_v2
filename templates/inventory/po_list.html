@@ -1,0 +1,128 @@
+{% extends 'dashboard/dashboard.html' %}
+{% block content %}
+
+<style>
+    
+    .btn-view { background: #EDF2F7; color: #4A5568; padding: 8px 12px; border-radius: 6px; border: 1px solid #CBD5E0; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s; margin-right: 5px; }
+    .btn-view:hover { background: #E2E8F0; color: #1A365D; border-color: #A0AEC0; }
+
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header-section h2 { margin: 0; color: #1A365D; font-weight: 800; }
+    .header-section p { color: #718096; margin-top: 5px; font-size: 14px; }
+    
+    .btn-main { background: #0D9488; color: white; padding: 10px 20px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.2s; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2); }
+    .btn-main:hover { background: #0F766E; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3); }
+
+    .table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 15px; color: #4A5568; border-bottom: 2px solid #EDF2F7; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 15px; border-bottom: 1px solid #EDF2F7; vertical-align: middle; color: #2D3748; font-size: 14px; }
+    tr:hover td { background-color: #F8FAFC; }
+
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; }
+    .status-pending { background: #FEFCBF; color: #975A16; border: 1px solid #F6E05E; }
+    .status-received { background: #C6F6D5; color: #22543D; border: 1px solid #9AE6B4; }
+    .status-draft { background: #EDF2F7; color: #4A5568; }
+
+    .btn-receive { background: #1A365D; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; transition: 0.2s; display: inline-block; }
+    .btn-receive:hover { background: #2A4365; }
+</style>
+
+<div style="padding: 25px;">
+    <div class="header-section">
+        <div>
+            <h2>Purchase Orders</h2>
+            <p>Track incoming deliveries and update your inventory stock.</p>
+        </div>
+        <a href="{% url 'inventory:create_po' %}" class="btn-main">
+            + New Purchase Order
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>PO Number</th>
+                    <th>Supplier</th>
+                    <th>Order Date</th>
+                    <th>Expected Delivery</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for po in purchase_orders %}
+                <tr>
+                    <td style="font-weight: 800; color: #1A365D;">{{ po.po_number }}</td>
+                    <td style="font-weight: 600;">{{ po.supplier.name }}</td>
+                    <td style="color: #718096;">{{ po.order_date|date:"M d, Y" }}</td>
+                    <td style="color: #718096;">{{ po.expected_delivery|date:"M d, Y"|default:"TBD" }}</td>
+                    <td style="font-weight: 700; color: #0D9488;">₱{{ po.total_amount }}</td>
+                    <td>
+                        {% if po.status == 'pending' %}
+                            <span class="status-badge status-pending">Pending Delivery</span>
+                        {% elif po.status == 'received' %}
+                            <span class="status-badge status-received">Received</span>
+                        {% else %}
+                            <span class="status-badge status-draft">{{ po.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type="button" class="btn-view" onclick="toggleItems('items-{{ po.id }}')">
+                            View Items
+                        </button>
+                        
+                        {% if po.status == 'pending' %}
+                            <a href="{% url 'inventory:receive_po' po.id %}" class="btn-receive" onclick="return confirm('Are you sure the delivery has arrived? This will add the items to your stock.')">Receive Delivery</a>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr id="items-{{ po.id }}" style="display: none; background-color: #F8FAFC;">
+                    <td colspan="7" style="padding: 20px; border-bottom: 2px solid #E2E8F0;">
+                        <div style="background: white; border-radius: 8px; border: 1px solid #E2E8F0; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                            <strong style="color: #1A365D; font-size: 14px; display: block; margin-bottom: 10px;">Order Manifest</strong>
+                            <table style="width: 100%; border: none;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid #EDF2F7;">
+                                        <th style="padding: 8px 10px; background: transparent; border: none; font-size: 12px; color: #718096;">Product</th>
+                                        <th style="padding: 8px 10px; background: transparent; border: none; font-size: 12px; color: #718096; text-align: center;">Qty</th>
+                                        <th style="padding: 8px 10px; background: transparent; border: none; font-size: 12px; color: #718096; text-align: right;">Unit Cost</th>
+                                        <th style="padding: 8px 10px; background: transparent; border: none; font-size: 12px; color: #718096; text-align: right;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in po.items.all %}
+                                    <tr style="border-bottom: 1px dashed #EDF2F7;">
+                                        <td style="padding: 8px 10px; font-weight: 600; color: #2D3748; border: none;">{{ item.product.item_name }}</td>
+                                        <td style="padding: 8px 10px; text-align: center; font-weight: 700; color: #4A5568; border: none;">{{ item.quantity_ordered }}</td>
+                                        <td style="padding: 8px 10px; text-align: right; color: #718096; border: none;">₱{{ item.unit_cost }}</td>
+                                        <td style="padding: 8px 10px; text-align: right; font-weight: 700; color: #0D9488; border: none;">₱{{ item.subtotal }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align: center; color: #A0AEC0; padding: 40px;">No purchase orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleItems(rowId) {
+        const row = document.getElementById(rowId);
+        if (row.style.display === "none") {
+            row.style.display = "table-row";
+        } else {
+            row.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

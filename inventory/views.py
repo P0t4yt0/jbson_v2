@@ -9,6 +9,8 @@ from decimal import Decimal
 import random
 import barcode
 from .models import InventoryItem
+from .models import Supplier, PurchaseOrder, PurchaseOrderItem, InventoryItem
+from .models import Supplier # <-- Make sure Supplier is imported
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
@@ -239,3 +241,147 @@ def delete_user(request, user_id):
         
     # Redirect pabalik sa User Management page
     return redirect('security:register')
+
+def supplier_list(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        contact_name = request.POST.get('contact_name')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        address = request.POST.get('address')
+        
+        # Simple check to prevent duplicates
+        if Supplier.objects.filter(name__iexact=name).exists():
+            messages.error(request, f"Supplier '{name}' already exists.")
+        else:
+            Supplier.objects.create(
+                name=name,
+                contact_name=contact_name,
+                phone=phone,
+                email=email,
+                address=address
+            )
+            messages.success(request, f"Supplier '{name}' added successfully!")
+            
+        return redirect('inventory:supplier_list')
+
+    # Get all suppliers for the table
+    suppliers = Supplier.objects.all()
+    
+    return render(request, 'inventory/supplier_list.html', {
+        'suppliers': suppliers
+    })
+
+
+def create_po(request):
+    if request.method == 'POST':
+        supplier_id = request.POST.get('supplier')
+        expected_delivery = request.POST.get('expected_delivery')
+        
+        # Django's getlist() grabs all the items from our dynamic HTML table
+        product_ids = request.POST.getlist('product_id[]')
+        quantities = request.POST.getlist('quantity[]')
+        unit_costs = request.POST.getlist('unit_cost[]')
+        
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        
+        # 1. Create the main Purchase Order record
+        po = PurchaseOrder.objects.create(
+            supplier=supplier,
+            expected_delivery=expected_delivery if expected_delivery else None,
+            status='pending' # Setting to pending since we are officially ordering it
+        )
+        
+        total_amount = Decimal('0.00')
+        
+        # 2. Loop through the arrays and create the individual items
+        for i in range(len(product_ids)):
+            if product_ids[i] and quantities[i] and unit_costs[i]:
+                product = get_object_or_404(InventoryItem, id=product_ids[i])
+                qty = int(quantities[i])
+                cost = Decimal(unit_costs[i])
+                
+                PurchaseOrderItem.objects.create(
+                    purchase_order=po,
+                    product=product,
+                    quantity_ordered=qty,
+                    unit_cost=cost
+                )
+                total_amount += (qty * cost)
+                
+        # 3. Update the grand total and save
+        po.total_amount = total_amount
+        po.save()
+        
+        messages.success(request, f"Purchase Order {po.po_number} created successfully for {supplier.name}!")
+        return redirect('inventory:supplier_list') # Redirecting to suppliers for now
+
+    # GET request: Load the form with available suppliers and items
+    suppliers = Supplier.objects.all()
+    products = InventoryItem.objects.all().order_by('item_name')
+    
+    return render(request, 'inventory/create_po.html', {
+        'suppliers': suppliers,
+        'products': products
+    })
+
+def po_list(request):
+    # Fetch all Purchase Orders, ordered by newest first
+    purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
+    
+    return render(request, 'inventory/po_list.html', {
+        'purchase_orders': purchase_orders
+    })
+
+def receive_po(request, po_id):
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    
+    # Safety check: Only process if it's currently pending
+    if po.status != 'pending':
+        messages.error(request, "This order has already been processed or cancelled.")
+        return redirect('inventory:po_list')
+        
+    # The Magic: Loop through the PO items and update the main inventory!
+    for item in po.items.all():
+        product = item.product
+        
+        # 1. Add the new stock to the current quantity
+        product.quantity += item.quantity_ordered
+        
+        # 2. Update the system's unit cost to the latest supplier price
+        product.unit_cost = item.unit_cost 
+        
+        product.save()
+        
+        # 3. Mark the PO item as fully received
+        item.quantity_received = item.quantity_ordered
+        item.save()
+        
+    # Mark the entire Purchase Order as complete
+    po.status = 'received'
+    po.save()
+    
+    messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been updated.")
+    return redirect('inventory:po_list')
+
+
+def edit_supplier(request, supplier_id):
+    # Find the supplier or return a 404 error if it doesn't exist
+    supplier = get_object_or_404(Supplier, id=supplier_id)
+    
+    if request.method == 'POST':
+        # Update the fields with the new data from the form
+        supplier.name = request.POST.get('name')
+        supplier.contact_name = request.POST.get('contact_name')
+        supplier.phone = request.POST.get('phone')
+        supplier.email = request.POST.get('email')
+        supplier.address = request.POST.get('address')
+        
+        supplier.save()
+        messages.success(request, f"Supplier '{supplier.name}' updated successfully!")
+        return redirect('inventory:supplier_list')
+        
+    # If it's a GET request, just show the page with the current data
+    return render(request, 'inventory/edit_supplier.html', {
+        'supplier': supplier
+    })

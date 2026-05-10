@@ -443,6 +443,16 @@
             <i class="ph ph-barcode"></i> <span>Generate Barcode</span>
         </a>
 
+        <a href="{% url 'inventory:create_po' %}" class="nav-item {% if '/purchase-orders/create/' in request.path %}active{% endif %}">
+            <i class="ph ph-file-plus"></i> Create Purchase Order
+        </a>
+
+        <a href="{% url 'inventory:po_list' %}" class="nav-item {% if '/purchase-orders/' in request.path and 'create' not in request.path %}active{% endif %}">
+            <i class="ph ph-clipboard-text"></i> Purchase Orders
+        </a>
+
+        
+
         <div class="nav-category">Sales</div>
         <a href="{% url 'billing:sales_list' %}" class="nav-item {% if '/sales/' in request.path %}active{% endif %}">
             <i class="ph ph-shopping-cart"></i> Sales
@@ -475,6 +485,11 @@
         <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Users
         </a>        
+
+        <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
+            <i class="ph ph-truck"></i> Suppliers
+        </a>
+
         <a href="#" class="nav-item"><i class="ph ph-list-checks"></i> Roles & Permissions</a>
         <a href="{% url 'activity_logs' %}" class="nav-item {% if '/activity-logs/' in request.path %}active{% endif %}">
             <i class="ph ph-clock-counter-clockwise"></i> Activity Logs
