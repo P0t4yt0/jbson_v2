@@ -478,7 +478,9 @@
         <a href="#" class="nav-item"><i class="ph ph-clock"></i> Purchase Report</a>
         <a href="#" class="nav-item"><i class="ph ph-shield-check"></i> Inventory Report</a>
         <a href="#" class="nav-item"><i class="ph ph-file-text"></i> Invoice Report</a>
-        <a href="#" class="nav-item"><i class="ph ph-user-circle"></i> Supplier Report</a>
+        <a href="{% url 'reports_analytics:procurement_report' %}" class="nav-item {% if '/procurement/' in request.path %}active{% endif %}">
+            <i class="ph ph-chart-bar"></i> Procurement & Supplier Report
+        </a>        
         <a href="#" class="nav-item"><i class="ph ph-user"></i> Customer Report</a>
         <a href="#" class="nav-item"><i class="ph ph-stack"></i> Product Report</a>
         <a href="#" class="nav-item"><i class="ph ph-trend-down"></i> Expense Report</a>
