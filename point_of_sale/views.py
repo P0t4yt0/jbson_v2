@@ -24,6 +24,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from decimal import Decimal
 
+from billing_payment.models import Invoice, InvoiceItem
+
 
 def pos_view(request):
     products = InventoryItem.objects.all()
@@ -197,8 +199,7 @@ def process_payment(request):
 
     try:
         with db_transaction.atomic():
-
-            # STOCK DEDUCTION
+            # 1. STOCK DEDUCTION
             for item in transaction.sold_items.all():
                 product = item.inventory_item
                 if product.quantity < item.quantity:
@@ -206,7 +207,10 @@ def process_payment(request):
                 product.quantity -= item.quantity
                 product.save()
 
-            # ===== TRADE CREDIT =====
+            # Variable para sa Invoice (Para magamit natin mamaya)
+            invoice = None
+
+            # ===== 2. TRADE CREDIT LOGIC =====
             if method == 'Trade Credit':
                 if not customer_id:
                     messages.error(request, "Select a customer for Trade Credit.")
@@ -232,17 +236,19 @@ def process_payment(request):
                 transaction.date_completed = timezone.now()
                 transaction.save()
 
-                Invoice.objects.create(
+                # Gagawa ng Invoice na ang status ay 'unpaid'
+                invoice = Invoice.objects.create(
                     transaction=transaction,
                     customer=customer,
                     total_amount=transaction.total_amount,
-                    balance_due=transaction.total_amount
+                    balance_due=transaction.total_amount,
+                    status='unpaid' # Default for credit
                 )
 
                 customer.credit_balance += transaction.total_amount
                 customer.save()
 
-            # ===== CASH / ONLINE BANK =====
+            # ===== 3. CASH / ONLINE BANK LOGIC =====
             else:
                 if method == 'Online Wallet' and not ref_num:
                     return HttpResponse("Reference number required.")
@@ -254,6 +260,7 @@ def process_payment(request):
                 transaction.date_completed = timezone.now()
                 transaction.save()
 
+                # Gagawa ng Payment record
                 Payment.objects.create(
                     transaction=transaction,
                     payment_method=transaction.payment_method,
@@ -262,15 +269,37 @@ def process_payment(request):
                     status='success'
                 )
 
+                customer_obj = None
+                if customer_id and customer_id != 'None' and customer_id != '':
+                    customer_obj = Customer.objects.filter(id=customer_id).first()
+
+                invoice = Invoice.objects.create(
+                    transaction=transaction,
+                    customer=customer_obj, 
+                    total_amount=transaction.total_amount,
+                    balance_due=0, 
+                    status='paid'
+                )
+
+            # ===== 4. DYNAMIC INVOICE ITEMS CLONING =====
+            # Ito ang maglilipat ng items mula POS papunta sa Invoice module mo
+            if invoice:
+                for item in transaction.sold_items.all():
+                    InvoiceItem.objects.create(
+                        invoice=invoice,
+                        product_name=item.inventory_item.item_name,
+                        quantity=item.quantity,
+                        unit_price=item.unit_price,
+                        subtotal=item.subtotal
+                    )
+
             del request.session['transaction_id']
 
         return render(request, 'point_of_sale/receipts/thermal_print.html', {
             'transaction': transaction,
             'sold_items': transaction.sold_items.all(),
             'amount_received': received,
-            
             'change': received - transaction.total_amount, 
-            
             'ref_num': ref_num
         })
 

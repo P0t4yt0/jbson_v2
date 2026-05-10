@@ -456,7 +456,11 @@
             <i class="ph ph-shopping-cart"></i> Sales
         </a>
 
-        <a href="#" class="nav-item"><i class="ph ph-receipt"></i> Invoices</a>
+        <a href="{% url 'billing_payment:invoice_list' %}" class="nav-item {% if request.resolver_match.view_name == 'billing_payment:invoice_list' %}active{% endif %}">
+            <i class="ph ph-receipt"></i> Invoices
+        </a>
+        
+        
         <a href="#" class="nav-item"><i class="ph ph-arrow-u-down-left"></i> Sales Return</a>
         <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
             <i class="ph ph-desktop"></i> Point Of Sales

@@ -1,9 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Customer, Invoice, InvoicePayment # <--- Make sure InvoicePayment is imported
+from .models import Customer, Invoice, InvoicePayment 
+from .forms import InvoiceForm, InvoiceItemFormSet
 from decimal import Decimal
 from point_of_sale.models import Transaction
 from django.http import JsonResponse
+from django.utils import timezone  
+from django.db import models
+
 def customer_list(request):
     # Handle Adding a New Customer
     if request.method == 'POST':
@@ -121,3 +125,83 @@ def get_sale_details_api(request, txn_id):
         })
     except Transaction.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Transaction not found'})
+    
+def invoice_list_view(request):
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+
+    invoices = Invoice.objects.exclude(customer__isnull=True).prefetch_related('items')
+
+    if search_query:
+        invoices = invoices.filter(
+            models.Q(invoice_no__icontains=search_query) | 
+            models.Q(customer__name__icontains=search_query)
+        )
+
+    if status_filter:
+        invoices = invoices.filter(status__iexact=status_filter)
+
+    invoices = invoices.order_by('-issue_date')
+
+    today = timezone.now().date()
+
+    return render(request, 'billing_payment/invoice_list.html', {
+        'invoices': invoices,
+        'today': today,
+        'search_query': search_query,
+        'status_filter': status_filter
+    })
+
+def create_invoice_view(request):
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST)
+        formset = InvoiceItemFormSet(request.POST)
+        
+        # Siguraduhing valid ang parehong forms bago mag-save
+        if form.is_valid() and formset.is_valid():
+            
+            # Gagamit tayo ng atomic transaction para siguradong saved lahat o none at all
+            with transaction.atomic():
+                # 1. I-save muna ang main Invoice pero wag muna i-commit sa DB
+                invoice = form.save(commit=False)
+                invoice.save() # Kailangan nating i-save muna para magkaroon ng ID para sa formset
+                
+                # 2. Ikonekta ang formset sa main invoice at i-save ang items
+                formset.instance = invoice
+                invoice_items = formset.save()
+                
+                # 3. AUTOMATIC COMPUTATION: I-plus lahat ng subtotals para makuha ang grand total
+                grand_total = sum(item.subtotal for item in invoice.items.all())
+                
+                # I-update ang main invoice
+                invoice.total_amount = grand_total
+                invoice.balance_due = grand_total # Kung unpaid, balance = total
+                invoice.save()
+                
+            return redirect('billing_payment:invoice_list') # Balik sa listahan
+    else:
+        form = InvoiceForm()
+        formset = InvoiceItemFormSet()
+        
+    context = {
+        'form': form,
+        'formset': formset
+    }
+    return render(request, 'billing_payment/create_invoice.html', context)
+
+def invoice_items_json(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    # Tandaan: 'items' ang related_name natin sa models
+    items = invoice.items.all() 
+    
+    data = {
+        'items': [
+            {
+                'product_name': item.product_name,
+                'quantity': item.quantity,
+                'unit_price': str(item.unit_price),
+                'subtotal': str(item.subtotal),
+            } for item in items
+        ]
+    }
+    return JsonResponse(data)

@@ -9,4 +9,7 @@ urlpatterns = [
     path('sales/', views.sales_list, name='sales_list'),
     path('sales/<int:txn_id>/details/', views.transaction_details, name='transaction_details'),
     path('sales/api/<int:txn_id>/', views.get_sale_details_api, name='api_sale_details'),
+    path('invoices/', views.invoice_list_view, name='invoice_list'),
+    path('create/', views.create_invoice_view, name='create_invoice'),
+    path('invoice/<int:invoice_id>/items-json/', views.invoice_items_json, name='invoice_items_json'),
 ]

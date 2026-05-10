@@ -9,7 +9,9 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 import uuid
+from point_of_sale.models import Transaction
 
+# --- 1. CUSTOMER TABLE ---
 class Customer(models.Model):
     name = models.CharField(max_length=150, unique=True)
     phone = models.CharField(max_length=20, blank=True)
@@ -43,19 +45,21 @@ class Customer(models.Model):
             return True
         return False
 
-# --- 2. INVOICE TABLE (ONLY FOR TRADE CREDIT) ---
+# --- 2. INVOICE TABLE ---
 class Invoice(models.Model):
+    SOURCE_CHOICES = [('manual', 'Manual Entry'), ('pos', 'POS System')]
     STATUS_CHOICES = [('unpaid', 'Unpaid'), ('overdue', 'Overdue'), ('paid', 'Paid')]
 
-    transaction = models.OneToOneField('point_of_sale.Transaction', on_delete=models.CASCADE, related_name='invoice')
+    source = models.CharField(max_length=10, choices=SOURCE_CHOICES, default='manual')
+    transaction = models.OneToOneField('point_of_sale.Transaction', on_delete=models.CASCADE, related_name='invoice', null=True, blank=True)
     invoice_no = models.CharField(max_length=20, unique=True, editable=False)
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='invoices')
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='invoices', null=True, blank=True)
     
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    balance_due = models.DecimalField(max_digits=12, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    balance_due = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
     issue_date = models.DateField(default=timezone.now)
-    due_date = models.DateField()
+    due_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unpaid')
 
     class Meta:
@@ -67,19 +71,33 @@ class Invoice(models.Model):
             short = uuid.uuid4().hex[:5].upper()
             self.invoice_no = f'INV-{today}-{short}'
             
-        # Auto-calculate due date based on customer terms
-        if not self.due_date:
+        # Auto-calculate due date based on customer terms kung wala pang nakalagay
+        if not self.due_date and self.customer_id:
             self.due_date = self.issue_date + timedelta(days=self.customer.payment_terms)
             
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.invoice_no} - {self.customer.name}"
+
+# --- 2.1 INVOICE ITEMS (Para sa Manual Create Invoice) ---
+class InvoiceItem(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
+    product_name = models.CharField(max_length=255)
+    quantity = models.IntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def save(self, *args, **kwargs):
+        self.subtotal = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.product_name} on {self.invoice.invoice_no}"
+
 # --- 3. PAYMENTS AGAINST TRADE CREDIT ---
 class InvoicePayment(models.Model):
-    invoice = models.ForeignKey(
-        'Invoice', 
-        on_delete=models.CASCADE, 
-        related_name='payments' # <--- Adding this makes it easy to call in HTML
-    )    
+    invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='payments')    
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     method = models.CharField(max_length=20, choices=[('cash', 'Cash'), ('bank', 'Online Bank')])
     date = models.DateTimeField(default=timezone.now)
@@ -89,7 +107,6 @@ class InvoicePayment(models.Model):
         db_table = 'invoice_payments'
 
     def save(self, *args, **kwargs):
-        # When payment is made, deduct from invoice balance AND customer credit balance
         if not self.pk: 
             self.invoice.balance_due -= self.amount
             if self.invoice.balance_due <= 0:
@@ -97,18 +114,14 @@ class InvoicePayment(models.Model):
             self.invoice.save()
 
             self.invoice.customer.credit_balance -= self.amount
-            # If they paid, maybe they are off hold now
             if self.invoice.customer.credit_balance <= 0:
                 self.invoice.customer.credit_status = 'active'
             self.invoice.customer.save()
             
         super().save(*args, **kwargs)
 
+# --- 4. POS PAYMENTS & RECEIPTS ---
 class Payment(models.Model):
-    """
-    Financial settlement record linked to a POS Transaction.
-    One transaction → one payment record.
-    """
     PAYMENT_METHOD_CHOICES = [
         ('cash',   'Cash'),
         ('gcash',  'GCash'),
@@ -123,20 +136,14 @@ class Payment(models.Model):
         ('refunded', 'Refunded'),
     ]
 
-    transaction     = models.OneToOneField(
-        'point_of_sale.Transaction', on_delete=models.CASCADE,
-        related_name='payment'
-    )
-    processed_by    = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        null=True, related_name='payments'
-    )
+    transaction     = models.OneToOneField('point_of_sale.Transaction', on_delete=models.CASCADE, related_name='payment')
+    processed_by    = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='payments')
     payment_method  = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
     amount_due      = models.DecimalField(max_digits=12, decimal_places=2)
     amount_tendered = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     change_amount   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status          = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    reference_number = models.CharField(max_length=50, blank=True)   # e.g. GCash ref
+    reference_number = models.CharField(max_length=50, blank=True)
     date_created    = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -144,7 +151,6 @@ class Payment(models.Model):
         ordering = ['-date_created']
 
     def save(self, *args, **kwargs):
-        # Auto-compute change for cash payments
         if self.payment_method == 'cash' and self.amount_tendered >= self.amount_due:
             self.change_amount = self.amount_tendered - self.amount_due
         super().save(*args, **kwargs)
@@ -152,12 +158,7 @@ class Payment(models.Model):
     def __str__(self):
         return f'Payment for {self.transaction.transaction_ref} — ₱{self.amount_due} ({self.get_payment_method_display()})'
 
-
 class Receipt(models.Model):
-    """
-    Official receipt generated after successful payment.
-    Stored as a PDF file path for printing/re-printing.
-    """
     payment         = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='receipt')
     receipt_number  = models.CharField(max_length=30, unique=True, editable=False)
     pdf_file        = models.FileField(upload_to='receipts/', blank=True, null=True)
