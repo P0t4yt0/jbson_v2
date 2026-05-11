@@ -82,7 +82,7 @@
                         <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid #CBD5E0; border-radius: 6px; outline: none;">
                     </div>
                 </div>
-                <button type="submit" style="background: #851618; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">Generate</button>
+                <button type="submit" name="is_generating" style="background: #851618; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">Generate</button>
                 <a href="{% url 'reports_analytics:sales_report' %}" style="padding: 10px; color: #64748B; text-decoration: none;">Clear</a>
             </form>
         </div>

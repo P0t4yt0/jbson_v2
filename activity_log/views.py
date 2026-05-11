@@ -30,11 +30,11 @@ def activity_logs_view(request):
         # Kung numbers (0, 1, 2), para ito sa AuditLog (ADD, EDIT, DELETE)
         if action_filter in ['0', '1', '2']:
             audit_logs = audit_logs.filter(action=action_filter)
-            custom_logs = custom_logs.none() # Wag isama ang custom
-        # Kung text (LOGIN, LOGOUT, USER_CREATED), para ito sa Custom Logs
+            custom_logs = custom_logs.none() 
+        # Para sa lahat ng text-based actions (Custom Logs)
         else:
             custom_logs = custom_logs.filter(action=action_filter)
-            audit_logs = audit_logs.none() # Wag isama ang audit
+            audit_logs = audit_logs.none()
 
     # 4. PAGSAMAHIN AT I-FORMAT (Unified List)
     unified_logs = []

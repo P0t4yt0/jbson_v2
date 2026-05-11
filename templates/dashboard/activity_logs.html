@@ -66,6 +66,16 @@
                     <option value="LOGOUT" {% if action_filter == 'LOGOUT' %}selected{% endif %}>Logout</option>
                     <option value="USER_CREATED" {% if action_filter == 'USER_CREATED' %}selected{% endif %}>User Created</option>
                     <option value="USER_MODIFIED" {% if action_filter == 'USER_MODIFIED' %}selected{% endif %}>User Modified</option>
+                    <option value="0" {% if action_filter == '0' %}selected{% endif %}>Added Records</option>
+                    <option value="1" {% if action_filter == '1' %}selected{% endif %}>Edited Records</option>
+                    <option value="2" {% if action_filter == '2' %}selected{% endif %}>Deleted Records</option>
+                    <option value="GENERATE REPORT" {% if action_filter == 'GENERATE REPORT' %}selected{% endif %}>Generate Report</option>
+                    <option value="POS TRANSACTION" {% if action_filter == 'POS TRANSACTION' %}selected{% endif %}>POS Transaction</option>
+                    <option value="SALES RETURN" {% if action_filter == 'SALES RETURN' %}selected{% endif %}>Sales Return</option>
+                    <option value="CREATE PO" {% if action_filter == 'CREATE PO' %}selected{% endif %}>Purchase Order</option>
+                    <option value="RECEIVE PO" {% if action_filter == 'RECEIVE PO' %}selected{% endif %}>Receive Delivery</option>
+                    <option value="BULK DELETE" {% if action_filter == 'BULK DELETE' %}selected{% endif %}>Bulk Delete</option>
+                    <option value="ABC ANALYSIS" {% if action_filter == 'ABC ANALYSIS' %}selected{% endif %}>ABC Analysis</option>
                 </select>
             </div>
         </form>

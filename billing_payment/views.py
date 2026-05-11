@@ -9,6 +9,7 @@ from django.db.models import Sum, Q
 from .models import SalesReturn, SalesReturnItem
 import uuid
 from inventory.models import InventoryItem
+from activity_log.utils import log_system_activity
 
 def customer_list(request):
     # Handle Adding a New Customer
@@ -29,6 +30,11 @@ def customer_list(request):
                 credit_limit=limit,
                 payment_terms=terms,
                 credit_status='active'
+            )
+            log_system_activity(
+                user=request.user,
+                action="NEW CUSTOMER",
+                description=f"Added new credit customer: '{name}'"
             )
             messages.success(request, f"Customer '{name}' added successfully.")
         return redirect('billing_payment:customer_list')
@@ -74,6 +80,11 @@ def pay_invoice(request, invoice_id):
             amount=amount,
             method=method,
             processed_by=request.user if request.user.is_authenticated else None
+        )
+        log_system_activity(
+            user=request.user,
+            action="PAYMENT RECEIVED",
+            description=f"Received payment of ₱{amount} for Invoice {invoice.invoice_no} via {method.title()}"
         )
         
         messages.success(request, f"Successfully received ₱{amount} for {invoice.invoice_no}.")
@@ -276,6 +287,12 @@ def process_return(request):
         sales_return.total_refund = running_total
         sales_return.save()
 
+        log_system_activity(
+            user=request.user,
+            action="SALES RETURN",
+            description=f"Processed return {return_id} for Transaction {txn_ref}. Refund: ₱{running_total}"
+        )
+        
         messages.success(request, f"Return {return_id} processed! Refund Amount: ₱{running_total}")
         return redirect('billing_payment:sales_return_list')
 

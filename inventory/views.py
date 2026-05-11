@@ -12,6 +12,7 @@ from .models import InventoryItem
 from .models import Supplier, PurchaseOrder, PurchaseOrderItem, InventoryItem
 from .models import Supplier # <-- Make sure Supplier is imported
 from django.db.models import RestrictedError
+from activity_log.utils import log_system_activity
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
@@ -93,7 +94,12 @@ def run_abc_analysis(request):
             item.abc_classification = 'C'
         
         item.save()
-
+    log_system_activity(
+            user=request.user,
+            action="ABC ANALYSIS",
+            description="Executed ABC Inventory Classification analysis and updated item priorities."
+        )
+    
     return redirect('inventory:inventory_list')
 
 def edit_product(request, pk):
@@ -147,6 +153,11 @@ def bulk_delete_products(request):
             try:
                 # Subukang burahin lahat ng na-check
                 deleted_count, _ = InventoryItem.objects.filter(pk__in=id_list).delete()
+                log_system_activity(
+                    user=request.user,
+                    action="BULK DELETE",
+                    description=f"Bulk deleted {deleted_count} inventory items."
+                )
                 messages.success(request, f'Successfully deleted {deleted_count} product(s).')
             except ProtectedError:
                 # Kung kahit isa sa na-check ay may transaction, iba-block ng database lahat
@@ -238,6 +249,13 @@ def delete_user(request, user_id):
     else:
         username_deleted = user_to_delete.username
         user_to_delete.delete()
+
+        log_system_activity(
+            user=request.user,
+            action="DELETE USER",
+            description=f"Deleted user account: '{username_deleted}'"
+        )
+        
         messages.success(request, f"User '{username_deleted}' deleted.")
         
     # Redirect pabalik sa User Management page
@@ -313,7 +331,12 @@ def create_po(request):
         # 3. Update the grand total and save
         po.total_amount = total_amount
         po.save()
-        
+
+        log_system_activity(
+            user=request.user,
+            action="CREATE PO",
+            description=f"Created Purchase Order {po.po_number} for supplier {supplier.name} (Total: ₱{total_amount})"
+        )
         messages.success(request, f"Purchase Order {po.po_number} created successfully for {supplier.name}!")
         return redirect('inventory:supplier_list') # Redirecting to suppliers for now
 
@@ -361,7 +384,12 @@ def receive_po(request, po_id):
     # Mark the entire Purchase Order as complete
     po.status = 'received'
     po.save()
-    
+
+    log_system_activity(
+        user=request.user,
+        action="RECEIVE PO",
+        description=f"Received delivery for PO {po.po_number}. Inventory stocks and costs updated."
+    )
     messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been updated.")
     return redirect('inventory:po_list')
 
@@ -394,7 +422,12 @@ def delete_supplier(request, supplier_id):
         # Soft Delete: Just mark them as inactive instead of wiping the data!
         supplier.is_active = False
         supplier.save()
-        
+
+        log_system_activity(
+            user=request.user,
+            action="ARCHIVE SUPPLIER",
+            description=f"Archived supplier '{supplier.name}'"
+        )
         messages.success(request, f"Supplier '{supplier.name}' has been archived and hidden from the system.")
             
     return redirect('inventory:supplier_list')
@@ -406,7 +439,12 @@ def unarchive_supplier(request, supplier_id):
         # Restore the supplier!
         supplier.is_active = True
         supplier.save()
-        
+
+        log_system_activity(
+            user=request.user,
+            action="RESTORE SUPPLIER",
+            description=f"Restored archived supplier '{supplier.name}'"
+        )
         messages.success(request, f"Supplier '{supplier.name}' has been restored and is active again.")
             
     return redirect('inventory:supplier_list')

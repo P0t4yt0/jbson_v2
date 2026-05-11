@@ -12,14 +12,25 @@
     </div>
 
     <hr style="border-top: 1px dashed #000;">
-
     <div style="font-size: 13px;">
-        {% for item in transaction.cart_items.all %}
-        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span>{{ item.inventory_item.item_name }} (x{{ item.quantity }})</span>
-            <span>₱{{ item.subtotal }}</span>
-        </div>
-        {% endfor %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid #000;">
+                    <th style="text-align: left;">Item</th>
+                    <th style="text-align: center;">Qty</th>
+                    <th style="text-align: right;">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in transaction.sold_items.all %}
+                <tr>
+                    <td style="padding: 5px 0;">{{ item.inventory_item.item_name }}</td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">₱{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     <hr style="border-top: 1px dashed #000;">

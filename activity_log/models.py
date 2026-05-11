@@ -1,78 +1,27 @@
-"""
-Module 7 — Activity Log
-Immutable audit trail of all user actions.
-Records: logins, logouts, product changes, sales, adjustments, etc.
-Admin-only view. Logs cannot be modified or deleted.
-"""
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
 
-
-class ActivityLog(models.Model):
+def log_system_activity(user, action='report_generated', description="", **kwargs):
     """
-    Append-only log of every significant system action.
-    Immutability is enforced at the model level (no update/delete signals).
+    Utility function to save system activities based on the ActivityLog model.
     """
-    ACTION_CHOICES = [
-        # Auth
-        ('login',              'User Login'),
-        ('logout',             'User Logout'),
-        ('login_failed',       'Failed Login Attempt'),
-        # User Management
-        ('user_created',       'User Created'),
-        ('user_updated',       'User Updated'),
-        ('user_deactivated',   'User Deactivated'),
-        # Inventory
-        ('item_added',         'Item Added'),
-        ('item_updated',       'Item Updated'),
-        ('item_deleted',       'Item Deleted'),
-        ('stock_adjusted',     'Stock Adjusted'),
-        ('barcode_generated',  'Barcode Generated'),
-        # POS & Billing
-        ('transaction_started','Transaction Started'),
-        ('transaction_completed','Transaction Completed'),
-        ('transaction_voided', 'Transaction Voided'),
-        ('payment_processed',  'Payment Processed'),
-        ('receipt_generated',  'Receipt Generated'),
-        # Reports
-        ('report_generated',   'Report Generated'),
-        # Maintenance
-        ('backup_created',     'Backup Created'),
-        ('restore_performed',  'Restore Performed'),
-        # CSV
-        ('csv_imported',       'CSV Imported'),
-    ]
+    # 1. Catch 'message' if your views are still passing it instead of 'description'
+    if 'message' in kwargs and not description:
+        description = kwargs.pop('message')
 
-    user         = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        null=True, related_name='activity_logs'
-    )
-    action       = models.CharField(max_length=30, choices=ACTION_CHOICES)
-    description  = models.TextField(blank=True)     # Human-readable detail
-    source_table = models.CharField(max_length=50, blank=True)  # e.g. 'inventory'
-    source_id    = models.CharField(max_length=50, blank=True)  # PK of affected record
-    ip_address   = models.GenericIPAddressField(null=True, blank=True)
-    date_created = models.DateTimeField(default=timezone.now)
+    # 2. Handle invalid actions. If a view passes action="Viewed Sales Report" 
+    # (which isn't in your ACTION_CHOICES), we move that text to description 
+    # and use a default valid action to prevent database/admin display errors.
+    valid_actions = [choice[0] for choice in ActivityLog.ACTION_CHOICES]
+    if action not in valid_actions:
+        description = f"{action} - {description}".strip(" -")
+        action = 'report_generated' # Fallback valid choice
 
-    class Meta:
-        db_table = 'activity_logs'
-        ordering = ['-date_created']
-        indexes  = [
-            models.Index(fields=['user']),
-            models.Index(fields=['action']),
-            models.Index(fields=['date_created']),
-        ]
-
-    def __str__(self):
-        username = self.user.username if self.user else 'System'
-        return f'[{self.date_created:%Y-%m-%d %H:%M}] {username} — {self.get_action_display()}'
-
-    def save(self, *args, **kwargs):
-        # Prevent updates — activity logs are write-once
-        if self.pk:
-            raise PermissionError('Activity logs are immutable and cannot be modified.')
-        super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        raise PermissionError('Activity logs cannot be deleted.')
+    # 3. Save to database using the exact field names from your model
+    if user.is_authenticated:
+        ActivityLog.objects.create(
+            user=user,
+            action=action,               # Must be one of your ACTION_CHOICES
+            description=description,     # The detailed, human-readable text
+            source_table=kwargs.get('source_table', ''),
+            source_id=kwargs.get('source_id', ''),
+            ip_address=kwargs.get('ip_address')
+        )

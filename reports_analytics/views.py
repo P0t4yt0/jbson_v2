@@ -18,7 +18,7 @@ from django.core.paginator import Paginator
 from reports_analytics.models import Expense
 from django.shortcuts import render, redirect
 from django.contrib import messages
-
+from activity_log.utils import log_system_activity
 
 def sales_report_view(request):
     # 1. Kunin ang dates at tanggalin ang 'None' bug
@@ -108,6 +108,13 @@ def sales_report_view(request):
         'sales_per_page': sales_per_page, 
         'returns_per_page': returns_per_page,
     }
+    if 'is_generating' in request.GET:
+        date_range = f"from {start_date_str} to {end_date_str}" if start_date_str and end_date_str else "(All Time)"
+        log_system_activity(
+            user=request.user,
+            action="GENERATE REPORT",
+            description=f"Generated Sales Report {date_range}"
+        )
     return render(request, 'reports_analytics/sales_report.html', context)
 
 def procurement_report(request):
@@ -128,7 +135,11 @@ def procurement_report(request):
 
     # 3. Recent Order History
     recent_pos = PurchaseOrder.objects.all().order_by('-order_date')
-
+    log_system_activity(
+        user=request.user,
+        action="GENERATE REPORT",
+        description="Generated Procurement Dashboard Report"
+    )
     return render(request, 'reports_analytics/procurement_report.html', {
         'total_spent': total_spent,
         'pending_cash': pending_cash,
@@ -206,6 +217,13 @@ def purchase_report_view(request):
         'end_date': end_date_str,
         'po_per_page': po_per_page,
     }
+    if 'is_generating' in request.GET:
+        date_range = f"from {start_date_str} to {end_date_str}" if start_date_str and end_date_str else "(All Time)"
+        log_system_activity(
+            user=request.user,
+            action="GENERATE REPORT",
+            description=f"Generated Purchase Report {date_range}"
+        )
     return render(request, 'reports_analytics/purchase_report.html', context)
 
 def invoice_report_view(request):
@@ -269,6 +287,13 @@ def invoice_report_view(request):
         'end_date': end_date_str,
         'invoice_per_page': invoice_per_page,
     }
+    if 'is_generating' in request.GET:
+        date_range = f"from {start_date_str} to {end_date_str}" if start_date_str and end_date_str else "(All Time)"
+        log_system_activity(
+            user=request.user,
+            action="GENERATE REPORT",
+            description=f"Generated Invoice Report {date_range}"
+        )
     return render(request, 'reports_analytics/invoice_report.html', context)
 
 def inventory_report_view(request):
@@ -328,6 +353,13 @@ def inventory_report_view(request):
         'end_date': end_date_str,
         'inv_per_page': inv_per_page,
     }
+    if 'is_generating' in request.GET:
+        date_range = f"from {start_date_str} to {end_date_str}" if start_date_str and end_date_str else "(All Time)"
+        log_system_activity(
+            user=request.user,
+            action="GENERATE REPORT",
+            description=f"Generated Inventory Valuation Report {date_range}"
+        )
     return render(request, 'reports_analytics/inventory_report.html', context)
 
 def profit_loss_report_view(request):
@@ -345,6 +377,11 @@ def profit_loss_report_view(request):
                     description=description,
                     category=category,
                     amount=amount
+                )
+                log_system_activity(
+                    user=request.user,
+                    action="ADD EXPENSE",
+                    description=f"Recorded operating expense: '{description}' (Amount: ₱{amount})"
                 )
                 # Success Message para sa SweetAlert
                 messages.success(request, 'Expense saved successfully!', extra_tags='expense_success')
@@ -397,4 +434,11 @@ def profit_loss_report_view(request):
         'po_per_page': po_per_page,
         'exp_per_page': exp_per_page,
     }
+    if 'is_generating' in request.GET:
+        date_range = f"from {start_date_str} to {end_date_str}" if start_date_str and end_date_str else "(All Time)"
+        log_system_activity(
+            user=request.user,
+            action="GENERATE REPORT",
+            description=f"Generated Profit & Loss Report {date_range}"
+        )
     return render(request, 'reports_analytics/profit_loss_report.html', context)

@@ -23,7 +23,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from decimal import Decimal
-
+from activity_log.utils import log_system_activity
 from billing_payment.models import Invoice, InvoiceItem
 
 
@@ -293,6 +293,15 @@ def process_payment(request):
                         subtotal=item.subtotal
                     )
 
+            payment_type = "Trade Credit" if method == 'Trade Credit' else method
+            
+            log_system_activity(
+                user=request.user,
+                action="POS TRANSACTION",
+                description=f"Processed POS transaction {transaction.transaction_ref} via {payment_type} (Total: ₱{transaction.total_amount})"
+            )
+            # --------------------------------
+
             del request.session['transaction_id']
 
         return render(request, 'point_of_sale/receipts/thermal_print.html', {
@@ -311,7 +320,15 @@ def void_transaction(request):
     Transaction.objects.filter(
         status='open',
         processed_by=request.user if request.user.is_authenticated else None
-    ).update(status='voided')
+    )
+    if open_transactions.exists():
+        # --- IDAGDAG ANG LOGGING DITO ---
+        log_system_activity(
+            user=request.user,
+            action="VOID TRANSACTION",
+            description="Voided/Reset an open POS cart transaction."
+        )
+        open_transactions.update(status='voided')
     return redirect('point_of_sale:pos_index')
 
 
@@ -341,7 +358,13 @@ def save_as_quotation(request, transaction_id):
     # Kung may laman, palitan ang status!
     transaction.status = 'quotation'
     transaction.save()
-    
+
+    log_system_activity(
+        user=request.user,
+        action="SAVE QUOTATION",
+        description=f"Saved open transaction as Quotation Ref: {transaction.transaction_ref}"
+    )
+
     messages.success(request, f"Quotation {transaction.transaction_ref} saved successfully!")
     
     # I-redirect pabalik sa POS screen para makapag-transact ng bago
@@ -355,6 +378,12 @@ def load_quotation_to_pos(request, transaction_id):
     # 2. Ibalik ang status niya sa 'open' para maging active na cart ulit siya
     transaction.status = 'open'
     transaction.save()
+
+    log_system_activity(
+        user=request.user,
+        action="LOAD QUOTATION",
+        description=f"Loaded Quotation Ref: {transaction.transaction_ref} into POS cart"
+    )
     
     # 3. I-set sa session yung ID para pag-load ng POS view, ito yung bubuksan niya
     request.session['transaction_id'] = transaction.id
