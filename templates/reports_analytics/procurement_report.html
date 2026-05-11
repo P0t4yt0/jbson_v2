@@ -9,10 +9,12 @@
         .no-print { display: none !important; }
     }
     
-    /* Consistency Tweaks */
     .report-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px; }
     .kpi-box { flex: 1; background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #0D9488; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .table-header { background: #F8FAFC; font-weight: bold; color: #475569; font-size: 0.85rem; }
+    
+    .action-btn { background: white; border: 1px solid #E2E8F0; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+    .action-btn:hover { background: #F8FAFC; }
 </style>
 
 <div style="padding: 30px; background-color: #F7F9FB; min-height: 100vh; font-family: Arial, sans-serif;">
@@ -23,14 +25,33 @@
             <div>
                 <h1 style="font-size: 1.5rem; margin: 0; color: #111;">Procurement & Supplier Report</h1>
                 <p style="color: #0D9488; font-size: 0.85rem; margin: 5px 0 0 0; font-weight: bold;">
-                    Generated on: {% now "F j, Y - h:i A" %}
+                    {% if start_date and end_date %} 
+                        Covered: {{ start_date }} to {{ end_date }} 
+                    {% else %} 
+                        Generated on: {% now "F j, Y - h:i A" %} 
+                    {% endif %}
                 </p>
             </div>
             
             <div class="no-print" style="display: flex; gap: 10px;">
-                <button onclick="generatePDF()" style="border: 1px solid #E2E8F0; background: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; color: #DC2626;"><i class="ph ph-file-pdf" style="font-size: 18px;"></i> PDF</button>
-                <button onclick="window.print()" style="border: 1px solid #E2E8F0; background: white; padding: 6px 10px; border-radius: 4px; cursor: pointer; color: #475569;"><i class="ph ph-printer" style="font-size: 18px;"></i> Print</button>
+                <button onclick="generatePDF()" class="action-btn" style="color: #DC2626;"><i class="ph ph-file-pdf" style="font-size: 18px;"></i> PDF</button>
+                <button onclick="downloadCSV()" class="action-btn" style="color: #10B981;"><i class="ph ph-file-xls" style="font-size: 18px;"></i> CSV</button>
+                <button onclick="window.print()" class="action-btn" style="color: #475569;"><i class="ph ph-printer" style="font-size: 18px;"></i> Print</button>
             </div>
+        </div>
+
+        <div class="report-card no-print" style="margin-bottom: 25px;">
+            <form method="GET" action="" style="display: flex; align-items: flex-end; gap: 20px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px; display: block;">Choose Order Date Range</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" name="start_date" value="{{ start_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 8px; outline: none;">
+                        <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 8px; outline: none;">
+                    </div>
+                </div>
+                <button type="submit" style="background: #851618; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">Generate</button>
+                <a href="{% url 'reports_analytics:procurement_report' %}" style="color: #64748B; text-decoration: none; padding: 10px; font-size: 0.85rem;">Clear</a>
+            </form>
         </div>
 
         <div style="display: flex; gap: 20px; margin-bottom: 20px;">
@@ -90,11 +111,8 @@
                     <tr style="border-bottom: 1px solid #F1F5F9;">
                         <td style="padding: 15px 20px; font-weight: 600;">{{ po.po_number }}</td>
                         <td style="padding: 15px 20px;">{{ po.supplier.name }}</td>
-                        <td style="padding: 15px 20px;">
-                            <span style="padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase;
-                                {% if po.status == 'pending' %} background: #FEFCBF; color: #975A16; {% else %} background: #C6F6D5; color: #22543D; {% endif %}">
-                                {{ po.get_status_display }}
-                            </span>
+                        <td style="padding: 15px 20px; text-transform: uppercase; font-size: 11px; font-weight: bold;">
+                            {{ po.get_status_display }}
                         </td>
                         <td style="padding: 15px 20px; font-weight: bold; color: #0D9488; text-align: right;">₱{{ po.total_amount|floatformat:2 }}</td>
                     </tr>
@@ -109,6 +127,14 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
+    function getFormattedDate() { 
+        const d = new Date(); 
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     function generatePDF() {
         const element = document.getElementById('printable-area');
         const noPrintElements = document.querySelectorAll('.no-print');
@@ -117,7 +143,7 @@
 
         const opt = {
             margin:       0.5,
-            filename:     `JBSON_Procurement_Report_{% now "Y-m-d" %}.pdf`,
+            filename:     `JBSON_Procurement_Report_${getFormattedDate()}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
             jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
@@ -126,6 +152,40 @@
         html2pdf().set(opt).from(element).save().then(() => {
             noPrintElements.forEach(el => el.style.display = '');
         });
+    }
+
+    function downloadCSV() {
+        let csv = [];
+        
+        // Add Header Info
+        const startDateInput = document.querySelector('input[name="start_date"]').value;
+        const endDateInput = document.querySelector('input[name="end_date"]').value;
+        let dateCovered = startDateInput && endDateInput ? `${startDateInput} to ${endDateInput}` : `As of ${getFormattedDate()}`;
+  
+        csv.push('"JBSON HARDWARE - PROCUREMENT REPORT"');
+        csv.push(`"Date Covered: ${dateCovered}"`);
+        csv.push(""); 
+
+        // Grab data from the Master Purchase History table
+        let rows = document.querySelectorAll("#purchases-table tr");
+        for (let i = 0; i < rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll("td, th");
+            for (let j = 0; j < cols.length; j++) {
+                // Strip commas and peso signs so Excel can do math
+                let data = cols[j].innerText.replace(/,/g, '').replace(/₱/g, '');
+                row.push('"' + data + '"');
+            }
+            csv.push(row.join(","));
+        }
+
+        // Trigger Download
+        let csvFile = new Blob([csv.join("\n")], {type: "text/csv;charset=utf-8;"});
+        let link = document.createElement("a");
+        link.download = `JBSON_Procurement_Report_${getFormattedDate()}.csv`;
+        link.href = window.URL.createObjectURL(csvFile);
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
     }
 </script>
 {% endblock %}

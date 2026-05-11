@@ -118,35 +118,53 @@ def sales_report_view(request):
     return render(request, 'reports_analytics/sales_report.html', context)
 
 def procurement_report(request):
-    # 1. High-Level KPIs
-    total_spent = PurchaseOrder.objects.filter(status='received').aggregate(total=Sum('total_amount'))['total'] or 0
-    pending_cash = PurchaseOrder.objects.filter(status='pending').aggregate(total=Sum('total_amount'))['total'] or 0
-    total_pos = PurchaseOrder.objects.count()
+    # 1. Grab dates from the form
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    
+    # 2. Build the base queries and filters
+    po_query = PurchaseOrder.objects.all()
+    supplier_po_filter = Q() # This helps us filter the supplier math
+    
+    if start_date_str:
+        start_date = parse_date(start_date_str)
+        if start_date:
+            po_query = po_query.filter(order_date__gte=datetime.combine(start_date, time.min))
+            supplier_po_filter &= Q(purchase_orders__order_date__gte=datetime.combine(start_date, time.min))
+            
+    if end_date_str:
+        end_date = parse_date(end_date_str)
+        if end_date:
+            po_query = po_query.filter(order_date__lte=datetime.combine(end_date, time.max))
+            supplier_po_filter &= Q(purchase_orders__order_date__lte=datetime.combine(end_date, time.max))
+
+    # 3. High-Level KPIs (Now filtered by date!)
+    total_spent = po_query.filter(status='received').aggregate(total=Sum('total_amount'))['total'] or 0
+    pending_cash = po_query.filter(status='pending').aggregate(total=Sum('total_amount'))['total'] or 0
+    total_pos = po_query.count()
     active_suppliers = Supplier.objects.filter(is_active=True).count()
 
-    # 2. Supplier Leaderboard (Who do we spend the most with?)
+    # 4. Supplier Leaderboard (Now calculates totals based only on the selected dates!)
     suppliers = Supplier.objects.annotate(
-        total_pos=Count('purchase_orders'),
+        total_pos=Count('purchase_orders', filter=supplier_po_filter),
         total_spent=Sum(
             'purchase_orders__total_amount', 
-            filter=Q(purchase_orders__status='received')
+            filter=supplier_po_filter & Q(purchase_orders__status='received')
         )
     ).order_by('-total_spent')
 
-    # 3. Recent Order History
-    recent_pos = PurchaseOrder.objects.all().order_by('-order_date')
-    log_system_activity(
-        user=request.user,
-        action="GENERATE REPORT",
-        description="Generated Procurement Dashboard Report"
-    )
+    # 5. Recent Order History (Filtered by date)
+    recent_pos = po_query.order_by('-order_date')
+
     return render(request, 'reports_analytics/procurement_report.html', {
         'total_spent': total_spent,
         'pending_cash': pending_cash,
         'total_pos': total_pos,
         'active_suppliers': active_suppliers,
         'suppliers': suppliers,
-        'recent_pos': recent_pos
+        'recent_pos': recent_pos,
+        'start_date': start_date_str, # Send back to template
+        'end_date': end_date_str,     # Send back to template
     })
 
 def purchase_report_view(request):

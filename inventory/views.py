@@ -13,6 +13,17 @@ from .models import Supplier, PurchaseOrder, PurchaseOrderItem, InventoryItem
 from .models import Supplier # <-- Make sure Supplier is imported
 from django.db.models import RestrictedError
 from activity_log.utils import log_system_activity
+from django.db.models import Sum, F, DecimalField
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models.functions import Coalesce
+from point_of_sale.models import Transaction, TransactionItem
+
+from point_of_sale.models import Transaction
+from inventory.models import InventoryItem, PurchaseOrder
+from billing_payment.models import SalesReturn, Invoice
+from security.models import EmployeeProfile
+from reports_analytics.models import Expense # Assuming you have this based on your migrations!
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
@@ -224,17 +235,133 @@ def barcode_module_view(request):
     return render(request, 'inventory/generate_barcode.html', context)
 
 def admin_dashboard_view(request):
-    LOW_STOCK_THRESHOLD = 10
+    today = timezone.now().date()
     
-    # Gamitin ang InventoryItem imbes na Product
-    # At siguraduhin na 'quantity' ang field name sa models.py mo
-    low_stock_items = InventoryItem.objects.filter(quantity__lte=LOW_STOCK_THRESHOLD).order_by('quantity')
+    # --- 1. NEW: GLOBAL DATE FILTER LOGIC ---
+    # Grab the filter from the URL (default to 'all_time' if nothing is selected)
+    date_filter = request.GET.get('filter', 'all_time')
     
-    context = {
-        'low_stock_items': low_stock_items,
+    # Establish our start date based on the dropdown choice
+    if date_filter == 'today':
+        start_date = today
+    elif date_filter == 'this_week':
+        start_date = today - timedelta(days=today.weekday()) # Monday of this week
+    elif date_filter == 'this_month':
+        start_date = today.replace(day=1) # 1st of the current month
+    elif date_filter == 'this_year':
+        start_date = today.replace(month=1, day=1) # Jan 1st of the current year
+    else:
+        start_date = None # All Time
+
+    # --- 2. UPDATE BASE QUERIES TO RESPECT THE FILTER ---
+    # We create a "base" query, and if a start_date exists, we filter by it!
+    tx_base = Transaction.objects.filter(status__in=['completed', 'paid'])
+    po_base = PurchaseOrder.objects.filter(status='received')
+    
+    if start_date:
+        tx_base = tx_base.filter(date_completed__date__gte=start_date)
+        po_base = po_base.filter(order_date__gte=start_date)
+
+    # --- 3. APPLY TO EXISTING METRICS ---
+    # Notice we swapped `Transaction.objects...` for `tx_base`!
+    total_sales = tx_base.aggregate(
+        t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField())
+    )['t']
+    
+    total_purchase = po_base.aggregate(
+        t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField())
+    )['t']
+
+    # Keep your existing 30-day Trend Badge math exactly the same!
+    thirty_days_ago = today - timedelta(days=30)
+    sixty_days_ago = today - timedelta(days=60)
+
+    def get_trend(current, prev):
+        if prev == 0:
+            return {'val': 100.0 if current > 0 else 0.0, 'up': current >= 0}
+        diff = current - prev
+        perc = (diff / prev) * 100
+        return {'val': abs(round(perc, 1)), 'up': diff >= 0}
+
+    sales_cur = Transaction.objects.filter(status__in=['completed', 'paid'], date_completed__date__gte=thirty_days_ago).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    purchases_cur = PurchaseOrder.objects.filter(status='received', order_date__gte=thirty_days_ago).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    sales_prev = Transaction.objects.filter(status__in=['completed', 'paid'], date_completed__date__gte=sixty_days_ago, date_completed__date__lt=thirty_days_ago).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    purchases_prev = PurchaseOrder.objects.filter(status='received', order_date__gte=sixty_days_ago, order_date__lt=thirty_days_ago).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+
+    sales_return = SalesReturn.objects.aggregate(t=Coalesce(Sum('total_refund'), Decimal('0.00'), output_field=DecimalField()))['t']
+    invoice_due = Invoice.objects.filter(status='unpaid').aggregate(t=Coalesce(Sum('balance_due'), Decimal('0.00'), output_field=DecimalField()))['t']
+    
+    try:
+        expenses = Expense.objects.aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    except Exception:
+        expenses = Decimal('0.00')
+
+    # Re-calculate profit based on the filtered sales/purchases
+    profit = total_sales - total_purchase - sales_return - expenses
+    pending_pos = PurchaseOrder.objects.filter(status='pending').count()
+    active_suppliers = Supplier.objects.filter(is_active=True).count()
+
+    sales_trend = get_trend(sales_cur, sales_prev)
+    purchase_trend = get_trend(purchases_cur, purchases_prev)
+
+    metrics = {
+        'total_sales': total_sales,
+        'sales_return': sales_return,
+        'total_purchase': total_purchase,
+        'pending_pos': pending_pos,
+        'profit': profit,
+        'invoice_due': invoice_due,
+        'expenses': expenses,
+        'active_suppliers': active_suppliers,
+        'sales_trend': sales_trend,
+        'purchase_trend': purchase_trend,
+        'current_filter': date_filter, # Send the current filter choice to HTML
     }
+
+    # --- 4. CHART DATA & ALERTS ---
+    seven_days_ago = today - timedelta(days=6)
+    chart_labels = []
+    chart_sales_data = []
+
+    for i in range(7):
+        current_day = seven_days_ago + timedelta(days=i)
+        chart_labels.append(current_day.strftime('%a'))
+        daily_sales = Transaction.objects.filter(
+            date_completed__date=current_day, status__in=['completed', 'paid']
+        ).aggregate(t=Sum('total_amount'))['t'] or 0
+        chart_sales_data.append(float(daily_sales))
+
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:6]
+    pending_resets = EmployeeProfile.objects.filter(reset_requested=True, reset_approved_by_admin=False)
+
+
+    # --- 5. TOP SELLING PRODUCTS LEADERBOARD ---
+    top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'paid'])
     
+    # If the user selected 'today', 'this_month', etc., apply it!
+    if start_date:
+        top_items_base = top_items_base.filter(transaction__date_completed__date__gte=start_date)
+
+    top_products = top_items_base.values(
+        'inventory_item__item_name'
+    ).annotate(
+        total_sold_qty=Sum('quantity')
+    ).order_by('-total_sold_qty')[:5]
+
+    # --- 6. ASSEMBLE CONTEXT ---
+    context = {
+        'metrics': metrics,
+        'low_stock_items': low_stock_items,
+        'top_products': top_products, # <-- ADD THIS LINE to send it to HTML
+        'pending_resets': pending_resets,
+        'pending_reset_count': pending_resets.count(),
+        'chart_labels': json.dumps(chart_labels),
+        'chart_sales_data': json.dumps(chart_sales_data),
+    }
+
     return render(request, 'dashboard/dashboard.html', context)
+
+
 
 def delete_user(request, user_id):
     if not request.user.is_superuser:
