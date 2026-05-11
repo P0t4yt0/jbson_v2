@@ -26,6 +26,8 @@ from decimal import Decimal
 from activity_log.utils import log_system_activity
 from billing_payment.models import Invoice, InvoiceItem
 
+from notifications.models import Notification
+
 
 def pos_view(request):
     products = InventoryItem.objects.all()
@@ -204,8 +206,32 @@ def process_payment(request):
                 product = item.inventory_item
                 if product.quantity < item.quantity:
                     return HttpResponse(f"Insufficient stock for {product.item_name}")
+                
+                # Deduct the stock
                 product.quantity -= item.quantity
                 product.save()
+
+                # --- NEW: THE NOTIFICATION TRIGGER ---
+                # Check if stock dropped to 10 or below (or use product.reorder_point if you have that field)
+                if product.quantity <= 10: 
+                    
+                    # Prevent spam: Check if an unread alert for this exact product already exists
+                    alert_exists = Notification.objects.filter(
+                        notification_type='low_stock',
+                        source_id=str(product.id),
+                        is_read=False
+                    ).exists()
+
+                    if not alert_exists:
+                        # Create the alert! It will instantly pop up on the dashboard.
+                        Notification.objects.create(
+                            notification_type='low_stock',
+                            priority='critical', # Red color
+                            title=f"Low Stock: {product.item_name}",
+                            message=f"Stock dropped to {product.quantity} after a POS transaction. Please reorder.",
+                            source_table='inventory',
+                            source_id=str(product.id)
+                        )
 
             # Variable para sa Invoice (Para magamit natin mamaya)
             invoice = None

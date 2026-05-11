@@ -415,6 +415,32 @@
             color: var(--text-secondary);
             border: 1px dashed var(--border-color);
         }
+
+        /* TOAST NOTIFICATION STYLES */
+        #toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: #fff;
+            border-left: 5px solid var(--status-green);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 15px 20px;
+            border-radius: 6px;
+            min-width: 280px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast-critical { border-left-color: var(--status-red); }
+        .toast-high { border-left-color: #F97316; } /* Orange */
+        .toast-medium { border-left-color: var(--status-yellow); }
+        .toast-low { border-left-color: #3B82F6; } /* Blue */
     </style>
 </head>
 <body>
@@ -553,14 +579,25 @@
                 </a>
                 
                 <div style="position: relative;">
+                    <div style="position: relative;">
                     <button class="icon-btn" id="bell-btn">
                         <i class="ph ph-bell"></i>
-                        {% if pending_reset_count > 0 %}
-                            <span class="notification-badge" style="background: var(--status-red); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -5px;">
-                                {{ pending_reset_count }}
-                            </span>
-                        {% endif %}
+                        <span id="dynamic-badge" class="notification-badge" style="display: none; background: var(--status-red); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -5px;">
+                            0
+                        </span>
                     </button>
+                    
+                    <div class="dropdown-menu" id="notif-menu">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); background: #F8FAFC; border-radius: 8px 8px 0 0;">
+                            <strong style="font-size: 13px; color: var(--text-primary);">Notifications</strong>
+                            <button onclick="markAllAsRead()" style="background: none; border: none; color: var(--text-secondary); font-size: 12px; cursor: pointer; font-weight: 600;">Clear All</button>
+                        </div>
+                        
+                        <div id="dynamic-notif-list" style="max-height: 350px; overflow-y: auto;">
+                            <div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">Loading alerts...</div>
+                        </div>
+                    </div>
+                </div>
                     
                     <div class="dropdown-menu" id="notif-menu">
                         
@@ -707,7 +744,7 @@
                 </div>
 
             </div>
-            
+
             {% endblock %} </div>
     </main>
 
@@ -715,10 +752,24 @@
         // Notification Bell Toggle
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');
+        const dynamicBadge = document.getElementById('dynamic-badge'); // Grab the red dot
 
         bellBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notifMenu.classList.toggle('show');
+
+            // NEW: If the menu is opening AND the red dot is currently visible...
+            if (notifMenu.classList.contains('show') && dynamicBadge.style.display === 'block') {
+                
+                // 1. Instantly hide the red dot locally (feels snappy and immediate to the user)
+                dynamicBadge.style.display = 'none';
+                
+                // 2. Silently tell the database to mark everything as read in the background
+                fetch("{% url 'notifications:mark_read_api' %}", {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).catch(err => console.error("Error clearing notifications:", err));
+            }
         });
 
         // Close dropdown when clicking outside
@@ -728,7 +779,7 @@
             }
         });
     </script>
-
+    
     <script>
         document.addEventListener("DOMContentLoaded", function() {
         // Find the sidebar element using your existing class
@@ -912,5 +963,114 @@ function closeGlobalModal() {
     });
 </script>
 
+<div id="toast-container"></div>
+<audio id="alertSound" src="{% static 'audio/notification.mp3' %}" preload="auto"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let currentUnreadCount = 0;
+    const alertSound = document.getElementById('alertSound');
+    const badgeElement = document.getElementById('dynamic-badge');
+    const dropdownList = document.getElementById('dynamic-notif-list');
+
+    function showToast(title, message, priority) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${priority}`;
+        toast.innerHTML = `<strong style="display:block; color:#111; font-size:14px; margin-bottom:4px;">${title}</strong>
+                           <span style="color:#666; font-size:13px; line-height:1.4;">${message}</span>`;
+        
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 6000); // Disappears after 6 seconds
+    }
+
+    // Grab the last notification ID we saw from localStorage (or default to 0)
+    let lastNotifId = parseInt(localStorage.getItem('lastNotifId')) || 0;
+
+    function fetchLiveNotifications() {
+        fetch("{% url 'notifications:live_api' %}") 
+            .then(response => response.json())
+            .then(data => {
+                
+                // 1. Handle Sound & Toast (ONLY for brand new IDs)
+                if (data.notifications.length > 0) {
+                    const newest = data.notifications[0];
+                    
+                    // If the database has an ID higher than the last one we saw...
+                    if (newest.id > lastNotifId) {
+                        alertSound.play().catch(e => console.log("Sound muted until interaction."));
+                        showToast(newest.title, newest.message, newest.priority);
+                        
+                        // Save this new ID so we never ding for it again!
+                        localStorage.setItem('lastNotifId', newest.id);
+                        lastNotifId = newest.id;
+                    }
+                }
+                
+                // 2. Update the Red Bell Badge
+                let currentUnreadCount = data.unread_count;
+                if (currentUnreadCount > 0) {
+                    badgeElement.style.display = 'block';
+                    badgeElement.innerText = currentUnreadCount > 9 ? '9+' : currentUnreadCount;
+                } else {
+                    badgeElement.style.display = 'none';
+                }
+
+                // 3. Rebuild the Dropdown Menu
+                dropdownList.innerHTML = '';
+                if (data.notifications.length === 0) {
+                    dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">No new notifications</div>';
+                } else {
+                    data.notifications.forEach(notif => {
+                        let iconColor = notif.priority === 'critical' ? 'var(--status-red)' : 
+                                        notif.priority === 'high' ? '#F97316' : 
+                                        notif.priority === 'medium' ? 'var(--status-yellow)' : '#3B82F6';
+                        
+                        dropdownList.innerHTML += `
+                            <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; margin-bottom: 5px; background: var(--bg-main);">
+                                <div style="margin-right: 12px; color: ${iconColor}; margin-top: 2px;">
+                                    <i class="ph ph-warning-circle" style="font-size: 20px;"></i>
+                                </div>
+                                <div>
+                                    <strong style="display:block; font-size:13px; color: var(--text-primary);">${notif.title}</strong>
+                                    <span style="display:block; font-size:12px; color: var(--text-secondary); margin-top:2px;">${notif.message}</span>
+                                    <small style="display:block; font-size:10px; color: #9CA3AF; margin-top:6px;">${notif.time}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            })
+            .catch(err => console.error("Notification API Error:", err));
+    }
+
+    window.markAllAsRead = function() {
+        fetch("{% url 'notifications:mark_read_api' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                // Instantly hide the red badge
+                document.getElementById('dynamic-badge').style.display = 'none';
+                currentUnreadCount = 0;
+                
+                // Clear the dropdown visually
+                document.getElementById('dynamic-notif-list').innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center; font-size: 13px;">No new notifications</div>';
+            }
+        });
+    };
+
+    // Ping the server every 10 seconds
+    setInterval(fetchLiveNotifications, 10000);
+    fetchLiveNotifications(); // Run immediately on load
+});
+</script>
 </body>
 </html>
