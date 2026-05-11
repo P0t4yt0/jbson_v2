@@ -1,0 +1,364 @@
+{% extends 'dashboard/dashboard.html' %}
+{% block content %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+    /* Saktong typography at colors mula sa Sales Report */
+    :root {
+        --font-family: 'Inter', 'Poppins', 'Roboto', sans-serif;
+        --text-main: #111827;
+        --text-muted: #64748B;
+        --border-color: #E5E7EB;
+        --bg-card: #FFFFFF;
+        --teal-accent: #0D9488;
+        --red-accent: #891C1C;
+    }
+
+    .report-container {
+        font-family: var(--font-family);
+        padding: 30px;
+        background-color: #F8F9FA;
+        min-height: 100vh;
+    }
+
+    .action-btn {
+        background: white;
+        border: 1px solid var(--border-color);
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: var(--font-family);
+    }
+    .action-btn:hover { background: #F3F4F6; }
+
+    .card-box {
+        background: var(--bg-card);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding: 24px;
+    }
+
+    .table-header-cell {
+        background: #F8FAFC;
+        padding: 12px 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .table-row-cell {
+        padding: 16px 20px;
+        font-size: 0.85rem;
+        border-bottom: 1px solid #F1F5F9;
+        color: #334155;
+    }
+
+    /* PAGINATION STYLES */
+    .pagination-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: #ffffff;
+        border-top: 1px solid #E5E7EB;
+        font-size: 0.85rem;
+        color: #6B7280;
+    }
+    .pagination-controls { display: flex; gap: 4px; align-items: center; }
+    .page-active { background: #851618; color: white; padding: 5px 12px; border-radius: 4px; font-weight: 700; }
+    .page-link { color: #374151; padding: 5px 12px; text-decoration: none; }
+    .page-link:hover { background: #F3F4F6; border-radius: 4px; }
+    .page-btn {
+        border: 1px solid #D1D5DB;
+        padding: 5px 10px;
+        border-radius: 4px;
+        color: #374151;
+        text-decoration: none;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .page-btn:hover { background: #F9FAFB; }
+
+    @media print {
+        body * { visibility: hidden; }
+        #printable-report, #printable-report * { visibility: visible; }
+        #printable-report { position: absolute; left: 0; top: 0; width: 100%; }
+        .no-print { display: none !important; }
+        .report-container { background: white; padding: 0; }
+        .card-box { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
+    }
+</style>
+
+<div class="report-container">
+    
+    <div class="no-print" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin: 0; letter-spacing: -0.02em;">Purchase & Expenses Report</h1>
+            <p style="color: var(--teal-accent); font-size: 0.85rem; font-weight: 600; margin: 4px 0 0 0;">
+                Date Covered: {% if start_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
+            </p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button onclick="downloadPDF()" class="action-btn" style="color: #EF4444; border-color: #FCA5A5;">
+                <i class="ph ph-file-pdf" style="font-size: 1.1rem;"></i> Export PDF
+            </button>
+            <button onclick="downloadCSV('purchase_report.csv')" class="action-btn" style="color: #10B981; border-color: #6EE7B7;">
+                <i class="ph ph-file-xls" style="font-size: 1.1rem;"></i> Export CSV
+            </button>
+        </div>
+    </div>
+
+    <div class="card-box no-print" style="margin-bottom: 24px;">
+        <form method="GET" style="display: flex; gap: 16px; align-items: flex-end;">
+            <input type="hidden" name="po_per_page" value="{{ po_per_page }}">
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Choose Date</label>
+                <div style="display: flex; gap: 12px;">
+                    <input type="date" name="start_date" value="{{ start_date|default:'' }}" style="flex: 1; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-family: var(--font-family); font-size: 0.85rem;">
+                    <input type="date" name="end_date" value="{{ end_date|default:'' }}" style="flex: 1; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-family: var(--font-family); font-size: 0.85rem;">
+                </div>
+            </div>
+            <button type="submit" style="background: var(--red-accent); color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; font-family: var(--font-family); font-size: 0.85rem; cursor: pointer;">Generate</button>
+            <a href="{% url 'reports_analytics:purchase_report' %}" style="padding: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500;">Clear</a>
+        </form>
+    </div>
+
+    <div id="printable-report">
+        
+        <div style="display: none;" class="print-only-header">
+            <h1 style="font-size: 1.5rem; font-weight: 700; margin: 0;">Purchase & Expenses Report</h1>
+            <p style="color: var(--teal-accent); font-size: 0.85rem; font-weight: 600; margin: 4px 0 20px 0;">
+                Date Covered: {% if start_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
+            </p>
+        </div>
+
+        <style>
+            @media print { .print-only-header { display: block !important; } }
+        </style>
+
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+            <div class="card-box" style="flex: 1; border-top: 4px solid var(--teal-accent);">
+                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Total Purchase (Expenses)</div>
+                <h2 style="margin: 8px 0 0 0; font-size: 1.75rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">₱{{ total_expense|floatformat:2 }}</h2>
+            </div>
+            <div class="card-box" style="flex: 1; border-top: 4px solid #EF4444;">
+                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Total Orders</div>
+                <h2 style="margin: 8px 0 0 0; font-size: 1.75rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">{{ total_po_count }}</h2>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 24px; margin-bottom: 24px; align-items: stretch;">
+            
+            <div class="card-box" style="flex: 1;">
+                <h3 style="margin: 0 0 16px 0; font-size: 1rem; font-weight: 700; color: var(--text-main);">Supplier Expense Breakdown</h3>
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr>
+                            <th class="table-header-cell">Supplier Name</th>
+                            <th class="table-header-cell" style="text-align: right;">Total Spent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sup in supplier_breakdown %}
+                        <tr>
+                            <td class="table-row-cell" style="font-weight: 600; color: var(--text-main);">{{ sup.supplier__name }}</td>
+                            <td class="table-row-cell" style="text-align: right; color: var(--teal-accent); font-weight: 700;">₱{{ sup.total_spent|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-box" style="flex: 1.5;">
+                <h3 style="margin: 0 0 16px 0; font-size: 1rem; font-weight: 700; color: var(--text-main);">Most Purchased Products</h3>
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr>
+                            <th class="table-header-cell">Product Name</th>
+                            <th class="table-header-cell" style="text-align: center;">Qty</th>
+                            <th class="table-header-cell" style="text-align: right;">Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_purchased_products %}
+                        <tr>
+                            <td class="table-row-cell">
+                                <span style="font-weight: 700; color: var(--red-accent); margin-right: 4px;">#{{ forloop.counter }}</span> 
+                                {{ item.product__item_name }}
+                            </td>
+                            <td class="table-row-cell" style="text-align: center; font-weight: 500;">{{ item.total_qty_bought }}</td>
+                            <td class="table-row-cell" style="text-align: right; font-weight: 700; color: var(--text-main);">₱{{ item.total_spent_on_item|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Purchase Order Logs</h3>
+            
+            <div style="position: relative; width: 300px;" class="no-print">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748B;"></i>
+                <input type="text" id="purchaseSearch" onkeyup="filterPurchases()" placeholder="Search PO # or Supplier..." 
+                    style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #E5E7EB; border-radius: 8px; font-family: var(--font-family); font-size: 0.85rem;">
+            </div>
+        </div>
+
+        <div style="background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 24px;">
+            <div style="padding: 24px; border-bottom: 1px solid var(--border-color);">
+                <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main);">Purchase Order Logs</h3>
+            </div>
+            
+            <table id="po-log-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr>
+                        <th class="table-header-cell">PO Number</th>
+                        <th class="table-header-cell">Supplier</th>
+                        <th class="table-header-cell">Date</th>
+                        <th class="table-header-cell" style="text-align: right;">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for po in purchase_orders %}
+                    <tr>
+                        <td class="table-row-cell" style="font-weight: 700; color: var(--text-main);">{{ po.po_number }}</td>
+                        <td class="table-row-cell" style="color: var(--text-muted);">{{ po.supplier.name }}</td>
+                        <td class="table-row-cell" style="color: var(--text-muted);">{{ po.order_date|date:"M d, Y" }}</td>
+                        <td class="table-row-cell" style="text-align: right; font-weight: 700; color: var(--text-main);">₱{{ po.total_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">No purchase orders found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="pagination-bar no-print">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>Row Per Page</span>
+                    <form method="GET" style="margin: 0;">
+                        <input type="hidden" name="start_date" value="{{ start_date|default:'' }}">
+                        <input type="hidden" name="end_date" value="{{ end_date|default:'' }}">
+                        <select name="po_per_page" onchange="this.form.submit()" style="padding: 4px; border: 1px solid #D1D5DB; border-radius: 4px; font-family: var(--font-family);">
+                            <option value="10" {% if po_per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="20" {% if po_per_page == 20 %}selected{% endif %}>20</option>
+                            <option value="50" {% if po_per_page == 50 %}selected{% endif %}>50</option>
+                        </select>
+                    </form>
+                    <span>Entries &nbsp; Showing {{ purchase_orders.start_index|default:0 }} to {{ purchase_orders.end_index|default:0 }} of {{ purchase_orders.paginator.count|default:0 }}</span>
+                </div>
+                
+                <div class="pagination-controls">
+                    {% if purchase_orders.has_previous %}
+                        <a href="?page={{ purchase_orders.previous_page_number }}&po_per_page={{ po_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-btn"><i class="ph ph-caret-left"></i></a>
+                    {% endif %}
+                    
+                    {% for num in purchase_orders.paginator.page_range %}
+                        {% if purchase_orders.number == num %}
+                            <span class="page-active">{{ num }}</span>
+                        {% elif num > purchase_orders.number|add:'-3' and num < purchase_orders.number|add:'3' %}
+                            <a href="?page={{ num }}&po_per_page={{ po_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-link">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if purchase_orders.has_next %}
+                        <a href="?page={{ purchase_orders.next_page_number }}&po_per_page={{ po_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-btn"><i class="ph ph-caret-right"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function getFormattedDate() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('printable-report');
+        const dynamicFileName = `JBSON_Purchase_Report_${getFormattedDate()}.pdf`;
+        
+        const pdfHeader = element.querySelector('.print-only-header');
+        if(pdfHeader) pdfHeader.style.display = 'block';
+
+        const opt = {
+            margin:       0.5,
+            filename:     dynamicFileName,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            if(pdfHeader) pdfHeader.style.display = 'none';
+        });
+    }
+
+    function downloadCSV() {
+        const dynamicFileName = `JBSON_Purchase_Report_${getFormattedDate()}.csv`;
+        const table = document.getElementById("po-log-table");
+        let csv = [];
+        const rows = table.querySelectorAll("tr");
+        
+        for (let i = 0; i < rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll("td, th");
+            for (let j = 0; j < cols.length; j++) {
+                let data = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '');
+                row.push('"' + data + '"');
+            }
+            csv.push(row.join(","));
+        }
+
+        const csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+        const downloadLink = document.createElement("a");
+        downloadLink.download = dynamicFileName;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+
+    function filterPurchases() {
+        const input = document.getElementById("purchaseSearch");
+        const filter = input.value.toUpperCase();
+        const table = document.getElementById("po-log-table");
+        const tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            const row = tr[i];
+            const poNumber = row.getElementsByTagName("td")[0]; 
+            const supplierName = row.getElementsByTagName("td")[1]; 
+            
+            if (poNumber || supplierName) {
+                const textValue = (poNumber.textContent || poNumber.innerText) + " " + (supplierName.textContent || supplierName.innerText);
+                
+                if (textValue.toUpperCase().indexOf(filter) > -1) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+
+{% endblock %}

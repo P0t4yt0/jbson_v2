@@ -485,18 +485,29 @@
             <i class="ph ph-chart-line-up"></i> Sales Report
         </a>
 
-    
-        <a href="#" class="nav-item"><i class="ph ph-clock"></i> Purchase Report</a>
-        <a href="#" class="nav-item"><i class="ph ph-shield-check"></i> Inventory Report</a>
-        <a href="#" class="nav-item"><i class="ph ph-file-text"></i> Invoice Report</a>
+        <a href="{% url 'reports_analytics:purchase_report' %}" 
+        class="nav-item {% if '/reports/purchase/' in request.path %}active{% endif %}">
+            <i class="ph ph-clock"></i> Purchase Report
+        </a>
+        
+        <a href="{% url 'reports_analytics:inventory_report' %}" class="nav-item {% if '/reports/inventory/' in request.path %}active{% endif %}">
+            <i class="ph ph-stack"></i> Inventory Report
+        </a>
+        
+        <a href="{% url 'reports_analytics:invoice_report' %}" class="nav-item {% if '/reports/invoice/' in request.path %}active{% endif %}">
+            <i class="ph ph-file-text"></i> Invoice Report
+        </a>
+        
         <a href="{% url 'reports_analytics:procurement_report' %}" class="nav-item {% if '/procurement/' in request.path %}active{% endif %}">
             <i class="ph ph-chart-bar"></i> Procurement & Supplier Report
         </a>        
+        
         <a href="#" class="nav-item"><i class="ph ph-user"></i> Customer Report</a>
-        <a href="#" class="nav-item"><i class="ph ph-stack"></i> Product Report</a>
-        <a href="#" class="nav-item"><i class="ph ph-trend-down"></i> Expense Report</a>
-        <a href="#" class="nav-item"><i class="ph ph-trend-up"></i> Income Report</a>
-        <a href="#" class="nav-item"><i class="ph ph-scales"></i> Profit & Loss</a>
+
+        <a href="{% url 'reports_analytics:profit_loss_report' %}" class="nav-item {% if '/profit-loss/' in request.path %}active{% endif %}">
+            <i class="ph ph-scales"></i> Profit & Loss
+        </a>
+        
         <a href="#" class="nav-item"><i class="ph ph-book-open"></i> Annual Report</a>
 
         <div class="nav-category">User Management</div>

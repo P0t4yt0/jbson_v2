@@ -53,3 +53,22 @@ class Report(models.Model):
 
     def __str__(self):
         return f'{self.get_report_type_display()} — {self.get_period_display()} ({self.date_generated:%Y-%m-%d})'
+    
+class Expense(models.Model):
+    CATEGORY_CHOICES = [
+        ('Utility', 'Utility (Kuryente, Tubig, Internet)'),
+        ('Payroll', 'Payroll / Sweldo'),
+        ('Rent', 'Rent / Upa'),
+        ('Logistics', 'Delivery / Gasolina'),
+        ('Supplies', 'Store Supplies'),
+        ('Others', 'Others'),
+    ]
+    
+    description = models.CharField(max_length=255)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Others')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    expense_date = models.DateField()
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.description} ({self.category}) - ₱{self.amount}"
