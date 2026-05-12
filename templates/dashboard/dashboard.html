@@ -565,10 +565,215 @@
     <main class="main-wrapper">
         
         <header class="top-header">
-            <div class="search-bar">
-                <i class="ph ph-magnifying-glass" style="color: var(--text-secondary)"></i>
-                <input type="text" placeholder="Search...">
-            </div>
+            <div class="global-search-container">
+    <div class="search-input-wrapper">
+        <i class="fas fa-search search-icon" style="position: absolute; left: 10px; color: #888;"></i>
+        <input type="text" id="main-search-input" placeholder="Search invoices, products, users, or pages..." autocomplete="off">
+        <div id="search-spinner" class="spinner" style="display: none;"></div>
+    </div>
+    
+    <div id="search-dropdown" class="search-dropdown-glass" style="display: none;"></div>
+</div>
+
+<style>
+    .global-search-container {
+        position: relative;
+        width: 450px; 
+        font-family: 'Inter', sans-serif; /* Palitan kung ano gamit niyong font */
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    #main-search-input {
+        width: 100%;
+        padding: 10px 35px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        outline: none;
+        background: #fafafa;
+        transition: all 0.3s ease;
+    }
+
+    #main-search-input:focus {
+        border-color: #8aaf97;
+        box-shadow: 0 0 0 3px rgba(138, 175, 151, 0.2);
+    }
+
+    .search-dropdown-glass {
+        position: absolute;
+        top: 115%;
+        left: 0;
+        width: 100%;
+        max-height: 450px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.85); 
+        backdrop-filter: blur(12px); 
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        z-index: 9999;
+        padding: 8px;
+    }
+
+    .search-item-shortcut {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        text-decoration: none;
+        color: #333;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+    }
+
+    .search-item-shortcut:hover {
+        background: rgba(138, 175, 151, 0.15); 
+    }
+
+    .shortcut-text h4 { margin: 0; font-size: 14px; font-weight: 600; color: #2c3e50; }
+    .shortcut-text p { margin: 0; font-size: 11px; color: #7f8c8d; }
+
+    .search-item-record {
+        display: block;
+        padding: 12px;
+        text-decoration: none;
+        color: #333;
+        border-radius: 8px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s ease;
+    }
+
+    .search-item-record:hover {
+        background: rgba(138, 175, 151, 0.1);
+    }
+
+    .record-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+    }
+
+    .record-title { font-weight: 600; color: #008080; font-size: 14px;}
+    
+    .record-status {
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background: #e6f4ea;
+        color: #1e8e3e;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .record-details { display: flex; justify-content: space-between; font-size: 12px; color: #555; }
+
+    .spinner {
+        position: absolute;
+        right: 12px;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e0e0e0;
+        border-top-color: #8aaf97;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Scrollbar styling for dropdown */
+    .search-dropdown-glass::-webkit-scrollbar { width: 6px; }
+    .search-dropdown-glass::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('main-search-input');
+        const searchDropdown = document.getElementById('search-dropdown');
+        const spinner = document.getElementById('search-spinner');
+        let debounceTimer;
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (query.length === 0) {
+                searchDropdown.style.display = 'none';
+                spinner.style.display = 'none';
+                return;
+            }
+
+            spinner.style.display = 'block';
+
+            debounceTimer = setTimeout(() => {
+                // IMPORTANT: Ensure this URL matches your urls.py exactly
+                fetch(`/search/api/global-search/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        spinner.style.display = 'none';
+                        renderResults(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        spinner.style.display = 'none';
+                    });
+            }, 350); 
+        });
+
+        function renderResults(data) {
+            searchDropdown.innerHTML = ''; 
+
+            if (data.length === 0) {
+                searchDropdown.innerHTML = '<div style="padding: 15px; text-align: center; color: #7f8c8d; font-size: 13px;">No matching results found</div>';
+                searchDropdown.style.display = 'block';
+                return;
+            }
+
+            data.forEach(item => {
+                let htmlElement = '';
+
+                if (item.type === 'shortcut') {
+                    htmlElement = `
+                        <a href="${item.url}" class="search-item-shortcut">
+                            <span style="font-size: 20px; margin-right: 15px;"></span>
+                            <div class="shortcut-text">
+                                <h4>${item.title}</h4>
+                                <p>${item.breadcrumb} &rarr; ${item.title}</p>
+                            </div>
+                        </a>
+                    `;
+                } else if (item.type === 'record') {
+                    htmlElement = `
+                        <a href="${item.url}" class="search-item-record">
+                            <div class="record-header">
+                                <span class="record-title">${item.title}</span>
+                                <span class="record-status">${item.status}</span>
+                            </div>
+                            <div class="record-details">
+                                <span>${item.detail1}</span>
+                                <span><strong>${item.detail2}</strong></span>
+                            </div>
+                        </a>
+                    `;
+                }
+
+                searchDropdown.insertAdjacentHTML('beforeend', htmlElement);
+            });
+
+            searchDropdown.style.display = 'block'; 
+        }
+    });
+</script>
 
             <div class="header-actions">
                 <a href="#" class="btn btn-primary" onclick="openCreateProduct(event)">
@@ -1072,5 +1277,6 @@ document.addEventListener("DOMContentLoaded", function() {
     fetchLiveNotifications(); // Run immediately on load
 });
 </script>
+
 </body>
 </html>
