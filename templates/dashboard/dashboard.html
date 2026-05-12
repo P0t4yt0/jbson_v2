@@ -953,6 +953,7 @@
 
     <script>
         // Notification Bell Toggle
+        // Notification Bell Toggle
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');
         const dynamicBadge = document.getElementById('dynamic-badge'); // Grab the red dot
@@ -960,19 +961,6 @@
         bellBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notifMenu.classList.toggle('show');
-
-            // NEW: If the menu is opening AND the red dot is currently visible...
-            if (notifMenu.classList.contains('show') && dynamicBadge.style.display === 'block') {
-                
-                // 1. Instantly hide the red dot locally (feels snappy and immediate to the user)
-                dynamicBadge.style.display = 'none';
-                
-                // 2. Silently tell the database to mark everything as read in the background
-                fetch("{% url 'notifications:mark_read_api' %}", {
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).catch(err => console.error("Error clearing notifications:", err));
-            }
         });
 
         // Close dropdown when clicking outside
@@ -1224,7 +1212,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
 
                 // 3. Rebuild the Dropdown Menu
-                dropdownList.innerHTML = '';
+dropdownList.innerHTML = '';
                 if (data.notifications.length === 0) {
                     dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">No new notifications</div>';
                 } else {
@@ -1233,17 +1221,20 @@ document.addEventListener("DOMContentLoaded", function() {
                                         notif.priority === 'high' ? '#F97316' : 
                                         notif.priority === 'medium' ? 'var(--status-yellow)' : '#3B82F6';
                         
+                        // NEW: Wrapped the entire div inside an <a> tag using notif.action_url
                         dropdownList.innerHTML += `
-                            <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; margin-bottom: 5px; background: var(--bg-main);">
-                                <div style="margin-right: 12px; color: ${iconColor}; margin-top: 2px;">
-                                    <i class="ph ph-warning-circle" style="font-size: 20px;"></i>
+                            <a href="${notif.action_url}" style="text-decoration: none; display: block;">
+                                <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; margin-bottom: 5px; background: var(--bg-main); transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#FCE8E8'" onmouseout="this.style.background='var(--bg-main)'">
+                                    <div style="margin-right: 12px; color: ${iconColor}; margin-top: 2px;">
+                                        <i class="ph ph-warning-circle" style="font-size: 20px;"></i>
+                                    </div>
+                                    <div>
+                                        <strong style="display:block; font-size:13px; color: var(--text-primary);">${notif.title}</strong>
+                                        <span style="display:block; font-size:12px; color: var(--text-secondary); margin-top:2px;">${notif.message}</span>
+                                        <small style="display:block; font-size:10px; color: #9CA3AF; margin-top:6px;">${notif.time}</small>
+                                    </div>
                                 </div>
-                                <div>
-                                    <strong style="display:block; font-size:13px; color: var(--text-primary);">${notif.title}</strong>
-                                    <span style="display:block; font-size:12px; color: var(--text-secondary); margin-top:2px;">${notif.message}</span>
-                                    <small style="display:block; font-size:10px; color: #9CA3AF; margin-top:6px;">${notif.time}</small>
-                                </div>
-                            </div>
+                            </a>
                         `;
                     });
                 }

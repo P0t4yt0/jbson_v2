@@ -45,6 +45,8 @@ class Notification(models.Model):
     is_read       = models.BooleanField(default=False)
     date_created  = models.DateTimeField(default=timezone.now)
     date_read     = models.DateTimeField(null=True, blank=True)
+    action_url    = models.CharField(max_length=255, blank=True, null=True) 
+    is_read       = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'notifications'

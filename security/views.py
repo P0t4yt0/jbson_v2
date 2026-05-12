@@ -26,7 +26,9 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
+from notifications.models import Notification
 
 # IMPORT NG MODELS: Pinagsama na natin ang ActivityLog at EmployeeProfile dito!
 from .models import ActivityLog, EmployeeProfile
@@ -237,6 +239,16 @@ def forgot_password_view(request):
                     description=f"User '{username}' requested a password reset.",
                     request=request,
                 )
+
+                Notification.objects.create(
+                    notification_type='password_reset', 
+                    priority='high',
+                    title='Password Reset Request',
+                    message=f"Employee '{username}' requested a password reset. Review pending requests.",
+                    action_url=reverse('security:review_resets')
+                )
+
+
                 messages.success(request, "Your request has been forwarded to the Administrator.")
             except User.DoesNotExist:
                 messages.success(request, "If that username exists, a request has been forwarded to the Administrator.")
@@ -378,12 +390,6 @@ def admin_dashboard(request):
 
     # 4. Low Stock Items (10 or below)
     low_stock_items = InventoryItem.objects.filter(quantity__lte=10).order_by('quantity')[:5]
-
-    # 5. Pending Notifications (Para sa Bell Icon dropdown)
-    pending_resets = EmployeeProfile.objects.filter(
-        reset_requested=True, 
-        reset_approved_by_admin=False
-    )
 
     # 6. Default zeros para sa wala pang module
     metrics = {

@@ -24,7 +24,8 @@ def live_notifications_api(request):
             'message': notif.message,
             'priority': notif.priority, # 'critical', 'high', 'medium', 'low'
             'type': notif.notification_type,
-            'time': notif.date_created.strftime("%I:%M %p")
+            'time': notif.date_created.strftime("%I:%M %p"),
+            'action_url': notif.action_url if notif.action_url else '#' # <-- ADD THIS LINE
         })
 
     # 2. Get total count of unread
