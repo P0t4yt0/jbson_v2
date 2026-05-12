@@ -17,6 +17,8 @@ from django.db.models import Sum, F, DecimalField
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import Coalesce
+from django.db.models import Q, F, Sum, Count, ProtectedError, DecimalField
+from django.db.models.functions import Coalesce
 from point_of_sale.models import Transaction, TransactionItem
 
 from point_of_sale.models import Transaction
@@ -424,23 +426,23 @@ def create_po(request):
         supplier_id = request.POST.get('supplier')
         expected_delivery = request.POST.get('expected_delivery')
         
-        # Django's getlist() grabs all the items from our dynamic HTML table
         product_ids = request.POST.getlist('product_id[]')
         quantities = request.POST.getlist('quantity[]')
         unit_costs = request.POST.getlist('unit_cost[]')
         
         supplier = get_object_or_404(Supplier, id=supplier_id)
         
-        # 1. Create the main Purchase Order record
+        # Adviser Fix: If no date is provided, use 7-day fallback
+        fallback_date = timezone.now().date() + timezone.timedelta(days=7)
+        
         po = PurchaseOrder.objects.create(
             supplier=supplier,
-            expected_delivery=expected_delivery if expected_delivery else None,
-            status='pending' # Setting to pending since we are officially ordering it
+            expected_delivery=expected_delivery if expected_delivery else fallback_date,
+            status='pending' # Officially saving it as an order!
         )
         
         total_amount = Decimal('0.00')
         
-        # 2. Loop through the arrays and create the individual items
         for i in range(len(product_ids)):
             if product_ids[i] and quantities[i] and unit_costs[i]:
                 product = get_object_or_404(InventoryItem, id=product_ids[i])
@@ -455,26 +457,83 @@ def create_po(request):
                 )
                 total_amount += (qty * cost)
                 
-        # 3. Update the grand total and save
         po.total_amount = total_amount
         po.save()
 
-        log_system_activity(
-            user=request.user,
-            action="CREATE PO",
-            description=f"Created Purchase Order {po.po_number} for supplier {supplier.name} (Total: ₱{total_amount})"
-        )
-        messages.success(request, f"Purchase Order {po.po_number} created successfully for {supplier.name}!")
-        return redirect('inventory:supplier_list') # Redirecting to suppliers for now
-
-    # GET request: Load the form with available suppliers and items
-    suppliers = Supplier.objects.all()
+        messages.success(request, f"Purchase Order {po.po_number} successfully created for {supplier.name}!")
+        return redirect('inventory:create_po')  # <-- NEW CODE
+    # --- GET REQUEST: LOAD FORM OR AUTO-FILL DRAFT ---
+    suppliers = Supplier.objects.filter(is_active=True)
     products = InventoryItem.objects.all().order_by('item_name')
     
+    auto_supplier_id = None
+    auto_items = []
+    # Pre-calculate the 7-day default delivery string for the HTML input
+    fallback_date_str = (timezone.now().date() + timezone.timedelta(days=7)).strftime('%Y-%m-%d')
+
+    if request.GET.get('auto') == 'true':
+        # SMART QUERY: Find low stock items, but EXCLUDE items that are already "Pending" delivery
+        low_stock_items = InventoryItem.objects.annotate(
+            incoming_qty=Coalesce(
+                Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
+            )
+        ).annotate(
+            effective_qty=F('quantity') + F('incoming_qty')
+        ).filter(effective_qty__lte=F('reorder_point'))
+
+        if low_stock_items.exists():
+            # Find the single supplier with the MOST critical low-stock items
+            top_supplier = low_stock_items.values('supplier').annotate(c=Count('id')).order_by('-c').first()
+
+            if top_supplier and top_supplier['supplier']:
+                auto_supplier_id = int(top_supplier['supplier'])
+                items_for_supplier = low_stock_items.filter(supplier_id=auto_supplier_id)
+
+                for item in items_for_supplier:
+                    # Dynamic Calc: 2x Reorder point + 10% Lifetime Sales Buffer
+                    sales_buffer = int(item.actual_sales_count * 0.10)
+                    recommended_qty = (item.reorder_point * 2) - item.effective_qty + sales_buffer
+                    
+                    if recommended_qty <= 0: recommended_qty = item.reorder_point
+
+                    auto_items.append({
+                        'id': item.id,
+                        'name': item.item_name,
+                        'qty': recommended_qty,
+                        'cost': str(item.unit_cost)
+                    })
+
+                supplier_obj = Supplier.objects.get(id=auto_supplier_id)
+                messages.info(request, f"Draft auto-filled for {supplier_obj.name}. Items already pending delivery were ignored. Please review and Save.")
+        else:
+            messages.success(request, "Inventory is healthy or all low-stock items are already on their way!")
+
+    purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
+
+
+    # --- ADD THIS RIGHT ABOVE return render() ---
+    
+    # Calculate how many unique suppliers currently have low stock (ignoring pending orders)
+    pending_draft_count = InventoryItem.objects.annotate(
+        incoming_qty=Coalesce(
+            Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
+        )
+    ).annotate(
+        effective_qty=F('quantity') + F('incoming_qty')
+    ).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
+
+
     return render(request, 'inventory/create_po.html', {
         'suppliers': suppliers,
-        'products': products
+        'products': products,
+        'auto_supplier_id': auto_supplier_id,
+        'auto_items': auto_items,
+        'fallback_date_str': fallback_date_str,
+        'purchase_orders': purchase_orders,
+        'pending_draft_count': pending_draft_count # <--- Add this new variable to the list! # <-- IDAGDAG ITO!
+
     })
+
 
 def po_list(request):
     # Fetch all Purchase Orders, ordered by newest first
@@ -575,3 +634,83 @@ def unarchive_supplier(request, supplier_id):
         messages.success(request, f"Supplier '{supplier.name}' has been restored and is active again.")
             
     return redirect('inventory:supplier_list')
+
+def edit_po(request, po_id):
+    """Loads a specific Purchase Order into the Hub for Editing/Viewing."""
+    target_po = get_object_or_404(PurchaseOrder, id=po_id)
+    
+    if request.method == 'POST':
+        # Safety Lock: We only allow edits if the items haven't been delivered yet!
+        if target_po.status != 'received':
+            supplier_id = request.POST.get('supplier')
+            if supplier_id:
+                target_po.supplier = get_object_or_404(Supplier, id=supplier_id)
+                
+            expected_delivery = request.POST.get('expected_delivery')
+            if expected_delivery:
+                target_po.expected_delivery = expected_delivery
+            
+            # Rebuild the items list completely so they can add/remove rows easily
+            target_po.items.all().delete()
+            
+            product_ids = request.POST.getlist('product_id[]')
+            quantities = request.POST.getlist('quantity[]')
+            unit_costs = request.POST.getlist('unit_cost[]')
+            
+            total_amount = Decimal('0.00')
+            for i in range(len(product_ids)):
+                if product_ids[i] and quantities[i] and unit_costs[i]:
+                    product = get_object_or_404(InventoryItem, id=product_ids[i])
+                    qty = int(quantities[i])
+                    cost = Decimal(unit_costs[i])
+                    
+                    PurchaseOrderItem.objects.create(
+                        purchase_order=target_po,
+                        product=product,
+                        quantity_ordered=qty,
+                        unit_cost=cost
+                    )
+                    total_amount += (qty * cost)
+            
+            target_po.total_amount = total_amount
+            target_po.save()
+            messages.success(request, f"Purchase Order {target_po.po_number} successfully updated!")
+        return redirect('inventory:edit_po', po_id=target_po.id)
+
+    # GET Request: Load the UI
+    purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
+    suppliers = Supplier.objects.filter(is_active=True)
+    products = InventoryItem.objects.all().order_by('item_name')
+    
+    # Safely format the date for the HTML date picker
+    formatted_date = target_po.expected_delivery.strftime('%Y-%m-%d') if target_po.expected_delivery else ''
+
+    # Calculate how many unique suppliers currently have low stock (ignoring pending orders)
+    pending_draft_count = InventoryItem.objects.annotate(
+        incoming_qty=Coalesce(
+            Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
+        )
+    ).annotate(
+        effective_qty=F('quantity') + F('incoming_qty')
+    ).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
+
+    return render(request, 'inventory/create_po.html', {
+        'purchase_orders': purchase_orders,
+        'suppliers': suppliers,
+        'products': products,
+        'target_po': target_po,
+        'edit_mode': True,
+        'formatted_date': formatted_date,
+        'pending_draft_count': pending_draft_count # <--- Add this new variable to the list!
+    })
+
+def delete_po(request, po_id):
+    """Deletes a drafted or pending Purchase Order."""
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    if po.status != 'received':
+        po_num = po.po_number
+        po.delete()
+        messages.success(request, f"Order {po_num} has been successfully deleted.")
+    else:
+        messages.error(request, "You cannot delete a completed delivery.")
+    return redirect('inventory:create_po')

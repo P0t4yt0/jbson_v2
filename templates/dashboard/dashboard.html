@@ -465,13 +465,11 @@
             <i class="ph ph-folders"></i> <span>Categories</span>
         </a>    
 
-        <a href="{% url 'inventory:create_po' %}" class="nav-item {% if '/purchase-orders/create/' in request.path %}active{% endif %}">
-            <i class="ph ph-file-plus"></i> Create Purchase Order
+        <a href="{% url 'inventory:create_po' %}" class="nav-item {% if '/inventory/purchase-orders/' in request.path %}active{% endif %}">
+            <i class="ph ph-shopping-cart"></i>
+            <span>Purchase Orders</span>
         </a>
 
-        <a href="{% url 'inventory:po_list' %}" class="nav-item {% if '/purchase-orders/' in request.path and 'create' not in request.path %}active{% endif %}">
-            <i class="ph ph-clipboard-text"></i> Purchase Orders
-        </a>
   
         <a href="{% url 'inventory:generate_barcode_page' %}" class="nav-item {% if '/generate-barcode/' in request.path %}active{% endif %}">
             <i class="ph ph-barcode"></i> <span>Generate Barcode</span>

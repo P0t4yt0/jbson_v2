@@ -2,117 +2,300 @@
 {% block content %}
 
 <style>
+    /* Premium Container & Typography */
+    .po-container { max-width: 1500px; margin: 0 auto; padding: 25px; font-family: 'Inter', 'Segoe UI', sans-serif; color: var(--text-primary); }
     
-    .po-container { max-width: 1200px; margin: 0 auto; padding: 25px; }
-    .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; margin-bottom: 20px; }
-    
-    .header-section h2 { font-size: 1.5rem; margin: 0; color: #111; }
-    .header-section p { color: #0D9488; font-size: 0.85rem; margin: 5px 0 0 0; font-weight: bold; }
-    
-    .form-row { display: flex; gap: 20px; margin-bottom: 20px; }
-    .form-group { flex: 1; }
-    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: #1A365D; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #E2E8F0; border-radius: 8px; outline: none; font-size: 14px; transition: 0.2s; box-sizing: border-box; }
-    .form-group input:focus, .form-group select:focus { border-color: #0D9488; background: #F0FDFA; }
+    .header-section { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .header-section h2 { font-size: 1.75rem; font-weight: 800; margin: 0; color: var(--primary-navy); letter-spacing: -0.5px; }
+    .header-section p { color: var(--text-secondary); font-size: 0.95rem; margin: 5px 0 0 0; }
 
-    /* Dynamic Table Styles */
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; padding: 15px; color: #4A5568; border-bottom: 2px solid #1A365D; font-size: 13px; font-weight: 700; }
-    td { padding: 10px 15px; border-bottom: 1px dashed #E2E8F0; vertical-align: middle; }
+    /* Split Layout Grid */
+    .split-layout { display: grid; grid-template-columns: 380px 1fr; gap: 30px; align-items: start; }
+
+    /* Left Column: Order History */
+    .po-list-section { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
+    .po-list-section h3 { margin-top: 0; font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+
+    /* Clickable Cards */
+    .po-card { display: block; text-decoration: none; border: 1px solid var(--border-color); padding: 18px; border-radius: 10px; margin-bottom: 12px; background: #F8FAFC; transition: all 0.2s ease; position: relative; overflow: hidden; }
+    .po-card:hover { border-color: var(--primary-teal); background: white; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.1); }
+    .po-card.active { border-color: var(--primary-teal); background: white; box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.1); }
+    .po-card.active::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary-teal); }
+
+    /* Status Badges */
+    .status-badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-draft { background: #F1F5F9; color: #64748B; }
+    .status-pending { background: #FEF3C7; color: #D97706; }
+    .status-received { background: #D1FAE5; color: #059669; }
+
+    /* Right Column: The Form */
+    .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color); margin-bottom: 25px; }
+    .card-title { display: block; font-weight: 800; font-size: 1.1rem; color: var(--primary-navy); margin-bottom: 20px; border-bottom: 2px solid #F1F5F9; padding-bottom: 10px; }
+
+    /* Form Inputs */
+    .form-row { display: flex; gap: 25px; margin-bottom: 15px; }
+    .form-group { flex: 1; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; color: var(--text-primary); transition: all 0.2s; background: #F8FAFC; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary-teal); background: white; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); outline: none; }
+    .form-group input:disabled, .form-group select:disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; border-color: #E2E8F0; }
+
+    /* Sleek Table */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; }
+    th { text-align: left; padding: 12px 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E2E8F0; }
+    td { padding: 12px 15px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+
+    /* Table Inputs */
+    .item-input { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; transition: 0.2s; }
+    .item-input:focus { border-color: var(--primary-teal); }
+    .item-input:disabled { background: #F1F5F9; color: #94A3B8; border-color: transparent; }
     
-    .item-input { width: 100%; padding: 10px; border: 1px solid #CBD5E0; border-radius: 6px; outline: none; }
-    .number-input { width: 100px; padding: 10px; border: 1px solid #CBD5E0; border-radius: 6px; outline: none; text-align: right; }
-    .subtotal-text { font-weight: 700; color: #1A365D; font-size: 15px; }
+    .number-input { width: 100px; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; text-align: right; transition: 0.2s; font-family: monospace; }
+    .number-input:focus { border-color: var(--primary-teal); }
+    .number-input:disabled { background: #F1F5F9; color: #94A3B8; border-color: transparent; }
+
+    .subtotal-text { font-weight: 700; color: var(--primary-navy); font-size: 14px; font-family: monospace; }
+
+    /* Action Buttons */
+    .btn-add { background: #F8FAFC; color: var(--primary-navy); padding: 12px 20px; border-radius: 8px; border: 1px dashed #CBD5E1; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; width: 100%; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn-add:hover { background: #F1F5F9; border-color: var(--primary-navy); }
+
+    .btn-remove { background: white; color: #EF4444; border: 1px solid #FCA5A5; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .btn-remove:hover { background: #FEF2F2; border-color: #EF4444; }
+
+    /* Totals Box */
+    .grand-total-box { background: linear-gradient(135deg, #F8FAFC 0%, white 100%); padding: 25px; border-radius: 12px; border: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; margin-top: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
+    .grand-total-label { font-weight: 700; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .grand-total-text { font-size: 28px; font-weight: 800; color: var(--primary-teal); margin: 0; font-family: monospace; letter-spacing: -1px; }
+
+    /* Unified Action Button System */
+    .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 20px; }
+    .action-group-right { display: flex; gap: 15px; align-items: center; }
+
+    .btn-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; font-family: inherit; box-sizing: border-box; height: 48px; }
     
-    .btn-add { background: #EDF2F7; color: #1A365D; padding: 10px 15px; border-radius: 8px; border: 1px dashed #A0AEC0; font-weight: 700; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 15px; }
-    .btn-add:hover { background: #E2E8F0; border-color: #1A365D; }
+    .btn-teal { background: var(--primary-teal); color: #0F766E; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2); }
+    .btn-teal:hover { background: #0F766E; color: white; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3); }
+
+    .btn-green { background: #10B981; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+    .btn-green:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
     
-    .btn-remove { background: #FFF5F5; color: #E53E3E; border: 1px solid #FED7D7; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .btn-navy { background: var(--primary-navy); color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2); }
+    .btn-navy:hover { background: #1E3A8A; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(30, 58, 138, 0.3); }
+
+    .btn-outline-red { background: white; color: #EF4444; border: 1px solid #FCA5A5; }
+    .btn-outline-red:hover { background: #FEF2F2; border-color: #EF4444; }
     
-    .grand-total-box { background: #F8FAFC; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
-    .grand-total-text { font-size: 24px; font-weight: 800; color: #0D9488; margin: 0; }
-    
-    .btn-submit { background: #0D9488; color: white; padding: 15px 30px; border-radius: 8px; border: none; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2); }
-    .btn-submit:hover { background: #0F766E; transform: translateY(-2px); }
+    /* Top Action Buttons */
+    .action-group { display: flex; gap: 12px; }
+    .action-btn { padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+    .action-btn.primary { background: var(--primary-navy); color: white; box-shadow: 0 4px 10px rgba(30, 58, 138, 0.15); }
+    .action-btn.primary:hover { background: #1E3A8A; transform: translateY(-1px); }
+    .action-btn.secondary { background: white; color: var(--text-primary); border: 1px solid #CBD5E1; }
+    .action-btn.secondary:hover { background: #F8FAFC; border-color: var(--primary-navy); }
 </style>
 
 <div class="po-container">
-    <div class="header-section" style="margin-bottom: 25px;">
-        <h2>Create Purchase Order</h2>
-        <p>Draft a new order request to send to your suppliers.</p>
+    <div class="header-section" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2 style="font-size: 1.5rem; margin: 0; color: #111;">Purchase Order Hub</h2>
+            <p style="color: #0D9488; font-size: 0.85rem; margin: 5px 0 0 0; font-weight: bold;">Manage existing orders or draft a new one.</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            
+            <a href="{% url 'inventory:create_po' %}?auto=true" class="btn" style="background: var(--primary-teal); color: #059669; padding: 10px 20px; border-radius: 8px; text-decoration: none; position: relative; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid #CBD5E1;  transition: 0.2s;">
+                <i class="ph ph-magic-wand"></i> Auto-Draft
+                
+                {% if pending_draft_count > 0 %}
+                    <span style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; font-size: 11px; font-weight: 800; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4); border: 2px solid white;">
+                        {{ pending_draft_count }}
+                    </span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'inventory:create_po' %}" class="btn" style="background: white; color: var(--text-primary); border: 1px solid #CBD5E1; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+                <i class="ph ph-plus"></i> Manual
+            </a>
+            
+        </div>
     </div>
 
-    <form method="POST" action="{% url 'inventory:create_po' %}">
-        {% csrf_token %}
-        
-        <div class="card">
-            <div class="form-row">
-                <div class="form-group" style="flex: 2;">
-                    <label>Select Supplier *</label>
-                    <select name="supplier" required>
-                        <option value="">-- Choose a Supplier --</option>
-                        {% for supplier in suppliers %}
-                            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
-                        {% endfor %}
-                    </select>
+    <div class="split-layout">
+
+        <div class="po-list-section">
+            <h3 style="margin-top: 0; font-size: 16px; color: #1A365D; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 15px;">Order History</h3>
+
+            {% for po in purchase_orders %}
+            <a href="{% url 'inventory:edit_po' po.id %}" class="po-card {% if target_po and target_po.id == po.id %}active{% endif %}">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <strong style="color: #111; font-size: 14px;">{{ po.po_number }}</strong>
+                    <span class="status-badge status-{{ po.status }}">{{ po.status }}</span>
                 </div>
-                <div class="form-group">
-                    <label>Expected Delivery Date</label>
-                    <input type="date" name="expected_delivery">
+                <div style="font-size: 13px; color: #4A5568;">{{ po.supplier.name }}</div>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #718096;">
+                    <span>{{ po.order_date|date:"M d, Y" }}</span>
+                    <strong style="color: #0D9488;">₱{{ po.total_amount }}</strong>
                 </div>
-            </div>
+            </a>
+            {% empty %}
+                <p style="color: #999; font-size: 13px; text-align: center;">No purchase orders found.</p>
+            {% endfor %}
         </div>
 
-        <div class="card">
-            <label style="display: block; font-weight: 800; font-size: 16px; color: #1A365D; margin-bottom: 10px;">Order Items</label>
-            
-            <table id="po-table">
-                <thead>
-                    <tr>
-                        <th style="width: 45%;">Hardware Product</th>
-                        <th style="width: 15%;">Quantity</th>
-                        <th style="width: 20%;">Unit Cost (₱)</th>
-                        <th style="width: 15%; text-align: right;">Subtotal</th>
-                        <th style="width: 5%;"></th>
-                    </tr>
-                </thead>
-                <tbody id="po-body">
-                    <tr>
-                        <td>
-                            <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
-                                <option value="">Select Item...</option>
-                                {% for item in products %}
-                                    <option value="{{ item.id }}" data-cost="{{ item.unit_cost }}">{{ item.product_id }} - {{ item.item_name }}</option>
+        <div class="po-form-section">
+            <form method="POST" action="{% if edit_mode %}{% url 'inventory:edit_po' target_po.id %}{% else %}{% url 'inventory:create_po' %}{% endif %}">
+                {% csrf_token %}
+
+                <div class="card">
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Select Supplier *</label>
+                            <select name="supplier" required {% if target_po and target_po.status == 'received' %}disabled{% endif %}>
+                                <option value="">-- Choose a Supplier --</option>
+                                {% for s in suppliers %}
+                                    <option value="{{ s.id }}" 
+                                        {% if edit_mode and target_po.supplier.id == s.id %}selected{% endif %}
+                                        {% if auto_supplier_id == s.id %}selected{% endif %}>
+                                        {{ s.name }}
+                                    </option>
                                 {% endfor %}
                             </select>
-                        </td>
-                        <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="1" required oninput="calculateRow(this)"></td>
-                        <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="0.00" required oninput="calculateRow(this)"></td>
-                        <td style="text-align: right;"><span class="subtotal-text">₱0.00</span></td>
-                        <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <button type="button" class="btn-add" onclick="addRow()">+ Add Another Item</button>
+                        </div>
+                        <div class="form-group">
+                            <label>Expected Delivery Date</label>
+                            <input type="date" name="expected_delivery" value="{% if edit_mode %}{{ formatted_date }}{% else %}{{ fallback_date_str }}{% endif %}" {% if target_po and target_po.status == 'received' %}disabled{% endif %}>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="grand-total-box">
-                <span style="font-weight: 700; color: #4A5568; font-size: 16px; text-transform: uppercase;">Estimated Grand Total</span>
-                <h3 class="grand-total-text" id="grand-total">₱0.00</h3>
-            </div>
-        </div>
+                <div class="card">
+                    <label style="display: block; font-weight: 800; font-size: 16px; color: #1A365D; margin-bottom: 10px;">
+                        Order Items 
+                        {% if target_po and target_po.status == 'received' %} <span style="color: #E53E3E; font-size: 12px;">(Read Only - Already Delivered)</span> {% endif %}
+                    </label>
 
-        <div style="text-align: right;">
-            <a href="{% url 'inventory:supplier_list' %}" style="color: #718096; text-decoration: none; font-weight: 600; margin-right: 20px;">Cancel</a>
-            <button type="submit" class="btn-submit">Generate Purchase Order</button>
+                    <table id="po-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 45%;">Hardware Product</th>
+                                <th style="width: 15%;">Quantity</th>
+                                <th style="width: 20%;">Unit Cost (₱)</th>
+                                <th style="width: 15%; text-align: right;">Subtotal</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="po-body">
+                            
+                            {% if edit_mode %}
+                                {% for item in target_po.items.all %}
+                                <tr>
+                                    <td>
+                                        <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)" {% if target_po.status == 'received' %}disabled{% endif %}>
+                                            <option value="{{ item.product.id }}" selected>{{ item.product.item_name }}</option>
+                                            {% if target_po.status != 'received' %}
+                                                {% for p in products %}
+                                                    <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}">{{ p.product_id }} - {{ p.item_name }}</option>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="{{ item.quantity_ordered }}" required oninput="calculateRow(this)" {% if target_po.status == 'received' %}disabled{% endif %}></td>
+                                    <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="{{ item.unit_cost }}" required oninput="calculateRow(this)" {% if target_po.status == 'received' %}disabled{% endif %}></td>
+                                    <td style="text-align: right;"><span class="subtotal-text">₱0.00</span></td>
+                                    <td>
+                                        {% if target_po.status != 'received' %}
+                                        <button type="button" class="btn-remove" onclick="removeRow(this)">x</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                            {% elif auto_items %}
+                                {% for item in auto_items %}
+                                <tr>
+                                    <td>
+                                        <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
+                                            <option value="{{ item.id }}" selected>{{ item.name }}</option>
+                                            {% for p in products %}
+                                                <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}">{{ p.product_id }} - {{ p.item_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="{{ item.qty }}" required oninput="calculateRow(this)"></td>
+                                    <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="{{ item.cost }}" required oninput="calculateRow(this)"></td>
+                                    <td style="text-align: right;"><span class="subtotal-text">₱0.00</span></td>
+                                    <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
+                                </tr>
+                                {% endfor %}
+
+                            {% else %}
+                                <tr>
+                                    <td>
+                                        <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
+                                            <option value="">Select Item...</option>
+                                            {% for item in products %}
+                                                <option value="{{ item.id }}" data-cost="{{ item.unit_cost }}">{{ item.product_id }} - {{ item.item_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="1" required oninput="calculateRow(this)"></td>
+                                    <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="0.00" required oninput="calculateRow(this)"></td>
+                                    <td style="text-align: right;"><span class="subtotal-text">₱0.00</span></td>
+                                    <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
+                                </tr>
+                            {% endif %}
+
+                        </tbody>
+                    </table>
+
+                    {% if not target_po or target_po.status != 'received' %}
+                        <button type="button" class="btn-add" onclick="addRow()">+ Add Another Item</button>
+                    {% endif %}
+
+                    <div class="grand-total-box">
+                        <span style="font-weight: 700; color: #4A5568; font-size: 16px; text-transform: uppercase;">Estimated Grand Total</span>
+                        <h3 class="grand-total-text" id="grand-total">₱0.00</h3>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <div>
+                        {% if edit_mode and target_po.status == 'draft' or target_po.status == 'pending' %}
+                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="return confirm('Delete this draft permanently?');" class="btn-action btn-outline-red">
+                                <i class="ph ph-trash"></i> Delete Draft
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="action-group-right">
+                        {% if edit_mode %}
+                            {% if target_po.status == 'draft' or target_po.status == 'pending' %}
+                                <button type="submit" class="btn-action btn-teal">
+                                    <i class="ph ph-floppy-disk"></i> Save Updates
+                                </button>
+                                <a href="{% url 'inventory:receive_po' target_po.id %}" class="btn-action btn-green">
+                                    <i class="ph ph-check-circle"></i> Mark as Received
+                                </a>
+                            {% else %}
+                                <a href="{% url 'inventory:create_po' %}" class="btn-action btn-navy">
+                                    <i class="ph ph-plus-circle"></i> Create New Order
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <button type="submit" class="btn-action btn-teal">
+                                <i class="ph ph-paper-plane-tilt"></i> Generate Purchase Order
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
 <script>
-    // Grab the first row so we can clone it easily later
-    const defaultRowHTML = document.getElementById('po-body').innerHTML;
-
     function addRow() {
         const tbody = document.getElementById('po-body');
         const tr = document.createElement('tr');
@@ -134,7 +317,6 @@
     }
 
     function removeRow(btn) {
-        // Prevent deleting if it's the last row
         if(document.querySelectorAll('#po-body tr').length > 1) {
             btn.closest('tr').remove();
             calculateGrandTotal();
@@ -144,11 +326,9 @@
     function autoFillCost(selectElement) {
         const row = selectElement.closest('tr');
         const costInput = row.querySelector('.cost-field');
-        
-        // Grab the data-cost from the selected option
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const cost = selectedOption.getAttribute('data-cost');
-        
+
         if(cost) {
             costInput.value = parseFloat(cost).toFixed(2);
             calculateRow(costInput);
@@ -159,10 +339,10 @@
         const row = element.closest('tr');
         const qty = parseFloat(row.querySelector('.qty-field').value) || 0;
         const cost = parseFloat(row.querySelector('.cost-field').value) || 0;
-        
+
         const subtotal = qty * cost;
         row.querySelector('.subtotal-text').innerText = "₱" + subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        
+
         calculateGrandTotal();
     }
 
@@ -173,9 +353,17 @@
             const cost = parseFloat(row.querySelector('.cost-field').value) || 0;
             grandTotal += (qty * cost);
         });
-        
+
         document.getElementById('grand-total').innerText = "₱" + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.qty-field').forEach(function(input) {
+            if(input.value > 0) {
+                calculateRow(input);
+            }
+        });
+    });
 </script>
 
 {% endblock %}

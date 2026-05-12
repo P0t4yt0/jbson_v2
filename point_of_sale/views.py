@@ -25,6 +25,7 @@ from django.contrib import messages
 from decimal import Decimal
 from activity_log.utils import log_system_activity
 from billing_payment.models import Invoice, InvoiceItem
+from django.db.models import Q, F, ProtectedError, Sum, DecimalField
 
 from notifications.models import Notification
 
@@ -233,8 +234,9 @@ def process_payment(request):
                             title=f"Low Stock: {product.item_name}",
                             message=f"Stock dropped to {product.quantity} after a POS transaction. Please reorder.",
                             source_table='inventory',
-                            source_id=str(product.id)
-                        )
+                            source_id=str(product.id),
+                            action_url='/inventory/purchase-orders/create/?auto=true' 
+                       )
 
             invoice = None
 
@@ -340,6 +342,8 @@ def process_payment(request):
         })
 
     except Exception as e:
+        import traceback          # <-- ADD THIS
+        traceback.print_exc()     # <-- ADD THIS: It will print the exact crashing line in your VSCode Terminal!
         # --- FIX 3: SWEETALERT INSTEAD OF WHITE SCREEN ON ANY ERROR ---
         messages.error(request, f"Transaction Error: {str(e)}")
         return redirect('point_of_sale:pos_index')
