@@ -1,9 +1,7 @@
 {% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
-<!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Phosphor Icons -->
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
@@ -20,11 +18,10 @@
     /* 2. MAIN LAYOUT */
     .pos-container { 
             display: flex; 
-            /* Change this number (e.g. 90px, 100px) until the main scrollbar perfectly disappears */
             height: calc(100vh - 85px); 
             gap: 20px; 
             padding: 20px; 
-            overflow: hidden; /* <--- STRICTLY KILLS THE MAIN WINDOW SCROLLBAR */
+            overflow: hidden; 
         }
     .swal2-container { z-index: 100000 !important; }
 
@@ -66,16 +63,9 @@
 
     /* 4. RIGHT SECTION: ORDER SUMMARY */
     .order-section { 
-        flex: 1.1; 
-        background: white; 
-        border-radius: 16px; 
-        display: flex; 
-        flex-direction: column; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-        border: 1px solid #E2E8F0; 
-        overflow: hidden; 
-        min-width: 400px; 
-        height: 100%; /* <--- STRICTLY LOCKS HEIGHT SO IT CANNOT STRETCH */
+        flex: 1.1; background: white; border-radius: 16px; display: flex; flex-direction: column; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; overflow: hidden; 
+        min-width: 400px; height: 100%; 
     }
     .order-header { padding: 20px; border-bottom: 1px solid #EDF2F7; background: #FAFCFF; display: flex; justify-content: space-between; align-items: center; }
     .order-header h3 { margin: 0; font-size: 18px; color: #1A365D; font-weight: 800; }
@@ -130,13 +120,15 @@
 
         <div class="product-grid">
             {% for item in products %}
-            <div class="product-card" data-category="{{ item.category.name|escapejs }}" onclick="addToCart('{{ item.id }}')">
-                <div>
-                    <div class="pid">ID: {{ item.product_id }}</div>
-                    <div class="name">{{ item.item_name }}</div>
+                {% if item.quantity > 0 %}
+                <div class="product-card" data-category="{{ item.category.name|escapejs }}" onclick="addToCart('{{ item.id }}')">
+                    <div>
+                        <div class="pid">ID: {{ item.product_id }}</div>
+                        <div class="name">{{ item.item_name }}</div>
+                    </div>
+                    <div class="price">₱{{ item.price }}</div>
                 </div>
-                <div class="price">₱{{ item.price }}</div>
-            </div>
+                {% endif %}
             {% endfor %}
         </div>
     </div>
@@ -252,40 +244,55 @@
                 Confirm Payment
             </button>
         </div>
-
     </div>
 </div>
 
 <script>
+    // DJANGO MESSAGES CATCHER (Dito babagsak ang error kapag ginawa natin yung Step 2 sa ibaba)
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                title: '{% if message.tags == "error" %}Oops!{% else %}Notice{% endif %}',
+                text: '{{ message }}',
+                icon: '{{ message.tags }}',
+                confirmButtonColor: '#dd8117'
+            });
+        {% endfor %}
+    {% endif %}
+
 let selectedMethod = "Cash";
 
+// ITO YUNG FIX 2: SWEET ALERT KAPAG INSUFFICIENT STOCK SA PAG CLICK NG ITEM
 function addToCart(productId) {
     fetch(`/pos/add-to-cart/?product_id=${productId}`)
         .then(response => response.json())
-        .then(data => { if (data.status === 'success') location.reload(); });
+        .then(data => { 
+            if (data.status === 'success') {
+                location.reload(); 
+            } else {
+                Swal.fire({
+                    title: 'Cannot Add Item',
+                    text: data.message || 'Insufficient stock or item is unavailable.',
+                    icon: 'warning',
+                    confirmButtonColor: '#dd8117'
+                });
+            }
+        })
+        .catch(err => console.error("Error adding to cart: ", err));
 }
 
 function openPaymentModal() {
     const total = document.getElementById('grand-total').innerText;
     if (parseFloat(total) <= 0) {
-        return Swal.fire({
-            title: 'Empty Cart',
-            text: 'Please add items to the cart before checking out.',
-            icon: 'warning',
-            confirmButtonColor: '#dd8117'
-        });
+        return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: '#dd8117' });
     }
     document.getElementById('modal-total-due').innerText = total;
-    // VERY IMPORTANT: Use 'flex' here so it centers properly
     document.getElementById('paymentModal').style.display = "flex"; 
     setTimeout(() => document.getElementById('cash-received').focus(), 100);
 }
 
-function closePaymentModal() { 
-    document.getElementById('paymentModal').style.display = "none"; 
-}
+function closePaymentModal() { document.getElementById('paymentModal').style.display = "none"; }
 
-// Custom SweetAlert Void confirmation
 function confirmVoid(event, targetUrl) {
     event.preventDefault();
     Swal.fire({
@@ -297,13 +304,10 @@ function confirmVoid(event, targetUrl) {
         cancelButtonColor: '#CBD5E0',
         confirmButtonText: 'Yes, Void It'
     }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = targetUrl;
-        }
+        if (result.isConfirmed) window.location.href = targetUrl;
     });
 }
 
-// Calculate the change dynamically
 function calculateChange() {
     const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
     const total = parseFloat(totalText) || 0;
@@ -315,65 +319,42 @@ function calculateChange() {
     display.style.color = change >= 0 ? "#2F855A" : "#E53E3E";
 }
 
-// Switches UI based on Payment Method
 function handleMethodChange(method) {
     selectedMethod = method;
     const customerGroup = document.getElementById('credit-customer-group');
     const amountGroup = document.getElementById('amount-paid-group');
-    const refGroup = document.getElementById('ref-number-group'); // Idinagdag natin ito
+    const refGroup = document.getElementById('ref-number-group'); 
     const cashInput = document.getElementById('cash-received');
 
     if (method === 'Trade Credit') {
-        customerGroup.style.display = 'block';
-        amountGroup.style.display = 'none';
-        refGroup.style.display = 'none'; // Itago ang ref number
-        cashInput.value = 0; // Reset cash
+        customerGroup.style.display = 'block'; amountGroup.style.display = 'none'; refGroup.style.display = 'none'; cashInput.value = 0; 
     } else {
-        customerGroup.style.display = 'none';
-        amountGroup.style.display = 'block';
-        
-        // ILABAS ANG REF NUMBER KUNG ONLINE BANK
+        customerGroup.style.display = 'none'; amountGroup.style.display = 'block';
         if (method === 'Online Bank') {
-            refGroup.style.display = 'block';
-            document.getElementById('ref-number-input').focus(); // Auto-focus para type agad
+            refGroup.style.display = 'block'; document.getElementById('ref-number-input').focus(); 
         } else {
             refGroup.style.display = 'none';
         }
     }
 }
 
-// The Finalize function with SweetAlert logic
 function finalizeAndPrint() {
-    // 1. Safely get values
     const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
     const total = parseFloat(totalText) || 0;
     const paidVal = document.getElementById('cash-received').value || 0;
     const customerId = document.getElementById('credit-customer').value;
-    const refNum = document.getElementById('ref-number-input').value.trim(); // Kunin ang ref number
+    const refNum = document.getElementById('ref-number-input').value.trim(); 
 
-    // 2. Validate based on method
     if (selectedMethod !== 'Trade Credit' && parseFloat(paidVal) < total) { 
-        Swal.fire({
-            title: 'Insufficient Funds',
-            text: 'The payment amount is less than the total due.',
-            icon: 'warning',
-            confirmButtonColor: '#dd8117'
-        });
-        return; 
+        return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: '#dd8117' });
     }
-
     if (selectedMethod === 'Trade Credit' && !customerId) {
-        Swal.fire('Missing Customer', 'You must select an approved customer for Trade Credit.', 'warning');
-        return;
+        return Swal.fire('Missing Customer', 'You must select an approved customer for Trade Credit.', 'warning');
     }
-
-    // CHECK KUNG WALANG LAMAN ANG REFERENCE NUMBER
     if (selectedMethod === 'Online Bank' && refNum === "") {
-        Swal.fire('Missing Details', 'Reference Number is required for Online Bank transactions.', 'warning');
-        return;
+        return Swal.fire('Missing Details', 'Reference Number is required for Online Bank transactions.', 'warning');
     }
 
-    // 3. Confirm and send to backend
     Swal.fire({
         title: 'Complete Transaction?',
         text: `Finalizing sale using ${selectedMethod}.`,
@@ -385,20 +366,12 @@ function finalizeAndPrint() {
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
-            Swal.fire({
-                title: 'Processing...',
-                text: 'Generating receipt...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-            
-            // ISAMA ANG REF NUM SA URL PARA MABASA NG VIEWS.PY
+            Swal.fire({ title: 'Processing...', text: 'Validating stocks and payment...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             window.location.href = `/pos/process-payment/?method=${encodeURIComponent(selectedMethod)}&received=${paidVal}&customer_id=${customerId}&ref_num=${encodeURIComponent(refNum)}`;
         }
     });
 }
 
-// Barcode scanner helper
 document.getElementById('barcode-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         const val = this.value.trim();
@@ -407,19 +380,13 @@ document.getElementById('barcode-input').addEventListener('keypress', function(e
                 if(d.status === 'success') {
                     location.reload(); 
                 } else {
-                    Swal.fire({
-                        title: 'Scan Error',
-                        text: d.message,
-                        icon: 'error',
-                        confirmButtonColor: '#dd8117'
-                    });
+                    Swal.fire({ title: 'Scan Error', text: d.message, icon: 'error', confirmButtonColor: '#dd8117' });
                 }
             });
         this.value = '';
     }
 });
 
-// Category Filter
 function filterCategory(name) {
     document.querySelectorAll('.product-card').forEach(p => {
         p.style.display = (name === 'All' || p.getAttribute('data-category') === name) ? 'block' : 'none';
@@ -442,42 +409,26 @@ function getCSRFToken() {
     return cookieValue;
 }
 
-// 2. Ang na-fix na updateQty function
 function updateQty(itemId, action) {
     const url = "{% url 'point_of_sale:update_cart_item' %}"; 
-    const csrfToken = getCSRFToken(); // Gamitin natin ang function sa taas
+    const csrfToken = getCSRFToken(); 
 
     fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken // Ito na ang malinis na token
-        },
-        body: JSON.stringify({
-            'item_id': itemId,
-            'action': action
-        })
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ 'item_id': itemId, 'action': action })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Server error: ' + response.status);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            location.reload(); // Mag-re-refresh ang page para mag-update ang total
+            location.reload(); 
         } else {
             Swal.fire('Oops!', data.message || 'Failed to update item.', 'error');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Connection Error', 'Hindi ma-contact ang server.', 'error');
-    });
+    .catch(error => { Swal.fire('Error', 'Cannot connect to server.', 'error'); });
 }
 
-// 3. Ang SweetAlert Confirm bago mag-delete
 function confirmRemoveItem(itemId, itemName) {
     Swal.fire({
         title: 'Remove Item?',
@@ -488,9 +439,7 @@ function confirmRemoveItem(itemId, itemName) {
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, remove it!'
     }).then((result) => {
-        if (result.isConfirmed) {
-            updateQty(itemId, 'remove');
-        }
+        if (result.isConfirmed) updateQty(itemId, 'remove');
     });
 }
 
@@ -498,23 +447,12 @@ function setQty(itemId, newQty) {
     const url = "{% url 'point_of_sale:update_cart_item' %}"; 
     const csrfToken = getCSRFToken(); 
 
-    // Kung in-empty ang box, i-reload na lang para bumalik sa dati
-    if (!newQty || isNaN(newQty)) {
-        location.reload();
-        return;
-    }
+    if (!newQty || isNaN(newQty)) { location.reload(); return; }
 
     fetch(url, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken 
-        },
-        body: JSON.stringify({
-            'item_id': itemId,
-            'action': 'set',
-            'quantity': newQty // Ipapasa natin yung eksaktong numero
-        })
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ 'item_id': itemId, 'action': 'set', 'quantity': newQty })
     })
     .then(async response => {
         const data = await response.json();
@@ -523,17 +461,13 @@ function setQty(itemId, newQty) {
     })
     .then(data => {
         if (data.status === 'success') {
-            location.reload(); // Mag-re-refresh para makita ang bagong total
+            location.reload(); 
         } else {
-            Swal.fire('Oops!', data.message, 'error');
+            Swal.fire('Oops!', data.message, 'warning');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('May Error sa System', error.message, 'error');
-    });
+    .catch(error => { Swal.fire('System Error', error.message, 'error'); });
 }
-
 </script>
 
 {% endblock %}

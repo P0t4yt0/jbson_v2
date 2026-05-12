@@ -2,7 +2,6 @@
 {% block content %}
 
 <style>
-    /* PAGINATION STYLES GAYA NG SCREENSHOT MO */
     .pagination-bar {
         display: flex;
         justify-content: space-between;
@@ -61,17 +60,17 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
                 <h1 style="font-size: 1.5rem; margin: 0; color: #111;">Sales & Returns Report</h1>
-                <p style="color: #0D9488; font-size: 0.85rem; margin: 5px 0 0 0; font-weight: bold;">
+                <p id="report-date" style="color: #0D9488; font-size: 0.85rem; margin: 5px 0 0 0; font-weight: bold;">
                     Date Covered: {% if start_date and end_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
                 </p>
             </div>
-            <div class="no-print" style="display: flex; gap: 12px;">
+            <div data-html2canvas-ignore="true" class="no-print" style="display: flex; gap: 12px;">
                 <button onclick="generatePDF()" style="border: 1px solid #FCA5A5; background: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; color: #EF4444; font-weight: 600;"><i class="ph ph-file-pdf"></i> Export PDF</button>
                 <button onclick="exportTableToCSV()" style="border: 1px solid #6EE7B7; background: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; color: #10B981; font-weight: 600;"><i class="ph ph-file-xls"></i> Export CSV</button>
             </div>
         </div>
 
-        <div class="no-print" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;">
+        <div data-html2canvas-ignore="true" class="no-print" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;">
             <form method="GET" style="display: flex; gap: 20px; align-items: flex-end;">
                 <input type="hidden" name="sales_per_page" value="{{ sales_per_page }}">
                 <input type="hidden" name="returns_per_page" value="{{ returns_per_page }}">
@@ -138,7 +137,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in product_sales %}
+                        {% for item in product_sales|slice:":5" %}
                         <tr>
                             <td style="padding: 10px; border-bottom: 1px solid #F1F5F9;"><span style="font-weight: bold; color: #851618;">#{{ forloop.counter }}</span> {{ item.inventory_item__item_name }}</td>
                             <td style="padding: 10px; border-bottom: 1px solid #F1F5F9; text-align: center;">{{ item.total_sold_qty }}</td>
@@ -152,9 +151,17 @@
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Transaction Breakdown (Receipts)</h3>
-            <div style="position: relative; width: 320px;" class="no-print">
-                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748B;"></i>
-                <input type="text" id="salesSearch" onkeyup="filterSales()" placeholder="Search Receipt..." style="width: 100%; padding: 8px 10px 8px 35px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 0.85rem;">
+            
+            <div style="position: relative; width: 320px;" class="no-print" data-html2canvas-ignore="true">
+                <form method="GET" style="margin: 0;">
+                    <input type="hidden" name="start_date" value="{{ start_date }}">
+                    <input type="hidden" name="end_date" value="{{ end_date }}">
+                    <input type="hidden" name="sales_per_page" value="{{ sales_per_page }}">
+                    <input type="hidden" name="returns_per_page" value="{{ returns_per_page }}">
+                    <input type="hidden" name="returns_search" value="{{ returns_search }}"> <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748B;"></i>
+                    <input type="text" name="sales_search" value="{{ sales_search }}" placeholder="Search Receipt # or Method..." style="width: 100%; padding: 8px 10px 8px 35px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 0.85rem; outline: none;">
+                    <button type="submit" style="display: none;"></button>
+                </form>
             </div>
         </div>
 
@@ -178,23 +185,27 @@
                         <td style="padding: 15px 20px;"><span style="font-size: 0.75rem; font-weight: 700; background: #F1F5F9; padding: 4px 10px; border-radius: 6px;">{{ tx.payment_method }}</span></td>
                         <td style="padding: 15px 20px; text-align: right; font-weight: 800;">₱{{ tx.total_amount|floatformat:2 }}</td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="4" style="padding: 20px; text-align: center; color: #64748B;">No transactions found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
 
-            <div class="pagination-bar no-print">
+            <div data-html2canvas-ignore="true" class="pagination-bar no-print">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <form method="GET" style="display: flex; align-items: center; gap: 8px; margin: 0;">
                         <input type="hidden" name="start_date" value="{{ start_date }}">
                         <input type="hidden" name="end_date" value="{{ end_date }}">
                         <input type="hidden" name="p_returns" value="{{ return_logs.number }}">
                         <input type="hidden" name="returns_per_page" value="{{ returns_per_page }}">
+                        <input type="hidden" name="sales_search" value="{{ sales_search }}">
+                        <input type="hidden" name="returns_search" value="{{ returns_search }}">
                         
                         <span>Row Per Page</span>
                         <select name="sales_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid #D1D5DB; border-radius: 4px; outline: none; cursor: pointer; color: #374151;">
-                            <option value="10" {% if sales_per_page == 10 %}selected{% endif %}>10</option>
-                            <option value="20" {% if sales_per_page == 20 %}selected{% endif %}>20</option>
-                            <option value="50" {% if sales_per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="10" {% if sales_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+                            <option value="20" {% if sales_per_page|stringformat:"s" == "20" %}selected{% endif %}>20</option>
+                            <option value="50" {% if sales_per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
                         </select>
                         <span>Entries</span>
                     </form>
@@ -203,35 +214,48 @@
 
                 <div class="pagination-controls">
                     {% if transactions.has_previous %}
-                        <a href="?p_sales={{ transactions.previous_page_number }}&sales_per_page={{ sales_per_page }}&p_returns={{ return_logs.number }}&returns_per_page={{ returns_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-btn"><i class="ph ph-caret-left"></i></a>
+                        <a href="?p_sales={{ transactions.previous_page_number }}&sales_per_page={{ sales_per_page }}&p_returns={{ return_logs.number }}&returns_per_page={{ returns_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}&sales_search={{ sales_search|default:'' }}&returns_search={{ returns_search|default:'' }}" class="page-btn"><i class="ph ph-caret-left"></i></a>
                     {% endif %}
                     
                     {% for num in transactions.paginator.page_range %}
                         {% if transactions.number == num %}
                             <span class="page-active">{{ num }}</span>
                         {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
-                            <a href="?p_sales={{ num }}&sales_per_page={{ sales_per_page }}&p_returns={{ return_logs.number }}&returns_per_page={{ returns_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-link">{{ num }}</a>
+                            <a href="?p_sales={{ num }}&sales_per_page={{ sales_per_page }}&p_returns={{ return_logs.number }}&returns_per_page={{ returns_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}&sales_search={{ sales_search|default:'' }}&returns_search={{ returns_search|default:'' }}" class="page-link">{{ num }}</a>
                         {% endif %}
                     {% endfor %}
 
                     {% if transactions.has_next %}
-                        <a href="?p_sales={{ transactions.next_page_number }}&sales_per_page={{ sales_per_page }}&p_returns={{ return_logs.number }}&returns_per_page={{ returns_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-btn"><i class="ph ph-caret-right"></i></a>
+                        <a href="?p_sales={{ transactions.next_page_number }}&sales_per_page={{ sales_per_page }}&p_returns={{ return_logs.number }}&returns_per_page={{ returns_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}&sales_search={{ sales_search|default:'' }}&returns_search={{ returns_search|default:'' }}" class="page-btn"><i class="ph ph-caret-right"></i></a>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <div style="background: white; border-radius: 8px; border: 1px solid #E2E8F0; overflow: hidden;">
-            <div style="padding: 15px 20px; border-bottom: 1px solid #E2E8F0;">
-                <h3 style="margin: 0; font-size: 1.1rem; color: #111;">Sales Return Logs (Deductions)</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding: 15px 20px; background: white; border-radius: 8px 8px 0 0; border: 1px solid #E2E8F0; border-bottom: none;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: #111;">Sales Return Logs (Deductions)</h3>
+            
+            <div style="position: relative; width: 320px;" class="no-print" data-html2canvas-ignore="true">
+                <form method="GET" style="margin: 0;">
+                    <input type="hidden" name="start_date" value="{{ start_date }}">
+                    <input type="hidden" name="end_date" value="{{ end_date }}">
+                    <input type="hidden" name="sales_per_page" value="{{ sales_per_page }}">
+                    <input type="hidden" name="returns_per_page" value="{{ returns_per_page }}">
+                    <input type="hidden" name="sales_search" value="{{ sales_search }}"> <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748B;"></i>
+                    <input type="text" name="returns_search" value="{{ returns_search }}" placeholder="Search Return ID or Original Receipt..." style="width: 100%; padding: 8px 10px 8px 35px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 0.85rem; outline: none;">
+                    <button type="submit" style="display: none;"></button>
+                </form>
             </div>
+        </div>
+
+        <div style="background: white; border-radius: 0 0 8px 8px; border: 1px solid #E2E8F0; overflow: hidden;">
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead style="background: #F8FAFC;">
                     <tr>
-                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; color: #64748B;">Return ID</th>
-                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; color: #64748B;">Original Receipt</th>
-                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; color: #64748B;">Date Processed</th>
-                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; color: #64748B; text-align: right;">Refunded Amount</th>
+                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; border-top: 1px solid #E2E8F0; color: #64748B;">Return ID</th>
+                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; border-top: 1px solid #E2E8F0; color: #64748B;">Original Receipt</th>
+                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; border-top: 1px solid #E2E8F0; color: #64748B;">Date Processed</th>
+                        <th style="padding: 12px 20px; border-bottom: 1px solid #E2E8F0; border-top: 1px solid #E2E8F0; color: #64748B; text-align: right;">Refunded Amount</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -248,19 +272,21 @@
                 </tbody>
             </table>
 
-            <div class="pagination-bar no-print">
+            <div data-html2canvas-ignore="true" class="pagination-bar no-print">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <form method="GET" style="display: flex; align-items: center; gap: 8px; margin: 0;">
                         <input type="hidden" name="start_date" value="{{ start_date }}">
                         <input type="hidden" name="end_date" value="{{ end_date }}">
                         <input type="hidden" name="p_sales" value="{{ transactions.number }}">
                         <input type="hidden" name="sales_per_page" value="{{ sales_per_page }}">
+                        <input type="hidden" name="sales_search" value="{{ sales_search }}">
+                        <input type="hidden" name="returns_search" value="{{ returns_search }}">
                         
                         <span>Row Per Page</span>
                         <select name="returns_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid #D1D5DB; border-radius: 4px; outline: none; cursor: pointer; color: #374151;">
-                            <option value="5" {% if returns_per_page == 5 %}selected{% endif %}>5</option>
-                            <option value="10" {% if returns_per_page == 10 %}selected{% endif %}>10</option>
-                            <option value="20" {% if returns_per_page == 20 %}selected{% endif %}>20</option>
+                            <option value="5" {% if returns_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
+                            <option value="10" {% if returns_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+                            <option value="20" {% if returns_per_page|stringformat:"s" == "20" %}selected{% endif %}>20</option>
                         </select>
                         <span>Entries</span>
                     </form>
@@ -269,19 +295,19 @@
 
                 <div class="pagination-controls">
                     {% if return_logs.has_previous %}
-                        <a href="?p_returns={{ return_logs.previous_page_number }}&returns_per_page={{ returns_per_page }}&p_sales={{ transactions.number }}&sales_per_page={{ sales_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-btn"><i class="ph ph-caret-left"></i></a>
+                        <a href="?p_returns={{ return_logs.previous_page_number }}&returns_per_page={{ returns_per_page }}&p_sales={{ transactions.number }}&sales_per_page={{ sales_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}&sales_search={{ sales_search|default:'' }}&returns_search={{ returns_search|default:'' }}" class="page-btn"><i class="ph ph-caret-left"></i></a>
                     {% endif %}
                     
                     {% for num in return_logs.paginator.page_range %}
                         {% if return_logs.number == num %}
                             <span class="page-active">{{ num }}</span>
                         {% elif num > return_logs.number|add:'-3' and num < return_logs.number|add:'3' %}
-                            <a href="?p_returns={{ num }}&returns_per_page={{ returns_per_page }}&p_sales={{ transactions.number }}&sales_per_page={{ sales_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-link">{{ num }}</a>
+                            <a href="?p_returns={{ num }}&returns_per_page={{ returns_per_page }}&p_sales={{ transactions.number }}&sales_per_page={{ sales_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}&sales_search={{ sales_search|default:'' }}&returns_search={{ returns_search|default:'' }}" class="page-link">{{ num }}</a>
                         {% endif %}
                     {% endfor %}
 
                     {% if return_logs.has_next %}
-                        <a href="?p_returns={{ return_logs.next_page_number }}&returns_per_page={{ returns_per_page }}&p_sales={{ transactions.number }}&sales_per_page={{ sales_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}" class="page-btn"><i class="ph ph-caret-right"></i></a>
+                        <a href="?p_returns={{ return_logs.next_page_number }}&returns_per_page={{ returns_per_page }}&p_sales={{ transactions.number }}&sales_per_page={{ sales_per_page }}&start_date={{ start_date }}&end_date={{ end_date }}&sales_search={{ sales_search|default:'' }}&returns_search={{ returns_search|default:'' }}" class="page-btn"><i class="ph ph-caret-right"></i></a>
                     {% endif %}
                 </div>
             </div>
@@ -297,24 +323,31 @@
         const opt = { margin: 0.5, filename: 'JBSON_Sales_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } };
         html2pdf().set(opt).from(element).save();
     }
+    
     function exportTableToCSV() {
         let csv = [];
+        
+        let reportDate = document.getElementById("report-date").innerText.replace("Date Covered: ", "").trim();
+        csv.push('"Sales & Returns Report"');
+        csv.push(`"${reportDate}"`);
+        csv.push("");
+
         let rows = document.querySelectorAll("table tr");
         for (let i = 0; i < rows.length; i++) {
             let row = [], cols = rows[i].querySelectorAll("td, th");
-            for (let j = 0; j < cols.length; j++) row.push('"' + cols[j].innerText.replace(/₱/g, '').replace(/,/g, '') + '"');
+            for (let j = 0; j < cols.length; j++) {
+                let cleanData = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/REFUNDED/g, '').trim();
+                row.push('"' + cleanData + '"');
+            }
             csv.push(row.join(","));
         }
+        
         let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
         let link = document.createElement("a");
-        link.download = "JBSON_Sales_Report.csv";
+        const dateNow = new Date().toISOString().split('T')[0];
+        link.download = `JBSON_Sales_Report_${dateNow}.csv`;
         link.href = window.URL.createObjectURL(csvFile);
         link.click();
-    }
-    function filterSales() {
-        const filter = document.getElementById("salesSearch").value.toUpperCase();
-        const tr = document.querySelectorAll("#sales-table tbody tr");
-        tr.forEach(row => { row.style.display = row.innerText.toUpperCase().indexOf(filter) > -1 ? "" : "none"; });
     }
 </script>
 {% endblock %}

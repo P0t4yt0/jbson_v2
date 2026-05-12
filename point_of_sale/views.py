@@ -190,7 +190,8 @@ def add_by_barcode(request):
 def process_payment(request):
     transaction_id = request.session.get('transaction_id')
     if not transaction_id:
-        return HttpResponse("No active transaction.")
+        messages.error(request, "No active transaction found.")
+        return redirect('point_of_sale:pos_index')
 
     transaction = get_object_or_404(Transaction, id=transaction_id, status='open')
 
@@ -201,21 +202,24 @@ def process_payment(request):
 
     try:
         with db_transaction.atomic():
-            # 1. STOCK DEDUCTION
+            
+            # --- FIX 1: PRE-CHECK STOCKS BAGO BUMAWAS ---
+            # I-check muna lahat kung sapat ang stock bago galawin ang database
+            for item in transaction.sold_items.all():
+                if item.inventory_item.quantity < item.quantity:
+                    messages.error(request, f"Insufficient stock for {item.inventory_item.item_name}. Only {item.inventory_item.quantity} left.")
+                    return redirect('point_of_sale:pos_index')
+
+            # --- 1. STOCK DEDUCTION (Gagalaw lang kapag safe na lahat) ---
             for item in transaction.sold_items.all():
                 product = item.inventory_item
-                if product.quantity < item.quantity:
-                    return HttpResponse(f"Insufficient stock for {product.item_name}")
                 
                 # Deduct the stock
                 product.quantity -= item.quantity
                 product.save()
 
-                # --- NEW: THE NOTIFICATION TRIGGER ---
-                # Check if stock dropped to 10 or below (or use product.reorder_point if you have that field)
+                # --- THE NOTIFICATION TRIGGER ---
                 if product.quantity <= 10: 
-                    
-                    # Prevent spam: Check if an unread alert for this exact product already exists
                     alert_exists = Notification.objects.filter(
                         notification_type='low_stock',
                         source_id=str(product.id),
@@ -223,17 +227,15 @@ def process_payment(request):
                     ).exists()
 
                     if not alert_exists:
-                        # Create the alert! It will instantly pop up on the dashboard.
                         Notification.objects.create(
                             notification_type='low_stock',
-                            priority='critical', # Red color
+                            priority='critical', 
                             title=f"Low Stock: {product.item_name}",
                             message=f"Stock dropped to {product.quantity} after a POS transaction. Please reorder.",
                             source_table='inventory',
                             source_id=str(product.id)
                         )
 
-            # Variable para sa Invoice (Para magamit natin mamaya)
             invoice = None
 
             # ===== 2. TRADE CREDIT LOGIC =====
@@ -262,13 +264,12 @@ def process_payment(request):
                 transaction.date_completed = timezone.now()
                 transaction.save()
 
-                # Gagawa ng Invoice na ang status ay 'unpaid'
                 invoice = Invoice.objects.create(
                     transaction=transaction,
                     customer=customer,
                     total_amount=transaction.total_amount,
                     balance_due=transaction.total_amount,
-                    status='unpaid' # Default for credit
+                    status='unpaid' 
                 )
 
                 customer.credit_balance += transaction.total_amount
@@ -276,8 +277,10 @@ def process_payment(request):
 
             # ===== 3. CASH / ONLINE BANK LOGIC =====
             else:
+                # --- FIX 2: ALISIN ANG HTTP RESPONSE DITO ---
                 if method == 'Online Wallet' and not ref_num:
-                    return HttpResponse("Reference number required.")
+                    messages.error(request, "Reference number required for Online Bank/Wallet.")
+                    return redirect('point_of_sale:pos_index')
 
                 transaction.payment_method = 'cash' if method == 'Cash' else 'bank'
                 transaction.status = 'completed'
@@ -286,7 +289,6 @@ def process_payment(request):
                 transaction.date_completed = timezone.now()
                 transaction.save()
 
-                # Gagawa ng Payment record
                 Payment.objects.create(
                     transaction=transaction,
                     payment_method=transaction.payment_method,
@@ -308,7 +310,6 @@ def process_payment(request):
                 )
 
             # ===== 4. DYNAMIC INVOICE ITEMS CLONING =====
-            # Ito ang maglilipat ng items mula POS papunta sa Invoice module mo
             if invoice:
                 for item in transaction.sold_items.all():
                     InvoiceItem.objects.create(
@@ -339,22 +340,42 @@ def process_payment(request):
         })
 
     except Exception as e:
-        return HttpResponse(str(e))
+        # --- FIX 3: SWEETALERT INSTEAD OF WHITE SCREEN ON ANY ERROR ---
+        messages.error(request, f"Transaction Error: {str(e)}")
+        return redirect('point_of_sale:pos_index')
     
     
 def void_transaction(request):
-    Transaction.objects.filter(
-        status='open',
-        processed_by=request.user if request.user.is_authenticated else None
-    )
-    if open_transactions.exists():
-        # --- IDAGDAG ANG LOGGING DITO ---
-        log_system_activity(
-            user=request.user,
-            action="VOID TRANSACTION",
-            description="Voided/Reset an open POS cart transaction."
-        )
-        open_transactions.update(status='voided')
+    # 1. Kunin ang current transaction ID mula sa session
+    transaction_id = request.session.get('transaction_id')
+    
+    if transaction_id:
+        try:
+            # 2. Hanapin ang active transaction gamit ang ID
+            transaction = Transaction.objects.get(id=transaction_id, status='open')
+            
+            # 3. Burahin ang transaction (automatic mabubura rin ang cart items nito kung naka-CASCADE)
+            transaction.delete()
+            
+            # 4. Tanggalin ang transaction_id sa session para ma-reset ang cart
+            del request.session['transaction_id']
+            
+            # Mag-trigger ng success message
+            messages.success(request, "Order has been successfully voided.")
+        except Transaction.DoesNotExist:
+            # Fallback kung hindi nahanap sa database
+            if 'transaction_id' in request.session:
+                del request.session['transaction_id']
+            messages.error(request, "Transaction already voided or does not exist.")
+    else:
+
+        open_transactions = Transaction.objects.filter(status='open')
+        if open_transactions.exists():
+            open_transactions.delete()
+            messages.success(request, "All open transactions have been cleared.")
+        else:
+            messages.info(request, "Cart is already empty.")
+
     return redirect('point_of_sale:pos_index')
 
 

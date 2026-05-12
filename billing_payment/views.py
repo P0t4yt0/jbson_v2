@@ -10,6 +10,7 @@ from .models import SalesReturn, SalesReturnItem
 import uuid
 from inventory.models import InventoryItem
 from activity_log.utils import log_system_activity
+from django.core.paginator import Paginator
 
 def customer_list(request):
     # Handle Adding a New Customer
@@ -220,7 +221,7 @@ def invoice_items_json(request, invoice_id):
     return JsonResponse(data)
 
 def sales_return_list(request):
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
     returns = SalesReturn.objects.all().order_by('-created_at')
     
     # Search Filter Logic
@@ -234,11 +235,24 @@ def sales_return_list(request):
     total_refunds = returns.aggregate(Sum('total_refund'))['total_refund__sum'] or 0
     return_count = returns.count()
     
+    # --- DYNAMIC PAGINATION LOGIC ---
+    # Default sa 10 items kung walang pinili
+    returns_per_page = request.GET.get('returns_per_page', 10)
+    try:
+        returns_per_page = int(returns_per_page)
+    except ValueError:
+        returns_per_page = 10
+
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(returns, returns_per_page, orphans=0)
+    returns_page = paginator.get_page(page_number)
+    
     context = {
-        'returns': returns,
+        'returns': returns_page,
         'total_refunds': total_refunds,
         'return_count': return_count,
         'query': query,
+        'returns_per_page': returns_per_page, # <-- Ipinasa natin ito para sa dropdown
     }
     return render(request, 'billing_payment/sales_return_list.html', context)
 
