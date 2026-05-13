@@ -38,8 +38,9 @@
     .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
     .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; color: var(--text-primary); transition: all 0.2s; background: #F8FAFC; }
     .form-group input:focus, .form-group select:focus { border-color: var(--primary-teal); background: white; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); outline: none; }
-    .form-group input:disabled, .form-group select:disabled { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; border-color: #E2E8F0; }
-
+    .form-group input:disabled, .form-group select:disabled { 
+        background: #F8FAFC; color: #1E293B; cursor: default; border-color: #E2E8F0; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; 
+    }
     /* Sleek Table */
     table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; }
     th { text-align: left; padding: 12px 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E2E8F0; }
@@ -49,12 +50,14 @@
     /* Table Inputs */
     .item-input { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; transition: 0.2s; }
     .item-input:focus { border-color: var(--primary-teal); }
-    .item-input:disabled { background: #F1F5F9; color: #94A3B8; border-color: transparent; }
-    
+    .item-input:disabled { 
+        background: transparent; color: #1E293B; border-color: transparent; font-weight: 600; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; appearance: none; -moz-appearance: none; -webkit-appearance: none; 
+    }    
     .number-input { width: 100px; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; text-align: right; transition: 0.2s; font-family: monospace; }
     .number-input:focus { border-color: var(--primary-teal); }
-    .number-input:disabled { background: #F1F5F9; color: #94A3B8; border-color: transparent; }
-
+    .number-input:disabled { 
+            background: transparent; color: #1E293B; border-color: transparent; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; 
+    }
     .subtotal-text { font-weight: 700; color: var(--primary-navy); font-size: 14px; font-family: monospace; }
 
     /* Action Buttons */
@@ -153,7 +156,7 @@
                     <div class="form-row">
                         <div class="form-group" style="flex: 2;">
                             <label>Select Supplier *</label>
-                            <select name="supplier" required {% if target_po and target_po.status == 'received' %}disabled{% endif %}>
+                            <select name="supplier" id="supplier-select" required onchange="refreshProductOptions()" {% if target_po and target_po.status != 'draft' %}disabled{% endif %}>
                                 <option value="">-- Choose a Supplier --</option>
                                 {% for s in suppliers %}
                                     <option value="{{ s.id }}" 
@@ -166,7 +169,7 @@
                         </div>
                         <div class="form-group">
                             <label>Expected Delivery Date</label>
-                            <input type="date" name="expected_delivery" value="{% if edit_mode %}{{ formatted_date }}{% else %}{{ fallback_date_str }}{% endif %}" {% if target_po and target_po.status == 'received' %}disabled{% endif %}>
+                            <input type="date" name="expected_delivery" value="{% if edit_mode %}{{ formatted_date }}{% else %}{{ fallback_date_str }}{% endif %}" {% if target_po and target_po.status != 'draft' %}disabled{% endif %}>
                         </div>
                     </div>
                 </div>
@@ -174,7 +177,9 @@
                 <div class="card">
                     <label style="display: block; font-weight: 800; font-size: 16px; color: #1A365D; margin-bottom: 10px;">
                         Order Items 
-                        {% if target_po and target_po.status == 'received' %} <span style="color: #E53E3E; font-size: 12px;">(Read Only - Already Delivered)</span> {% endif %}
+                        {% if target_po and target_po.status != 'draft' %} 
+                            <span style="color: #E53E3E; font-size: 12px;">(Read Only - Order is {{ target_po.status|title }})</span> 
+                        {% endif %}
                     </label>
 
                     <table id="po-table">
@@ -193,20 +198,20 @@
                                 {% for item in target_po.items.all %}
                                 <tr>
                                     <td>
-                                        <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)" {% if target_po.status == 'received' %}disabled{% endif %}>
+                                        <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)" {% if target_po.status != 'draft' %}disabled{% endif %}>
                                             <option value="{{ item.product.id }}" selected>{{ item.product.item_name }}</option>
-                                            {% if target_po.status != 'received' %}
+                                            {% if target_po.status == 'draft' %}
                                                 {% for p in products %}
-                                                    <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}">{{ p.product_id }} - {{ p.item_name }}</option>
+                                                    <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}" data-supplier="{{ p.supplier_id|default:'' }}">{{ p.product_id }} - {{ p.item_name }}</option>
                                                 {% endfor %}
                                             {% endif %}
                                         </select>
                                     </td>
-                                    <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="{{ item.quantity_ordered }}" required oninput="calculateRow(this)" {% if target_po.status == 'received' %}disabled{% endif %}></td>
-                                    <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="{{ item.unit_cost }}" required oninput="calculateRow(this)" {% if target_po.status == 'received' %}disabled{% endif %}></td>
+                                    <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="{{ item.quantity_ordered }}" required oninput="calculateRow(this)" {% if target_po.status != 'draft' %}disabled{% endif %}></td>
+                                    <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="{{ item.unit_cost }}" required oninput="calculateRow(this)" {% if target_po.status != 'draft' %}disabled{% endif %}></td>
                                     <td style="text-align: right;"><span class="subtotal-text">₱0.00</span></td>
                                     <td>
-                                        {% if target_po.status != 'received' %}
+                                        {% if target_po.status == 'draft' %}
                                         <button type="button" class="btn-remove" onclick="removeRow(this)">x</button>
                                         {% endif %}
                                     </td>
@@ -220,7 +225,7 @@
                                         <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
                                             <option value="{{ item.id }}" selected>{{ item.name }}</option>
                                             {% for p in products %}
-                                                <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}">{{ p.product_id }} - {{ p.item_name }}</option>
+                                                <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}" data-supplier="{{ p.supplier_id|default:'' }}">{{ p.product_id }} - {{ p.item_name }}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -237,7 +242,7 @@
                                         <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
                                             <option value="">Select Item...</option>
                                             {% for item in products %}
-                                                <option value="{{ item.id }}" data-cost="{{ item.unit_cost }}">{{ item.product_id }} - {{ item.item_name }}</option>
+                                                <option value="{{ item.id }}" data-cost="{{ item.unit_cost }}" data-supplier="{{ item.supplier_id|default:'' }}">{{ item.product_id }} - {{ item.item_name }}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -251,7 +256,7 @@
                         </tbody>
                     </table>
 
-                    {% if not target_po or target_po.status != 'received' %}
+                    {% if not target_po or target_po.status == 'draft' %}
                         <button type="button" class="btn-add" onclick="addRow()">+ Add Another Item</button>
                     {% endif %}
 
@@ -263,21 +268,32 @@
 
                 <div class="form-actions">
                     <div>
-                        {% if edit_mode and target_po.status == 'draft' or target_po.status == 'pending' %}
-                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="return confirm('Delete this draft permanently?');" class="btn-action btn-outline-red">
+                        {% if edit_mode and target_po.status == 'draft' %}
+                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="triggerSweetAlert(event, this.href, 'Delete Draft?', 'Are you sure you want to permanently delete this drafted order?');" class="btn-action btn-outline-red">
                                 <i class="ph ph-trash"></i> Delete Draft
+                            </a>
+                        {% elif edit_mode and target_po.status == 'pending' %}
+                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="triggerSweetAlert(event, this.href, 'Cancel Order?', 'Are you sure you want to cancel this pending delivery?');" class="btn-action btn-outline-red">
+                                <i class="ph ph-x-circle"></i> Cancel Order
                             </a>
                         {% endif %}
                     </div>
                     
                     <div class="action-group-right">
                         {% if edit_mode %}
-                            {% if target_po.status == 'draft' or target_po.status == 'pending' %}
-                                <button type="submit" class="btn-action btn-teal">
-                                    <i class="ph ph-floppy-disk"></i> Save Updates
+                            {% if target_po.status == 'draft' %}
+                                <button type="submit" name="action" value="save_draft" class="btn-action btn-secondary" style="background: white; border: 1px solid #CBD5E1; color: var(--text-primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <i class="ph ph-floppy-disk"></i> Save Draft
                                 </button>
+                                <button type="submit" name="action" value="submit_po" class="btn-action btn-teal">
+                                    <i class="ph ph-paper-plane-tilt"></i> Submit Order
+                                </button>
+                            {% elif target_po.status == 'pending' %}
                                 <a href="{% url 'inventory:receive_po' target_po.id %}" class="btn-action btn-green">
                                     <i class="ph ph-check-circle"></i> Mark as Received
+                                </a>
+                                <a href="{% url 'inventory:create_po' %}" class="btn-action btn-navy">
+                                    <i class="ph ph-plus-circle"></i> Create New Order
                                 </a>
                             {% else %}
                                 <a href="{% url 'inventory:create_po' %}" class="btn-action btn-navy">
@@ -285,7 +301,10 @@
                                 </a>
                             {% endif %}
                         {% else %}
-                            <button type="submit" class="btn-action btn-teal">
+                            <button type="submit" name="action" value="save_draft" class="btn-action btn-secondary" style="background: white; border: 1px solid #CBD5E1; color: var(--text-primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <i class="ph ph-floppy-disk"></i> Save as Draft
+                            </button>
+                            <button type="submit" name="action" value="submit_po" class="btn-action btn-teal">
                                 <i class="ph ph-paper-plane-tilt"></i> Generate Purchase Order
                             </button>
                         {% endif %}
@@ -298,6 +317,51 @@
 </div>
 
 <script>
+    function refreshProductOptions() {
+        const supplierSelect = document.getElementById('supplier-select');
+        const selectedSupplierId = supplierSelect ? supplierSelect.value : '';
+        const allProductSelects = document.querySelectorAll('select[name="product_id[]"]');
+        
+        // 1. Find all currently chosen products to prevent duplicates
+        const chosenProducts = [];
+        allProductSelects.forEach(select => {
+            if (select.value) chosenProducts.push(select.value);
+        });
+
+        // 2. Filter every product dropdown
+        allProductSelects.forEach(select => {
+            const currentSelectedValue = select.value;
+            
+            Array.from(select.options).forEach(option => {
+                if (option.value === "") return; // Skip placeholder
+                
+                const optSupplier = option.getAttribute('data-supplier');
+                
+                // Rule A: Must match the selected supplier (if one is chosen)
+                const matchesSupplier = (selectedSupplierId === '') || (optSupplier === selectedSupplierId);
+                
+                // Rule B: Must NOT be selected in another row
+                const isDuplicate = chosenProducts.includes(option.value) && option.value !== currentSelectedValue;
+                
+                // Apply rules
+                if (matchesSupplier && !isDuplicate) {
+                    option.disabled = false;
+                    option.style.display = 'block'; 
+                } else {
+                    option.disabled = true;
+                    option.style.display = 'none';
+                }
+            });
+            
+            // 3. Safety Clear: If they change the main supplier, and the currently selected item in this row belongs to the OLD supplier, clear it out!
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.disabled) {
+                select.value = ""; 
+                autoFillCost(select); 
+            }
+        });
+    }
+
     function addRow() {
         const tbody = document.getElementById('po-body');
         const tr = document.createElement('tr');
@@ -306,7 +370,7 @@
                 <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
                     <option value="">Select Item...</option>
                     {% for item in products %}
-                        <option value="{{ item.id }}" data-cost="{{ item.unit_cost }}">{{ item.product_id }} - {{ item.item_name }}</option>
+                        <option value="{{ item.id }}" data-cost="{{ item.unit_cost }}" data-supplier="{{ item.supplier_id|default:'' }}">{{ item.product_id }} - {{ item.item_name }}</option>
                     {% endfor %}
                 </select>
             </td>
@@ -316,12 +380,14 @@
             <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
         `;
         tbody.appendChild(tr);
+        refreshProductOptions(); // Filter the new dropdown instantly!
     }
 
     function removeRow(btn) {
         if(document.querySelectorAll('#po-body tr').length > 1) {
             btn.closest('tr').remove();
             calculateGrandTotal();
+            refreshProductOptions(); // Free up the deleted item so it can be picked again!
         }
     }
 
@@ -329,12 +395,16 @@
         const row = selectElement.closest('tr');
         const costInput = row.querySelector('.cost-field');
         const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const cost = selectedOption.getAttribute('data-cost');
+        const cost = selectedOption ? selectedOption.getAttribute('data-cost') : null;
 
         if(cost) {
             costInput.value = parseFloat(cost).toFixed(2);
-            calculateRow(costInput);
+        } else {
+            costInput.value = "0.00"; // Reset cost if cleared
         }
+        
+        calculateRow(costInput);
+        refreshProductOptions(); // Re-run duplicate check
     }
 
     function calculateRow(element) {
@@ -359,12 +429,34 @@
         document.getElementById('grand-total').innerText = "₱" + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 
+    function triggerSweetAlert(event, url, titleText, messageText) {
+        event.preventDefault(); 
+        Swal.fire({
+            title: titleText,
+            text: messageText,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444', 
+            cancelButtonColor: '#94A3B8', 
+            confirmButtonText: 'Yes, proceed',
+            cancelButtonText: 'No, keep it',
+            reverseButtons: true 
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll('.qty-field').forEach(function(input) {
             if(input.value > 0) {
                 calculateRow(input);
             }
         });
+        
+        // Run the filter immediately on page load to set up the drafts perfectly!
+        refreshProductOptions(); 
     });
 </script>
 

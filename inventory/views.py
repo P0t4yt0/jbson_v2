@@ -455,11 +455,13 @@ def create_po(request):
         
         # Adviser Fix: If no date is provided, use 7-day fallback
         fallback_date = timezone.now().date() + timezone.timedelta(days=7)
+        action = request.POST.get('action')
+        po_status = 'pending' if action == 'submit_po' else 'draft'
         
         po = PurchaseOrder.objects.create(
             supplier=supplier,
             expected_delivery=expected_delivery if expected_delivery else fallback_date,
-            status='pending' # Officially saving it as an order!
+            status=po_status # Officially saving it as an order!
         )
         
         total_amount = Decimal('0.00')
@@ -480,6 +482,14 @@ def create_po(request):
                 
         po.total_amount = total_amount
         po.save()
+
+        if po_status == 'draft':
+            messages.success(request, f"Draft saved successfully for {supplier.name}.")
+            # Send them to the edit page so they can keep working on the draft
+            return redirect('inventory:edit_po', po_id=po.id) 
+        else:
+            messages.success(request, f"Purchase Order {po.po_number} officially generated!")
+            return redirect('inventory:create_po')
 
         messages.success(request, f"Purchase Order {po.po_number} successfully created for {supplier.name}!")
         return redirect('inventory:create_po')
@@ -661,7 +671,7 @@ def edit_po(request, po_id):
     
     if request.method == 'POST':
         # Safety Lock: We only allow edits if the items haven't been delivered yet!
-        if target_po.status != 'received':
+        if target_po.status == 'draft':
             supplier_id = request.POST.get('supplier')
             if supplier_id:
                 target_po.supplier = get_object_or_404(Supplier, id=supplier_id)
@@ -693,8 +703,21 @@ def edit_po(request, po_id):
                     total_amount += (qty * cost)
             
             target_po.total_amount = total_amount
+
+            action = request.POST.get('action')
+            if action == 'submit_po':
+                target_po.status = 'pending'
+
             target_po.save()
-            messages.success(request, f"Purchase Order {target_po.po_number} successfully updated!")
+
+            if target_po.status == 'pending':
+                messages.success(request, f"Order {target_po.po_number} has been officially submitted!")
+                return redirect('inventory:create_po') # Back to main hub
+            else:
+                messages.success(request, f"Draft {target_po.po_number} successfully updated!")
+                return redirect('inventory:edit_po', po_id=target_po.id) # Stay on draft
+        else: # NEW: Add an error message if they somehow try to force a save
+            messages.error(request, "This order is already being processed and cannot be edited.")
         return redirect('inventory:edit_po', po_id=target_po.id)
 
     # GET Request: Load the UI
