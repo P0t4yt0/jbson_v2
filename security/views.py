@@ -240,13 +240,17 @@ def forgot_password_view(request):
                     request=request,
                 )
 
-                Notification.objects.create(
-                    notification_type='password_reset', 
-                    priority='high',
-                    title='Password Reset Request',
-                    message=f"Employee '{username}' requested a password reset. Review pending requests.",
-                    action_url=reverse('security:review_resets')
-                )
+                admins = User.objects.filter(role='Admin', is_active=True)
+                
+                for admin_user in admins:
+                    Notification.objects.create(
+                        user=admin_user,  # <-- THIS IS THE MAGIC KEY!
+                        notification_type='password_reset', 
+                        priority='high',
+                        title='Password Reset Request',
+                        message=f"Employee '{username}' requested a password reset. Review pending requests.",
+                        action_url=reverse('security:review_resets') 
+                    )
 
 
                 messages.success(request, "Your request has been forwarded to the Administrator.")

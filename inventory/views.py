@@ -482,7 +482,8 @@ def create_po(request):
         po.save()
 
         messages.success(request, f"Purchase Order {po.po_number} successfully created for {supplier.name}!")
-        return redirect('inventory:create_po')  # <-- NEW CODE
+        return redirect('inventory:create_po')
+
     # --- GET REQUEST: LOAD FORM OR AUTO-FILL DRAFT ---
     suppliers = Supplier.objects.filter(is_active=True)
     products = InventoryItem.objects.all().order_by('item_name')
@@ -493,8 +494,8 @@ def create_po(request):
     fallback_date_str = (timezone.now().date() + timezone.timedelta(days=7)).strftime('%Y-%m-%d')
 
     if request.GET.get('auto') == 'true':
-        # SMART QUERY: Find low stock items, but EXCLUDE items that are already "Pending" delivery
-        low_stock_items = InventoryItem.objects.annotate(
+        # THE FIX: Exclude items that do not have a supplier assigned
+        low_stock_items = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
             incoming_qty=Coalesce(
                 Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
             )
@@ -526,16 +527,16 @@ def create_po(request):
 
                 supplier_obj = Supplier.objects.get(id=auto_supplier_id)
                 messages.info(request, f"Draft auto-filled for {supplier_obj.name}. Items already pending delivery were ignored. Please review and Save.")
+            else:
+                # NEW: Tell the user if the logic failed to find a supplier
+                messages.warning(request, "Low stock items found, but they don't have a Supplier assigned! Please edit your products and assign a supplier.")
         else:
             messages.success(request, "Inventory is healthy or all low-stock items are already on their way!")
 
     purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
 
-
-    # --- ADD THIS RIGHT ABOVE return render() ---
-    
-    # Calculate how many unique suppliers currently have low stock (ignoring pending orders)
-    pending_draft_count = InventoryItem.objects.annotate(
+    # THE FIX: Exclude items that do not have a supplier assigned here as well
+    pending_draft_count = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
         incoming_qty=Coalesce(
             Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
         )
@@ -551,10 +552,8 @@ def create_po(request):
         'auto_items': auto_items,
         'fallback_date_str': fallback_date_str,
         'purchase_orders': purchase_orders,
-        'pending_draft_count': pending_draft_count # <--- Add this new variable to the list! # <-- IDAGDAG ITO!
-
+        'pending_draft_count': pending_draft_count
     })
-
 
 def po_list(request):
     # Fetch all Purchase Orders, ordered by newest first
@@ -570,7 +569,7 @@ def receive_po(request, po_id):
     # Safety check: Only process if it's currently pending
     if po.status != 'pending':
         messages.error(request, "This order has already been processed or cancelled.")
-        return redirect('inventory:po_list')
+        return redirect('inventory:create_po')
         
     # The Magic: Loop through the PO items and update the main inventory!
     for item in po.items.all():
@@ -598,7 +597,7 @@ def receive_po(request, po_id):
         description=f"Received delivery for PO {po.po_number}. Inventory stocks and costs updated."
     )
     messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been updated.")
-    return redirect('inventory:po_list')
+    return redirect('inventory:create_po')
 
 
 def edit_supplier(request, supplier_id):
