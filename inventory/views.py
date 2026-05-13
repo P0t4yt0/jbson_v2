@@ -184,7 +184,28 @@ def low_stock_view(request):
     return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
 
 def category_list(request):
-    """Displays all categories and the items under them."""
+    """Displays all categories and the items under them. Also handles adding new categories."""
+    
+    # 1. I-CHECK KUNG MAY NAG-SUBMIT NG ADD CATEGORY FORM
+    if request.method == 'POST':
+        new_name = request.POST.get('name')
+        new_prefix = request.POST.get('prefix')
+        
+        if new_name and new_prefix:
+            # Pwede kang magdagdag ng validation dito kung gusto mo (e.g., check kung existing na)
+            # Para iwas error, i-check kung may kapangalan na bago i-save
+            if not Category.objects.filter(name=new_name).exists():
+                Category.objects.create(name=new_name, prefix=new_prefix)
+                messages.success(request, f'Category "{new_name}" successfully added.')
+            else:
+                messages.error(request, f'Category "{new_name}" already exists.')
+        else:
+            messages.error(request, 'Error: Category name or prefix is missing.')
+            
+        # I-refresh ang page para lumabas yung bagong category
+        return redirect('inventory:category_list')
+
+    # 2. NORMAL PAGE LOAD (GET REQUEST)
     # prefetch_related makes loading items much faster!
     categories = Category.objects.prefetch_related('items').all()
     return render(request, 'inventory/category_list.html', {'categories': categories})

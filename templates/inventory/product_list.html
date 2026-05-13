@@ -6,173 +6,170 @@
 <style>
     /* CSS classes to fix the red squiggle errors in VS Code */
     .stock-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; }
-    .stock-low { background: #fff5f5; color: #c53030; }
-    .stock-good { background: #f0fff4; color: #2f855a; }
+    
+    /* UPDATED: Based on System Alerts/Badges style guide */
+    .stock-low { background: #ffaca4; color: #d50a0a; }   /* WARNING */
+    .stock-good { background: #9ae6b4; color: #22543d; }  /* SUCCESS */
     
     /* Hover effects for buttons */
     .btn-filter:hover { background: #edf2f7 !important; }
-    .search-input:focus { border-color: #a0aec0 !important; }
+    .search-input:focus { border-color: #092c4c !important; }
 </style>
 
-<!-- MAIN FILTER FORM -->
-<form method="GET" action="{% url 'inventory:inventory_list' %}" id="inventory-filter-form">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 12px 20px; border-radius: 8px; border: 1px solid #edf2f7; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-        
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="position: relative;">
-                <i class="ph ph-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #a0aec0;"></i>
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Search name or barcode..." 
-                       onchange="this.form.submit()"
-                       style="padding: 8px 12px 8px 32px; border: 1px solid #e2e8f0; border-radius: 6px; outline: none; font-size: 13px; width: 250px; color: #2d3748;">
-            </div>
-            
-            {% if search_query or selected_category or low_stock or selected_priority %}
-                <a href="{% url 'inventory:inventory_list' %}" style="font-size: 12px; color: #e53e3e; text-decoration: none; padding: 6px 10px; border-radius: 4px; background: #fff5f5; border: 1px solid #fed7d7;">Clear Filters</a>
-            {% endif %}
+<!-- MAIN WRAPPER: Pantay na sa ibang pages -->
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; display: flex; flex-direction: column;">
+
+    <!-- HEADER SECTION: May border-bottom at saktong padding gaya ng PO Hub -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #E5E7EB;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Product Management</h2>
+            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+                View and manage your inventory products, prices, and stock levels.
+            </p>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <!-- BAGONG BULK DELETE BUTTON (Nakatago by default) -->
-            <button type="button" id="bulk-delete-btn" style="display: none; background: #c53030; color: white; padding: 8px 16px; border-radius: 6px; border: none; font-weight: 500; font-size: 13px; align-items: center; gap: 6px; cursor: pointer;">
+        <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+             <!-- BULK DELETE BUTTON -->
+             <button type="button" id="bulk-delete-btn" style="display: none; background: #e07300; color: white; padding: 10px 16px; border-radius: 8px; border: none; font-weight: 600; font-size: 13px; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
                 <i class="ph ph-trash"></i> Delete Selected (<span id="delete-count">0</span>)
             </button>
 
-            <!-- NILAGYAN NG ID ANG ANALYZE BUTTON -->
+            <!-- ANALYZE BUTTON -->
             <a href="{% url 'inventory:run_abc_analysis' %}" id="analyze-priority-btn"
-               style="background: #2f855a; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+               style="background: #092c4c; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
                <i class="ph ph-chart-bar"></i> Analyze Priority Level
             </a>
 
-            <a href="#" id="scan-barcode-btn" style="background: #2b6cb0; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+            <!-- SCAN BARCODE BUTTON -->
+            <a href="#" id="scan-barcode-btn" style="background: #811112; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
                 <i class="ph ph-barcode"></i> Scan Barcode
             </a>
         </div>
     </div>
 
     <!-- POS-Style Barcode Scanner Modal -->
+
     <div id="scanner-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;">
         <div style="background: white; padding: 30px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-            
-            <i class="ph ph-barcode" style="font-size: 48px; color: #2b6cb0; margin-bottom: 10px;"></i>
-            <h2 style="margin: 0 0 10px 0; color: #2d3748; font-size: 20px;">Ready to Scan</h2>
+            <i class="ph ph-barcode" style="font-size: 48px; color: #092c4c; margin-bottom: 10px;"></i>
+            <h2 style="margin: 0 0 10px 0; color: #092c4c; font-size: 20px; font-family: 'Montserrat', sans-serif;">Ready to Scan</h2>
             <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">Point your scanner at the barcode.</p>
-            
-            <!-- Dedicated Barcode Input -->
+           
             <input type="text" id="dedicated-barcode-input"
-                   placeholder="Waiting for scanner..." 
+                   placeholder="Waiting for scanner..."
                    autocomplete="off"
-                   style="width: 100%; padding: 12px; border: 2px solid #3182ce; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
+                   style="width: 100%; padding: 12px; border: 2px solid #092c4c; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
             
             <button type="button" id="close-scanner-modal" style="background: #edf2f7; color: #4a5568; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%;">
                 Cancel
             </button>
         </div>
     </div>
+    <!-- MAIN FILTER & TABLE SECTION -->
+    <form method="GET" action="{% url 'inventory:inventory_list' %}" id="inventory-filter-form">
+        
+        <!-- SEARCH & CLEAR FILTERS BAR -->
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <div style="position: relative;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a0aec0;"></i>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search name or barcode..." 
+                       onchange="this.form.submit()"
+                       style="padding: 10px 12px 10px 40px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-size: 14px; width: 320px; color: #2d3748; background: white;">
+            </div>
+            
+            {% if search_query or selected_category or low_stock or selected_priority %}
+                <a href="{% url 'inventory:inventory_list' %}" style="font-size: 13px; color: #811112; text-decoration: none; padding: 8px 14px; border-radius: 8px; background: #fff5f5; border: 1px solid #ffaca4; font-weight: 600;">Clear All Filters</a>
+            {% endif %}
+        </div>
 
-    <div style="background: white; border-radius: 10px; border: 1px solid #edf2f7; overflow: hidden; padding-bottom: 10px;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed; word-wrap: break-word;">
-            <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
-                <tr>
-                    <th style="padding: 15px 10px; width: 40px; text-align: center;">
-                        <input type="checkbox" id="selectAll" style="cursor: pointer;">
-                    </th>                    
-                    <th style="padding: 15px 10px; width: 8%; color: #4a5568; font-weight: 600;">ID</th>
-                    <th style="padding: 15px 10px; width: 20%; color: #4a5568; font-weight: 600;">Product Name</th>
-                    
-                    <th style="padding: 15px 10px; width: 14%;">
-                        <select name="category" onchange="this.form.submit()" style="width: 100%; font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit; text-overflow: ellipsis;">
-                            <option value="" style="font-weight: normal;">Category (All)</option>
-                            {% for cat in categories %}
-                                <option value="{{ cat.id }}" style="font-weight: normal;" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ cat.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </th>
-                    
-                    <th style="padding: 15px 10px; width: 8%; color: #4a5568; font-weight: 600;">Price</th>
-                    
-                    <th style="padding: 15px 10px; width: 15%;">
-                        <select name="priority" onchange="this.form.submit()" style="width: 100%; font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit; text-overflow: ellipsis;">
-                            <option value="" style="font-weight: normal;">Priority Level (All)</option>
-                            <option value="A" style="font-weight: normal;" {% if selected_priority == 'A' %}selected{% endif %}>Always in Stock</option>
-                            <option value="B" style="font-weight: normal;" {% if selected_priority == 'B' %}selected{% endif %}>Regular Check</option>
-                            <option value="C" style="font-weight: normal;" {% if selected_priority == 'C' %}selected{% endif %}>Bulk Order</option>
-                        </select>
-                    </th>
+        <!-- TABLE CARD -->
+        <div style="background: white; border-radius: 12px; border: 1px solid #E5E7EB; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed;">
+                <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
+                    <tr>
+                        <th style="padding: 15px 10px; width: 45px; text-align: center;">
+                            <input type="checkbox" id="selectAll" style="cursor: pointer; width: 16px; height: 16px;">
+                        </th>                    
+                        <th style="padding: 15px 10px; width: 10%; color: #811112; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">ID</th>
+                        <th style="padding: 15px 10px; width: 22%; color: #811112; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Product Name</th>
+                        
+                        <th style="padding: 15px 10px; width: 15%;">
+                            <select name="category" onchange="this.form.submit()" style="width: 100%; font-size: 11px; font-weight: 700; color: #811112; text-transform: uppercase; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
+                                <option value="">Category (All)</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        
+                        <th style="padding: 15px 10px; width: 10%; color: #811112; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Price</th>
+                        
+                        <th style="padding: 15px 10px; width: 15%;">
+                            <select name="priority" onchange="this.form.submit()" style="width: 100%; font-size: 11px; font-weight: 700; color: #811112; text-transform: uppercase; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
+                                <option value="">Priority (All)</option>
+                                <option value="A" {% if selected_priority == 'A' %}selected{% endif %}>Always in Stock</option>
+                                <option value="B" {% if selected_priority == 'B' %}selected{% endif %}>Regular Check</option>
+                                <option value="C" {% if selected_priority == 'C' %}selected{% endif %}>Bulk Order</option>
+                            </select>
+                        </th>
 
-                    <th style="padding: 15px 10px; width: 12%; color: #4a5568; font-weight: 600;">Barcode</th>
-                    
-                    <th style="padding: 15px 10px; width: 12%;">
-                        <select name="low_stock" onchange="this.form.submit()" style="width: 100%; font-size: 14px; font-weight: 600; color: #4a5568; border: none; background: transparent; outline: none; cursor: pointer; padding: 0; font-family: inherit; text-overflow: ellipsis;">
-                            <option value="" style="font-weight: normal;">Quantity (All)</option>
-                            <option value="on" style="font-weight: normal;" {% if low_stock == 'on' %}selected{% endif %}>Low Stock Only</option>
-                        </select>
-                    </th>
-                    
-                    <th style="padding: 15px 10px; width: 90px; text-align: center; color: #4a5568; font-weight: 600;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 15px 10px; text-align: center;">
-                        <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer;">
-                    </td>
-                    <td style="padding: 15px 10px; font-family: monospace; color: #4a5568;">{{ item.product_id }}</td>
-                    
-                    <td style="padding: 15px 10px; font-weight: 600; color: #2d3748; white-space: normal;">{{ item.item_name }}</td>
-                    <td style="padding: 15px 10px; color: #4a5568; white-space: normal;">{{ item.category.name }}</td>
-                    
-                    <td style="padding: 15px 10px; color: #4a5568;">₱{{ item.price }}</td>
-                    
-                    <td style="padding: 15px 10px;">
-                        {% if item.abc_classification == 'A' %}
-                            <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">Always in Stock</span>
-                        {% elif item.abc_classification == 'B' %}
-                            <span style="background: #BEE3F8; color: #2A4365; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">Regular Check</span>
-                        {% elif item.abc_classification == 'C' %}
-                            <span style="background: #E2E8F0; color: #4A5568; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">Bulk Order</span>
-                        {% else %}
-                            <span style="color: #a0aec0; font-size: 12px;">Unclassified</span>
-                        {% endif %}
-                    </td>
+                        <th style="padding: 15px 10px; width: 12%; color: #811112; font-weight: 700; font-size: 11px; text-transform: uppercase;">Barcode</th>
+                        
+                        <th style="padding: 15px 10px; width: 10%;">
+                            <select name="low_stock" onchange="this.form.submit()" style="width: 100%; font-size: 11px; font-weight: 700; color: #811112; text-transform: uppercase; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
+                                <option value="">Qty (All)</option>
+                                <option value="on" {% if low_stock == 'on' %}selected{% endif %}>Low Stock</option>
+                            </select>
+                        </th>
+                        
+                        <th style="padding: 15px 10px; width: 90px; text-align: center; color: #811112; font-weight: 700; font-size: 11px; text-transform: uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 15px 10px; text-align: center;">
+                            <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer; width: 16px; height: 16px;">
+                        </td>
+                        <td style="padding: 15px 10px; font-family: monospace; color: #64748b;">{{ item.product_id }}</td>
+                        <td style="padding: 15px 10px; font-weight: 600; color: #092c4c;">{{ item.item_name }}</td>
+                        <td style="padding: 15px 10px; color: #4a5568;">{{ item.category.name }}</td>
+                        <td style="padding: 15px 10px; color: #4a5568; font-weight: 500;">₱{{ item.price }}</td>
+                        <td style="padding: 15px 10px; text-align: center;">
+                            {% if item.abc_classification == 'A' %}
+                                <span style="background: #9ae6b4; color: #22543d; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block;">Always in Stock</span>
+                            {% elif item.abc_classification == 'B' %}
+                                <span style="background: #ffd895; color: #e07300; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block;">Regular Check</span>
+                            {% elif item.abc_classification == 'C' %}
+                                <span style="background: #e2e8f0; color: #4a5568; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block;">Bulk Order</span>
+                            {% else %}
+                                <span style="color: #a0aec0; font-size: 11px;">Unclassified</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px 10px; color: #64748b; font-size: 12px;">{{ item.barcode_id }}</td>
+                        <td style="padding: 15px 10px; text-align: center;">
+                            <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">
+                                {{ item.quantity }}
+                            </span>
+                        </td>
+                        <td style="padding: 15px 10px; text-align: center;">
+                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                <a href="#" class="edit-product-btn" data-url="{% url 'inventory:edit_product' item.pk %}" style="border: 1px solid #e2e8f0; background: white; padding: 6px; border-radius: 6px; color: #092c4c; transition: 0.2s;"><i class="ph ph-pencil"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" style="padding: 40px; text-align: center; color: #a0aec0; font-style: italic;">No products match your current filters.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
 
-                    <td style="padding: 15px 10px; color: #4a5568; word-break: break-all;">{{ item.barcode_id }}</td>
-                    <td style="padding: 15px 10px;">
-                        <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 13px; {% if item.quantity <= item.reorder_point %}background: #fff5f5; color: #c53030;{% else %}background: #f0fff4; color: #2f855a;{% endif %}">
-                            {{ item.quantity }}
-                        </span>
-                    </td>
-                    <td style="padding: 15px 10px; text-align: center;">
-                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                            <a href="#"
-                                class="edit-product-btn"
-                                data-url="{% url 'inventory:edit_product' item.pk %}"
-                                style="border: 1px solid #e2e8f0; background: white; padding: 6px; border-radius: 4px; text-decoration: none; color: #4a5568;">
-                                    <i class="ph ph-pencil"></i>
-                            </a>
-                            <a href="{% url 'inventory:delete_product' item.pk %}" onclick="confirmSingleDelete(event, this.href)" style="border: 1px solid #fed7d7; background: #fff5f5; color: #c53030; padding: 6px; border-radius: 4px; cursor: pointer; text-decoration: none;">
-                                <i class="ph ph-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="9" style="padding: 30px; text-align: center; color: #a0aec0; font-style: italic;">
-                        No products match your current filters.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</form>
-
-<!-- BAGONG HIDDEN FORM PARA SA BULK DELETE -->
-<!-- Nasa labas ito ng filter form para hindi maging nested form error -->
+<!-- HIDDEN FORM PARA SA BULK DELETE -->
 <form id="bulk-delete-form" method="POST" action="{% url 'inventory:bulk_delete_products' %}" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="product_ids" id="hidden-delete-ids">
@@ -185,10 +182,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const analyzeBtn = document.getElementById("analyze-priority-btn");
 
     analyzeBtn?.addEventListener("click", function (e) {
-        e.preventDefault(); // Pipigilan muna ang pag-load agad ng kabilang page
+        e.preventDefault(); 
         const targetUrl = this.href;
 
-        // Ipakita ang Loading na SweetAlert
         Swal.fire({
             title: 'Analyzing Inventory...',
             text: 'Please wait while we calculate the priority levels.',
@@ -198,18 +194,15 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // I-fetch ang backend process sa background
         fetch(targetUrl)
             .then(response => {
                 if (response.ok) {
-                    // Pagkatapos, ipakita ang Success Alert
                     Swal.fire({
                         title: 'Analysis Complete!',
                         text: 'Priority levels have been successfully updated.',
                         icon: 'success',
-                        confirmButtonColor: '#2f855a'
+                        confirmButtonColor: '#092c4c' // Updated to Navy
                     }).then(() => {
-                        // I-reload ang page para makita ang mga pagbabago
                         window.location.reload();
                     });
                 } else {
@@ -217,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         title: 'Error!',
                         text: 'Something went wrong while analyzing priority levels.',
                         icon: 'error',
-                        confirmButtonColor: '#c53030'
+                        confirmButtonColor: '#811112' // Updated to Main Red
                     });
                 }
             })
@@ -226,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     title: 'Connection Error!',
                     text: 'Unable to connect to the server.',
                     icon: 'error',
-                    confirmButtonColor: '#c53030'
+                    confirmButtonColor: '#811112' // Updated to Main Red
                 });
             });
     });
@@ -244,7 +237,6 @@ document.addEventListener("DOMContentLoaded", function () {
         scannerModal.style.display = "flex";
         barcodeInput.value = ""; 
         
-        // Timeout ensures the modal is rendered before attempting to focus
         setTimeout(() => {
             barcodeInput.focus();
         }, 100);
@@ -256,12 +248,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     barcodeInput?.addEventListener("keypress", function (e) {
         if (e.key === "Enter") {
-            e.preventDefault(); // Iwasan ang default action
-            
-            // Ipasa ang na-scan sa main search input
+            e.preventDefault(); 
             mainSearchInput.value = barcodeInput.value;
-            
-            // Isara ang modal at i-submit ang form
             scannerModal.style.display = "none";
             filterForm.submit();
         }
@@ -275,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
             text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#c53030',
+            confirmButtonColor: '#811112', // Updated to Main Red
             cancelButtonColor: '#a0aec0',
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
@@ -315,7 +303,7 @@ document.addEventListener("DOMContentLoaded", function () {
             text: `Delete ${checked.length} selected product(s)?`,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#c53030"
+            confirmButtonColor: "#811112" // Updated to Main Red
         }).then(result => {
             if (result.isConfirmed) {
                 hiddenIdsInput.value = [...checked].map(cb => cb.value).join(",");
@@ -350,38 +338,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-<div id="edit-product-modal" style="
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-">
-    <div style="
-        background: white;
-        width: 600px;
-        max-height: 90vh;
-        overflow-y: auto;
-        border-radius: 12px;
-        padding: 24px;
-        position: relative;
-        box-shadow: 0 10px 25px rgba(0,0,0,.2);
-    ">
-        <button id="close-edit-modal" style="
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: none;
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            color: #718096;
-        ">✕</button>
-
-        <div id="edit-product-modal-content">
-            </div>
+<div id="edit-product-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;">
+    <div style="background: white; width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 24px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
+        <button id="close-edit-modal" style="position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #718096;">✕</button>
+        <div id="edit-product-modal-content"></div>
     </div>
 </div>
 
@@ -408,7 +368,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: titleText,
                 text: "{{ message|escapejs }}",
                 icon: iconType,
-                confirmButtonColor: '#8B0000',
+                confirmButtonColor: '#092c4c', // Updated to Navy
                 confirmButtonText: 'OK'
             });
 

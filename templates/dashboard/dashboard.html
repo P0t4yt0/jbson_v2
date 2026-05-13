@@ -7,6 +7,9 @@
     <title>JBSON Hardware - Admin Dashboard</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
+        /* BAGO ITO: Sabay nang i-i-import ang Inter at Montserrat */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
         :root {
             /* Color Palette */
             --bg-main: #F8F9FA;
@@ -21,8 +24,9 @@
             --status-red: #EF4444;
             --status-yellow: #FACC15;
             
-            /* Typography & Spacing */
-            --font-family: 'Inter', 'Poppins', 'Roboto', sans-serif;
+            /* Typography & Spacing - UPDATED ITO */
+            --font-main: 'Inter', sans-serif; 
+            --font-heading: 'Inter', sans-serif;
             --border-radius: 10px;
             --shadow-subtle: 0 1px 3px rgba(0,0,0,0.1);
         }
@@ -31,7 +35,14 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: var(--font-family);
+            /* UPDATED ITO: Inter na ang default font sa buong system */
+            font-family: var(--font-main);
+        }
+
+        /* BAGO ITO: Automatic na Montserrat na ang gagamitin sa lahat ng headings (h1 hanggang h6) */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 700;
         }
 
         body {
@@ -66,15 +77,6 @@
             padding: 0 24px 24px 24px;
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 20px;
-        }
-
-        .logo-text {
-            font-family: 'Impact', sans-serif;
-            font-size: 26px;
-            line-height: 1.1;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
         }
 
         .nav-category {
@@ -223,7 +225,7 @@
 
         .welcome-header h1 {
             font-size: 28px;
-            font-weight: 700;
+            font-weight: 800;
         }
 
         .date-filter {
@@ -579,7 +581,7 @@
     .global-search-container {
         position: relative;
         width: 450px; 
-        font-family: 'Inter', sans-serif; /* Palitan kung ano gamit niyong font */
+        font-family: 'Inter', sans-serif;
     }
 
     .search-input-wrapper {
@@ -902,7 +904,7 @@
 
                 <div class="list-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h3 style="color:var(--status-red); font-size:16px;"><i class="ph ph-warning-circle"></i> Low Stock</h3>
+                        <h3 style="color:var(--status-red); font-size:14px;"><i class="ph ph-warning-circle"></i>  Low Stock</h3>
                         <a href="{% url 'inventory:inventory_list' %}" style="font-size:12px; color:var(--text-secondary); text-decoration:none;">View All</a>
                     </div>
                     
@@ -910,12 +912,12 @@
                         {% for item in low_stock_items %}
                         <div class="stock-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
                             <div>
-                                <strong style="font-size: 14px;">{{ item.item_name }}</strong><br>
+                                <strong style="font-size: 13px;">{{ item.item_name }}</strong><br>
                                 <small style="color: var(--text-secondary);">ID: #{{ item.product_id }}</small>
                             </div>
                             <div style="text-align:right;">
-                                <small style="color: var(--text-secondary); display: block;">Quantity</small>
-                                <span style="font-weight:700; color: var(--status-red);">{{ item.quantity }}</span>
+                                <small style="color: var(--text-secondary); font-size: 12px; display: block;">Quantity</small>
+                                <span style="font-weight:700; font-size: 13px; color: var(--status-red);">{{ item.quantity }}</span>
                             </div>
                         </div>
                         {% empty %}
@@ -926,7 +928,7 @@
 
                 <div class="list-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h3 style="color:#10B981; font-size:16px;"><i class="ph ph-trophy"></i> Top Sellers</h3>
+                        <h3 style="color:#10B981; font-size:14px;"><i class="ph ph-trophy"></i>  Top Sellers</h3>
                         <a href="{% url 'reports_analytics:sales_report' %}" style="font-size:12px; color:var(--text-secondary); text-decoration:none;">Full Report</a>
                     </div>
                     
@@ -935,11 +937,11 @@
                         <div class="stock-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
                             <div>
                                 <span style="font-weight: 800; color: #10B981; margin-right: 5px;">#{{ forloop.counter }}</span>
-                                <strong style="font-size: 14px; color: #111;">{{ item.inventory_item__item_name }}</strong>
+                                <strong style="font-size: 13px; color: #111;">{{ item.inventory_item__item_name }}</strong>
                             </div>
                             <div style="text-align:right;">
-                                <small style="color: var(--text-secondary); display: block;">Sold</small>
-                                <span style="font-weight:700; color: #111;">{{ item.total_sold_qty }}</span>
+                                <small style="color: var(--text-secondary); font-size: 12px; display: block;">Sold</small>
+                                <span style="font-weight:700; font-size: 13px; color: #111;">{{ item.total_sold_qty }}</span>
                             </div>
                         </div>
                         {% empty %}
