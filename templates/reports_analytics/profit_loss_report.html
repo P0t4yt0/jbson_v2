@@ -11,6 +11,7 @@
         --red-accent: #EF4444;
         --orange-accent: #F59E0B;
         --border-color: #E5E7EB;
+        --teal-accent: #0D9488;
     }
     .report-container { font-family: var(--font-family); padding: 30px; background: #F8F9FA; min-height: 100vh; }
     .action-btn { background: white; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
@@ -59,7 +60,7 @@
     <div class="no-print" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
             <h1 style="font-size: 1.5rem; font-weight: 700; color: #111; margin: 0;">Profit & Loss Report</h1>
-            <p style="color: var(--navy-accent); font-size: 0.85rem; font-weight: 600; margin-top: 4px;">
+            <p style="color: var(--teal-accent); font-size: 0.85rem; font-weight: 600; margin-top: 4px;">
                 Date Covered: {% if start_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
             </p>
         </div>
@@ -72,7 +73,7 @@
     <div class="card-box no-print">
         <form method="GET" style="display: flex; gap: 15px; align-items: flex-end;">
             <div style="flex: 1;">
-                <label style="font-size: 0.8rem; font-weight: 600; color: #64748B; display: block; margin-bottom: 8px;">Filter by Date</label>
+                <label style="display: block; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
                 <div style="display: flex; gap: 10px;">
                     <input type="date" name="start_date" value="{{ start_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;">
                     <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;">
@@ -90,7 +91,7 @@
                 <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: #111; font-weight: 800;">₱{{ total_income|floatformat:2 }}</h2>
             </div>
             <div class="card-box" style="flex: 1; border-top: 5px solid var(--orange-accent); margin-bottom: 0;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Stock Cost (Purchases)</div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;"> Inventory Cost (Purchases)</div>
                 <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: var(--orange-accent); font-weight: 800;">- ₱{{ total_purchases|floatformat:2 }}</h2>
             </div>
             <div class="card-box" style="flex: 1; border-top: 5px solid var(--red-accent); margin-bottom: 0;">

@@ -9,6 +9,7 @@
         --navy-accent: #1E293B;
         --blue-accent: #3B82F6;
         --border-color: #E5E7EB;
+        --teal-accent: #0D9488;
     }
     .report-container { font-family: var(--font-family); padding: 30px; background: #F8F9FA; min-height: 100vh; }
     
@@ -56,7 +57,7 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
             <div>
                 <h1 style="font-size: 1.5rem; font-weight: 700; color: #111; margin: 0;">Invoice Report</h1>
-                <p id="report-date" style="color: var(--blue-accent); font-size: 0.85rem; font-weight: 600; margin-top: 4px;">
+                <p id="report-date" style="color: var(--teal-accent); font-size: 0.85rem; font-weight: 600; margin-top: 4px;">
                     Date Covered: {% if start_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
                 </p>
             </div>
@@ -74,7 +75,7 @@
             <form method="GET" style="display: flex; gap: 15px; align-items: flex-end;">
                 <input type="hidden" name="invoice_per_page" value="{{ invoice_per_page }}">
                 <div style="flex: 1;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: #64748B; display: block; margin-bottom: 8px;">Filter by Date</label>
+                    <label style="display: block; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="date" name="start_date" value="{{ start_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;">
                         <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;">

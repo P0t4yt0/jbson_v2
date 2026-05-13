@@ -51,7 +51,7 @@
             <div>
                 <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin: 0; letter-spacing: -0.02em;">Procurement & Supplier Report</h1>
                 <p id="report-date" style="color: var(--teal-accent); font-size: 0.85rem; font-weight: 600; margin: 4px 0 0 0;">
-                    {% if start_date and end_date %} Covered: {{ start_date }} to {{ end_date }} {% else %} Generated on: {% now "F j, Y" %} {% endif %}
+                    {% if start_date and end_date %} Covered: {{ start_date }} to {{ end_date }} {% else %} Date Covered: {% now "F j, Y" %} {% endif %}
                 </p>
             </div>
             
@@ -65,7 +65,7 @@
             <form method="GET" action="" style="display: flex; align-items: flex-end; gap: 20px;">
                 <input type="hidden" name="po_per_page" value="{{ po_per_page }}">
                 <div style="flex: 1;">
-                    <label style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 8px; display: block;">Choose Order Date Range</label>
+                    <label style="display: block; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="date" name="start_date" value="{{ start_date|default:'' }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 8px; outline: none; font-family: var(--font-family);">
                         <input type="date" name="end_date" value="{{ end_date|default:'' }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 8px; outline: none; font-family: var(--font-family);">

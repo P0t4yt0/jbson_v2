@@ -60,7 +60,7 @@
         <form method="GET" style="display: flex; gap: 16px; align-items: flex-end;">
             <input type="hidden" name="po_per_page" value="{{ po_per_page }}">
             <div style="flex: 1;">
-                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Choose Date</label>
+                <label style="display: block; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
                 <div style="display: flex; gap: 12px;">
                     <input type="date" name="start_date" value="{{ start_date|default:'' }}" style="flex: 1; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-family: var(--font-family); font-size: 0.85rem;">
                     <input type="date" name="end_date" value="{{ end_date|default:'' }}" style="flex: 1; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-family: var(--font-family); font-size: 0.85rem;">

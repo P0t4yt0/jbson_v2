@@ -531,7 +531,9 @@
             <i class="ph ph-scales"></i> Profit & Loss
         </a>
         
-        <a href="#" class="nav-item"><i class="ph ph-book-open"></i> Annual Report</a>
+        <a href="{% url 'reports_analytics:annual_report' %}" class="nav-item {% if '/annual-report/' in request.path %}active{% endif %}">
+            <i class="ph ph-book-open"></i> Annual Report
+        </a>
 
         <div class="nav-category">User Management</div>
         <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">

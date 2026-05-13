@@ -10,4 +10,5 @@ urlpatterns = [
     path('invoice/', views.invoice_report_view, name='invoice_report'),
     path('procurement/', views.procurement_report, name='procurement_report'),
     path('profit-loss/', views.profit_loss_report_view, name='profit_loss_report'),
+    path('annual-report/', views.annual_report_view, name='annual_report'),
 ]

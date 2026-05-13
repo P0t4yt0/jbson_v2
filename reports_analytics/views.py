@@ -19,6 +19,12 @@ from reports_analytics.models import Expense
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from activity_log.utils import log_system_activity
+from django.db.models import Sum, DecimalField, Q
+from django.db.models.functions import TruncMonth, Coalesce
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from datetime import datetime
+import json
 
 def sales_report_view(request):
     # 1. Kunin ang dates, search inputs, at tanggalin ang 'None' bug
@@ -568,3 +574,138 @@ def profit_loss_report_view(request):
         'expense_search': expense_search,
     }
     return render(request, 'reports_analytics/profit_loss_report.html', context)
+
+def annual_report_view(request):
+    # 1. Kunin ang filters
+    start_date_str = request.GET.get('start_date', '').strip()
+    end_date_str = request.GET.get('end_date', '').strip()
+    annual_search = request.GET.get('annual_search', '').strip()
+
+    if start_date_str == 'None': start_date_str = ''
+    if end_date_str == 'None': end_date_str = ''
+
+    # 2. Base Queries mula sa lahat ng tables
+    sales_qs = Transaction.objects.filter(status__in=['completed', 'paid'])
+    purchases_qs = PurchaseOrder.objects.exclude(status__icontains='cancel')
+    expenses_qs = Expense.objects.all()
+
+    # 3. Date Filtering
+    if start_date_str and end_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            sales_qs = sales_qs.filter(date_completed__range=[start_date, end_date])
+            purchases_qs = purchases_qs.filter(order_date__range=[start_date, end_date])
+            expenses_qs = expenses_qs.filter(expense_date__range=[start_date, end_date])
+        except ValueError:
+            pass
+
+    # 4. Global Metrics & EXECUTIVE SUMMARY MATH
+    total_sales = sales_qs.aggregate(total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()))['total']
+    total_purchases = purchases_qs.aggregate(total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()))['total']
+    total_opex = expenses_qs.aggregate(total=Coalesce(Sum('amount'), 0, output_field=DecimalField()))['total']
+    net_profit = total_sales - total_purchases - total_opex
+
+    total_expenses_combined = total_purchases + total_opex
+    profit_margin = (net_profit / total_sales * 100) if total_sales > 0 else 0
+    expense_ratio = (total_expenses_combined / total_sales * 100) if total_sales > 0 else 0
+
+    # 5. Group Data by Month (Manual Grouping para iwas MySQL Error)
+    monthly_data = {}
+
+    def process_qs(qs, date_attr, amount_attr, key_name):
+        for item in qs:
+            d = getattr(item, date_attr)
+            if d:
+                sort_key = d.strftime('%Y-%m') # Ex. 2026-05
+                display_name = d.strftime('%B %Y') # Ex. May 2026
+                
+                if sort_key not in monthly_data:
+                    monthly_data[sort_key] = {
+                        'month_name': display_name, 
+                        'sales': 0, 
+                        'purchases': 0, 
+                        'expenses': 0
+                    }
+                
+                amount = getattr(item, amount_attr) or 0
+                monthly_data[sort_key][key_name] += float(amount)
+
+    process_qs(sales_qs, 'date_completed', 'total_amount', 'sales')
+    process_qs(purchases_qs, 'order_date', 'total_amount', 'purchases')
+    process_qs(expenses_qs, 'expense_date', 'amount', 'expenses')
+
+    # 6. Compute Profit per Month
+    final_monthly_data = []
+    
+    for sort_key in sorted(monthly_data.keys()):
+        data = monthly_data[sort_key]
+        m_sales = data['sales']
+        m_purch = data['purchases']
+        m_exp = data['expenses']
+        m_profit = m_sales - m_purch - m_exp
+        month_name = data['month_name']
+
+        if annual_search and annual_search.lower() not in month_name.lower():
+            continue
+
+        final_monthly_data.append({
+            'month': month_name,
+            'sales': m_sales,
+            'purchases': m_purch,
+            'expenses': m_exp,
+            'profit': m_profit
+        })
+
+    # 7. Extract data para sa Chart.js
+    chart_labels = [d['month'] for d in final_monthly_data]
+    chart_sales = [d['sales'] for d in final_monthly_data]
+    chart_expenses = [d['purchases'] + d['expenses'] for d in final_monthly_data]
+    chart_profit = [d['profit'] for d in final_monthly_data]
+
+    # 8. PAGINATION LOGIC
+    annual_per_page = request.GET.get('annual_per_page', 6)
+    try: annual_per_page = int(annual_per_page)
+    except ValueError: annual_per_page = 6
+
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(list(reversed(final_monthly_data)), annual_per_page, orphans=0)
+    monthly_records_page = paginator.get_page(page_number)
+
+    context = {
+        'total_sales': total_sales,
+        'total_purchases': total_purchases,
+        'total_opex': total_opex,
+        'net_profit': net_profit,
+        
+        # Dagdag para sa Executive Summary
+        'total_expenses_combined': total_expenses_combined,
+        'profit_margin': profit_margin,
+        'expense_ratio': expense_ratio,
+        
+        'monthly_records': monthly_records_page,
+        
+        # JSON dumps para mabasa ng JS
+        'chart_labels': json.dumps(chart_labels),
+        'chart_sales': json.dumps(chart_sales),
+        'chart_expenses': json.dumps(chart_expenses),
+        'chart_profit': json.dumps(chart_profit),
+        
+        'start_date': start_date_str,
+        'end_date': end_date_str,
+        'annual_search': annual_search,
+        'annual_per_page': annual_per_page,
+    }
+    
+    if 'is_generating' in request.GET:
+        date_range = f"from {start_date_str} to {end_date_str}" if start_date_str and end_date_str else "(All Time)"
+        try:
+            log_system_activity(
+                user=request.user,
+                action="GENERATE REPORT",
+                description=f"Generated Annual Report {date_range}"
+            )
+        except NameError:
+            pass
+
+    return render(request, 'reports_analytics/annual_report.html', context)
