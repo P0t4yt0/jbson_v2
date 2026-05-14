@@ -1,51 +1,77 @@
 {% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Roboto+Mono:wght@500;600;700&display=swap');
+</style>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
     :root {
-        --font-family: 'Inter', sans-serif;
-        --navy-accent: #1E293B;
-        --green-accent: #10B981;
-        --red-accent: #EF4444;
-        --orange-accent: #F59E0B;
-        --border-color: #E5E7EB;
-        --teal-accent: #0D9488;
-    }
-    .report-container { font-family: var(--font-family); padding: 30px; background: #F8F9FA; min-height: 100vh; }
-    .action-btn { background: white; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
-    .card-box { background: white; border-radius: 12px; border: 1px solid var(--border-color); padding: 25px; margin-bottom: 25px; }
-    .table-header { background: #F8FAFC; color: #64748B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
-    .table-cell { padding: 15px 20px; font-size: 0.85rem; border-bottom: 1px solid #F1F5F9; color: #334155; }
+        /* BRAND FONTS */
+        --font-heading: 'Montserrat', sans-serif;
+        --font-body: 'Inter', sans-serif;
+        --font-mono: 'Roboto Mono', monospace;
 
-    .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #ffffff; border-top: 1px solid #E5E7EB; font-size: 0.85rem; color: #6B7280; }
+        /* MAIN SYSTEM COLORS */
+        --color-main-red: #811112;
+        --color-main-navy: #092c4c;
+        --color-accent-orange: #e07300;
+        --color-accent-green: #10B981; 
+
+        /* SYSTEM ALERTS / BADGES */
+        --bg-success: #9ae6b4;
+        --text-success: #22543d;
+        --bg-pending: #ffd895;
+        --text-pending: #e07300;
+        --bg-warning: #ffaca4;
+        --text-warning: #d50a0a;
+        --bg-archived: #e2e8f0;
+        --text-archived: #475569;
+
+        /* NEUTRALS */
+        --text-main: #111827;
+        --text-muted: #64748B;
+        --border-color: #E5E7EB;
+        --bg-card: #FFFFFF;
+    }
+    
+    .report-container { font-family: var(--font-body); padding: 30px; background-color: #F8F9FA; min-height: 100vh; }
+    
+    .action-btn { background: white; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; font-family: var(--font-body); }
+    .action-btn:hover { background: #F3F4F6; }
+    
+    .card-box { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); padding: 24px; margin-bottom: 24px; }
+    
+    /* TABLE STANDARDS */
+    .table-header-cell { background: #F8FAFC; padding: 12px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--border-color); font-family: var(--font-body); }
+    .table-row-cell { padding: 16px 20px; font-size: 0.85rem; border-bottom: 1px solid #F1F5F9; color: #334155; font-family: var(--font-body); }
+
+    /* PAGINATION BAR STYLE */
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #ffffff; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted); }
     .pagination-controls { display: flex; gap: 4px; align-items: center; }
-    .page-active { background: #851618; color: white; padding: 5px 12px; border-radius: 4px; font-weight: 700; }
+    .page-active { background: var(--color-main-red); color: white; padding: 5px 12px; border-radius: 4px; font-weight: 700; }
     .page-link { color: #374151; padding: 5px 12px; text-decoration: none; border-radius: 4px; }
     .page-link:hover { background: #F3F4F6; }
     .page-btn { border: 1px solid #D1D5DB; padding: 5px 10px; border-radius: 4px; color: #374151; text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
+    .page-btn:hover { background: #F9FAFB; }
 
     /* MODAL OVERLAY STYLES */
     .modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.5); display: none; justify-content: center;
-        align-items: center; z-index: 1000; font-family: var(--font-family);
+        align-items: center; z-index: 1000; font-family: var(--font-body);
     }
     .modal-content {
-        background: white; border-radius: 8px; /* Binawasan ang border radius para mas solid tingnan */
+        background: white; border-radius: 8px;
         width: 100%; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
 
     /* SEARCH INPUT STYLE */
     .search-input {
-        padding: 8px 12px 8px 32px;
-        border: 1px solid #D1D5DB;
-        border-radius: 6px;
-        outline: none;
-        font-size: 0.85rem;
-        width: 220px;
-        font-family: var(--font-family);
+        padding: 8px 12px 8px 32px; border: 1px solid #D1D5DB; border-radius: 6px;
+        outline: none; font-size: 0.85rem; width: 220px; font-family: var(--font-body); background-color: #F9FAFB;
     }
 
     @media print {
@@ -53,14 +79,16 @@
         #printable-area, #printable-area * { visibility: visible; }
         #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
         .no-print { display: none !important; }
+        .report-container { padding: 0; background: white; }
+        .card-box { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
     }
 </style>
 
 <div class="report-container">
     <div class="no-print" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h1 style="font-size: 1.5rem; font-weight: 700; color: #111; margin: 0;">Profit & Loss Report</h1>
-            <p style="color: var(--teal-accent); font-size: 0.85rem; font-weight: 600; margin-top: 4px;">
+            <h1 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--color-main-navy); margin: 0;">Profit & Loss Report</h1>
+            <p style="color: var(--color-accent-orange); font-size: 0.9rem; font-weight: 600; margin-top: 5px; font-family: var(--font-body);">
                 Date Covered: {% if start_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
             </p>
         </div>
@@ -70,44 +98,44 @@
         </div>
     </div>
 
-    <div class="card-box no-print">
+    <div class="card-box no-print" style="padding: 20px;">
         <form method="GET" style="display: flex; gap: 15px; align-items: flex-end;">
             <div style="flex: 1;">
-                <label style="display: block; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="date" name="start_date" value="{{ start_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;">
-                    <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px;">
+                    <input type="date" name="start_date" value="{{ start_date }}" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body);">
+                    <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body);">
                 </div>
             </div>
-            <button type="submit" name="is_generating" style="background: #851618; color: white; border: none; padding: 10px 30px; border-radius: 6px; font-weight: 600; cursor: pointer;">Generate</button>
-            <a href="{% url 'reports_analytics:profit_loss_report' %}" style="padding: 10px; color: #64748B; text-decoration: none; font-size: 0.85rem;">Clear</a>
+            <button type="submit" name="is_generating" style="background: var(--color-main-red); color: white; border: none; padding: 10px 30px; border-radius: 6px; font-weight: 600; font-family: var(--font-body); cursor: pointer;">Generate</button>
+            <a href="{% url 'reports_analytics:profit_loss_report' %}" style="padding: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600;">Clear</a>
         </form>
     </div>
 
     <div id="printable-area">
         <div style="display: flex; gap: 15px; margin-bottom: 25px;">
-            <div class="card-box" style="flex: 1; border-top: 5px solid var(--green-accent); margin-bottom: 0;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Gross Sales</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: #111; font-weight: 800;">₱{{ total_income|floatformat:"2g" }}</h2>
+            <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid var(--color-main-navy); margin-bottom: 0;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Gross Sales</div>
+                <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: var(--color-main-navy); font-weight: 700;">₱{{ total_income|floatformat:"2g" }}</h2>
             </div>
-            <div class="card-box" style="flex: 1; border-top: 5px solid var(--orange-accent); margin-bottom: 0;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;"> Inventory Cost (Purchases)</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: var(--orange-accent); font-weight: 800;">- ₱{{ total_purchases|floatformat:"2g" }}</h2>
+            <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid var(--color-accent-orange); margin-bottom: 0;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Inventory Cost</div>
+                <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: var(--color-accent-orange); font-weight: 700;">- ₱{{ total_purchases|floatformat:"2g" }}</h2>
             </div>
-            <div class="card-box" style="flex: 1; border-top: 5px solid var(--red-accent); margin-bottom: 0;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Operating Expenses</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: var(--red-accent); font-weight: 800;">- ₱{{ total_opex|floatformat:"2g" }}</h2>
+            <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid var(--color-main-red); margin-bottom: 0;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Operating Expenses</div>
+                <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: var(--color-main-red); font-weight: 700;">- ₱{{ total_opex|floatformat:"2g" }}</h2>
             </div>
-            <div class="card-box" style="flex: 1; border-top: 5px solid {% if net_profit >= 0 %}var(--blue-accent){% else %}var(--red-accent){% endif %}; margin-bottom: 0;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Net Profit</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: {% if net_profit >= 0 %}#111{% else %}var(--red-accent){% endif %}; font-weight: 800;">₱{{ net_profit|floatformat:"2g" }}</h2>
+            <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid {% if net_profit >= 0 %}var(--color-accent-green){% else %}var(--color-main-red){% endif %}; margin-bottom: 0;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Net Profit</div>
+                <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: {% if net_profit >= 0 %}var(--color-accent-green){% else %}var(--color-main-red){% endif %}; font-weight: 700;">₱{{ net_profit|floatformat:"2g" }}</h2>
             </div>
         </div>
 
-        <div style="background: white; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 25px;">
+        <div style="background: white; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 25px;">
             
-            <div style="padding: 20px 25px; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Purchase Cost Logs</h3>
+            <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Purchase Cost Logs</h3>
                 
                 <div class="no-print" data-html2canvas-ignore="true" style="display: flex; gap: 10px; align-items: center;">
                     <form method="GET" style="margin: 0; position: relative;">
@@ -117,12 +145,12 @@
                         <input type="hidden" name="exp_per_page" value="{{ exp_per_page }}">
                         <input type="hidden" name="expense_search" value="{{ expense_search }}">
                         
-                        <i class="ph ph-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #9CA3AF;"></i>
+                        <i class="ph ph-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                         <input type="text" name="purchase_search" value="{{ purchase_search }}" class="search-input" placeholder="Search PO or Supplier...">
                         <button type="submit" style="display: none;"></button>
                     </form>
 
-                    <a href="{% url 'inventory:po_list' %}" class="action-btn" style="background: #851618; color: white; border: none; padding: 8px 16px; text-decoration: none;">
+                    <a href="{% url 'inventory:po_list' %}" class="action-btn" style="background: var(--color-main-red); color: white; border: none; padding: 8px 16px; text-decoration: none;">
                         <i class="ph ph-plus"></i> New Purchase Order
                     </a>
                 </div>
@@ -130,41 +158,42 @@
 
             <table id="purchase-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
-                    <tr class="table-header">
-                        <th style="padding: 12px 20px;">PO Number</th>
-                        <th style="padding: 12px 20px;">Supplier</th>
-                        <th style="padding: 12px 20px;">Date</th>
-                        <th style="padding: 12px 20px; text-align: right;">Amount Spent</th>
+                    <tr>
+                        <th class="table-header-cell">PO Number</th>
+                        <th class="table-header-cell">Supplier</th>
+                        <th class="table-header-cell">Date</th>
+                        <th class="table-header-cell" style="text-align: right;">Amount Spent</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for po in purchases %}
                     <tr>
-                        <td class="table-cell" style="font-weight: 700;">{{ po.po_number }}</td>
-                        <td class="table-cell">{{ po.supplier.name }}</td>
-                        <td class="table-cell">{{ po.order_date|date:"M d, Y" }}</td>
-                        <td class="table-cell" style="text-align: right; color: var(--orange-accent); font-weight: 700;">₱{{ po.total_amount|floatformat:"2g" }}</td>
+                        <td class="table-row-cell" style="font-weight: 700; color: var(--color-main-navy); font-family: var(--font-mono); font-size: 0.95rem;">{{ po.po_number }}</td>
+                        <td class="table-row-cell" style="font-weight: 600;">{{ po.supplier.name }}</td>
+                        <td class="table-row-cell" style="color: var(--text-muted);">{{ po.order_date|date:"M d, Y" }}</td>
+                        <td class="table-row-cell" style="text-align: right; color: var(--color-accent-orange); font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem;">₱{{ po.total_amount|floatformat:"2g" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" style="padding: 20px; text-align: center; color: #94A3B8;">No purchases found.</td></tr>
+                    <tr><td colspan="4" class="table-row-cell" style="text-align: center; color: var(--text-muted); padding: 30px;">No purchases found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
             
             <div class="pagination-bar no-print">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <form method="GET" style="margin: 0; display: flex; align-items: center; gap: 5px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <form method="GET" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                         <input type="hidden" name="exp_page" value="{{ expenses.number }}">
                         <input type="hidden" name="start_date" value="{{ start_date }}">
                         <input type="hidden" name="end_date" value="{{ end_date }}">
                         <input type="hidden" name="purchase_search" value="{{ purchase_search }}">
                         <input type="hidden" name="expense_search" value="{{ expense_search }}">
                         <input type="hidden" name="exp_per_page" value="{{ exp_per_page }}">
-                        Row Per Page
-                        <select name="po_per_page" onchange="this.form.submit()" style="padding: 4px; border: 1px solid #D1D5DB; border-radius: 4px;">
+                        <span>Row Per Page</span>
+                        <select name="po_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; outline: none; cursor: pointer; color: var(--text-main); font-family: var(--font-body);">
                             <option value="5" {% if po_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
                             <option value="10" {% if po_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
                         </select>
+                        <span>Entries</span>
                     </form>
                     <span>Showing {{ purchases.start_index|default:0 }} to {{ purchases.end_index|default:0 }} of {{ purchases.paginator.count|default:0 }}</span>
                 </div>
@@ -179,10 +208,10 @@
             </div>
         </div>
 
-        <div style="background: white; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
+        <div style="background: white; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden;">
             
-            <div style="padding: 20px 25px; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Operating Expense Logs</h3>
+            <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Operating Expense Logs</h3>
                 
                 <div class="no-print" data-html2canvas-ignore="true" style="display: flex; gap: 10px; align-items: center;">
                     <form method="GET" style="margin: 0; position: relative;">
@@ -192,12 +221,12 @@
                         <input type="hidden" name="exp_per_page" value="{{ exp_per_page }}">
                         <input type="hidden" name="purchase_search" value="{{ purchase_search }}">
                         
-                        <i class="ph ph-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #9CA3AF;"></i>
+                        <i class="ph ph-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                         <input type="text" name="expense_search" value="{{ expense_search }}" class="search-input" placeholder="Search Expense or Category...">
                         <button type="submit" style="display: none;"></button>
                     </form>
 
-                    <button onclick="openModal()" class="action-btn" style="background: #851618; color: white; border: none; padding: 8px 16px;">
+                    <button onclick="openModal()" class="action-btn" style="background: var(--color-main-red); color: white; border: none; padding: 8px 16px;">
                         <i class="ph ph-plus"></i> Add Operating Expense
                     </button>
                 </div>
@@ -205,41 +234,42 @@
 
             <table id="expense-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
-                    <tr class="table-header">
-                        <th style="padding: 12px 20px;">Date</th>
-                        <th style="padding: 12px 20px;">Description</th>
-                        <th style="padding: 12px 20px;">Category</th>
-                        <th style="padding: 12px 20px; text-align: right;">Amount Spent</th>
+                    <tr>
+                        <th class="table-header-cell">Date</th>
+                        <th class="table-header-cell">Description</th>
+                        <th class="table-header-cell">Category</th>
+                        <th class="table-header-cell" style="text-align: right;">Amount Spent</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for exp in expenses %}
                     <tr>
-                        <td class="table-cell" style="color: #64748B;">{{ exp.expense_date|date:"M d, Y" }}</td>
-                        <td class="table-cell" style="font-weight: 700;">{{ exp.description }}</td>
-                        <td class="table-cell"><span style="background: #F1F5F9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">{{ exp.category }}</span></td>
-                        <td class="table-cell" style="text-align: right; color: var(--red-accent); font-weight: 700;">₱{{ exp.amount|floatformat:"2g" }}</td>
+                        <td class="table-row-cell" style="color: var(--text-muted);">{{ exp.expense_date|date:"M d, Y" }}</td>
+                        <td class="table-row-cell" style="font-weight: 700; color: var(--text-main);">{{ exp.description }}</td>
+                        <td class="table-row-cell"><span style="background: #F1F5F9; color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">{{ exp.category }}</span></td>
+                        <td class="table-row-cell" style="text-align: right; color: var(--color-main-red); font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem;">₱{{ exp.amount|floatformat:"2g" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" style="padding: 30px; text-align: center; color: #94A3B8;">No operating expenses found.</td></tr>
+                    <tr><td colspan="4" class="table-row-cell" style="padding: 30px; text-align: center; color: var(--text-muted);">No operating expenses found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
 
             <div class="pagination-bar no-print">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <form method="GET" style="margin: 0; display: flex; align-items: center; gap: 5px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <form method="GET" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                         <input type="hidden" name="po_page" value="{{ purchases.number }}">
                         <input type="hidden" name="start_date" value="{{ start_date }}">
                         <input type="hidden" name="end_date" value="{{ end_date }}">
                         <input type="hidden" name="purchase_search" value="{{ purchase_search }}">
                         <input type="hidden" name="expense_search" value="{{ expense_search }}">
                         <input type="hidden" name="po_per_page" value="{{ po_per_page }}">
-                        Row Per Page
-                        <select name="exp_per_page" onchange="this.form.submit()" style="padding: 4px; border: 1px solid #D1D5DB; border-radius: 4px;">
+                        <span>Row Per Page</span>
+                        <select name="exp_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; outline: none; cursor: pointer; color: var(--text-main); font-family: var(--font-body);">
                             <option value="5" {% if exp_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
                             <option value="10" {% if exp_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
                         </select>
+                        <span>Entries</span>
                     </form>
                     <span>Showing {{ expenses.start_index|default:0 }} to {{ expenses.end_index|default:0 }} of {{ expenses.paginator.count|default:0 }}</span>
                 </div>
@@ -262,20 +292,20 @@
             {% csrf_token %}
             <input type="hidden" name="add_expense" value="1">
             
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid #E5E7EB; background: #FFFFFF;">
-                <h2 style="margin: 0; font-size: 1.1rem; color: #111827; font-weight: 800; text-transform: uppercase;">Add Operating Expense</h2>
-                <i class="ph ph-x" onclick="closeModal()" style="font-size: 1.2rem; cursor: pointer; color: #64748B;"></i>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid var(--border-color); background: #FFFFFF;">
+                <h2 style="font-family: var(--font-heading); margin: 0; font-size: 1.1rem; color: var(--color-main-navy); font-weight: 800; text-transform: uppercase;">Add Operating Expense</h2>
+                <i class="ph ph-x" onclick="closeModal()" style="font-size: 1.2rem; cursor: pointer; color: var(--text-muted);"></i>
             </div>
 
             <div style="padding: 25px; background: #FFFFFF;">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Date of Expense <span style="color:#EF4444;">*</span></label>
-                    <input type="date" name="expense_date" required value="{% now 'Y-m-d' %}" style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; outline: none; font-family: var(--font-family); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
+                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Date of Expense <span style="color: var(--color-main-red);">*</span></label>
+                    <input type="date" name="expense_date" required value="{% now 'Y-m-d' %}" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Category <span style="color:#EF4444;">*</span></label>
-                    <select name="category" required style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; outline: none; font-family: var(--font-family); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
+                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Category <span style="color: var(--color-main-red);">*</span></label>
+                    <select name="category" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
                         <option value="" disabled selected>Select category</option>
                         <option value="Utility">Utility (Meralco, Maynilad, WiFi)</option>
                         <option value="Payroll">Payroll / Labor</option>
@@ -287,19 +317,19 @@
                 </div>
 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Description / Remarks <span style="color:#EF4444;">*</span></label>
-                    <input type="text" name="description" placeholder="e.g. Pasweldo kay Juan" required style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; outline: none; font-family: var(--font-family); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
+                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Description / Remarks <span style="color: var(--color-main-red);">*</span></label>
+                    <input type="text" name="description" placeholder="e.g. Pasweldo kay Juan" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
                 </div>
 
                 <div style="margin-bottom: 10px;">
-                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Amount (₱) <span style="color:#EF4444;">*</span></label>
-                    <input type="number" step="0.01" min="0" name="amount" placeholder="0.00" required style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; outline: none; font-family: var(--font-family); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
+                    <label style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Amount (₱) <span style="color: var(--color-main-red);">*</span></label>
+                    <input type="number" step="0.01" min="0" name="amount" placeholder="0.00" required style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body); box-sizing: border-box; font-size: 0.95rem; color: #334155;">
                 </div>
             </div>
 
-            <div style="padding: 15px 25px; border-top: 1px solid #E5E7EB; background: #FFFFFF; display: flex; justify-content: flex-end; gap: 12px;">
+            <div style="padding: 15px 25px; border-top: 1px solid var(--border-color); background: #FFFFFF; display: flex; justify-content: flex-end; gap: 12px;">
                 <button type="button" onclick="closeModal()" style="padding: 10px 20px; background: white; border: 1px solid #D1D5DB; color: #374151; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s;">Cancel</button>
-                <button type="submit" style="padding: 10px 20px; background: #0D9488; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s;">Save Expense</button>
+                <button type="submit" style="padding: 10px 20px; background: var(--color-main-navy); color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s;">Save Expense</button>
             </div>
         </form>
     </div>
@@ -315,7 +345,7 @@
                     title: 'Saved!',
                     text: 'Operating expense has been recorded successfully.',
                     icon: 'success',
-                    confirmButtonColor: '#3B82F6',
+                    confirmButtonColor: '#092c4c',
                     timer: 3000
                 });
             {% endif %}
