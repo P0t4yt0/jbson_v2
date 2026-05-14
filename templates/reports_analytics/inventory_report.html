@@ -79,7 +79,7 @@
         <div style="display: flex; gap: 20px; margin-bottom: 25px;">
             <div class="card-box" style="flex: 1; border-top: 5px solid var(--violet-accent);">
                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Total Inventory Value</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.8rem; color: #111; font-weight: 800;">₱{{ summary.total_valuation|floatformat:2 }}</h2>
+                <h2 style="margin: 10px 0 0 0; font-size: 1.8rem; color: #111; font-weight: 800;">₱{{ summary.total_valuation|floatformat:"2g" }}</h2>
             </div>
             <div class="card-box" style="flex: 1; border-top: 5px solid #3B82F6;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Total Product Types</div>
@@ -132,9 +132,9 @@
                         </td>
                         <td class="table-cell" style="color: #64748B;">{{ item.category.name }}</td> 
                         <td class="table-cell" style="text-align: center; font-weight: 700; {% if item.quantity <= item.reorder_point %}color: #EF4444;{% endif %}">{{ item.quantity }}</td>
-                        <td class="table-cell" style="text-align: right; color: #64748B;">₱{{ item.unit_cost|floatformat:2 }}</td>
-                        <td class="table-cell" style="text-align: right; color: #10B981; font-weight: 600;">₱{{ item.price|floatformat:2 }}</td>
-                        <td class="table-cell" style="text-align: right; font-weight: 800; color: var(--violet-accent);">₱{{ item.total_value|floatformat:2 }}</td>
+                        <td class="table-cell" style="text-align: right; color: #64748B;">₱{{ item.unit_cost|floatformat:"2g" }}</td>
+                        <td class="table-cell" style="text-align: right; color: #10B981; font-weight: 600;">₱{{ item.price|floatformat:"2g" }}</td>
+                        <td class="table-cell" style="text-align: right; font-weight: 800; color: var(--violet-accent);">₱{{ item.total_value|floatformat:"2g" }}</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="6" style="padding: 30px; text-align: center; color: #64748B;">No products found.</td></tr>

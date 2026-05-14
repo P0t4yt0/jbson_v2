@@ -88,19 +88,19 @@
         <div style="display: flex; gap: 15px; margin-bottom: 25px;">
             <div class="card-box" style="flex: 1; border-top: 5px solid var(--green-accent); margin-bottom: 0;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Gross Sales</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: #111; font-weight: 800;">₱{{ total_income|floatformat:2 }}</h2>
+                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: #111; font-weight: 800;">₱{{ total_income|floatformat:"2g" }}</h2>
             </div>
             <div class="card-box" style="flex: 1; border-top: 5px solid var(--orange-accent); margin-bottom: 0;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;"> Inventory Cost (Purchases)</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: var(--orange-accent); font-weight: 800;">- ₱{{ total_purchases|floatformat:2 }}</h2>
+                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: var(--orange-accent); font-weight: 800;">- ₱{{ total_purchases|floatformat:"2g" }}</h2>
             </div>
             <div class="card-box" style="flex: 1; border-top: 5px solid var(--red-accent); margin-bottom: 0;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Operating Expenses</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: var(--red-accent); font-weight: 800;">- ₱{{ total_opex|floatformat:2 }}</h2>
+                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: var(--red-accent); font-weight: 800;">- ₱{{ total_opex|floatformat:"2g" }}</h2>
             </div>
             <div class="card-box" style="flex: 1; border-top: 5px solid {% if net_profit >= 0 %}var(--blue-accent){% else %}var(--red-accent){% endif %}; margin-bottom: 0;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Net Profit</div>
-                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: {% if net_profit >= 0 %}#111{% else %}var(--red-accent){% endif %}; font-weight: 800;">₱{{ net_profit|floatformat:2 }}</h2>
+                <h2 style="margin: 10px 0 0 0; font-size: 1.6rem; color: {% if net_profit >= 0 %}#111{% else %}var(--red-accent){% endif %}; font-weight: 800;">₱{{ net_profit|floatformat:"2g" }}</h2>
             </div>
         </div>
 
@@ -143,7 +143,7 @@
                         <td class="table-cell" style="font-weight: 700;">{{ po.po_number }}</td>
                         <td class="table-cell">{{ po.supplier.name }}</td>
                         <td class="table-cell">{{ po.order_date|date:"M d, Y" }}</td>
-                        <td class="table-cell" style="text-align: right; color: var(--orange-accent); font-weight: 700;">₱{{ po.total_amount|floatformat:2 }}</td>
+                        <td class="table-cell" style="text-align: right; color: var(--orange-accent); font-weight: 700;">₱{{ po.total_amount|floatformat:"2g" }}</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="4" style="padding: 20px; text-align: center; color: #94A3B8;">No purchases found.</td></tr>
@@ -218,7 +218,7 @@
                         <td class="table-cell" style="color: #64748B;">{{ exp.expense_date|date:"M d, Y" }}</td>
                         <td class="table-cell" style="font-weight: 700;">{{ exp.description }}</td>
                         <td class="table-cell"><span style="background: #F1F5F9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">{{ exp.category }}</span></td>
-                        <td class="table-cell" style="text-align: right; color: var(--red-accent); font-weight: 700;">₱{{ exp.amount|floatformat:2 }}</td>
+                        <td class="table-cell" style="text-align: right; color: var(--red-accent); font-weight: 700;">₱{{ exp.amount|floatformat:"2g" }}</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="4" style="padding: 30px; text-align: center; color: #94A3B8;">No operating expenses found.</td></tr>

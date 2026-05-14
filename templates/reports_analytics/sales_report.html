@@ -87,15 +87,15 @@
         <div style="display: flex; gap: 15px; margin-bottom: 25px;">
             <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid var(--teal-accent);">
                 <div style="color: var(--text-muted); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px;">Total Gross Sales</div>
-                <h2 style="margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 800;">₱{{ total_revenue|floatformat:2 }}</h2>
+                <h2 style="margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 800;">₱{{ total_revenue|floatformat:"2g" }}</h2>
             </div>
             <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid #EF4444;">
                 <div style="color: var(--text-muted); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px;">Total Returns</div>
-                <h2 style="margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 800;">- ₱{{ total_returns|floatformat:2 }}</h2>
+                <h2 style="margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 800;">- ₱{{ total_returns|floatformat:"2g" }}</h2>
             </div>
             <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid #10B981;">
                 <div style="color: var(--text-muted); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px;">Net Sales</div>
-                <h2 style="margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 800;">₱{{ net_revenue|floatformat:2 }}</h2>
+                <h2 style="margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 800;">₱{{ net_revenue|floatformat:"2g" }}</h2>
             </div>
             <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid #6366F1;">
                 <div style="color: var(--text-muted); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px;">Transactions</div>
@@ -119,7 +119,7 @@
                         {% for pm in payment_methods %}
                         <tr>
                             <td class="table-row-cell" style="font-weight: 700; text-transform: uppercase;">{{ pm.payment_method }}</td>
-                            <td class="table-row-cell" style="color: var(--teal-accent); font-weight: 700; text-align: right;">₱{{ pm.net_collected|floatformat:2 }}</td>
+                            <td class="table-row-cell" style="color: var(--teal-accent); font-weight: 700; text-align: right;">₱{{ pm.net_collected|floatformat:"2g" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -143,7 +143,7 @@
                         <tr>
                             <td class="table-row-cell"><span style="font-weight: 700; color: var(--red-accent);">#{{ forloop.counter }}</span> {{ item.inventory_item__item_name }}</td>
                             <td class="table-row-cell" style="text-align: center;">{{ item.total_sold_qty }}</td>
-                            <td class="table-row-cell" style="font-weight: 700; text-align: right;">₱{{ item.total_sold_amount|floatformat:2 }}</td>
+                            <td class="table-row-cell" style="font-weight: 700; text-align: right;">₱{{ item.total_sold_amount|floatformat:"2g" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -186,7 +186,7 @@
                         </td>
                         <td class="table-row-cell">{{ tx.date_completed|date:"M d, Y" }}</td>
                         <td class="table-row-cell"><span style="font-size: 0.75rem; font-weight: 700; background: #F1F5F9; padding: 4px 10px; border-radius: 6px;">{{ tx.payment_method|upper }}</span></td>
-                        <td class="table-row-cell" style="text-align: right; font-weight: 800; color: var(--teal-accent);">₱{{ tx.total_amount|floatformat:2 }}</td>
+                        <td class="table-row-cell" style="text-align: right; font-weight: 800; color: var(--teal-accent);">₱{{ tx.total_amount|floatformat:"2g" }}</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="4" class="table-row-cell" style="text-align: center; padding: 30px;">No transactions found.</td></tr>
@@ -268,7 +268,7 @@
                         <td class="table-row-cell" style="font-weight: 700;">{{ ret.return_id }}</td>
                         <td class="table-row-cell">{{ ret.transaction.transaction_ref }}</td>
                         <td class="table-row-cell">{{ ret.created_at|date:"M d, Y" }}</td>
-                        <td class="table-row-cell" style="font-weight: 800; color: #EF4444; text-align: right;">-₱{{ ret.total_refund|floatformat:2 }}</td>
+                        <td class="table-row-cell" style="font-weight: 800; color: #EF4444; text-align: right;">-₱{{ ret.total_refund|floatformat:"2g" }}</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="4" class="table-row-cell" style="text-align: center; padding: 30px;">No returns found.</td></tr>
