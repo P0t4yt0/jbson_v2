@@ -36,8 +36,7 @@ def global_search_api(request):
         # INVENTORY
         add_shortcut("Products", "inventory:inventory_list", "Inventory") # O kaya 'inventory:product_list' kung may namespace
         add_shortcut("Categories", "inventory:category_list", "Inventory")
-        add_shortcut("Purchase Orders", "inventory:po_list", "Inventory")
-        add_shortcut("Create Purchase Order", "inventory:create_po", "Inventory")
+        add_shortcut("Purchase Orders", "inventory:create_po", "Inventory")
         add_shortcut("Generate Barcode", "inventory:generate_barcode_page", "Inventory") # O baka 'inventory:barcode_generate'
 
         # SALES & BILLING

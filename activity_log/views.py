@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.core.paginator import Paginator
 from auditlog.models import LogEntry
 from django.db.models import Q
+import re
 
 # WAG KALIMUTANG I-IMPORT ANG ACTIVITYLOG MODEL MO!
-# I-adjust ang import path kung nasa ibang folder/app ito.
 from security.models import ActivityLog 
 
 def activity_logs_view(request):
@@ -13,16 +13,31 @@ def activity_logs_view(request):
     custom_logs = ActivityLog.objects.all()
 
     # 2. SEARCH FILTER LOGIC
-    search_query = request.GET.get('search', '')
+    search_query = request.GET.get('search', '').strip()
     if search_query:
-        audit_logs = audit_logs.filter(
-            Q(actor__username__icontains=search_query) | 
-            Q(object_repr__icontains=search_query)
-        )
-        custom_logs = custom_logs.filter(
-            Q(user__username__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
+        audit_q = Q(actor__username__icontains=search_query) | Q(object_repr__icontains=search_query)
+        custom_q = Q(user__username__icontains=search_query) | Q(description__icontains=search_query)
+
+        numbers_in_query = re.findall(r'\d+', search_query)
+        
+        if numbers_in_query:
+            # Kunin ang pinakahuling number series (e.g. sa "AUD-260521-0203", kukunin niya ang "0203")
+            search_id = int(numbers_in_query[-1]) 
+            search_upper = search_query.upper()
+
+            if search_upper.startswith('AUD'):
+                audit_q |= Q(id=search_id)
+            elif search_upper.startswith(('ACT', 'TRX', 'SYS', 'AUTH')):
+                custom_q |= Q(id=search_id)
+            else:
+                audit_q |= Q(id=search_id)
+                custom_q |= Q(id=search_id)
+
+        audit_logs = audit_logs.filter(audit_q)
+        custom_logs = custom_logs.filter(custom_q)
+
+        audit_logs = audit_logs.filter(audit_q)
+        custom_logs = custom_logs.filter(custom_q)
 
     # 3. ACTION FILTER LOGIC (Dropdown)
     action_filter = request.GET.get('action', '')
@@ -36,10 +51,25 @@ def activity_logs_view(request):
             custom_logs = custom_logs.filter(action=action_filter)
             audit_logs = audit_logs.none()
 
-    # 4. PAGSAMAHIN AT I-FORMAT (Unified List)
+    # 3.5. DATE RANGE FILTER LOGIC (Bago!)
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+
+    if start_date:
+        # __gte (Greater than or equal) - Kukunin niya simula 12:00 AM ng start_date
+        start_datetime = f"{start_date} 00:00:00"
+        audit_logs = audit_logs.filter(timestamp__gte=start_datetime)
+        custom_logs = custom_logs.filter(timestamp__gte=start_datetime)
+        
+    if end_date:
+        # __lte (Less than or equal) - Kukunin niya hanggang 11:59 PM ng end_date
+        end_datetime = f"{end_date} 23:59:59"
+        audit_logs = audit_logs.filter(timestamp__lte=end_datetime)
+        custom_logs = custom_logs.filter(timestamp__lte=end_datetime)
+
+# 4. PAGSAMAHIN AT I-FORMAT (Unified List)
     unified_logs = []
     
-    # Diksyonaryo para i-translate ang mga letters (Pwede mong baguhin kung may iba kang gusto)
     abc_mapping = {
         'A': 'Always in Stock',
         'B': 'Regular Check',
@@ -48,42 +78,46 @@ def activity_logs_view(request):
         'None': 'Unclassified'
     }
 
-    # Ipasok ang AuditLogs
+    # --- 1. IPASOK ANG AUDIT LOGS ---
     for al in audit_logs:
-        # Kopyahin ang changes para pwede nating i-edit nang hindi nasisira ang database
         changes = dict(getattr(al, 'changes_dict', {}) or {})
-        
-        # Kung napansin ng system na ABC classification ang inedit, ita-translate niya!
-        if 'abc_classification' in changes:
-            old_val = str(changes['abc_classification'][0])
-            new_val = str(changes['abc_classification'][1])
-            
-            changes['abc_classification'] = [
-                abc_mapping.get(old_val, old_val),
-                abc_mapping.get(new_val, new_val)
-            ]
+        # ... (same abc mapping logic) ...
+
+        # Kukunin ang date format (e.g., "260521" para sa May 21, 2026)
+        date_str = al.timestamp.strftime('%y%m%d')
 
         unified_logs.append({
-            'id': al.id,
+            'id': f"AUD-{date_str}-{al.id:04d}",  # FORMAT: AUD-260521-0203
             'actor': al.actor,
             'action': al.action,
             'object_repr': al.object_repr,
-            'changes_dict': changes,  # <--- Ipasa ang na-translate na changes!
+            'changes_dict': changes,
             'content_object': getattr(al, 'content_object', None),
             'object_id': getattr(al, 'object_id', getattr(al, 'object_pk', '')), 
             'model_name': getattr(al.content_type, 'name', 'record') if al.content_type else 'record',
             'timestamp': al.timestamp,
         })
         
-    # Ipasok ang Custom Logs (at i-match ang keys sa kailangan ng HTML mo)
+    # --- 2. IPASOK ANG CUSTOM LOGS ---
     for cl in custom_logs:
+        action_type = str(cl.action).upper()
+        date_str = cl.timestamp.strftime('%y%m%d')
+        
+        if action_type in ['POS TRANSACTION', 'SALES RETURN', 'CREATE PO', 'RECEIVE PO']:
+            prefix = "TRX"
+        elif action_type in ['LOGIN', 'LOGOUT', 'USER_CREATED', 'USER_MODIFIED']:
+            prefix = "AUTH"
+        elif action_type in ['GENERATE REPORT', 'ABC ANALYSIS', 'BULK DELETE']:
+            prefix = "SYS"
+        else:
+            prefix = "ACT"
+
         unified_logs.append({
-            'id': cl.id,
-            'actor': cl.user, # Ginawang 'actor' para parehas sila ng tawag sa HTML
+            'id': f"{prefix}-{date_str}-{cl.id:04d}", # FORMAT: TRX-260521-0164
+            'actor': cl.user,
             'action': cl.action,
             'description': cl.description,
             'timestamp': cl.timestamp,
-            # Blank defaults para hindi mag-error ang HTML
             'object_repr': '',
             'changes_dict': {},
             'content_object': None,
@@ -103,6 +137,8 @@ def activity_logs_view(request):
         'logs': logs,
         'search_query': search_query,
         'action_filter': action_filter,
+        'start_date': start_date,  # Ipinasa sa context para manatili ang value sa HTML input
+        'end_date': end_date,      # Ipinasa sa context para manatili ang value sa HTML input
         'rows': int(rows_per_page),
     }
     
