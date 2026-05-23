@@ -65,7 +65,7 @@
                 {% endif %}
             </td>
             
-            <td style="padding: 15px 20px; font-weight: bold; color: #111;">₱{{ inv.total_amount|floatformat:2 }}</td>
+            <td style="padding: 15px 20px; font-weight: bold; color: #111;">₱{{ inv.total_amount|floatformat:"2g" }}</td>
             
             <td style="padding: 15px 20px;">
                 {% if inv.status|lower == 'paid' %}

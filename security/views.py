@@ -25,7 +25,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Sum, DecimalField, F
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from notifications.models import Notification
@@ -393,8 +393,7 @@ def admin_dashboard(request):
     profit = total_sales - sales_return
 
     # 4. Low Stock Items (10 or below)
-    low_stock_items = InventoryItem.objects.filter(quantity__lte=10).order_by('quantity')[:5]
-
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
     # 6. Default zeros para sa wala pang module
     metrics = {
         'total_sales': total_sales,

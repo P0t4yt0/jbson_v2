@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
+from flask import request
 from inventory.models import InventoryItem, Category, Supplier
 
 def create_product(request, pk=None):
@@ -23,6 +24,12 @@ def create_product(request, pk=None):
         price = request.POST.get('price', 0)
         unit_cost = request.POST.get('unit_cost', 0)
         annual_demand = request.POST.get('annual_demand', 0)
+        
+        # --- NEW ROP FIELDS ---
+        average_daily_sales = float(request.POST.get('average_daily_sales') or 0)
+        max_daily_sales = float(request.POST.get('max_daily_sales') or 0)
+        average_lead_time_days = int(request.POST.get('average_lead_time_days') or 0)
+        max_lead_time_days = int(request.POST.get('max_lead_time_days') or 0)
 
         category = get_object_or_404(Category, id=category_id)
         supplier = Supplier.objects.filter(id=supplier_id).first()
@@ -37,7 +44,14 @@ def create_product(request, pk=None):
             item.price = price
             item.unit_cost = unit_cost
             item.annual_demand = annual_demand
-            item.save() # This updates the existing row
+            
+            # --- UPDATE ROP FIELDS ---
+            item.average_daily_sales = average_daily_sales
+            item.max_daily_sales = max_daily_sales
+            item.average_lead_time_days = average_lead_time_days
+            item.max_lead_time_days = max_lead_time_days
+            
+            item.save() # This updates the existing row (and auto-calculates ROP in models.py!)
         else:
             # --- CREATE LOGIC ---
             InventoryItem.objects.create(
@@ -48,8 +62,14 @@ def create_product(request, pk=None):
                 barcode_id=barcode_id,
                 price=price,
                 unit_cost=unit_cost,
-                annual_demand=annual_demand
-            )
+                annual_demand=annual_demand,
+                
+                # --- CREATE ROP FIELDS ---
+                average_daily_sales=average_daily_sales,
+                max_daily_sales=max_daily_sales,
+                average_lead_time_days=average_lead_time_days,
+                max_lead_time_days=max_lead_time_days
+            ) # Auto-calculates ROP upon creation!
         
         return redirect('inventory:inventory_list')
 

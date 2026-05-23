@@ -59,7 +59,18 @@ class InventoryItem(models.Model):
     unit_cost    = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(Decimal('0.00'))])
     quantity     = models.PositiveIntegerField(default=0)
     annual_demand = models.PositiveIntegerField(default=0)
-    reorder_point = models.PositiveIntegerField(default=10)
+    
+    # --- NEW FIELDS FOR ROP & LEAD TIME COMPUTATION ---
+    average_daily_sales = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Average items sold per day")
+    max_daily_sales = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Highest number of items sold in a single day")
+    average_lead_time_days = models.PositiveIntegerField(default=0, help_text="Average days for supplier to deliver")
+    max_lead_time_days = models.PositiveIntegerField(default=0, help_text="Maximum days it took for a delivery to arrive")
+    
+    # These will be auto-calculated now, so we can make them editable=False (optional, but good for data integrity)
+    safety_stock = models.PositiveIntegerField(default=0, editable=False)
+    reorder_point = models.PositiveIntegerField(default=10) # Overwritten during save()
+    # ---------------------------------------------------
+
     manual_annual_demand = models.PositiveIntegerField(default=0)
     actual_sales_count = models.PositiveIntegerField(default=0)
 
@@ -82,6 +93,7 @@ class InventoryItem(models.Model):
         return self.unit_cost * self.annual_demand
 
     def save(self, *args, **kwargs):
+        # 1. Generate Product ID 
         if not self.product_id:
             prefix = self.category.prefix.upper()
             last_item = InventoryItem.objects.filter(category=self.category).order_by('id').last()
@@ -91,9 +103,50 @@ class InventoryItem(models.Model):
                 numeric_matches = re.findall(r'\d+', last_item.product_id)
                 new_no = int(numeric_matches[-1]) + 1 if numeric_matches else 1
             self.product_id = f"{prefix}{new_no:03d}"
+
+        # 2. ROP & Safety Stock Computation
+        avg_sales = float(self.average_daily_sales or 0)
+        max_sales = float(self.max_daily_sales or 0)
+        avg_lt = float(self.average_lead_time_days or 0)
+        max_lt = float(self.max_lead_time_days or 0)
+        
+        lead_time_demand = avg_sales * avg_lt
+        max_lt_demand = max_sales * max_lt
+        raw_safety_stock = max_lt_demand - lead_time_demand
+        
+        self.safety_stock = int(max(0, round(raw_safety_stock)))
+        self.reorder_point = int(round(lead_time_demand)) + self.safety_stock
+
+        # 3. TRIGGER AUTOMATIC NOTIFICATION
+        # We use apps.get_model to prevent circular import errors in Django
+        from django.apps import apps
+        Notification = apps.get_model('notifications', 'Notification')
+        
+        if int(self.quantity) <= self.reorder_point:            # Check if an UNREAD notification already exists for this item to prevent spam
+            existing_alert = Notification.objects.filter(
+                notification_type='low_stock',
+                source_table='inventory',
+                source_id=str(self.id),
+                is_read=False
+            ).exists()
+            
+            if not existing_alert:
+                # Prioritize alerts based on ABC Classification
+                urgency = 'critical' if self.abc_classification == 'A' else ('high' if self.abc_classification == 'B' else 'medium')
+                
+                Notification.objects.create(
+                    notification_type='low_stock',
+                    priority=urgency,
+                    title=f"Low Stock: {self.item_name}",
+                    message=f"Stock is down to {self.quantity} units (Reorder Point: {self.reorder_point}). Generating a Purchase Order is highly recommended to avoid shortages.",
+                    source_table='inventory',
+                    source_id=str(self.id),
+                    action_url="/inventory/purchase-orders/create/?auto=true"                )
+
         super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.item_name} ({self.category.prefix})"    
+        return f"{self.item_name} ({self.category.prefix})"   
 # I-register ang InventoryItem (para ma-track ang edits sa products/quantity/price)
 auditlog.register(InventoryItem)
 
@@ -123,14 +176,37 @@ class PurchaseOrder(models.Model):
         db_table = 'purchase_orders'
         ordering = ['-order_date']
 
-    def save(self, *args, **kwargs):
-        # Automatically generate a professional PO number
-        if not self.po_number:
-            import uuid
-            self.po_number = f"PO-{uuid.uuid4().hex[:6].upper()}"
+def save(self, *args, **kwargs):
+        # 1. Generate Product ID 
+        if not self.product_id:
+            prefix = self.category.prefix.upper()
+            last_item = InventoryItem.objects.filter(category=self.category).order_by('id').last()
+            if not last_item:
+                new_no = 1
+            else:
+                numeric_matches = re.findall(r'\d+', last_item.product_id)
+                new_no = int(numeric_matches[-1]) + 1 if numeric_matches else 1
+            self.product_id = f"{prefix}{new_no:03d}"
+
+        # 2. ROP & Safety Stock Computation
+        # Kinonvert natin sa float lahat para safe at hindi mag-crash!
+        avg_sales = float(self.average_daily_sales or 0)
+        max_sales = float(self.max_daily_sales or 0)
+        avg_lt = float(self.average_lead_time_days or 0)
+        max_lt = float(self.max_lead_time_days or 0)
+        
+        # Dahil lahat sila ay purong numbers na, pwede na i-multiply:
+        lead_time_demand = avg_sales * avg_lt
+        
+        max_lt_demand = max_sales * max_lt
+        raw_safety_stock = max_lt_demand - lead_time_demand
+        
+        self.safety_stock = int(max(0, round(raw_safety_stock)))
+        self.reorder_point = int(round(lead_time_demand)) + self.safety_stock
+
         super().save(*args, **kwargs)
 
-    def __str__(self):
+def __str__(self):
         return f"{self.po_number} - {self.supplier.name}"
 
 

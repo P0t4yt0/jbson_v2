@@ -30,4 +30,5 @@ urlpatterns = [
     path('suppliers/<int:supplier_id>/unarchive/', views.unarchive_supplier, name='unarchive_supplier'),
     path('purchase-orders/<int:po_id>/edit/', views.edit_po, name='edit_po'),
     path('purchase-orders/<int:po_id>/delete/', views.delete_po, name='delete_po'),
+    path('product/auto-calibrate/', views.auto_calibrate_rop, name='auto_calibrate_rop'),
 ]   

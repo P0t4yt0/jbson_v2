@@ -2,8 +2,7 @@
 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000;">
     
     <!-- Modal Window -->
-    <div style="background: white; width: 600px; border-radius: 15px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;">
-        
+<div style="background: white; width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 15px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;">        
         <form method="POST" action="{% if item.id %}{% url 'inventory:edit_product' item.id %}{% else %}{% url 'product_registration:create_product' %}{% endif %}">
             {% csrf_token %}
             
@@ -83,10 +82,10 @@
                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none;">
             </div>
 
-            <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc;">
-    <p style="font-size: 12px; font-weight: bold; color: #666; margin-bottom: 10px;">📊 Inventory Intelligence (Optional)</p>
+<div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc;">
+    <p style="font-size: 12px; font-weight: bold; color: #666; margin-bottom: 10px;">📊 Inventory Intelligence & Safety Stock (Optional)</p>
     
-    <div style="display: flex; gap: 15px;">
+    <div style="display: flex; gap: 15px; margin-bottom: 10px;">
         <div style="flex: 1;">
             <label style="font-size: 12px;">Unit Cost (₱)</label>
             <input type="number" name="unit_cost" step="0.01" value="{{ item.unit_cost|default:'0.00' }}"                   
@@ -98,11 +97,37 @@
             style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
         </div>
     </div>
-    <p style="font-size: 11px; color: #888; margin-top: 5px;">
-        Tip: Leave as 0 if you want the system to calculate this automatically later.
+
+    <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+        <div style="flex: 1;">
+            <label style="font-size: 12px;">Avg. Daily Sales</label>
+            <input type="number" name="average_daily_sales" step="0.01" value="{{ item.average_daily_sales|default:'0' }}"                   
+            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        </div>
+        <div style="flex: 1;">
+            <label style="font-size: 12px;">Max Daily Sales</label>
+            <input type="number" name="max_daily_sales" step="0.01" value="{{ item.max_daily_sales|default:'0' }}"                   
+            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 15px;">
+        <div style="flex: 1;">
+            <label style="font-size: 12px;">Avg. Lead Time (Days)</label>
+            <input type="number" name="average_lead_time_days" value="{{ item.average_lead_time_days|default:'0' }}"                   
+            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        </div>
+        <div style="flex: 1;">
+            <label style="font-size: 12px;">Max Lead Time (Days)</label>
+            <input type="number" name="max_lead_time_days" value="{{ item.max_lead_time_days|default:'0' }}"                   
+            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        </div>
+    </div>
+
+    <p style="font-size: 11px; color: #888; margin-top: 10px;">
+        Tip: Fill in the Daily Sales and Lead Times so the system can compute your exact Reorder Point and Safety Stock automatically.
     </p>
-</div>
-            
+</div>            
 
             <!-- Footer Buttons -->
             <div style="display: flex; justify-content: flex-end; gap: 10px;">

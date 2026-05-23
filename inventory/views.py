@@ -26,6 +26,7 @@ from inventory.models import InventoryItem, PurchaseOrder
 from billing_payment.models import SalesReturn, Invoice
 from security.models import EmployeeProfile
 from reports_analytics.models import Expense # Assuming you have this based on your migrations!
+from django.db.models import F
 
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
@@ -132,17 +133,22 @@ def edit_product(request, pk):
         item.unit_cost = request.POST.get('unit_cost') or item.unit_cost
         item.annual_demand = request.POST.get('annual_demand') or item.annual_demand
         
+        # --- NEW ROP FIELDS ---
+        item.average_daily_sales = float(request.POST.get('average_daily_sales') or item.average_daily_sales or 0)
+        item.max_daily_sales = float(request.POST.get('max_daily_sales') or item.max_daily_sales or 0)
+        item.average_lead_time_days = int(request.POST.get('average_lead_time_days') or item.average_lead_time_days or 0)
+        item.max_lead_time_days = int(request.POST.get('max_lead_time_days') or item.max_lead_time_days or 0)        # ----------------------
+
         item.save()
         return redirect('inventory:inventory_list')
 
     categories = Category.objects.all()
-    suppliers = Supplier.objects.filter(is_active=True) # <-- Change this back!
+    suppliers = Supplier.objects.filter(is_active=True)
     return render(request, 'product_registration/create_product.html', {
         'item': item,
         'categories': categories,
         'suppliers': suppliers
     })
-
 # SINGLE DELETE VIEW
 def delete_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
@@ -518,17 +524,34 @@ def create_po(request):
                 items_for_supplier = low_stock_items.filter(supplier_id=auto_supplier_id)
 
                 for item in items_for_supplier:
-                    # Dynamic Calc: 2x Reorder point + 10% Lifetime Sales Buffer
-                    sales_buffer = int(item.actual_sales_count * 0.10)
-                    recommended_qty = (item.reorder_point * 2) - item.effective_qty + sales_buffer
+                    # --- NEW SMART ORDER QUANTITY LOGIC ---
+                    avg_sales = float(item.average_daily_sales or 0)
+                    safety_stock = getattr(item, 'safety_stock', 0)
                     
-                    if recommended_qty <= 0: recommended_qty = item.reorder_point
+                    if avg_sales > 0:
+                        # If AI Calibrated: Order enough to last 30 days + keep Safety Stock
+                        target_stock_level = int(round(avg_sales * 30)) + safety_stock
+                    else:
+                        # Fallback if no sales data yet: Just double the ROP
+                        target_stock_level = item.reorder_point * 2
+                        
+                    # Formula: How much we need = Target Stock - (What we currently have + What is already arriving)
+                    recommended_qty = target_stock_level - item.effective_qty
+                    
+                    # Absolute fallback to ensure we don't order 0 or negative numbers
+                    if recommended_qty <= 0: 
+                        recommended_qty = max(item.reorder_point, 1)
+
+                    cost = float(item.unit_cost or 0)
+                    subtotal = recommended_qty * cost
+
 
                     auto_items.append({
                         'id': item.id,
                         'name': item.item_name,
                         'qty': recommended_qty,
-                        'cost': str(item.unit_cost)
+                        'cost': str(item.unit_cost),
+                        'subtotal': f"{subtotal:.2f}" # Dito nakukuha ang subtotal
                     })
 
                 supplier_obj = Supplier.objects.get(id=auto_supplier_id)
@@ -753,3 +776,57 @@ def delete_po(request, po_id):
     else:
         messages.error(request, "You cannot delete a completed delivery.")
     return redirect('inventory:create_po')
+
+def auto_calibrate_rop(request):
+    """
+    Auto-Learning Feature: Scans POS transactions from the last 30 days,
+    computes the real Average and Max Daily Sales, and updates the ROP automatically.
+    """
+    # 1. Kunin ang petsa eksaktong 30 days ago
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    
+    # 2. Kunin lahat ng items sa inventory
+    items = InventoryItem.objects.all()
+    
+    updated_count = 0
+    
+    for item in items:
+        # Kunin lahat ng benta ng specific item na ito from the last 30 days
+        sales = TransactionItem.objects.filter(
+            inventory_item=item,
+            transaction__status__in=['completed', 'paid'],
+            transaction__date_created__gte=thirty_days_ago
+        )
+        
+        # I-group ang sales per day gamit ang dictionary (Para iwas SQLite bug)
+        daily_sales_dict = {}
+        for sale in sales:
+            date_str = sale.transaction.date_created.strftime('%Y-%m-%d')
+            if date_str not in daily_sales_dict:
+                daily_sales_dict[date_str] = 0
+            daily_sales_dict[date_str] += sale.quantity
+            
+        # Kung may benta in the last 30 days, i-compute ang auto-learn data!
+        if daily_sales_dict:
+            total_sales = sum(daily_sales_dict.values())
+            
+            # Average Daily Sales (Total na benta hatiin sa 30 days)
+            item.average_daily_sales = float(total_sales) / 30.0
+            
+            # Max Daily Sales (Pinakamataas na benta sa isang araw)
+            item.max_daily_sales = float(max(daily_sales_dict.values()))
+            
+            # I-save para mag-trigger yung formula sa models.py
+            item.save()
+            updated_count += 1
+            
+    # I-log sa system at magpakita ng success message
+    log_system_activity(
+        user=request.user,
+        action="AUTO CALIBRATE",
+        description=f"System auto-calibrated Reorder Points for {updated_count} active items based on 30-day POS history."
+    )
+    
+    messages.success(request, f"Inventory Intelligence synced! ROP and Safety Stocks for {updated_count} items have been auto-calibrated based on your last 30 days of sales operations.")
+    
+    return redirect('inventory:inventory_list')

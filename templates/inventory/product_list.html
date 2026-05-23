@@ -40,6 +40,10 @@
                <i class="ph ph-chart-bar"></i> Analyze Priority Level
             </a>
 
+            <a href="javascript:void(0)" id="autoCalibrateBtn" style="background: #8B0000; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;">
+                <i class="fas fa-brain"></i> Auto-Calibrate ROP
+            </a>
+
             <!-- SCAN BARCODE BUTTON -->
             <a href="#" id="scan-barcode-btn" style="background: #811112; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
                 <i class="ph ph-barcode"></i> Scan Barcode
@@ -178,6 +182,34 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+    const calibrateBtn = document.getElementById('autoCalibrateBtn');
+    
+    calibrateBtn?.addEventListener('click', function(e) {
+        e.preventDefault(); 
+        
+        Swal.fire({
+            title: 'Initiate Auto-Calibration?',
+            text: 'This action will analyze POS transaction data from the past 30 days to dynamically compute and update the Reorder Points and Safety Stocks for all eligible inventory items. Do you wish to proceed?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#811112', // Pinalitan ko para pumantay sa red theme mo!
+            cancelButtonColor: '#a0aec0',
+            confirmButtonText: 'Yes, proceed'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Calibrating...',
+                    text: 'Please wait while the system analyzes the sales data.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                // Redirect sa backend auto-learn function
+                window.location.href = "{% url 'inventory:auto_calibrate_rop' %}";
+            }
+        });
+    });
     /* ------------------ ABC ANALYSIS LOGIC ------------------ */
     const analyzeBtn = document.getElementById("analyze-priority-btn");
 
@@ -344,37 +376,5 @@ document.addEventListener("DOMContentLoaded", function () {
         <div id="edit-product-modal-content"></div>
     </div>
 </div>
-
-{% if messages %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        {% for message in messages %}
-            
-            let iconType = "info";
-            let titleText = "Notice";
-
-            {% if message.tags == 'error' %}
-                iconType = "error";
-                titleText = "Oops!";
-            {% elif message.tags == 'success' %}
-                iconType = "success";
-                titleText = "Success!";
-            {% elif message.tags == 'warning' %}
-                iconType = "warning";
-                titleText = "Warning";
-            {% endif %}
-
-            Swal.fire({
-                title: titleText,
-                text: "{{ message|escapejs }}",
-                icon: iconType,
-                confirmButtonColor: '#092c4c', // Updated to Navy
-                confirmButtonText: 'OK'
-            });
-
-        {% endfor %}
-    });
-</script>
-{% endif %}
 
 {% endblock %}

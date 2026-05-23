@@ -222,17 +222,33 @@
                                 {% for item in auto_items %}
                                 <tr>
                                     <td>
-                                        <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
-                                            <option value="{{ item.id }}" selected>{{ item.name }}</option>
-                                            {% for p in products %}
-                                                <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}" data-supplier="{{ p.supplier_id|default:'' }}">{{ p.product_id }} - {{ p.item_name }}</option>
-                                            {% endfor %}
-                                        </select>
+                                        <input type="hidden" name="product_id[]" value="{{ item.id }}">
+                                        {{ item.name }}
                                     </td>
-                                    <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="{{ item.qty }}" required oninput="calculateRow(this)"></td>
-                                    <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="{{ item.cost }}" required oninput="calculateRow(this)"></td>
-                                    <td style="text-align: right;"><span class="subtotal-text">₱0.00</span></td>
-                                    <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
+
+                                    <td>
+                                        <input type="number"
+                                            name="quantity[]"
+                                            class="number-input qty-field"
+                                            value="{{ item.qty }}"
+                                            min="1"
+                                            oninput="calculateRow(this)">
+                                    </td>
+
+                                    <td>
+                                        <input type="number"
+                                            name="unit_cost[]"
+                                            class="number-input cost-field"
+                                            value="{{ item.cost }}"
+                                            step="0.01"
+                                            oninput="calculateRow(this)">
+                                    </td>
+
+                                    <td style="text-align: right;">
+                                        <span class="subtotal-text">₱0.00</span>
+                                    </td>
+
+                                    <td></td>
                                 </tr>
                                 {% endfor %}
 
