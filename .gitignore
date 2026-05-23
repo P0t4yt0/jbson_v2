@@ -7,3 +7,10 @@ __pycache__/
 
 # Environment files (optional but common)
 .env
+jbson_pms/__pycache__/urls.cpython-314.pyc
+inventory/__pycache__/views.cpython-314.pyc
+inventory/__pycache__/urls.cpython-314.pyc
+inventory/__pycache__/models.cpython-314.pyc
+activity_log/__pycache__/views.cpython-314.pyc
+maintenance/__pycache__/urls.cpython-314.pyc
+security/__pycache__/urls.cpython-314.pyc

@@ -14,6 +14,7 @@ Handles:
 """
 
 import logging
+import os
 import re # We need this to check password rules
 from urllib import request
 
@@ -29,6 +30,8 @@ from django.db.models import Sum, DecimalField, F
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from notifications.models import Notification
+from django.conf import settings
+from django.db import connection
 
 # IMPORT NG MODELS: Pinagsama na natin ang ActivityLog at EmployeeProfile dito!
 from .models import ActivityLog, EmployeeProfile
@@ -381,9 +384,9 @@ def admin_dashboard(request):
     # 1. Security Check: Admin lang dapat ang makapasok
     if getattr(request.user, "role", "employee") != "admin":
         messages.error(request, "Access denied. Admin privileges required.")
-        return redirect("/dashboard/employee/")
+        return redirect("security:employee_dashboard")
 
-    # 2. Computations (Gross Sales at Sales Return)
+    # 2. COMPUTATIONS
     total_sales = Transaction.objects.filter(status__in=['completed', 'paid']).aggregate(
         total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField())
     )['total']
@@ -392,12 +395,10 @@ def admin_dashboard(request):
         total=Coalesce(Sum('total_refund'), 0, output_field=DecimalField())
     )['total']
 
-    # 3. Profit Computation (Net Sales logic for now)
     profit = total_sales - sales_return
-
-    # 4. Low Stock Items (10 or below)
     low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
-    # 6. Default zeros para sa wala pang module
+
+    # 3. METRICS
     metrics = {
         'total_sales': total_sales,
         'sales_return': sales_return,
@@ -409,14 +410,14 @@ def admin_dashboard(request):
         'payment_return': 0.00,
     }
 
+    # 4. CONTEXT (Safe version: walang error kung walang PasswordReset model)
     context = {
         'metrics': metrics,
         'low_stock_items': low_stock_items,
-        'pending_resets': pending_resets,
-        'pending_reset_count': pending_resets.count(),
+        'pending_resets': [], 
+        'pending_reset_count': 0,
     }
 
-    # Siguraduhing tugma ito sa pangalan ng HTML file mo!
     return render(request, 'dashboard/dashboard.html', context)
 
 @login_required
@@ -482,9 +483,34 @@ def user_management_view(request):
     users = User.objects.all().order_by('-date_created')
     return render(request, 'dashboard/user_management.html', {'users': users})
 
+def get_current_db_size():
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT round(sum(data_length + index_length) / 1024 / 1024, 2) 
+            FROM information_schema.tables 
+            WHERE table_schema = 'jbson_dev';
+        """)
+        result = cursor.fetchone()
+        return result[0] if result and result[0] else 0
 
 def settings_hub_view(request):
-    return render(request, 'dashboard/settings_hub.html')
+    # 1. SCAN LOGIC (Dapat nasa view na nagre-render ng settings_hub.html)
+    report = []
+    with connection.cursor() as cursor:
+        # Check para sa fragmentation
+        cursor.execute("SHOW TABLE STATUS WHERE Data_free > 0")
+        tables = cursor.fetchall()
+        for table in tables:
+            # Ipakita kung lampas 0 MB ang overhead
+            overhead_mb = round(table[11] / 1024 / 1024, 3)
+            if overhead_mb > 0:
+                report.append(f"Table '{table[0]}' has {overhead_mb} MB overhead.")
+
+    # 2. RENDER
+    return render(request, 'dashboard/settings_hub.html', {
+        'report': report,
+        'db_size': get_current_db_size() # yung function mo
+    })
 
 def delete_user(request, user_id):
     # 1. Check permissions

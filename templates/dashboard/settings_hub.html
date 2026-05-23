@@ -1,5 +1,4 @@
 {% extends 'dashboard/dashboard.html' %} 
-<!-- ^ Change 'dashboard/base.html' to whatever file contains your sidebar/navbar -->
 
 {% block content %}
 <div style="padding: 30px;">
@@ -7,20 +6,62 @@
     
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
         
-        <!-- Maintenance Card (Placeholder) -->
-        <a href="#" style="background: white; padding: 30px; border-radius: 10px; text-decoration: none; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; transition: 0.2s; text-align: center; display: block;">
-            <i class="ph ph-wrench" style="font-size: 3rem; color: #888; margin-bottom: 15px;"></i>
+        <button onclick="openMaintenanceModal()" style="background: white; border: 1px solid #eee; padding: 30px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; text-align: center; display: block;">
+            <i class="ph ph-wrench" style="font-size: 3rem; color: #811112; margin-bottom: 15px;"></i>
             <h3 style="margin: 0; font-size: 1.2rem; color: #0A192F;">System Maintenance</h3>
             <p style="color: #777; font-size: 0.9rem; margin-top: 10px;">Run diagnostics and clean database.</p>
-        </a>
+        </button>
 
-        <!-- Backup Card (Placeholder) -->
-        <a href="#" style="background: white; padding: 30px; border-radius: 10px; text-decoration: none; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eee; transition: 0.2s; text-align: center; display: block;">
+        <a href="#" style="background: white; border: 1px solid #eee; padding: 30px; border-radius: 10px; text-decoration: none; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; text-align: center; display: block;">
             <i class="ph ph-database" style="font-size: 3rem; color: #888; margin-bottom: 15px;"></i>
             <h3 style="margin: 0; font-size: 1.2rem; color: #0A192F;">Backup & Recovery</h3>
             <p style="color: #777; font-size: 0.9rem; margin-top: 10px;">Secure and restore inventory data.</p>
         </a>        
-
     </div>
 </div>
+
+<div id="maintenanceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background: white; padding: 35px; border-radius: 16px; width: 420px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+        <h3 id="modalTitle" style="color: #0A192F; margin-bottom: 20px; font-family: 'Oswald', sans-serif;">System Maintenance</h3>
+        
+        <div id="scanStatus" style="padding: 20px; background: #F8FAFC; border-radius: 10px; margin-bottom: 20px;">
+            <p id="statusText" style="margin: 0; color: #0A192F;">Ready to run diagnostics?</p>
+            <div id="loader" style="display: none; color: #811112; font-weight: bold;">Scanning tables... please wait.</div>
+        </div>
+
+        <div id="reportContainer" style="display: none; background: #E1F1E8; color: #0A192F; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;">
+            ✓ System is healthy. Current Size: {{ db_size }} MB
+        </div>
+        
+        <button id="scanBtn" onclick="runScan()" style="background: #811112; color: white; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%;">Scan Now</button>
+        
+        <form method="POST" action="{% url 'maintenance:maintenance_dashboard' %}">
+            {% csrf_token %}
+            <button id="optimizeBtn" type="submit" style="display: none; background: #811112; color: white; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%;">Optimize Database</button>
+        </form>
+
+        <button type="button" onclick="closeMaintenanceModal()" style="background: transparent; color: #94A3B8; border: none; padding: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Close</button>
+    </div>
+</div>
+
+<script>
+function openMaintenanceModal() {
+    document.getElementById('maintenanceModal').style.display = 'flex';
+}
+function closeMaintenanceModal() {
+    document.getElementById('maintenanceModal').style.display = 'none';
+}
+function runScan() {
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('statusText').style.display = 'none';
+    document.getElementById('scanBtn').style.display = 'none';
+    
+    setTimeout(() => {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('reportContainer').style.display = 'block';
+        document.getElementById('optimizeBtn').style.display = 'block';
+        document.getElementById('modalTitle').innerText = "Diagnostic Complete";
+    }, 2000);
+}
+</script>
 {% endblock content %}

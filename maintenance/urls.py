@@ -1,3 +1,9 @@
 from django.urls import path
-app_name = 'maintenance'
-urlpatterns = []
+from . import views
+
+app_name = 'maintenance' 
+
+urlpatterns = [
+
+    path('', views.maintenance_dashboard, name='maintenance_dashboard'),
+]
