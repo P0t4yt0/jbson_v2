@@ -6,18 +6,17 @@
     .logs-card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #e0e0e0; overflow: hidden; }
     
     /* Top Controls (Search & Filters) */
-    .controls-bar { display: flex; justify-content: space-between; padding: 20px; border-bottom: 1px solid #f0f0f0; }
+    .controls-bar { display: flex; justify-content: space-between; padding: 20px; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; gap: 15px; }
     .search-box { position: relative; width: 300px; }
     .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; }
     .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; outline: none; }
-    .filter-group { display: flex; gap: 10px; }
+    .filter-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .filter-select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; color: #555; background: white; cursor: pointer; outline: none; }
 
     /* Table Styling */
     .logs-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .logs-table th { text-align: left; padding: 15px 20px; color: #555; font-weight: 600; background-color: #fcfcfc; border-bottom: 1px solid #e0e0e0; }
-    .logs-table td { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; color: #444; }
-    .logs-table tr:hover { background-color: #f9f9f9; }
+    .logs-table th { text-align: left; padding: 15px 15px; color: #555; font-weight: 600; background-color: #fcfcfc; border-bottom: 1px solid #e0e0e0; }
+    .logs-table td { padding: 15px 15px; border-bottom: 1px solid #f0f0f0; color: #444; }
     .logs-table tr:last-child td { border-bottom: none; }
 
     /* Pagination Footer */
@@ -37,7 +36,7 @@
                 User Management > <span style="color: #333; font-weight: 500;">Activity Logs</span>
             </div>
         </div>
-        <button style="background: white; border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; cursor: pointer; color: #555;" onclick="location.reload();">
+        <button style="background: white; border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; cursor: pointer; color: #555;" onclick="window.location.href='?'" title="Reset Filters">
             <i class="ph ph-arrows-clockwise" style="font-size: 1.2rem;"></i>
         </button>
     </div>
@@ -54,6 +53,14 @@
             </div>
             
             <div class="filter-group">
+                <div style="display: flex; align-items: center; gap: 5px; border-right: 1px solid #ddd; padding-right: 10px; margin-right: 5px;">
+                    <span style="font-size: 0.8rem; color: #777;">From:</span>
+                    <input type="date" name="start_date" class="filter-select" value="{{ start_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
+                    
+                    <span style="font-size: 0.8rem; color: #777; margin-left: 5px;">To:</span>
+                    <input type="date" name="end_date" class="filter-select" value="{{ end_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
+                </div>
+
                 <select name="role" class="filter-select" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
                     <option value="">Filter by Role</option>
                     <option value="Admin" {% if role_filter == 'Admin' %}selected{% endif %}>Admin</option>
@@ -83,7 +90,7 @@
         <table class="logs-table">
             <thead>
                 <tr>
-                    <th>ID <i class="ph ph-arrows-down-up" style="font-size: 0.75rem;"></i></th>
+                    <th>ID </th>
                     <th>User</th>
                     <th>Role</th>
                     <th>Action</th>
@@ -91,114 +98,114 @@
                     <th>Time</th>
                 </tr>
             </thead>
-<tbody>
-    {% for log in logs %}
-    <tr>
-        <td>{{ log.id|stringformat:"03d" }}</td>
-        
-        <td>
-            {% if log.actor %}
-                {{ log.actor.username }}
-            {% else %}
-                <span style="color: #999; font-style: italic;">System</span>
-            {% endif %}
-        </td>
-        
-        <td>
-            {% if log.actor %}
-                {% if log.actor.is_superuser %}Admin{% else %}Employee{% endif %}
-            {% else %}
-                -
-            {% endif %}
-        </td>
-        
-        <td>
-            {% if log.description %}
-                {# 1. KUNG CUSTOM LOG (Login, Logout, Requests) - WALA NANG BADGES, PURE SENTENCE NA LANG #}
-                <span style="font-weight: 500; color: #333;">
-                    {{ log.description }}
-                </span>
-                
-            {% else %}
-                {# 2. KUNG AUDITLOG (Products, Suppliers, Categories, Users) #}
-                
-                <div style="display: flex; align-items: flex-start; gap: 8px;">
-                    {# A. RETAIN THE ADD/EDIT/DELETE BADGES PARA MADALING MAKITA ANG ACTION #}
-                    {% if log.action == 0 or log.action == "0" %}<span style="color: #22C55E; font-weight: bold; background: #e8f7ed; padding: 2px 6px; border-radius: 4px;">ADD</span>
-                    {% elif log.action == 1 or log.action == "1" %}<span style="color: #FACC15; font-weight: bold; background: #fffbe6; padding: 2px 6px; border-radius: 4px;">EDIT</span>
-                    {% elif log.action == 2 or log.action == "2" %}<span style="color: #EF4444; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">DELETE</span>
-                    {% endif %}
-
-                    {# B. SENTENCE FORMAT KUNG ANONG MODEL ANG GINALAW #}
-                    <span style="font-weight: 500; color: #555; margin-top: 2px;">
-                        {% if log.action == 0 or log.action == "0" %}
-                            Added new {{ log.model_name|lower }}: 
-                        {% elif log.action == 1 or log.action == "1" %}
-                            Modified {{ log.model_name|lower }}: 
-                        {% elif log.action == 2 or log.action == "2" %}
-                            Deleted {{ log.model_name|lower }}: 
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="font-size: 0.7rem;">{{ log.id }}</td>
+                    
+                    <td>
+                        {% if log.actor %}
+                            {{ log.actor.username }}
+                        {% else %}
+                            <span style="color: #999; font-style: italic;">System</span>
                         {% endif %}
-                        
-                        {# ACTUAL NA PANGALAN NG ITEM/USER/SUPPLIER #}
-                        <span style="font-weight: 600; color: #111;">
-                            {% if log.action == 2 or log.action == "2" %}
-                                {% if log.object_repr and log.object_repr|stringformat:"s" != "None" and log.object_repr|stringformat:"s" != "" %}
-                                    '{{ log.object_repr }}'
-                                {% else %}
-                                    Item #{{ log.object_id }}
+                    </td>
+                    
+                    <td>
+                        {% if log.actor %}
+                            {% if log.actor.is_superuser %}Admin{% else %}Employee{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        {% if log.description %}
+                            {# 1. KUNG CUSTOM LOG (Login, Logout, Requests) - WALA NANG BADGES, PURE SENTENCE NA LANG #}
+                            <span style="font-weight: 500; color: #333;">
+                                {{ log.description }}
+                            </span>
+                            
+                        {% else %}
+                            {# 2. KUNG AUDITLOG (Products, Suppliers, Categories, Users) #}
+                            
+                            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                {# A. RETAIN THE ADD/EDIT/DELETE BADGES PARA MADALING MAKITA ANG ACTION #}
+                                {% if log.action == 0 or log.action == "0" %}<span style="color: #22C55E; font-weight: bold; background: #e8f7ed; padding: 2px 6px; border-radius: 4px;">ADD</span>
+                                {% elif log.action == 1 or log.action == "1" %}<span style="color: #FACC15; font-weight: bold; background: #fffbe6; padding: 2px 6px; border-radius: 4px;">EDIT</span>
+                                {% elif log.action == 2 or log.action == "2" %}<span style="color: #EF4444; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">DELETE</span>
                                 {% endif %}
-                            {% else %}
-                                {% if log.content_object.item_name %}
-                                    '{{ log.content_object.item_name }}'
-                                {% elif log.content_object.name %}
-                                    '{{ log.content_object.name }}'
-                                {% elif log.changes_dict.item_name %}
-                                    '{{ log.changes_dict.item_name.1 }}'
-                                {% elif "object" in log.object_repr %}
-                                    Item ID: #{{ log.object_id }}
-                                {% else %}
-                                    '{{ log.object_repr }}'
+
+                                {# B. SENTENCE FORMAT KUNG ANONG MODEL ANG GINALAW #}
+                                <span style="font-weight: 500; color: #555; margin-top: 2px;">
+                                    {% if log.action == 0 or log.action == "0" %}
+                                        Added new {{ log.model_name|lower }}: 
+                                    {% elif log.action == 1 or log.action == "1" %}
+                                        Modified {{ log.model_name|lower }}: 
+                                    {% elif log.action == 2 or log.action == "2" %}
+                                        Deleted {{ log.model_name|lower }}: 
+                                    {% endif %}
+                                    
+                                    {# ACTUAL NA PANGALAN NG ITEM/USER/SUPPLIER #}
+                                    <span style="font-weight: 600; color: #111;">
+                                        {% if log.action == 2 or log.action == "2" %}
+                                            {% if log.object_repr and log.object_repr|stringformat:"s" != "None" and log.object_repr|stringformat:"s" != "" %}
+                                                '{{ log.object_repr }}'
+                                            {% else %}
+                                                Item #{{ log.object_id }}
+                                            {% endif %}
+                                        {% else %}
+                                            {% if log.content_object.item_name %}
+                                                '{{ log.content_object.item_name }}'
+                                            {% elif log.content_object.name %}
+                                                '{{ log.content_object.name }}'
+                                            {% elif log.changes_dict.item_name %}
+                                                '{{ log.changes_dict.item_name.1 }}'
+                                            {% elif "object" in log.object_repr %}
+                                                Item ID: #{{ log.object_id }}
+                                            {% else %}
+                                                '{{ log.object_repr }}'
+                                            {% endif %}
+                                        {% endif %}
+                                    </span>
+                                </span>
+                            </div>
+
+                            {# C. DETAILS NG CHANGES (Para sa mga edits/updates) #}
+                            {% if log.action == 1 or log.action == "1" %}
+                                {% if log.changes_dict %}
+                                    <div style="margin-top: 8px; font-size: 0.8rem; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                                        {% for field, values in log.changes_dict.items %}
+                                            {% with old_val=values.0 new_val=values.1 %}
+                                                {% if old_val|slugify != new_val|slugify %}
+                                                    <li style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="font-weight: 600; color: #666; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
+                                                        <span style="color: #EF4444; text-decoration: line-through; background: #fee2e2; padding: 0 4px; border-radius: 2px;">
+                                                            {{ old_val|default:"---" }}
+                                                        </span> 
+                                                        <span style="color: #22C55E; font-weight: bold;">&rarr; {{ new_val|default:"---" }}</span>
+                                                    </li>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             {% endif %}
-                        </span>
-                    </span>
-                </div>
-
-                {# C. DETAILS NG CHANGES (Para sa mga edits/updates) #}
-                {% if log.action == 1 or log.action == "1" %}
-                    {% if log.changes_dict %}
-                        <div style="margin-top: 8px; font-size: 0.8rem; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
-                            {% for field, values in log.changes_dict.items %}
-                                {% with old_val=values.0 new_val=values.1 %}
-                                    {% if old_val|slugify != new_val|slugify %}
-                                        <li style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                                            <span style="font-weight: 600; color: #666; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
-                                            <span style="color: #EF4444; text-decoration: line-through; background: #fee2e2; padding: 0 4px; border-radius: 2px;">
-                                                {{ old_val|default:"---" }}
-                                            </span> 
-                                            <span style="color: #22C55E; font-weight: bold;">&rarr; {{ new_val|default:"---" }}</span>
-                                        </li>
-                                    {% endif %}
-                                {% endwith %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endif %}
-                
-            {% endif %}
-        </td>
-                
-        <td>{{ log.timestamp|date:"m-d-Y" }}</td>
-        <td>{{ log.timestamp|time:"H:i:s" }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="6" style="text-align: center; color: #888; padding: 30px;">
-            No activity logs found.
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
+                            
+                        {% endif %}
+                    </td>
+                            
+                    <td>{{ log.timestamp|date:"m-d-Y" }}</td>
+                    <td>{{ log.timestamp|time:"H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #888; padding: 30px;">
+                        No activity logs found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
 
         <div class="pagination-bar">

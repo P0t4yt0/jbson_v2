@@ -504,6 +504,9 @@
         <a href="{% url 'pos:quotation_list' %}" class="nav-item {% if '/pos/quotations/' in request.path %}active{% endif %}">
             <i class="ph ph-files"></i> Quotations
         </a>      
+        <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
+            <i class="ph ph-truck"></i> Suppliers
+        </a>
 
         <div class="nav-category">Reports and Analytics</div>
         
@@ -537,22 +540,21 @@
             <i class="ph ph-book-open"></i> Annual Report
         </a>
 
-        <div class="nav-category">User Management</div>
-        <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
-            <i class="ph ph-users"></i> Users
-        </a> 
         
-        <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
-            <i class="ph ph-truck"></i> Suppliers
-        </a>
-
-
-        <a href="{% url 'activity_logs' %}" class="nav-item {% if '/activity-logs/' in request.path %}active{% endif %}">
-            <i class="ph ph-clock-counter-clockwise"></i> Activity Logs
-        </a>        
-        <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
+        {% if request.user.role == 'admin' or request.user.is_superuser %}
+        <div class="nav-category">User Management</div>
+            <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
+                <i class="ph ph-users"></i> Users
+            </a> 
+            
+            <a href="{% url 'activity_logs' %}" class="nav-item {% if '/activity-logs/' in request.path %}active{% endif %}">
+                <i class="ph ph-clock-counter-clockwise"></i> Activity Logs
+            </a>
+        {% endif %}     
+        
 
         <div class="nav-category">Settings</div>
+        <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
         <a href="{% url 'settings_hub' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
             <i class="ph ph-gear"></i> General Settings
         </a>
