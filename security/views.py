@@ -74,9 +74,12 @@ def _role_redirect_url(user) -> str:
     """
     Return the appropriate dashboard URL based on the user's role.
     """
+   
     if getattr(user, "role", "employee") == "admin":
         return "/dashboard/admin/"
-    return "/dashboard/employee/"
+    
+    return "/pos/" 
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -416,6 +419,18 @@ def admin_dashboard(request):
 
     # Siguraduhing tugma ito sa pangalan ng HTML file mo!
     return render(request, 'dashboard/dashboard.html', context)
+
+@login_required
+def employee_dashboard(request):
+    """
+    Ito ang sasalo sa mga employees pagka-log in. 
+    Wala nang dashboard na i-re-render, diretso agad sa POS.
+    """
+    
+    if getattr(request.user, "role", "employee") == "admin" or request.user.is_superuser:
+        return redirect('admin_dashboard')
+        
+    return redirect('pos:pos_index')
 
 def user_management_view(request):
     if request.method == "POST":
