@@ -2,127 +2,76 @@
 {% block content %}
 
 <style>
-    /* Premium Container & Typography */
     .po-container { max-width: 1500px; margin: 0 auto; padding: 25px; font-family: 'Inter', 'Segoe UI', sans-serif; color: var(--text-primary); }
-    
     .header-section { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
     .header-section h2 { font-size: 1.75rem; font-weight: 800; margin: 0; color: var(--primary-navy); letter-spacing: -0.5px; }
     .header-section p { color: var(--text-secondary); font-size: 0.95rem; margin: 5px 0 0 0; }
-
-    /* Split Layout Grid */
     .split-layout { display: grid; grid-template-columns: 380px 1fr; gap: 30px; align-items: start; }
-
-    /* Left Column: Order History */
-    .po-list-section { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
+    .po-list-section { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
     .po-list-section h3 { margin-top: 0; font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
-
-    /* Clickable Cards */
     .po-card { display: block; text-decoration: none; border: 1px solid var(--border-color); padding: 18px; border-radius: 10px; margin-bottom: 12px; background: #F8FAFC; transition: all 0.2s ease; position: relative; overflow: hidden; }
-    .po-card:hover { border-color: var(--primary-teal); background: white; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.1); }
-    .po-card.active { border-color: var(--primary-teal); background: white; box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.1); }
+    .po-card:hover { border-color: var(--primary-teal); background: white; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(13,148,136,0.1); }
+    .po-card.active { border-color: var(--primary-teal); background: white; box-shadow: 0 10px 15px -3px rgba(13,148,136,0.1); }
     .po-card.active::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary-teal); }
-
-    /* Status Badges */
     .status-badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
     .status-draft { background: #F1F5F9; color: #64748B; }
     .status-pending { background: #FEF3C7; color: #D97706; }
     .status-received { background: #D1FAE5; color: #059669; }
-
-    /* Right Column: The Form */
-    .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color); margin-bottom: 25px; }
-    .card-title { display: block; font-weight: 800; font-size: 1.1rem; color: var(--primary-navy); margin-bottom: 20px; border-bottom: 2px solid #F1F5F9; padding-bottom: 10px; }
-
-    /* Form Inputs */
+    .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 25px; }
     .form-row { display: flex; gap: 25px; margin-bottom: 15px; }
     .form-group { flex: 1; }
     .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
     .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; color: var(--text-primary); transition: all 0.2s; background: #F8FAFC; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--primary-teal); background: white; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); outline: none; }
-    .form-group input:disabled, .form-group select:disabled { 
-        background: #F8FAFC; color: #1E293B; cursor: default; border-color: #E2E8F0; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; 
-    }
-    /* Sleek Table */
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary-teal); background: white; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); outline: none; }
+    .form-group input:disabled, .form-group select:disabled { background: #F8FAFC; color: #1E293B; cursor: default; border-color: #E2E8F0; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; }
     th { text-align: left; padding: 12px 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E2E8F0; }
     td { padding: 12px 15px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-
-    /* Table Inputs */
     .item-input { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; transition: 0.2s; }
     .item-input:focus { border-color: var(--primary-teal); }
-    .item-input:disabled { 
-        background: transparent; color: #1E293B; border-color: transparent; font-weight: 600; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; appearance: none; -moz-appearance: none; -webkit-appearance: none; 
-    }    
+    .item-input:disabled { background: transparent; color: #1E293B; border-color: transparent; font-weight: 600; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; appearance: none; -moz-appearance: none; -webkit-appearance: none; }
     .number-input { width: 100px; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; text-align: right; transition: 0.2s; font-family: monospace; }
     .number-input:focus { border-color: var(--primary-teal); }
-    .number-input:disabled { 
-            background: transparent; color: #1E293B; border-color: transparent; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; 
-    }
+    .number-input:disabled { background: transparent; color: #1E293B; border-color: transparent; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; }
     .subtotal-text { font-weight: 700; color: var(--primary-navy); font-size: 14px; font-family: monospace; }
-
-    /* Action Buttons */
     .btn-add { background: #F8FAFC; color: var(--primary-navy); padding: 12px 20px; border-radius: 8px; border: 1px dashed #CBD5E1; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; width: 100%; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-add:hover { background: #F1F5F9; border-color: var(--primary-navy); }
-
     .btn-remove { background: white; color: #EF4444; border: 1px solid #FCA5A5; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
     .btn-remove:hover { background: #FEF2F2; border-color: #EF4444; }
-
-    /* Totals Box */
-    .grand-total-box { background: linear-gradient(135deg, #F8FAFC 0%, white 100%); padding: 25px; border-radius: 12px; border: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; margin-top: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
-    .grand-total-label { font-weight: 700; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .grand-total-box { background: linear-gradient(135deg, #F8FAFC 0%, white 100%); padding: 25px; border-radius: 12px; border: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; margin-top: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
     .grand-total-text { font-size: 28px; font-weight: 800; color: var(--primary-teal); margin: 0; font-family: monospace; letter-spacing: -1px; }
-
-    /* Unified Action Button System */
     .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 20px; }
     .action-group-right { display: flex; gap: 15px; align-items: center; }
-
     .btn-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; font-family: inherit; box-sizing: border-box; height: 48px; }
-    
-    .btn-teal { background: var(--primary-teal); color: #0F766E; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2); }
-    .btn-teal:hover { background: #0F766E; color: white; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3); }
-
-    .btn-green { background: #10B981; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
-    .btn-green:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
-    
-    .btn-navy { background: var(--primary-navy); color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2); }
-    .btn-navy:hover { background: #1E3A8A; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(30, 58, 138, 0.3); }
-
+    .btn-teal { background: var(--primary-teal); color: #0F766E; box-shadow: 0 4px 12px rgba(13,148,136,0.2); }
+    .btn-teal:hover { background: #0F766E; color: white; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(13,148,136,0.3); }
+    .btn-green { background: #10B981; color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+    .btn-green:hover { background: #059669; transform: translateY(-2px); }
+    .btn-navy { background: var(--primary-navy); color: white; box-shadow: 0 4px 12px rgba(30,58,138,0.2); }
+    .btn-navy:hover { background: #1E3A8A; transform: translateY(-2px); }
     .btn-outline-red { background: white; color: #EF4444; border: 1px solid #FCA5A5; }
     .btn-outline-red:hover { background: #FEF2F2; border-color: #EF4444; }
-    
-    /* Top Action Buttons */
-    .action-group { display: flex; gap: 12px; }
-    .action-btn { padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
-    .action-btn.primary { background: var(--primary-navy); color: white; box-shadow: 0 4px 10px rgba(30, 58, 138, 0.15); }
-    .action-btn.primary:hover { background: #1E3A8A; transform: translateY(-1px); }
-    .action-btn.secondary { background: white; color: var(--text-primary); border: 1px solid #CBD5E1; }
-    .action-btn.secondary:hover { background: #F8FAFC; border-color: var(--primary-navy); }
 </style>
 
 <div class="po-container">
     <div class="header-section" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Purchase Order Hub</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
-                Manage existing orders or draft a new one.
-            </p>
+            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">Manage existing orders or draft a new one.</p>
         </div>
         <div style="display: flex; gap: 12px; align-items: center;">
-            
-            <a href="{% url 'inventory:create_po' %}?auto=true" class="btn" style="background: var(--primary-teal); color: #059669; padding: 10px 20px; border-radius: 8px; text-decoration: none; position: relative; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid #CBD5E1;  transition: 0.2s;">
+            <a href="{% url 'inventory:create_po' %}?auto=true" class="btn" style="background: var(--primary-teal); color: #059669; padding: 10px 20px; border-radius: 8px; text-decoration: none; position: relative; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid #CBD5E1; transition: 0.2s;">
                 <i class="ph ph-magic-wand"></i> Auto-Draft
-                
                 {% if pending_draft_count > 0 %}
-                    <span style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; font-size: 11px; font-weight: 800; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4); border: 2px solid white;">
+                    <span style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; font-size: 11px; font-weight: 800; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 6px rgba(239,68,68,0.4); border: 2px solid white;">
                         {{ pending_draft_count }}
                     </span>
                 {% endif %}
             </a>
-
             <a href="{% url 'inventory:create_po' %}" class="btn" style="background: white; color: var(--text-primary); border: 1px solid #CBD5E1; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
                 <i class="ph ph-plus"></i> Manual
             </a>
-            
         </div>
     </div>
 
@@ -130,7 +79,6 @@
 
         <div class="po-list-section">
             <h3 style="margin-top: 0; font-size: 16px; color: #1A365D; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 15px;">Order History</h3>
-
             {% for po in purchase_orders %}
             <a href="{% url 'inventory:edit_po' po.id %}" class="po-card {% if target_po and target_po.id == po.id %}active{% endif %}">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
@@ -159,7 +107,7 @@
                             <select name="supplier" id="supplier-select" required onchange="refreshProductOptions()" {% if target_po and target_po.status != 'draft' %}disabled{% endif %}>
                                 <option value="">-- Choose a Supplier --</option>
                                 {% for s in suppliers %}
-                                    <option value="{{ s.id }}" 
+                                    <option value="{{ s.id }}"
                                         {% if edit_mode and target_po.supplier.id == s.id %}selected{% endif %}
                                         {% if auto_supplier_id == s.id %}selected{% endif %}>
                                         {{ s.name }}
@@ -169,16 +117,18 @@
                         </div>
                         <div class="form-group">
                             <label>Expected Delivery Date</label>
-                            <input type="date" name="expected_delivery" value="{% if edit_mode %}{{ formatted_date }}{% else %}{{ fallback_date_str }}{% endif %}" {% if target_po and target_po.status != 'draft' %}disabled{% endif %}>
+                            <input type="date" name="expected_delivery"
+                                value="{% if edit_mode %}{{ formatted_date }}{% else %}{{ fallback_date_str }}{% endif %}"
+                                {% if target_po and target_po.status != 'draft' %}disabled{% endif %}>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
                     <label style="display: block; font-weight: 800; font-size: 16px; color: #1A365D; margin-bottom: 10px;">
-                        Order Items 
-                        {% if target_po and target_po.status != 'draft' %} 
-                            <span style="color: #E53E3E; font-size: 12px;">(Read Only - Order is {{ target_po.status|title }})</span> 
+                        Order Items
+                        {% if target_po and target_po.status != 'draft' %}
+                            <span style="color: #E53E3E; font-size: 12px;">(Read Only - Order is {{ target_po.status|title }})</span>
                         {% endif %}
                     </label>
 
@@ -193,16 +143,27 @@
                             </tr>
                         </thead>
                         <tbody id="po-body">
-                            
+
                             {% if edit_mode %}
                                 {% for item in target_po.items.all %}
                                 <tr>
                                     <td>
                                         <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)" {% if target_po.status != 'draft' %}disabled{% endif %}>
-                                            <option value="{{ item.product.id }}" selected>{{ item.product.item_name }}</option>
+                                            <option value="{{ item.product.id }}"
+                                                    data-cost="{{ item.unit_cost }}"
+                                                    data-supplier="{{ target_po.supplier.id }}"
+                                                    selected>
+                                                {{ item.product.item_name }}
+                                            </option>
                                             {% if target_po.status == 'draft' %}
                                                 {% for p in products %}
-                                                    <option value="{{ p.id }}" data-cost="{{ p.unit_cost }}" data-supplier="{{ p.supplier_id|default:'' }}">{{ p.product_id }} - {{ p.item_name }}</option>
+                                                    {% if p.id != item.product.id %}
+                                                    <option value="{{ p.id }}"
+                                                            data-cost="{{ p.unit_cost }}"
+                                                            data-supplier="{{ p.supplier_id|default:'' }}">
+                                                        {{ p.product_id }} - {{ p.item_name }}
+                                                    </option>
+                                                    {% endif %}
                                                 {% endfor %}
                                             {% endif %}
                                         </select>
@@ -222,33 +183,28 @@
                                 {% for item in auto_items %}
                                 <tr>
                                     <td>
-                                        <input type="hidden" name="product_id[]" value="{{ item.id }}">
-                                        {{ item.name }}
+                                        <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
+                                            <option value="{{ item.id }}"
+                                                    data-cost="{{ item.cost }}"
+                                                    data-supplier="{{ auto_supplier_id }}"
+                                                    selected>
+                                                {{ item.name }}
+                                            </option>
+                                            {% for p in products %}
+                                                {% if p.id != item.id %}
+                                                <option value="{{ p.id }}"
+                                                        data-cost="{{ p.unit_cost }}"
+                                                        data-supplier="{{ p.supplier_id|default:'' }}">
+                                                    {{ p.product_id }} - {{ p.item_name }}
+                                                </option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
                                     </td>
-
-                                    <td>
-                                        <input type="number"
-                                            name="quantity[]"
-                                            class="number-input qty-field"
-                                            value="{{ item.qty }}"
-                                            min="1"
-                                            oninput="calculateRow(this)">
-                                    </td>
-
-                                    <td>
-                                        <input type="number"
-                                            name="unit_cost[]"
-                                            class="number-input cost-field"
-                                            value="{{ item.cost }}"
-                                            step="0.01"
-                                            oninput="calculateRow(this)">
-                                    </td>
-
-                                    <td style="text-align: right;">
-                                        <span class="subtotal-text">₱0.00</span>
-                                    </td>
-
-                                    <td></td>
+                                    <td><input type="number" name="quantity[]" class="number-input qty-field" min="1" value="{{ item.qty }}" required oninput="calculateRow(this)"></td>
+                                    <td><input type="number" name="unit_cost[]" class="number-input cost-field" step="0.01" value="{{ item.cost }}" required oninput="calculateRow(this)"></td>
+                                    <td style="text-align: right;"><span class="subtotal-text">₱0.00</span></td>
+                                    <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
                                 </tr>
                                 {% endfor %}
 
@@ -257,8 +213,12 @@
                                     <td>
                                         <select name="product_id[]" class="item-input" required onchange="autoFillCost(this)">
                                             <option value="">Select Item...</option>
-                                            {% for item in products %}
-                                                <option value="{{ item.id }}" data-cost="{{ item.unit_cost }}" data-supplier="{{ item.supplier_id|default:'' }}">{{ item.product_id }} - {{ item.item_name }}</option>
+                                            {% for p in products %}
+                                            <option value="{{ p.id }}"
+                                                    data-cost="{{ p.unit_cost }}"
+                                                    data-supplier="{{ p.supplier_id|default:'' }}">
+                                                {{ p.product_id }} - {{ p.item_name }}
+                                            </option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -294,7 +254,6 @@
                             </a>
                         {% endif %}
                     </div>
-                    
                     <div class="action-group-right">
                         {% if edit_mode %}
                             {% if target_po.status == 'draft' %}
@@ -337,43 +296,31 @@
         const supplierSelect = document.getElementById('supplier-select');
         const selectedSupplierId = supplierSelect ? supplierSelect.value : '';
         const allProductSelects = document.querySelectorAll('select[name="product_id[]"]');
-        
-        // 1. Find all currently chosen products to prevent duplicates
+
         const chosenProducts = [];
         allProductSelects.forEach(select => {
             if (select.value) chosenProducts.push(select.value);
         });
 
-        // 2. Filter every product dropdown
         allProductSelects.forEach(select => {
             const currentSelectedValue = select.value;
-            
             Array.from(select.options).forEach(option => {
-                if (option.value === "") return; // Skip placeholder
-                
+                if (option.value === "") return;
                 const optSupplier = option.getAttribute('data-supplier');
-                
-                // Rule A: Must match the selected supplier (if one is chosen)
-                const matchesSupplier = (selectedSupplierId === '') || (optSupplier === selectedSupplierId);
-                
-                // Rule B: Must NOT be selected in another row
+                const matchesSupplier = (selectedSupplierId === '') || (String(optSupplier) === String(selectedSupplierId));
                 const isDuplicate = chosenProducts.includes(option.value) && option.value !== currentSelectedValue;
-                
-                // Apply rules
                 if (matchesSupplier && !isDuplicate) {
                     option.disabled = false;
-                    option.style.display = 'block'; 
+                    option.style.display = 'block';
                 } else {
                     option.disabled = true;
                     option.style.display = 'none';
                 }
             });
-            
-            // 3. Safety Clear: If they change the main supplier, and the currently selected item in this row belongs to the OLD supplier, clear it out!
             const selectedOption = select.options[select.selectedIndex];
             if (selectedOption && selectedOption.disabled) {
-                select.value = ""; 
-                autoFillCost(select); 
+                select.value = "";
+                autoFillCost(select);
             }
         });
     }
@@ -396,14 +343,14 @@
             <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
         `;
         tbody.appendChild(tr);
-        refreshProductOptions(); // Filter the new dropdown instantly!
+        refreshProductOptions();
     }
 
     function removeRow(btn) {
-        if(document.querySelectorAll('#po-body tr').length > 1) {
+        if (document.querySelectorAll('#po-body tr').length > 1) {
             btn.closest('tr').remove();
             calculateGrandTotal();
-            refreshProductOptions(); // Free up the deleted item so it can be picked again!
+            refreshProductOptions();
         }
     }
 
@@ -412,25 +359,16 @@
         const costInput = row.querySelector('.cost-field');
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const cost = selectedOption ? selectedOption.getAttribute('data-cost') : null;
-
-        if(cost) {
-            costInput.value = parseFloat(cost).toFixed(2);
-        } else {
-            costInput.value = "0.00"; // Reset cost if cleared
-        }
-        
+        costInput.value = cost ? parseFloat(cost).toFixed(2) : "0.00";
         calculateRow(costInput);
-        refreshProductOptions(); // Re-run duplicate check
+        refreshProductOptions();
     }
 
     function calculateRow(element) {
         const row = element.closest('tr');
         const qty = parseFloat(row.querySelector('.qty-field').value) || 0;
         const cost = parseFloat(row.querySelector('.cost-field').value) || 0;
-
-        const subtotal = qty * cost;
-        row.querySelector('.subtotal-text').innerText = "₱" + subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
+        row.querySelector('.subtotal-text').innerText = "₱" + (qty * cost).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         calculateGrandTotal();
     }
 
@@ -441,38 +379,31 @@
             const cost = parseFloat(row.querySelector('.cost-field').value) || 0;
             grandTotal += (qty * cost);
         });
-
         document.getElementById('grand-total').innerText = "₱" + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 
     function triggerSweetAlert(event, url, titleText, messageText) {
-        event.preventDefault(); 
+        event.preventDefault();
         Swal.fire({
             title: titleText,
             text: messageText,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#EF4444', 
-            cancelButtonColor: '#94A3B8', 
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#94A3B8',
             confirmButtonText: 'Yes, proceed',
             cancelButtonText: 'No, keep it',
-            reverseButtons: true 
+            reverseButtons: true
         }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = url;
-            }
+            if (result.isConfirmed) window.location.href = url;
         });
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll('.qty-field').forEach(function(input) {
-            if(input.value > 0) {
-                calculateRow(input);
-            }
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.qty-field').forEach(function (input) {
+            if (input.value > 0) calculateRow(input);
         });
-        
-        // Run the filter immediately on page load to set up the drafts perfectly!
-        refreshProductOptions(); 
+        refreshProductOptions();
     });
 </script>
 

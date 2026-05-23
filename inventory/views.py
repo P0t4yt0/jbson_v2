@@ -506,11 +506,16 @@ def create_po(request):
         # THE FIX: Exclude items that do not have a supplier assigned
         low_stock_items = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
             incoming_qty=Coalesce(
-                Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
+                Sum(
+                    'purchaseorderitem__quantity_ordered',
+                    filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
+                ),
+                0
             )
         ).annotate(
             effective_qty=F('quantity') + F('incoming_qty')
         ).filter(effective_qty__lte=F('reorder_point'))
+
 
         if low_stock_items.exists():
 
@@ -577,12 +582,17 @@ def create_po(request):
 
     # THE FIX: Exclude items that do not have a supplier assigned here as well
     pending_draft_count = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
-        incoming_qty=Coalesce(
-            Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
-        )
-    ).annotate(
-        effective_qty=F('quantity') + F('incoming_qty')
-    ).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
+    incoming_qty=Coalesce(
+        Sum(
+            'purchaseorderitem__quantity_ordered',
+            filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
+        ),
+        0
+    )
+).annotate(
+    effective_qty=F('quantity') + F('incoming_qty')
+).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
+
 
 
     return render(request, 'inventory/create_po.html', {
@@ -759,13 +769,19 @@ def edit_po(request, po_id):
     formatted_date = target_po.expected_delivery.strftime('%Y-%m-%d') if target_po.expected_delivery else ''
 
     # Calculate how many unique suppliers currently have low stock (ignoring pending orders)
-    pending_draft_count = InventoryItem.objects.annotate(
-        incoming_qty=Coalesce(
-            Sum('purchaseorderitem__quantity_ordered', filter=Q(purchaseorderitem__purchase_order__status='pending')), 0
-        )
-    ).annotate(
-        effective_qty=F('quantity') + F('incoming_qty')
-    ).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
+    pending_draft_count = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
+    incoming_qty=Coalesce(
+        Sum(
+            'purchaseorderitem__quantity_ordered',
+            filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
+        ),
+        0
+    )
+).annotate(
+    effective_qty=F('quantity') + F('incoming_qty')
+).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
+
+
 
     return render(request, 'inventory/create_po.html', {
         'purchase_orders': purchase_orders,
