@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
-from flask import request
 from inventory.models import InventoryItem, Category, Supplier
 
 def create_product(request, pk=None):

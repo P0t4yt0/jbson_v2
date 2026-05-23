@@ -158,23 +158,36 @@ auditlog.register(Supplier)
 
 class PurchaseOrder(models.Model):
     STATUS_CHOICES = (
-        ('draft', 'Draft'),                     # Creating the list
-        ('pending', 'Pending Delivery'),        # Sent to supplier, waiting
-        ('received', 'Received / Completed'),   # Items arrived and stocked!
+        ('draft', 'Draft'),
+        ('pending', 'Pending Delivery'),
+        ('received', 'Received / Completed'),
         ('cancelled', 'Cancelled'),
     )
-    
+
     po_number = models.CharField(max_length=50, unique=True, blank=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.RESTRICT, related_name='purchase_orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-    
     order_date = models.DateTimeField(default=timezone.now)
     expected_delivery = models.DateField(blank=True, null=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    
+
     class Meta:
         db_table = 'purchase_orders'
         ordering = ['-order_date']
+
+    def save(self, *args, **kwargs):
+        if not self.po_number:
+            today = timezone.now().strftime('%Y%m%d')
+            last = PurchaseOrder.objects.filter(
+                po_number__startswith=f'PO-{today}'
+            ).order_by('id').last()
+            seq = (int(last.po_number.split('-')[-1]) + 1) if last else 1
+            self.po_number = f'PO-{today}-{seq:03d}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.po_number} - {self.supplier.name}"
+
 
 def save(self, *args, **kwargs):
         # 1. Generate Product ID 

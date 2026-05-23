@@ -493,9 +493,6 @@ def create_po(request):
             messages.success(request, f"Purchase Order {po.po_number} officially generated!")
             return redirect('inventory:create_po')
 
-        messages.success(request, f"Purchase Order {po.po_number} successfully created for {supplier.name}!")
-        return redirect('inventory:create_po')
-
     # --- GET REQUEST: LOAD FORM OR AUTO-FILL DRAFT ---
     suppliers = Supplier.objects.filter(is_active=True)
     products = InventoryItem.objects.all().order_by('item_name')
@@ -516,11 +513,25 @@ def create_po(request):
         ).filter(effective_qty__lte=F('reorder_point'))
 
         if low_stock_items.exists():
+
+                # Check for an existing draft for this supplier first
+            existing_draft = PurchaseOrder.objects.filter(
+                supplier_id=auto_supplier_id,
+                status='draft'
+            ).first()
+            if existing_draft:
+                return redirect('inventory:edit_po', po_id=existing_draft.id)
+
             # Find the single supplier with the MOST critical low-stock items
             top_supplier = low_stock_items.values('supplier').annotate(c=Count('id')).order_by('-c').first()
 
             if top_supplier and top_supplier['supplier']:
                 auto_supplier_id = int(top_supplier['supplier'])
+                existing_draft = PurchaseOrder.objects.filter(
+                    supplier_id=auto_supplier_id, status='draft'
+                ).first()
+                if existing_draft:
+                    return redirect('inventory:edit_po', po_id=existing_draft.id)
                 items_for_supplier = low_stock_items.filter(supplier_id=auto_supplier_id)
 
                 for item in items_for_supplier:
