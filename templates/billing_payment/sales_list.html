@@ -1,197 +1,334 @@
 {% extends 'dashboard/dashboard.html' %} 
 {% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
 <style>
-    .sales-wrapper {
+    .table-container {
         background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.5);
         border-radius: 12px;
-        padding: 24px;
+        padding: 30px; 
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
+    
     .table-clean {
         width: 100%;
         border-collapse: collapse;
     }
     .table-clean th, .table-clean td {
-        padding: 12px 14px; /* Binawasan natin ang espasyo para mas siksik nang kaunti */
+        padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid #edf2f7;
         color: #4a5568;
-        font-size: 0.9rem; /* Pinababa natin ang font size ng buong table */
+        font-size: 0.9rem; 
+        vertical-align: middle;
     }
     .table-clean th {
-        font-weight: 600;
-        color: #2d3748;
-        font-size: 0.85rem; /* Mas maliit nang kaunti ang header para umangat yung mismong data */
-        text-transform: uppercase; /* Pampaganda ng hierarchy */
+        font-weight: 700;
+        color: #64748b; 
+        font-size: 0.8rem; 
+        text-transform: uppercase; 
         letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0; 
     }
     .badge {
         padding: 6px 14px;
         border-radius: 20px;
         font-size: 0.75rem;
-        font-weight: 600;
+        font-weight: 700;
         display: inline-block;
+        letter-spacing: 0.05em;
     }
     .bg-sage-green {
-        background-color: #e2f0e9;
-        color: #4b8f73;
+        background-color: #f0fdf4; 
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
     }
     .bg-soft-lavender {
-        background-color: #f3e8ff;
-        color: #8b5cf6;
+        background-color: #fff7ed; 
+        color: #dd6b20;
+        border: 1px solid #feebc8;
     }
-    .action-btn {
+    
+    .action-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .table-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
         text-decoration: none;
-        font-size: 0.8rem;
-        margin-right: 12px;
-        color: #718096;
-        transition: color 0.2s ease;
+        font-size: 1.1rem;
+        transition: all 0.2s ease;
     }
-    .action-btn:hover {
-        color: #2b6cb0;
+    .table-action-btn:hover {
+        background-color: #edf2f7;
+        transform: translateY(-2px);
     }
-    .invoice-link {
-        color: #8b5cf6;
+    
+    .btn-view:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
+    .btn-print:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
+    
+    .btn-settle {
+        color: #e07300;
+        background-color: #fffaf0;
+        border-color: #feebc8;
+    }
+    .btn-settle:hover {
+        background-color: #e07300;
+        color: white;
+        border-color: #e07300;
+    }
+    
+    .table-action-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .table-action-btn.disabled:hover {
+        transform: none;
+        background-color: #f8fafc;
+        color: #64748b;
+        border-color: #e2e8f0;
+    }
+
+    /* BAGONG PAGINATION STYLES */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #edf2f7;
+    }
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        border-radius: 6px;
+        color: #475569;
+        text-decoration: none;
+        font-size: 0.85rem;
         font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .page-btn:hover {
+        border-color: #092c4c;
+        color: #092c4c;
+        background-color: #f8fafc;
+    }
+    .page-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    .page-info {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
     }
 </style>
 
-<div class="sales-wrapper">
-    <h3 style="margin-bottom: 20px; color: #2d3748;">Sales & Transactions</h3>
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
     
-    <table class="table-clean">
-        <thead>
-            <tr>
-                <th>Reference No.</th>
-                <th>Date Completed</th>
-                <th>Customer</th>
-                <th>Cashier</th>
-                <th>Total</th>
-                <th>Method</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for txn in transactions %}
-            <tr>
-                <td><strong>{{ txn.transaction_ref|default:txn.id }}</strong></td>
-                <td>{{ txn.date_completed|date:"M d, Y - h:i A" }}</td>
-                
-                <td>
-                    {% if txn.customer %}
-                        {{ txn.customer.name }}
-                    {% else %}
-                        <span style="color: #a0aec0; font-style: italic;">Guest</span>
-                    {% endif %}
-                </td>
-                
-                <td>{{ txn.processed_by.username|default:"N/A" }}</td>
-                <td>₱{{ txn.total_amount }}</td>
-                <td style="text-transform: capitalize;">{{ txn.payment_method }}</td>
-                
-                <td>
-                    {% if txn.status == 'completed' %}
-                        <span class="badge bg-sage-green">PAID</span>
-                    {% elif txn.status == 'credit' %}
-                        <span class="badge bg-soft-lavender">INVOICED</span>
-                    {% endif %}
-                </td>
-                
-                <td>
-                    <a href="#" data-url="{% url 'billing:api_sale_details' txn.id %}" onclick="openModal(this.getAttribute('data-url')); return false;" class="action-btn"> View Details</a>                    
-                    {% if txn.status == 'completed' %}
-                        <a href="{% url 'pos:reprint_receipt' txn.id %}" target="_blank" class="action-btn">Receipt</a>
-                        
-                    {% elif txn.status == 'credit' %}
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Sales & Transactions</h2>
+            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+                View and manage all completed sales, customer invoices, and payment histories.
+            </p>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Reference No.</th>
+                    <th>Date Completed</th>
+                    <th>Customer</th>
+                    <th>Cashier</th>
+                    <th>Total</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in transactions %}
+                <tr>
+                    <td><strong style="color: #092c4c; font-weight: 700;">{{ txn.transaction_ref|default:txn.id }}</strong></td>
+                    <td style="color: #64748b;">{{ txn.date_completed|date:"M d, Y - h:i A" }}</td>
+                    
+                    <td style="font-weight: 500; color: #334155;">
                         {% if txn.customer %}
-                            <a href="{% url 'billing:customer_ledger' pk=txn.customer.id %}" class="action-btn invoice-link">Settle Invoice</a>
+                            {{ txn.customer.name }}
                         {% else %}
-                            <span class="action-btn" style="color: #a0aec0; cursor: not-allowed;">No Customer</span>
+                            <span style="color: #94a3b8; font-style: italic; font-weight: 400;">Guest</span>
                         {% endif %}
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8" style="text-align: center; padding: 20px;">No transactions yet.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<div id="detailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-    <div style="background:#fff; width:450px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); overflow:hidden; font-family: sans-serif;">
+                    </td>
+                    
+                    <td>{{ txn.processed_by.username|default:"N/A" }}</td>
+                    <td style="font-weight: 800; color: #092c4c;">₱{{ txn.total_amount }}</td>
+                    <td style="text-transform: capitalize; color: #64748b;">{{ txn.payment_method }}</td>
+                    
+                    <td>
+                        {% if txn.status == 'completed' %}
+                            <span class="badge bg-sage-green">PAID</span>
+                        {% elif txn.status == 'credit' %}
+                            <span class="badge bg-soft-lavender">INVOICED</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        <div class="action-group">
+                            <a href="#" data-url="{% url 'billing:api_sale_details' txn.id %}" onclick="openModal(this.getAttribute('data-url')); return false;" class="table-action-btn btn-view" title="View Details">
+                                <i class="ph ph-eye"></i>
+                            </a>                    
+                            
+                            {% if txn.status == 'completed' %}
+                                <a href="{% url 'pos:reprint_receipt' txn.id %}" target="_blank" class="table-action-btn btn-print" title="Print Receipt">
+                                    <i class="ph ph-printer"></i>
+                                </a>
+                                
+                            {% elif txn.status == 'credit' %}
+                                {% if txn.customer %}
+                                    <a href="{% url 'billing:customer_ledger' pk=txn.customer.id %}" class="table-action-btn btn-settle" title="Settle Invoice">
+                                        <i class="ph ph-hand-coins"></i>
+                                    </a>
+                                {% else %}
+                                    <span class="table-action-btn disabled" title="No Customer Assigned">
+                                        <i class="ph ph-hand-coins"></i>
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No transactions found in the system.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px; background: white; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0;">
+    <div style="color: #4a5568; font-size: 0.9rem;">
+        Row Per Page 
+        <select style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <option>10</option>
+            <option>20</option>
+        </select> 
+        Entries &nbsp; Showing {{ transactions.start_index }} to {{ transactions.end_index }} of {{ transactions.paginator.count }}
+    </div>
+    
+    <div style="display: flex; gap: 5px;">
+        {% for num in transactions.paginator.page_range %}
+            <a href="?page={{ num }}" style="padding: 6px 12px; border-radius: 4px; text-decoration: none; 
+                {% if transactions.number == num %}
+                    background: #811112; color: white; font-weight: bold;
+                {% else %}
+                    background: #f7fafc; color: #4a5568; border: 1px solid #e2e8f0;
+                {% endif %}">
+                {{ num }}
+            </a>
+        {% endfor %}
         
-        <div style="padding:20px; border-bottom:2px solid #2d3748;">
-            <h3 id="modalRefTitle" style="margin:0; color:#2d3748; font-size:1.1rem; font-weight:bold;">Transaction: Loading...</h3>
+        {% if transactions.has_next %}
+            <a href="?page={{ transactions.next_page_number }}" style="padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 4px; text-decoration: none; color: #4a5568;">
+                <i class="ph ph-caret-right"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
+        </div>
+</div>
+
+<div id="detailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+    <div style="background:#fff; width:420px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+        
+        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
+            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Transaction Details</p>
+            <h3 id="modalRefTitle" style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;">Loading...</h3>
         </div>
         
-        <div style="padding:20px; max-height:300px; overflow-y:auto;">
-            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
+        <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left;">
                 <thead>
-                    <tr style="border-bottom:1px solid #edf2f7; color:#4a5568;">
-                        <th style="padding-bottom:10px;">Item Name</th>
-                        <th style="padding-bottom:10px; text-align:center;">Qty</th>
-                        <th style="padding-bottom:10px; text-align:right;">Subtotal</th>
+                    <tr>
+                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Item Name</th>
+                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty</th>
+                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:right; border-bottom:2px solid #f1f5f9;">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody id="modalItemsBody">
-                    </tbody>
+                </tbody>
             </table>
-            <div style="text-align:right; margin-top:15px; font-weight:bold; font-size:1rem; color:#2d3748;">
-                Total: ₱<span id="modalTotalAmount">0.00</span>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px dashed #cbd5e1;">
+                <span style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Total Amount</span>
+                <span style="font-weight:900; font-size:1.5rem; color:#e07300;">₱<span id="modalTotalAmount">0.00</span></span>
             </div>
         </div>
         
-        <div style="padding:15px 20px; background:#f7fafc; text-align:center;">
-            <button onclick="closeModal()" style="background:#1a365d; color:#fff; border:none; padding:8px 25px; border-radius:4px; cursor:pointer; font-weight:600;">Close</button>
+        <div style="padding:0 25px 25px; background:#fff; text-align:center;">
+            <button onclick="closeModal()" style="width:100%; background:#092c4c; color:#fff; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.95rem; font-family: 'Inter', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(9, 44, 76, 0.3)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(9, 44, 76, 0.2)';">
+                Close Details
+            </button>
         </div>
     </div>
 </div>
 
 <script>
     function openModal(fetchUrl) {
-        // Ipakita yung modal tapos lagyan ng loading text
         document.getElementById('detailsModal').style.display = 'flex';
-        document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:10px;">Loading data...</td></tr>';
+        document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8; font-size:0.9rem; font-weight:500;">Fetching data...</td></tr>';
         
-        // Kunin yung data sa backend (views.py) gamit ang URL
         fetch(fetchUrl)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // I-update yung title at total amount
-                    document.getElementById('modalRefTitle').innerText = 'Transaction: ' + data.ref;
-                    document.getElementById('modalTotalAmount').innerText = data.total_amount.toFixed(2);
+                    document.getElementById('modalRefTitle').innerText = data.ref;
+                    document.getElementById('modalTotalAmount').innerText = data.total_amount.toLocaleString(undefined, {minimumFractionDigits: 2});
                     
-                    // I-loop yung mga items para gumawa ng table rows
                     let itemsHtml = '';
                     data.items.forEach(item => {
                         itemsHtml += `
                             <tr>
-                                <td style="padding:10px 0; border-bottom:1px dashed #edf2f7;">${item.name}</td>
-                                <td style="padding:10px 0; border-bottom:1px dashed #edf2f7; text-align:center;">${item.qty}</td>
-                                <td style="padding:10px 0; border-bottom:1px dashed #edf2f7; text-align:right;">₱${item.subtotal.toFixed(2)}</td>
+                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">${item.name}</td>
+                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:0.9rem; font-weight:500;">${item.qty}</td>
+                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:0.95rem;">₱${item.subtotal.toFixed(2)}</td>
                             </tr>
                         `;
                     });
-                    // Ipasok ang ginawang rows sa table body
                     document.getElementById('modalItemsBody').innerHTML = itemsHtml;
                 } else {
-                    document.getElementById('modalItemsBody').innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">${data.message}</td></tr>`;
+                    document.getElementById('modalItemsBody').innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">${data.message}</td></tr>`;
                 }
             })
             .catch(error => {
-                document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Network error. Please try again.</td></tr>';
+                document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">Network error. Please try again.</td></tr>';
             });
     }
 
     function closeModal() {
-        // Itago yung modal pag click ng close
         document.getElementById('detailsModal').style.display = 'none';
     }
 </script>

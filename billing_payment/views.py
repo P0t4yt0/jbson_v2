@@ -94,13 +94,21 @@ def pay_invoice(request, invoice_id):
     return redirect('billing_payment:customer_list')
 
 def sales_list(request):
-    # Kukunin natin yung mga successful transactions mula sa POS
-    transactions = Transaction.objects.filter(
-        status__in=['completed', 'credit']
-    ).select_related('customer', 'processed_by').order_by('-date_completed')
+    # 1. Kunin lahat ng transactions (Palitan ng model/query mo kung iba)
+    all_transactions = Transaction.objects.all().order_by('-date_completed')
     
+    # 2. I-setup ang Paginator (Halimbawa: 10 items per page)
+    paginator = Paginator(all_transactions, 10) 
+    
+    # 3. Kunin kung anong page number yung ki-nlick ng user sa URL (?page=2)
+    page_number = request.GET.get('page')
+    
+    # 4. I-generate yung specific page na ipapasa sa HTML
+    transactions = paginator.get_page(page_number)
+    
+    # 5. I-pasa pabalik sa template mo
     context = {
-        'transactions': transactions
+        'transactions': transactions, # Ito yung babasahin nung {{ transactions.number }}
     }
     return render(request, 'billing_payment/sales_list.html', context)
 
@@ -340,3 +348,4 @@ def verify_transaction(request):
         return JsonResponse({'success': False, 'message': 'Transaction ID not found.'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Error: {str(e)}'})
+    

@@ -1,12 +1,19 @@
 {% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
     /* 1. GLOBAL & SCROLLBARS (Professional Look) */
-    * { font-family: 'Segoe UI', Arial, Helvetica, sans-serif !important; box-sizing: border-box; }
+    * { 
+        font-family: 'Inter', sans-serif !important; 
+        box-sizing: border-box; 
+    }
     body { background-color: #F0F4F8; margin: 0; overflow: hidden; /* Stops whole page from scrolling */ }
     
     /* Custom sleek scrollbars */
@@ -30,12 +37,12 @@
     
     .search-header { display: flex; gap: 15px; margin-bottom: 15px; flex-shrink: 0; }
     .search-input-group { position: relative; flex: 1.5; }
-    .search-input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 20px; color: #0a542b; }
-    .search-input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #0a542b; border-radius: 10px; outline: none; background: white; font-size: 15px; box-shadow: 0 4px 6px rgba(13, 148, 136, 0.05); }
-    .search-input:focus { box-shadow: 0 0 0 3px rgba(6, 88, 81, 0.2); }
+    .search-input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 20px; color: #092c4c; }
+    .search-input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #092c4c; border-radius: 10px; outline: none; background: white; font-size: 15px; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.05); }
+    .search-input:focus { box-shadow: 0 0 0 3px rgba(9, 44, 76, 0.2); }
     
     .text-search { flex: 1; padding: 14px 15px; border: 1px solid #CBD5E0; border-radius: 10px; outline: none; font-size: 15px; background: white; }
-    .text-search:focus { border-color: #1A365D; }
+    .text-search:focus { border-color: #092c4c; }
 
     /* Categories */
     .category-tabs { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; flex-shrink: 0; }
@@ -44,7 +51,7 @@
         font-weight: 600; font-size: 13px; cursor: pointer; background: white; color: #4A5568; flex-shrink: 0; transition: all 0.2s;
     }
     .tab:hover { border-color: #CBD5E0; background: #F8FAFC; }
-    .tab.active { background: #1A365D; color: white; border-color: #1A365D; box-shadow: 0 4px 10px rgba(26, 54, 93, 0.2); }
+    .tab.active { background: #092c4c; color: white; border-color: #092c4c; box-shadow: 0 4px 10px rgba(9, 44, 76, 0.2); }
 
     /* Product Grid */
     .product-grid { 
@@ -56,10 +63,10 @@
         cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         display: flex; flex-direction: column; justify-content: space-between; height: 120px;
     }
-    .product-card:hover { border-color: #dd8117; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(13, 148, 136, 0.1); }
-    .product-card .pid { font-size: 11px; color: #A0AEC0; font-weight: 600; letter-spacing: 0.5px; }
+    .product-card:hover { border-color: #e07300; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(9, 44, 76, 0.1); }
+    .product-card .pid { font-size: 11px; color: #A0AEC0; font-weight: 600; }
     .product-card .name { font-weight: 700; color: #2D3748; font-size: 14px; margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .product-card .price { color: #dd8117; font-weight: 800; font-size: 16px; margin-top: auto; }
+    .product-card .price { color: #e07300; font-weight: 800; font-size: 16px; margin-top: auto; }
 
     /* 4. RIGHT SECTION: ORDER SUMMARY */
     .order-section { 
@@ -68,7 +75,7 @@
         min-width: 400px; height: 100%; 
     }
     .order-header { padding: 20px; border-bottom: 1px solid #EDF2F7; background: #FAFCFF; display: flex; justify-content: space-between; align-items: center; }
-    .order-header h3 { margin: 0; font-size: 18px; color: #1A365D; font-weight: 800; }
+    .order-header h3 { margin: 0; font-size: 18px; color: #092c4c; font-weight: 800; }
     .order-header p { margin: 0; font-size: 12px; color: #718096; background: #EDF2F7; padding: 4px 10px; border-radius: 8px; font-weight: 600; }
     
     .cart-container { flex: 1; overflow-y: auto; padding: 20px; }
@@ -80,22 +87,25 @@
     .qty-controls { display: flex; align-items: center; gap: 5px; background: #F8FAFC; padding: 4px; border-radius: 8px; border: 1px solid #EDF2F7; }
     .qty-btn { background: white; border: 1px solid #E2E8F0; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-weight: 900; font-size: 16px; color: #4A5568; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
     .qty-btn:hover { background: #EDF2F7; }
-    .qty-input { width: 40px; height: 28px; text-align: center; font-weight: 700; font-size: 14px; border: none; background: transparent; outline: none; color: #1A365D; }
-    .delete-btn { background: #FFF5F5; border: 1px solid #FED7D7; color: #E53E3E; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-    .delete-btn:hover { background: #FED7D7; }
-    .item-subtotal { font-weight: 800; color: #1A365D; min-width: 70px; text-align: right; font-size: 15px; }
+    .qty-input { width: 40px; height: 28px; text-align: center; font-weight: 700; font-size: 14px; border: none; background: transparent; outline: none; color: #092c4c; }
+    
+    .delete-btn { background: #FFF5F5; border: 1px solid #ffaca4; color: #d50a0a; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .delete-btn:hover { background: #ffaca4; color: white; }
+    
+    .item-subtotal { font-weight: 800; color: #092c4c; min-width: 70px; text-align: right; font-size: 15px; }
 
     /* Footer / Checkout */
     .order-summary { padding: 25px 20px; background: white; border-top: 1px solid #EDF2F7; box-shadow: 0 -4px 15px rgba(0,0,0,0.02); }
-    .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 26px; color: #1A365D; margin-bottom: 20px; }
+    .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 26px; color: #092c4c; margin-bottom: 20px; }
 
     .btn-action-group { display: flex; gap: 10px; width: 100%; margin-bottom: 12px; }
-    .btn-void { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #FEB2B2; background: #FFF5F5; color: #C53030; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; font-size: 13px; transition: 0.2s; }
-    .btn-void:hover { background: #FED7D7; }
+    .btn-void { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ffaca4; background: #FFF5F5; color: #d50a0a; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; font-size: 13px; transition: 0.2s; }
+    .btn-void:hover { background: #ffaca4; color: white; }
     .btn-quote { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; background: white; color: #4A5568; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: 0.2s; }
-    .btn-quote:hover { background: #EDF2F7; border-color: #A0AEC0; }
-    .btn-main { width: 100%; padding: 18px; border-radius: 10px; border: none; background: #0a542b; color: white; font-weight: 800; font-size: 18px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3); }
-    .btn-main:hover { background: #055f58; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4); }
+    .btn-quote:hover { background: #EDF2F7; border-color: #092c4c; color: #092c4c; }
+    
+    .btn-main { width: 100%; padding: 18px; border-radius: 10px; border: none; background: #092c4c; color: white; font-weight: 800; font-size: 18px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(9, 44, 76, 0.2); }
+    .btn-main:hover { background: #061f38; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(9, 44, 76, 0.3); }
 
     /* Modal Fix */
     #paymentModal > div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 30px; border-radius: 8px; width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
@@ -195,11 +205,11 @@
 
 <div id="paymentModal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">    
     <div style="background: white; border-radius: 8px; width: 450px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="color: #1A365D; text-align: center; margin-top: 0;">Finalize Sale</h2>
+        <h2 style="color: #092c4c; text-align: center; margin-top: 0;">Finalize Sale</h2>
         
         <div style="text-align: center; margin-bottom: 20px;">
             <p style="color: #718096; font-size: 14px; margin-bottom: 5px;">Total Due</p>
-            <h2 style="color: #1A365D; font-size: 32px; margin: 0; font-weight: 800;">₱<span id="modal-total-due">0.00</span></h2>
+            <h2 style="color: #092c4c; font-size: 32px; margin: 0; font-weight: 800;">₱<span id="modal-total-due">0.00</span></h2>
         </div>
         
         <div style="margin-bottom: 20px; text-align: left;">
@@ -212,13 +222,13 @@
         </div>
 
         <div id="ref-number-group" style="display: none; margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: 700; font-size: 13px; color: #1A365D;">Reference Number <span style="color: red;">*</span></label>
+            <label style="font-weight: 700; font-size: 13px; color: #092c4c;">Reference Number <span style="color: red;">*</span></label>
             <input type="text" id="ref-number-input" placeholder="e.g. GCash / Transfer Ref #" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; margin-top: 5px; outline: none; box-sizing: border-box;">
         </div>
 
         <div id="credit-customer-group" style="display: none; margin-bottom: 20px; text-align: left; background: #FFF5F5; padding: 15px; border-radius: 8px; border: 1px solid #FED7D7;">
-            <label style="font-weight: 700; font-size: 13px; color: #C53030;">Select Approved Customer <span style="color: red;">*</span></label>
-            <select id="credit-customer" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #FEB2B2; margin-top: 5px;">
+            <label style="font-weight: 700; font-size: 13px; color: #d50a0a;">Select Approved Customer <span style="color: red;">*</span></label>
+            <select id="credit-customer" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffaca4; margin-top: 5px;">
                 <option value="">-- Choose Contractor --</option>
                 {% for customer in credit_customers %}
                     <option value="{{ customer.id }}">{{ customer.name }} (Limit: ₱{{ customer.available_credit }})</option>
@@ -228,7 +238,7 @@
 
         <div id="amount-paid-group" style="margin-bottom: 20px; text-align: left;">
             <label style="font-weight: 700; font-size: 13px; color: #4A5568;">Amount Paid:</label>
-            <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00" style="width: 100%; padding: 15px; border-radius: 8px; border: 2px solid #dd8117; font-size: 24px; font-weight: 700; margin-bottom: 15px; box-sizing: border-box; outline: none;">
+            <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00" style="width: 100%; padding: 15px; border-radius: 8px; border: 2px solid #e07300; font-size: 24px; font-weight: 700; margin-bottom: 15px; box-sizing: border-box; outline: none;">
             
             <div style="background: #F0FFF4; border: 1px solid #C6F6D5; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-weight: 700; color: #2F855A; font-size: 16px;">Change:</span>
@@ -237,10 +247,10 @@
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button onclick="document.getElementById('paymentModal').style.display='none'" style="flex: 1; padding: 15px; background: white; border: 1px solid #CBD5E0; border-radius: 8px; cursor: pointer; color: #4A5568; font-weight: 700; font-size: 15px;">
+            <button onclick="document.getElementById('paymentModal').style.display='none'" style="flex: 1; padding: 15px; background: white; border: 1px solid #CBD5E0; border-radius: 8px; cursor: pointer; color: #4A5568; font-weight: 700; font-size: 15px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#F8FAFC'" onmouseout="this.style.backgroundColor='white'">
                 Cancel
             </button>
-            <button onclick="finalizeAndPrint()" style="flex: 1; padding: 15px; background: #dd8117; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 700; font-size: 15px;">
+            <button onclick="finalizeAndPrint()" style="flex: 1; padding: 15px; background: #e07300; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 700; font-size: 15px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#cc6800'" onmouseout="this.style.backgroundColor='#e07300'">
                 Confirm Payment
             </button>
         </div>
@@ -248,21 +258,20 @@
 </div>
 
 <script>
-    // DJANGO MESSAGES CATCHER (Dito babagsak ang error kapag ginawa natin yung Step 2 sa ibaba)
+    // DJANGO MESSAGES CATCHER
     {% if messages %}
         {% for message in messages %}
             Swal.fire({
                 title: '{% if message.tags == "error" %}Oops!{% else %}Notice{% endif %}',
                 text: '{{ message }}',
                 icon: '{{ message.tags }}',
-                confirmButtonColor: '#dd8117'
+                confirmButtonColor: '#e07300'
             });
         {% endfor %}
     {% endif %}
 
 let selectedMethod = "Cash";
 
-// ITO YUNG FIX 2: SWEET ALERT KAPAG INSUFFICIENT STOCK SA PAG CLICK NG ITEM
 function addToCart(productId) {
     fetch(`/pos/add-to-cart/?product_id=${productId}`)
         .then(response => response.json())
@@ -274,7 +283,7 @@ function addToCart(productId) {
                     title: 'Cannot Add Item',
                     text: data.message || 'Insufficient stock or item is unavailable.',
                     icon: 'warning',
-                    confirmButtonColor: '#dd8117'
+                    confirmButtonColor: '#e07300'
                 });
             }
         })
@@ -284,7 +293,7 @@ function addToCart(productId) {
 function openPaymentModal() {
     const total = document.getElementById('grand-total').innerText;
     if (parseFloat(total) <= 0) {
-        return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: '#dd8117' });
+        return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: '#e07300' });
     }
     document.getElementById('modal-total-due').innerText = total;
     document.getElementById('paymentModal').style.display = "flex"; 
@@ -300,7 +309,7 @@ function confirmVoid(event, targetUrl) {
         text: 'Are you sure you want to void this transaction? This cannot be undone.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#F56565',
+        confirmButtonColor: '#d50a0a',
         cancelButtonColor: '#CBD5E0',
         confirmButtonText: 'Yes, Void It'
     }).then((result) => {
@@ -346,7 +355,7 @@ function finalizeAndPrint() {
     const refNum = document.getElementById('ref-number-input').value.trim(); 
 
     if (selectedMethod !== 'Trade Credit' && parseFloat(paidVal) < total) { 
-        return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: '#dd8117' });
+        return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: '#e07300' });
     }
     if (selectedMethod === 'Trade Credit' && !customerId) {
         return Swal.fire('Missing Customer', 'You must select an approved customer for Trade Credit.', 'warning');
@@ -360,7 +369,7 @@ function finalizeAndPrint() {
         text: `Finalizing sale using ${selectedMethod}.`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#dd8117',
+        confirmButtonColor: '#092c4c',
         cancelButtonColor: '#CBD5E0',
         confirmButtonText: 'Yes, Confirm!',
         cancelButtonText: 'Cancel'
@@ -380,18 +389,57 @@ document.getElementById('barcode-input').addEventListener('keypress', function(e
                 if(d.status === 'success') {
                     location.reload(); 
                 } else {
-                    Swal.fire({ title: 'Scan Error', text: d.message, icon: 'error', confirmButtonColor: '#dd8117' });
+                    Swal.fire({ title: 'Scan Error', text: d.message, icon: 'error', confirmButtonColor: '#e07300' });
                 }
             });
         this.value = '';
     }
 });
 
+// ==========================================
+// LIVE TEXT SEARCH & CATEGORY FILTER LOGIC
+// ==========================================
+
+// 1. Kapag nag-type ang user sa search box
+document.querySelector('.text-search').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    
+    // Hanapin kung aling tab ang active ngayon
+    const activeTab = document.querySelector('.tab.active').innerText;
+    const activeCategoryName = activeTab === 'All Categories' ? 'All' : activeTab;
+    
+    applyFilters(activeCategoryName, searchTerm);
+});
+
+// 2. Kapag kinlick ang mga Category Tabs
 function filterCategory(name) {
-    document.querySelectorAll('.product-card').forEach(p => {
-        p.style.display = (name === 'All' || p.getAttribute('data-category') === name) ? 'block' : 'none';
+    // Kunin yung current na naka-type sa search box para hindi mawala ang search
+    const searchTerm = document.querySelector('.text-search').value.toLowerCase();
+    
+    // I-update yung kulay ng active tab
+    document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.innerText === name || (name === 'All' && t.innerText === 'All Categories'));
     });
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.innerText === name || (name === 'All' && t.innerText === 'All Categories')));
+    
+    applyFilters(name, searchTerm);
+}
+
+// 3. Main function na nag-che-check pareho ng Category at Search Text
+function applyFilters(categoryName, searchTerm) {
+    document.querySelectorAll('.product-card').forEach(p => {
+        const productName = p.querySelector('.name').innerText.toLowerCase();
+        const productCategory = p.getAttribute('data-category');
+        
+        const matchesSearch = productName.includes(searchTerm);
+        const matchesCategory = (categoryName === 'All' || productCategory === categoryName);
+        
+        // Pinalitan ko ang 'block' ng 'flex' para hindi masira ang design ng card mo
+        if (matchesSearch && matchesCategory) {
+            p.style.display = 'flex'; 
+        } else {
+            p.style.display = 'none';
+        }
+    });
 }
 
 function getCSRFToken() {
@@ -435,7 +483,7 @@ function confirmRemoveItem(itemId, itemName) {
         text: `Are you sure you want to remove '${itemName}'?`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#E53E3E',
+        confirmButtonColor: '#d50a0a',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, remove it!'
     }).then((result) => {
