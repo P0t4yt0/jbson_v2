@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from django.shortcuts import render, redirect
 from django.db import connection
 from django.contrib import messages
@@ -6,9 +7,11 @@ from django.http import FileResponse
 from django.core.management import call_command
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from datetime import datetime
 
-# Helper function para sa DB Size
+# ==========================================
+# HELPER FUNCTIONS
+# ==========================================
+
 def get_current_db_size():
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -19,7 +22,29 @@ def get_current_db_size():
         result = cursor.fetchone()
         return result[0] if result and result[0] else 0
 
-# PINAG-ISANG DASHBOARD VIEW
+def get_last_backup_time():
+    backup_dir = os.path.join(settings.BASE_DIR, 'secure_backups')
+    
+    # Check kung nag-e-exist yung folder
+    if not os.path.exists(backup_dir):
+        return "No backups yet"
+    
+    # Kunin ang mga valid backup files (.gz, .sqlite3, .sql)
+    files = [os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.endswith(('.gz', '.sqlite3', '.sql'))]
+    
+    if not files:
+        return "No backups yet"
+        
+    # Kunin ang latest at i-format ang oras
+    latest_file = max(files, key=os.path.getctime)
+    dt_object = datetime.fromtimestamp(os.path.getctime(latest_file))
+    return dt_object.strftime("%B %d, %Y - %I:%M %p")
+
+
+# ==========================================
+# MAIN DASHBOARD VIEW
+# ==========================================
+
 def maintenance_dashboard(request):
     # 1. RUN DIAGNOSTICS (Scan)
     report = []
@@ -38,18 +63,23 @@ def maintenance_dashboard(request):
             # Optimizing key tables
             cursor.execute("OPTIMIZE TABLE inventory_product, pointofsale_transaction, security_activitylog")
         messages.success(request, "Database successfully optimized!")
-        return redirect('maintenance:maintenance_dashboard') # Fixed redirect
+        # Ibabalik ang user sa current page
+        return redirect(request.path) 
 
-    # 3. RENDER WITH REPORT AND DB SIZE
+    # 3. RENDER WITH REPORT, DB SIZE, AND BACKUP TIME
     context = {
         'db_size': get_current_db_size(),
         'report': report,
-        'last_backup_time': get_last_backup_time(), # <--- IDAGDAG ITO
+        'last_backup_time': get_last_backup_time(),
     }
+    
     return render(request, 'dashboard/settings_hub.html', context)
 
 
-# BACKUP & RESTORE VIEWS
+# ==========================================
+# BACKUP, RESTORE, AND DELETE VIEWS
+# ==========================================
+
 def trigger_backup(request):
     if request.method == 'POST':
         try:
@@ -64,7 +94,7 @@ def trigger_backup(request):
             
         except Exception as e:
             messages.error(request, f'Backup failed: {e}')
-            return redirect('maintenance:maintenance_dashboard') # Fixed redirect
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def trigger_restore(request):
     if request.method == 'POST' and request.FILES.get('backup_file'):
@@ -83,7 +113,8 @@ def trigger_restore(request):
             if os.path.exists(filepath):
                 os.remove(filepath)
                 
-        return redirect('maintenance:maintenance_dashboard') # Fixed redirect
+        # HTTP_REFERER para bumalik sa settings page
+        return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def delete_all_data(request):
     if request.method == 'POST':
@@ -93,25 +124,5 @@ def delete_all_data(request):
         except Exception as e:
             messages.error(request, f'Error deleting data: {e}')
             
-    return redirect('maintenance:maintenance_dashboard') # Fixed redirect
-
-def get_last_backup_time():
-    backup_dir = os.path.join(settings.BASE_DIR, 'secure_backups')
-    
-    # Check kung nag-e-exist yung folder
-    if not os.path.exists(backup_dir):
-        return "No backups yet"
-    
-    # Kunin lang yung mga backup files (gz o sqlite3)
-    files = [os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.endswith('.gz') or f.endswith('.sqlite3')]
-    
-    # Check kung may laman yung folder
-    if not files:
-        return "No backups yet"
-        
-    # Hanapin ang pinaka-latest at i-format ang oras
-    latest_file = max(files, key=os.path.getctime)
-    dt_object = datetime.fromtimestamp(os.path.getctime(latest_file))
-    
-    # Output example: May 24, 2026 - 04:30 PM
-    return dt_object.strftime("%B %d, %Y - %I:%M %p")
+    # HTTP_REFERER para bumalik sa settings page
+    return redirect(request.META.get('HTTP_REFERER', '/'))

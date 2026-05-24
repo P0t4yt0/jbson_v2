@@ -194,16 +194,39 @@
     }
 
     // ==========================================
-    // 3. UI TOGGLE & MODAL FUNCTIONS (Nawawala kanina)
+    // 3. UI TOGGLE & MODAL FUNCTIONS (URL Hash Method)
     // ==========================================
     
-    // Para sa pagpalit mula Main Settings papuntang Backup Details
     function toggleSettingsView(viewId) {
+        // Itago muna ang dalawang view
         document.getElementById('main-settings-view').style.display = 'none';
         document.getElementById('backup-details-view').style.display = 'none';
+        
+        // Ipakita ang piniling view
         document.getElementById(viewId).style.display = 'block';
+
+        // I-update ang URL hash para hindi mag-reset kapag ni-refresh
+        if (viewId === 'backup-details-view') {
+            window.history.replaceState(null, null, '#backup');
+        } else {
+            // Tanggalin ang hash kapag bumalik sa main settings
+            window.history.replaceState(null, null, window.location.pathname); 
+        }
     }
 
+    // Kapag nag-load ang page, basahin ang URL kung may "#backup"
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.location.hash === '#backup') {
+            // Kung may #backup sa URL (e.g. nag-refresh), buksan agad ang backup
+            document.getElementById('main-settings-view').style.display = 'none';
+            document.getElementById('backup-details-view').style.display = 'block';
+        } else {
+            // Default load (walang hash), buksan ang main settings
+            document.getElementById('main-settings-view').style.display = 'block';
+            document.getElementById('backup-details-view').style.display = 'none';
+        }
+    });
+    
     // Para sa System Maintenance Modal
     function openMaintenanceModal() {
         document.getElementById('maintenanceModal').style.display = 'flex';

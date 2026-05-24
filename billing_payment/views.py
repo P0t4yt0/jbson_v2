@@ -97,18 +97,21 @@ def sales_list(request):
     # 1. Kunin lahat ng transactions (Palitan ng model/query mo kung iba)
     all_transactions = Transaction.objects.all().order_by('-date_completed')
     
-    # 2. I-setup ang Paginator (Halimbawa: 10 items per page)
-    paginator = Paginator(all_transactions, 10) 
+    per_page = request.GET.get('per_page', 10)
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+
+    # 2. Ipasa ang dynamic na 'per_page' sa Paginator
+    paginator = Paginator(all_transactions, per_page) 
     
-    # 3. Kunin kung anong page number yung ki-nlick ng user sa URL (?page=2)
     page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
-    # 4. I-generate yung specific page na ipapasa sa HTML
-    transactions = paginator.get_page(page_number)
-    
-    # 5. I-pasa pabalik sa template mo
     context = {
-        'transactions': transactions, # Ito yung babasahin nung {{ transactions.number }}
+        'transactions': page_obj,
+        'per_page': per_page, # 3. IMPORANTE: Ibalik ito sa context para manatiling 'selected' ang 20 sa dropdown
     }
     return render(request, 'billing_payment/sales_list.html', context)
 
