@@ -1,15 +1,14 @@
-{% extends 'dashboard/dashboard.html' %} 
+{% extends 'dashboard/dashboard.html' %}
 
 {% block content %}
 <div style="padding: 30px;">
 
     <div id="main-settings-view">
         <h2 style="font-family: 'Oswald', sans-serif; color: #0A192F; font-size: 2rem; margin-bottom: 20px;">General Settings</h2>
-        
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-            
-            <button onclick="openMaintenanceModal()" style="background: white; border: 1px solid #eee; padding: 30px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; text-align: center; display: block; width: 100%;">
-                <i class="ph ph-wrench" style="font-size: 3rem; color: #811112; margin-bottom: 15px;"></i>
+
+            <button onclick="toggleSettingsView('maintenance-details-view')" style="background: white; border: 1px solid #eee; padding: 30px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; text-align: center; display: block; width: 100%;">
+                <i class="ph ph-wrench" style="font-size: 3rem; color: #777; margin-bottom: 15px;"></i>
                 <h3 style="margin: 0; font-size: 1.2rem; color: #0A192F;">System Maintenance</h3>
                 <p style="color: #777; font-size: 0.9rem; margin-top: 10px;">Run diagnostics and clean database.</p>
             </button>
@@ -22,9 +21,7 @@
         </div>
     </div>
 
-
-    <div id="backup-details-view" style="display: none; font-family: 'Inter', sans-serif; max-width: 900px; margin: auto;">
-        
+      <div id="backup-details-view" style="display: none; font-family: 'Inter', sans-serif; max-width: 900px; margin: auto;">
         <button onclick="toggleSettingsView('main-settings-view')" style="background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 25px; font-family: 'Inter', sans-serif; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#64748b'">
             &larr; Back to General Settings
         </button>
@@ -35,17 +32,18 @@
         </div>
 
         <div style="display: flex; gap: 24px; margin-top: 20px; align-items: stretch;">
-            
+
+
             <div style="border: 1px solid #e2e8f0; padding: 30px; border-radius: 12px; flex: 1; background: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column;">
                 <div style="flex-grow: 1;">
                     <h3 style="color: #092c4c; margin: 0 0 10px 0; font-size: 1.3rem;">System Backup</h3>
                     <p style="font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 15px;">Generate and download a compressed SQL dump of the current database.</p>
-                    
+
                     <p style="font-size: 13px; font-weight: 600; color: #092c4c; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
                         <i class="ph ph-clock-counter-clockwise" style="font-size: 1.2rem; color: #e07300;"></i>
                         Last Backup: {{ last_backup_time }}
                     </p>
-                    
+
                     <div style="background-color: #f1f5f9; border-radius: 6px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
                         <i class="ph ph-download-simple" style="color: #64748b; font-size: 1.2rem;"></i>
                         <span style="font-size: 13px; color: #475569;">Saves to your browser's default Downloads folder.</span>
@@ -64,14 +62,13 @@
                 <div style="flex-grow: 1;">
                     <h3 style="color: #e07300; margin: 0 0 10px 0; font-size: 1.3rem;">System Recovery</h3>
                     <p style="font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 20px;">Upload a .gz backup file to restore the system state.</p>
-                    
                     <form action="{% url 'maintenance:trigger_restore' %}" method="POST" enctype="multipart/form-data" id="restoreForm">
                         {% csrf_token %}
                         <div style="margin-bottom: 15px;">
                             <input type="file" name="backup_file" accept=".gz" required style="width: 100%; font-size: 13px; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 6px; color: #475569; cursor: pointer;">
                         </div>
                 </div>
-                
+
                     <button type="submit" style="background-color: #e07300; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; width: 100%; font-size: 14px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#cc6800'" onmouseout="this.style.backgroundColor='#e07300'">
                         Restore Database
                     </button>
@@ -93,46 +90,97 @@
         </div>
     </div>
 
+    <div id="maintenance-details-view" style="display: none; font-family: 'Inter', sans-serif; max-width: 900px; margin: auto;">
+        
+        <button onclick="toggleSettingsView('main-settings-view')" style="background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 25px; font-family: 'Inter', sans-serif; font-weight: 600;">
+            &larr; Back to General Settings
+        </button>
 
-    <div id="maintenanceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-        <div style="background: white; padding: 35px; border-radius: 16px; width: 420px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-            <h3 id="modalTitle" style="color: #0A192F; margin-bottom: 20px; font-family: 'Oswald', sans-serif;">System Maintenance</h3>
-            
-            <div id="scanStatus" style="padding: 20px; background: #F8FAFC; border-radius: 10px; margin-bottom: 20px;">
-                <p id="statusText" style="margin: 0; color: #0A192F;">Ready to run diagnostics?</p>
-                <div id="loader" style="display: none; color: #811112; font-weight: bold;">Scanning tables... please wait.</div>
+        <div style="margin-bottom: 30px;">
+            <h2 style="font-family: 'Oswald', sans-serif; color: #0A192F; font-size: 2rem; margin: 0 0 5px 0;">System Maintenance</h2>
+            <p style="color: #64748b; margin: 0; font-size: 1rem;">Run diagnostics and optimize JBson Hardware database performance.</p>
+        </div>
+
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); text-align: center;">
+            <div id="maintenance-status-card" style="margin-bottom: 30px;">
+                
+                <div id="scan-init" style="display: block;">
+                    <i class="ph ph-shield-check" style="font-size: 4rem; color: #811112; margin-bottom: 20px;"></i>
+                    <p style="color: #475569; font-size: 1.1rem; margin-bottom: 25px;">No recent diagnostics run. Would you like to scan the system now?</p>
+                    <button onclick="runProScan()" style="background: #0A192F; color: white; padding: 14px 40px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1rem; transition: 0.2s;">
+                        Start System Scan
+                    </button>
+                </div>
+
+                <div id="pro-loader" style="display: none; padding: 40px;">
+                    <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #811112; border-radius: 50%; animation: spin 1s linear infinite; margin: auto; margin-bottom: 20px;"></div>
+                    <p style="color: #811112; font-weight: 700; font-size: 1.2rem;">Scanning database tables...</p>
+                    <p style="color: #64748b; font-size: 0.9rem;">Checking fragmentation and storage efficiency.</p>
+                </div>
+
+                <div id="pro-results" style="display: none; text-align: left;">
+                    <div style="background: #f8fafc; border-left: 5px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                        <h4 style="color: #0f172a; margin: 0 0 10px 0; display: flex; align-items: center; gap: 10px;">
+                            <i class="ph ph-check-circle" style="color: #10b981; font-size: 1.5rem;"></i>
+                            Diagnostic Complete
+                        </h4>
+                        <div style="color: #475569; font-size: 0.95rem;">
+                            <p style="margin: 5px 0;">✓ All tables are accessible.</p>
+                            <p style="margin: 5px 0;">✓ Current Database Size: <strong style="color: #811112;">{{ db_size }} MB</strong></p>
+                            
+                            {% if report %}
+                                <p style="margin: 10px 0 5px 0; color: #dc2626; font-weight: bold;">⚠️ Fragmentation Detected:</p>
+                                <ul style="margin: 0 0 0 20px; padding: 0; color: #dc2626; font-size: 0.85rem;">
+                                    {% for item in report %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p style="margin: 5px 0; color: #10b981;">✓ Fragmentation levels are optimal (0 overhead).</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if report %}
+                        <div style="background: #fffbeb; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                            <p style="margin: 0; color: #92400e; font-size: 0.9rem;"><strong>Recommendation:</strong> Perform optimization to rearrange data for faster access and reclaim unused storage blocks.</p>
+                        </div>
+
+                        <form method="POST" action="{% url 'maintenance:maintenance_dashboard' %}">
+                            {% csrf_token %}
+                            <button type="submit" style="background: #0f172a; color: white; padding: 14px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem;">
+                                Run Database Optimization
+                            </button>
+                        </form>
+                    {% else %}
+                        <div style="background: #f0fdf4; border-left: 5px solid #22c55e; padding: 20px; border-radius: 8px; text-align: center;">
+                            <p style="margin: 0; color: #166534; font-size: 1rem; font-weight: 600;">
+                                System is running at peak performance. No optimization required at this time.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-
-            <div id="reportContainer" style="display: none; background: #E1F1E8; color: #0A192F; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;">
-                ✓ System is healthy. Current Size: {{ db_size }} MB
-            </div>
-            
-            <button id="scanBtn" onclick="runScan()" style="background: #811112; color: white; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%;">Scan Now</button>
-            
-            <form method="POST" action="{% url 'maintenance:maintenance_dashboard' %}">
-                {% csrf_token %}
-                <button id="optimizeBtn" type="submit" style="display: none; background: #811112; color: white; padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%;">Optimize Database</button>
-            </form>
-
-            <button type="button" onclick="closeMaintenanceModal()" style="background: transparent; color: #94A3B8; border: none; padding: 15px; cursor: pointer; margin-top: 10px; width: 100%;">Close</button>
         </div>
     </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<style>
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // ==========================================
-    // 1. SWEETALERT PARA SA DJANGO MESSAGES
-    // ==========================================
+
     document.addEventListener("DOMContentLoaded", function() {
         {% if messages %}
             {% for message in messages %}
-                var iconType = 'info'; // Default icon
+                var iconType = 'info';
                 var titleText = 'Notification';
 
-                // I-map ang Django message tags sa SweetAlert icons
                 {% if message.tags == 'success' %}
                     iconType = 'success';
                     titleText = 'Success!';
@@ -142,112 +190,71 @@
                 {% elif message.tags == 'warning' %}
                     iconType = 'warning';
                     titleText = 'Warning!';
+                {% elif message.tags == 'info' %}
+                    iconType = 'info';
+                    titleText = 'Notice';
                 {% endif %}
 
                 Swal.fire({
                     title: titleText,
                     text: "{{ message|escapejs }}",
                     icon: iconType,
-                    confirmButtonColor: '#092c4c', // Main System Color ng JBson
-                    timer: 3500, // Automatic na mawawala after 3.5 seconds
+                    confirmButtonColor: '#092c4c', 
+                    timer: 3500,
                     timerProgressBar: true
                 });
                 
-                // Kapag may message, panatilihing bukas ang Backup view
-                // Suriin kung ang message ay para sa Backup/Restore/Delete o para sa Maintenance
                 var messageContent = "{{ message|escapejs }}".toLowerCase();
                 var isBackupAction = messageContent.includes('backup') || 
                                      messageContent.includes('restore') || 
                                      messageContent.includes('delete') || 
                                      messageContent.includes('wipe');
 
+                var isMaintenanceAction = messageContent.includes('optimized') || 
+                                          messageContent.includes('optimization');
+
                 if (isBackupAction && typeof toggleSettingsView === "function") {
-                    // Buksan ang Backup view kung backup/restore ang ginawa
                     toggleSettingsView('backup-details-view');
-                } 
-                // Kung optimize ang ginawa, wala itong gagawin kaya mananatili sa Main Settings view
+                } else if (isMaintenanceAction && typeof toggleSettingsView === "function") {
+                    toggleSettingsView('maintenance-details-view');
+                    
+                    document.getElementById('scan-init').style.display = 'none';
+                    document.getElementById('pro-loader').style.display = 'none';
+                    document.getElementById('pro-results').style.display = 'block';
+                }
             {% endfor %}
         {% endif %}
     });
-
-    // ==========================================
-    // 2. SWEETALERT PARA SA DANGER ZONE
-    // ==========================================
-    function confirmWipeData(event) {
-        event.preventDefault(); // Pigilan muna ang pag-submit ng form
-
-        Swal.fire({
-            title: 'Are you absolutely sure?',
-            text: "This will permanently delete ALL inventory and transaction records. You cannot undo this action without a backup!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc2626', // Danger/Red color
-            cancelButtonColor: '#64748b',  // Gray cancel color
-            confirmButtonText: 'Yes, wipe all data!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Kung pumayag ang user, i-submit na ang form
-                event.target.submit();
-            }
-        });
-    }
-
-    // ==========================================
-    // 3. UI TOGGLE & MODAL FUNCTIONS (URL Hash Method)
-    // ==========================================
     
     function toggleSettingsView(viewId) {
-        // Itago muna ang dalawang view
         document.getElementById('main-settings-view').style.display = 'none';
         document.getElementById('backup-details-view').style.display = 'none';
-        
-        // Ipakita ang piniling view
+        document.getElementById('maintenance-details-view').style.display = 'none';
         document.getElementById(viewId).style.display = 'block';
-
-        // I-update ang URL hash para hindi mag-reset kapag ni-refresh
-        if (viewId === 'backup-details-view') {
-            window.history.replaceState(null, null, '#backup');
-        } else {
-            // Tanggalin ang hash kapag bumalik sa main settings
-            window.history.replaceState(null, null, window.location.pathname); 
-        }
     }
 
-    // Kapag nag-load ang page, basahin ang URL kung may "#backup"
-    document.addEventListener("DOMContentLoaded", function() {
-        if (window.location.hash === '#backup') {
-            // Kung may #backup sa URL (e.g. nag-refresh), buksan agad ang backup
-            document.getElementById('main-settings-view').style.display = 'none';
-            document.getElementById('backup-details-view').style.display = 'block';
-        } else {
-            // Default load (walang hash), buksan ang main settings
-            document.getElementById('main-settings-view').style.display = 'block';
-            document.getElementById('backup-details-view').style.display = 'none';
-        }
-    });
-    
-    // Para sa System Maintenance Modal
-    function openMaintenanceModal() {
-        document.getElementById('maintenanceModal').style.display = 'flex';
-    }
-    
-    function closeMaintenanceModal() {
-        document.getElementById('maintenanceModal').style.display = 'none';
-    }
-    
-    // Fake loader para sa Diagnostics
-    function runScan() {
-        document.getElementById('loader').style.display = 'block';
-        document.getElementById('statusText').style.display = 'none';
-        document.getElementById('scanBtn').style.display = 'none';
-        
+    function runProScan() {
+        document.getElementById('scan-init').style.display = 'none';
+        document.getElementById('pro-loader').style.display = 'block';
+       
         setTimeout(() => {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('reportContainer').style.display = 'block';
-            document.getElementById('optimizeBtn').style.display = 'block';
-            document.getElementById('modalTitle').innerText = "Diagnostic Complete";
-        }, 2000);
+            document.getElementById('pro-loader').style.display = 'none';
+            document.getElementById('pro-results').style.display = 'block';
+        }, 2500);
+    }
+
+    function confirmWipeData(event) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Wipe all data?',
+            text: "This will permanently delete ALL records!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Yes, wipe everything!'
+        }).then((result) => { if (result.isConfirmed) { event.target.submit(); } });
     }
 </script>
-{% endblock content %}
+
+{% endblock content %} 
+
