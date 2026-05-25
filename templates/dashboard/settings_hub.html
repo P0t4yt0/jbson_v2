@@ -92,78 +92,76 @@
 
     <div id="maintenance-details-view" style="display: none; font-family: 'Inter', sans-serif; max-width: 900px; margin: auto;">
         
-        <button onclick="toggleSettingsView('main-settings-view')" style="background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 25px; font-family: 'Inter', sans-serif; font-weight: 600;">
-            &larr; Back to General Settings
-        </button>
+    <button onclick="toggleSettingsView('main-settings-view')" style="background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 25px; font-family: 'Inter', sans-serif; font-weight: 600;">
+        &larr; Back to General Settings
+    </button>
 
-        <div style="margin-bottom: 30px;">
-            <h2 style="font-family: 'Oswald', sans-serif; color: #0A192F; font-size: 2rem; margin: 0 0 5px 0;">System Maintenance</h2>
-            <p style="color: #64748b; margin: 0; font-size: 1rem;">Run diagnostics and optimize JBson Hardware database performance.</p>
-        </div>
+    <div style="margin-bottom: 30px;">
+        <h2 style="font-family: 'Oswald', sans-serif; color: #0A192F; font-size: 2rem; margin: 0 0 5px 0;">System Maintenance</h2>
+        <p style="color: #64748b; margin: 0; font-size: 1rem;">Run diagnostics and optimize JBson Hardware database performance.</p>
+    </div>
 
-        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); text-align: center;">
-            <div id="maintenance-status-card" style="margin-bottom: 30px;">
-                
-                <div id="scan-init" style="display: block;">
-                    <i class="ph ph-shield-check" style="font-size: 4rem; color: #811112; margin-bottom: 20px;"></i>
-                    <p style="color: #475569; font-size: 1.1rem; margin-bottom: 25px;">No recent diagnostics run. Would you like to scan the system now?</p>
-                    <button onclick="runProScan()" style="background: #0A192F; color: white; padding: 14px 40px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1rem; transition: 0.2s;">
-                        Start System Scan
-                    </button>
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); text-align: center;">
+        <div id="maintenance-status-card" style="margin-bottom: 30px;">
+            
+            <div id="scan-init" style="display: block;">
+                <i class="ph ph-shield-check" style="font-size: 4rem; color: #811112; margin-bottom: 20px;"></i>
+                <p style="color: #475569; font-size: 1.1rem; margin-bottom: 25px;">No recent diagnostics run. Would you like to scan the system now?</p>
+                <button onclick="runProScan()" style="background: #0A192F; color: white; padding: 14px 40px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1rem; transition: 0.2s;">
+                    Start System Scan
+                </button>
+            </div>
+
+            <div id="pro-loader" style="display: none; padding: 40px;">
+                <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #811112; border-radius: 50%; animation: spin 1s linear infinite; margin: auto; margin-bottom: 20px;"></div>
+                <p style="color: #811112; font-weight: 700; font-size: 1.2rem;">Scanning database tables...</p>
+                <p style="color: #64748b; font-size: 0.9rem;">Checking for database clutter and wasted space.</p>
+            </div>
+
+            <div id="pro-results" style="display: none; text-align: left;">
+                <div style="background: #f8fafc; border-left: 5px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                    <h4 style="color: #0f172a; margin: 0 0 10px 0; display: flex; align-items: center; gap: 10px;">
+                        <i class="ph ph-check-circle" style="color: #10b981; font-size: 1.5rem;"></i>
+                        Diagnostic Complete
+                    </h4>
+                    <div style="color: #475569; font-size: 0.95rem;">
+                        <p style="margin: 5px 0;">✓ All tables are accessible.</p>
+                        <p style="margin: 5px 0;">✓ Current Database Size: <strong style="color: #811112;">{{ db_size }} MB</strong></p>
+                        
+                        {% if report %}
+                            <p style="margin: 10px 0 5px 0; color: #dc2626; font-weight: bold;">⚠️ Database Clutter Detected:</p>
+                            <ul style="margin: 0 0 0 20px; padding: 0; color: #dc2626; font-size: 0.85rem;">
+                                {% for item in report %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p style="margin: 5px 0; color: #10b981;">✓ All systems are clean. No wasted space found.</p>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <div id="pro-loader" style="display: none; padding: 40px;">
-                    <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #811112; border-radius: 50%; animation: spin 1s linear infinite; margin: auto; margin-bottom: 20px;"></div>
-                    <p style="color: #811112; font-weight: 700; font-size: 1.2rem;">Scanning database tables...</p>
-                    <p style="color: #64748b; font-size: 0.9rem;">Checking fragmentation and storage efficiency.</p>
-                </div>
-
-                <div id="pro-results" style="display: none; text-align: left;">
-                    <div style="background: #f8fafc; border-left: 5px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-                        <h4 style="color: #0f172a; margin: 0 0 10px 0; display: flex; align-items: center; gap: 10px;">
-                            <i class="ph ph-check-circle" style="color: #10b981; font-size: 1.5rem;"></i>
-                            Diagnostic Complete
-                        </h4>
-                        <div style="color: #475569; font-size: 0.95rem;">
-                            <p style="margin: 5px 0;">✓ All tables are accessible.</p>
-                            <p style="margin: 5px 0;">✓ Current Database Size: <strong style="color: #811112;">{{ db_size }} MB</strong></p>
-                            
-                            {% if report %}
-                                <p style="margin: 10px 0 5px 0; color: #dc2626; font-weight: bold;">⚠️ Fragmentation Detected:</p>
-                                <ul style="margin: 0 0 0 20px; padding: 0; color: #dc2626; font-size: 0.85rem;">
-                                    {% for item in report %}
-                                        <li>{{ item }}</li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p style="margin: 5px 0; color: #10b981;">✓ Fragmentation levels are optimal (0 overhead).</p>
-                            {% endif %}
-                        </div>
+                {% if report %}
+                    <div style="background: #fffbeb; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                        <p style="margin: 0; color: #92400e; font-size: 0.9rem;"><strong>Recommendation:</strong> May mga bakanteng espasyo sa database na hindi na nagagamit. Ang paglilinis nito ay makakatulong para mas bumilis ang response ng system.</p>
                     </div>
 
-                    {% if report %}
-                        <div style="background: #fffbeb; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                            <p style="margin: 0; color: #92400e; font-size: 0.9rem;"><strong>Recommendation:</strong> Perform optimization to rearrange data for faster access and reclaim unused storage blocks.</p>
-                        </div>
-
-                        <form method="POST" action="{% url 'maintenance:maintenance_dashboard' %}">
-                            {% csrf_token %}
-                            <button type="submit" style="background: #0f172a; color: white; padding: 14px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem;">
-                                Run Database Optimization
-                            </button>
-                        </form>
-                    {% else %}
-                        <div style="background: #f0fdf4; border-left: 5px solid #22c55e; padding: 20px; border-radius: 8px; text-align: center;">
-                            <p style="margin: 0; color: #166534; font-size: 1rem; font-weight: 600;">
-                                System is running at peak performance. No optimization required at this time.
-                            </p>
-                        </div>
-                    {% endif %}
-                </div>
+                    <form method="POST" action="{% url 'maintenance:maintenance_dashboard' %}">
+                        {% csrf_token %}
+                        <button type="submit" style="background: #0f172a; color: white; padding: 14px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1rem;">
+                            Clean & Optimize Database
+                        </button>
+                    </form>
+                {% else %}
+                    <div style="background: #f0fdf4; border-left: 5px solid #22c55e; padding: 20px; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; color: #166534; font-size: 1rem; font-weight: 600;">
+                            System is running at peak performance. No optimization required at this time.
+                        </p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
-
 </div>
 
 
