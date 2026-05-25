@@ -21,7 +21,7 @@ from django.db.models import Q, F, Sum, Count, ProtectedError, DecimalField
 from django.db.models.functions import Coalesce
 from point_of_sale.models import Transaction, TransactionItem
 from django.db import transaction
-
+from django.core.paginator import Paginator
 from point_of_sale.models import Transaction
 from inventory.models import InventoryItem, PurchaseOrder
 from billing_payment.models import SalesReturn, Invoice
@@ -434,6 +434,7 @@ def delete_user(request, user_id):
     return redirect('security:register')
 
 def supplier_list(request):
+    # Handle Adding a New Supplier (POST)
     if request.method == 'POST':
         name = request.POST.get('name')
         contact_name = request.POST.get('contact_name')
@@ -443,7 +444,6 @@ def supplier_list(request):
         default_lt = request.POST.get('default_lead_time_days', 7)
         max_lt = request.POST.get('max_lead_time_days', 14)
         
-        # Simple check to prevent duplicates
         if Supplier.objects.filter(name__iexact=name).exists():
             messages.error(request, f"Supplier '{name}' already exists.")
         else:
@@ -460,11 +460,37 @@ def supplier_list(request):
             
         return redirect('inventory:supplier_list')
 
-    # Get all suppliers for the table
-    suppliers = Supplier.objects.all()
+    # --- GET REQUEST (SEARCH, PAGINATION) ---
+    search_query = request.GET.get('search', '').strip()
+    per_page = request.GET.get('per_page', 10)
+
+    # 1. Base Query
+    suppliers = Supplier.objects.all().order_by('name')
     
+    # 2. Search Filter (Company Name, Contact, Phone, o Email)
+    if search_query:
+        suppliers = suppliers.filter(
+            Q(name__icontains=search_query) |
+            Q(contact_name__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+        
+    # 3. Pagination Setup
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+
+    paginator = Paginator(suppliers, per_page)
+    page_number = request.GET.get('page', 1)
+    suppliers_page = paginator.get_page(page_number)
+    
+    # 4. Ipasa sa context
     return render(request, 'inventory/supplier_list.html', {
-        'suppliers': suppliers
+        'suppliers': suppliers_page,
+        'search_query': search_query,
+        'per_page': per_page,
     })
 
 

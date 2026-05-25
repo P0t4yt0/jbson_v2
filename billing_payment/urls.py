@@ -15,4 +15,5 @@ urlpatterns = [
     path('sales-returns/', views.sales_return_list, name='sales_return_list'),
     path('sales-returns/new/', views.process_return, name='process_return'),
     path('sales-returns/verify/', views.verify_transaction, name='verify_transaction'),
+    path('api/invoice/<int:invoice_id>/payments/', views.get_payment_history_json, name='api_invoice_payments'),
 ]

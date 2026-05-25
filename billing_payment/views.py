@@ -1,17 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Customer, Invoice, InvoicePayment
-from decimal import Decimal
-from point_of_sale.models import Transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Sum, Q
-from .models import SalesReturn, SalesReturnItem
-import uuid
-from inventory.models import InventoryItem
-from activity_log.utils import log_system_activity
 from django.core.paginator import Paginator
 from django.db import transaction
+from decimal import Decimal
+import uuid
+
+# Siguraduhing tama ang mga imports base sa folder structure mo
+from .models import Customer, Invoice, InvoicePayment, SalesReturn, SalesReturnItem
+from point_of_sale.models import Transaction
+from inventory.models import InventoryItem
+from activity_log.utils import log_system_activity
 
 def customer_list(request):
     # Handle Adding a New Customer
@@ -21,14 +22,13 @@ def customer_list(request):
         limit = request.POST.get('credit_limit')
         terms = request.POST.get('payment_terms')
         
-        # Basic validation to prevent duplicates
         if Customer.objects.filter(name=name).exists():
             messages.error(request, f"A customer named {name} already exists.")
         else:
             Customer.objects.create(
                 name=name,
                 phone=phone,
-                is_credit_customer=True, # Default to True since we are adding them here
+                is_credit_customer=True,
                 credit_limit=limit,
                 payment_terms=terms,
                 credit_status='active'
@@ -41,11 +41,41 @@ def customer_list(request):
             messages.success(request, f"Customer '{name}' added successfully.")
         return redirect('billing_payment:customer_list')
 
-    # Fetch all customers for the table
+    # --- GET REQUEST (SEARCH, FILTER, PAGINATION) ---
+    search_query = request.GET.get('search', '').strip()
+    status_filter = request.GET.get('status', '')
+    per_page = request.GET.get('per_page', 10)
+
+    # 1. Base Query
     customers = Customer.objects.all().order_by('-credit_balance')
     
+    # 2. Search Filter (Customer Name o Contact)
+    if search_query:
+        customers = customers.filter(
+            Q(name__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+    
+    # 3. Status Filter
+    if status_filter:
+        customers = customers.filter(credit_status__iexact=status_filter)
+        
+    # 4. Pagination Setup
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+
+    paginator = Paginator(customers, per_page)
+    page_number = request.GET.get('page', 1)
+    customers_page = paginator.get_page(page_number)
+    
+    # 5. I-pass sa context
     return render(request, 'billing_payment/customer_list.html', {
-        'customers': customers
+        'customers': customers_page,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'per_page': per_page,
     })
 
 def customer_ledger(request, pk):
@@ -57,6 +87,31 @@ def customer_ledger(request, pk):
     return render(request, 'billing_payment/customer_ledger.html', {
         'customer': customer,
         'invoices': invoices
+    })
+
+def get_payment_history_json(request, invoice_id):
+    """API endpoint para ibalik ang payment history ng isang invoice sa JSON format"""
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
+    
+    # FIX 1: Pinalitan ang '-payment_date' ng '-date'
+    if hasattr(invoice, 'payments'):
+        payments_queryset = invoice.payments.all().order_by('-date')
+    else:
+        payments_queryset = invoice.invoicepayment_set.all().order_by('-date')
+    
+    payments_data = []
+    for p in payments_queryset:
+        payments_data.append({
+            'amount': float(p.amount), 
+            # FIX 2: Pinalitan ang p.payment_date ng p.date
+            'date': p.date.strftime("%b %d, %Y"), 
+            'method': p.method.capitalize() 
+        })
+        
+    return JsonResponse({
+        'status': 'success',
+        'invoice_no': invoice.invoice_no,
+        'payments': payments_data
     })
 
 def pay_invoice(request, invoice_id):
@@ -76,7 +131,6 @@ def pay_invoice(request, invoice_id):
             return redirect('billing_payment:customer_ledger', pk=invoice.customer.id)
 
         # Create the Payment! 
-        # (Remember: Your InvoicePayment model automatically deducts the balances in its save() method)
         InvoicePayment.objects.create(
             invoice=invoice,
             amount=amount,
@@ -95,17 +149,12 @@ def pay_invoice(request, invoice_id):
     return redirect('billing_payment:customer_list')
 
 def sales_list(request):
-    # 1. Kunin muna lahat ng transactions, pababa (latest first)
     all_transactions = Transaction.objects.all().order_by('-date_completed')
     
-    # --- KUNIN ANG MGA FILTERS MULA SA URL ---
     search_query = request.GET.get('search', '').strip()
     status_filter = request.GET.get('status', '')
     method_filter = request.GET.get('method', '')
 
-    # --- I-APPLY ANG MGA FILTERS KUNG MERON ---
-    
-    # A. Search Filter (Reference No, Customer Name, or Cashier)
     if search_query:
         all_transactions = all_transactions.filter(
             Q(transaction_ref__icontains=search_query) |
@@ -113,15 +162,12 @@ def sales_list(request):
             Q(processed_by__username__icontains=search_query)
         )
 
-    # B. Status Filter
     if status_filter:
         all_transactions = all_transactions.filter(status__iexact=status_filter)
 
-    # C. Method Filter
     if method_filter:
         all_transactions = all_transactions.filter(payment_method__iexact=method_filter)
 
-    # --- PAGINATION LOGIC ---
     per_page = request.GET.get('per_page', 10)
     try:
         per_page = int(per_page)
@@ -132,21 +178,17 @@ def sales_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # --- IPASA SA CONTEXT ---
     context = {
         'transactions': page_obj,
         'per_page': per_page, 
-        'search_query': search_query,   # Para hindi mawala ang tinype sa search box
-        'status_filter': status_filter, # Para manatiling selected ang piniling status
-        'method_filter': method_filter, # Para manatiling selected ang piniling method
+        'search_query': search_query, 
+        'status_filter': status_filter, 
+        'method_filter': method_filter, 
     }
     return render(request, 'billing_payment/sales_list.html', context)
 
 def transaction_details(request, txn_id):
-    # Hanapin ang transaction gamit ang ID
     transaction = get_object_or_404(Transaction, id=txn_id)
-    
-    # Kunin lahat ng items na binili sa transaction na ito
     items = transaction.sold_items.all()
     
     context = {
@@ -158,7 +200,6 @@ def transaction_details(request, txn_id):
 def get_sale_details_api(request, txn_id):
     try:
         transaction = Transaction.objects.get(id=txn_id)
-        # Kukunin natin ang mga items sa loob ng transaction
         items = transaction.sold_items.all() 
         
         items_data = []
@@ -179,26 +220,21 @@ def get_sale_details_api(request, txn_id):
         return JsonResponse({'status': 'error', 'message': 'Transaction not found'})
     
 def invoice_list_view(request):
-    # 1. Kunin ang mga parameters galing sa URL
     search_query = request.GET.get('search', '').strip()
     status_filter = request.GET.get('status', '')
     per_page = request.GET.get('per_page', 10)
 
-    # 2. Base query: Kunin lahat ng invoices (ordered by latest)
     invoices = Invoice.objects.exclude(customer__isnull=True).prefetch_related('items').order_by('-issue_date', '-id')
 
-    # 3. I-apply ang Search Filter (Hahanapin ang Invoice No. o Customer Name)
     if search_query:
         invoices = invoices.filter(
             Q(invoice_no__icontains=search_query) | 
             Q(customer__name__icontains=search_query)
         )
 
-    # 4. I-apply ang Status Filter
     if status_filter:
         invoices = invoices.filter(status__iexact=status_filter)
 
-    # 5. Setup ang Pagination para gumana yung sa HTML natin
     try:
         per_page = int(per_page)
     except ValueError:
@@ -210,13 +246,12 @@ def invoice_list_view(request):
 
     today = timezone.now().date()
 
-    # 6. Ipasa sa context
     context = {
-        'invoices': invoices_page,  # Ito na yung paginated na data
+        'invoices': invoices_page, 
         'today': today,
         'search_query': search_query,
         'status_filter': status_filter,
-        'per_page': per_page,       # Para hindi bumalik sa 10 ang dropdown
+        'per_page': per_page,  
     }
     
     return render(request, 'billing_payment/invoice_list.html', context)
@@ -226,28 +261,21 @@ def create_invoice_view(request):
         form = InvoiceForm(request.POST)
         formset = InvoiceItemFormSet(request.POST)
         
-        # Siguraduhing valid ang parehong forms bago mag-save
         if form.is_valid() and formset.is_valid():
-            
-            # Gagamit tayo ng atomic transaction para siguradong saved lahat o none at all
             with transaction.atomic():
-                # 1. I-save muna ang main Invoice pero wag muna i-commit sa DB
                 invoice = form.save(commit=False)
-                invoice.save() # Kailangan nating i-save muna para magkaroon ng ID para sa formset
+                invoice.save() 
                 
-                # 2. Ikonekta ang formset sa main invoice at i-save ang items
                 formset.instance = invoice
                 invoice_items = formset.save()
                 
-                # 3. AUTOMATIC COMPUTATION: I-plus lahat ng subtotals para makuha ang grand total
                 grand_total = sum(item.subtotal for item in invoice.items.all())
                 
-                # I-update ang main invoice
                 invoice.total_amount = grand_total
-                invoice.balance_due = grand_total # Kung unpaid, balance = total
+                invoice.balance_due = grand_total 
                 invoice.save()
                 
-            return redirect('billing_payment:invoice_list') # Balik sa listahan
+            return redirect('billing_payment:invoice_list') 
     else:
         form = InvoiceForm()
         formset = InvoiceItemFormSet()
@@ -260,7 +288,6 @@ def create_invoice_view(request):
 
 def invoice_items_json(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    # Tandaan: 'items' ang related_name natin sa models
     items = invoice.items.all() 
     
     data = {
@@ -278,27 +305,23 @@ def invoice_items_json(request, invoice_id):
 def sales_return_list(request):
     query = request.GET.get('q', '').strip()
     
-    # Gumamit ng select_related para mas mabilis kunin ang data ng transaction, customer, at cashier
     returns = SalesReturn.objects.select_related(
         'transaction', 
         'transaction__customer', 
         'transaction__processed_by'
     ).all().order_by('-created_at')
     
-    # --- SEARCH FILTER LOGIC ---
     if query:
         returns = returns.filter(
             Q(return_id__icontains=query) |
             Q(transaction__transaction_ref__icontains=query) |
-            Q(transaction__customer__name__icontains=query) |           # Hinahanap ang Customer Name
-            Q(transaction__processed_by__username__icontains=query)     # Hinahanap ang Cashier Username
+            Q(transaction__customer__name__icontains=query) | 
+            Q(transaction__processed_by__username__icontains=query) 
         )
     
-    # --- SUMMARY DATA ---
     total_refunds = returns.aggregate(Sum('total_refund'))['total_refund__sum'] or 0
     return_count = returns.count()
     
-    # --- DYNAMIC PAGINATION LOGIC ---
     returns_per_page = request.GET.get('returns_per_page', 10)
     try:
         returns_per_page = int(returns_per_page)
@@ -328,25 +351,23 @@ def process_return(request):
         txn = get_object_or_404(Transaction, transaction_ref=txn_ref)
         return_id = f"RET-{uuid.uuid4().hex[:6].upper()}"
 
-        # 1. Gawa muna ng base record
         sales_return = SalesReturn.objects.create(
             transaction=txn,
             return_id=return_id,
             reason=reasons[0] if reasons else "Multiple Items",
-            total_refund=0 # Temporary zero
+            total_refund=0 
         )
 
-        running_total = 0 # Dito natin ipon-ipunin ang presyo
+        running_total = 0 
 
         for i, prod_id in enumerate(product_ids):
             qty = int(return_qtys[i])
             if qty > 0:
                 product = InventoryItem.objects.get(id=prod_id)
-                # Kunin ang unit price mula sa TransactionItem (hindi sa Inventory para accurate sa receipt)
                 item_in_txn = txn.sold_items.get(inventory_item=product)
                 
                 line_total = item_in_txn.unit_price * qty
-                running_total += line_total # I-add sa grand total
+                running_total += line_total 
 
                 SalesReturnItem.objects.create(
                     sales_return=sales_return,
@@ -355,11 +376,9 @@ def process_return(request):
                     subtotal=line_total
                 )
 
-                # Update Inventory Stock
                 product.quantity += qty
                 product.save()
 
-        # 2. KRITIKAL: I-save ang final total sa database!
         sales_return.total_refund = running_total
         sales_return.save()
 
@@ -378,27 +397,22 @@ def verify_transaction(request):
         txn = Transaction.objects.get(transaction_ref=txn_ref)
         items_data = []
 
-        # Iikot sa lahat ng biniling items sa transaction na ito
         for sold_item in txn.sold_items.all():
             
-            # I-compute kung ilan na ang naibalik dati sa partikular na item na ito
             returned_qty = SalesReturnItem.objects.filter(
                 sales_return__transaction=txn,
                 product=sold_item.inventory_item
             ).aggregate(Sum('quantity'))['quantity__sum'] or 0
 
-            # Ibawas ang naibalik na sa orihinal na binili
             remaining_qty = sold_item.quantity - returned_qty
 
-            # Kung may natitira pa, isama sa listahan ng pwedeng i-return
             if remaining_qty > 0:
                 items_data.append({
                     'id': sold_item.inventory_item.id,
-                    'name': sold_item.inventory_item.name,
-                    'max_qty': remaining_qty  # Ito na ang updated na pwede i-return
+                    'name': sold_item.inventory_item.item_name, # Note: Binago ko ito papuntang .item_name baka ito ang ginagamit mo sa model
+                    'max_qty': remaining_qty 
                 })
 
-        # Kung may laman pa ang items_data, ibig sabihin may pwede pang i-return
         if items_data:
             return JsonResponse({'success': True, 'items': items_data})
         else:
@@ -406,4 +420,3 @@ def verify_transaction(request):
 
     except Transaction.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Transaction not found.'})
-    
