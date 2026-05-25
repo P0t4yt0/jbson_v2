@@ -549,101 +549,84 @@ def create_po(request):
     
     auto_supplier_id = None
     auto_items = []
-    # Pre-calculate the 7-day default delivery string for the HTML input
     fallback_date_str = (timezone.now().date() + timezone.timedelta(days=7)).strftime('%Y-%m-%d')
 
+    # 1. Calculate which items actually need restocking
+    low_stock_qs = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
+        incoming_qty=Coalesce(
+            Sum(
+                'purchaseorderitem__quantity_ordered',
+                filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
+            ),
+            0
+        )
+    ).annotate(
+        effective_qty=F('quantity') + F('incoming_qty')
+    ).filter(effective_qty__lte=F('reorder_point'))
+
+    # 2. Group them by supplier to pass to the template dropdown
+    suppliers_needing_restock = (
+    low_stock_qs
+    .values('supplier__id', 'supplier__name')
+    .annotate(item_count=Count('id', distinct=True))
+    .order_by('supplier__id')          # stable sort before dedup
+    .distinct()                        # drop any duplicate supplier rows
+    .order_by('-item_count')           # then re-sort by most items
+)
+
+
+    # 3. Process the Auto-Draft request for a SPECIFIC supplier
     if request.GET.get('auto') == 'true':
-        # THE FIX: Exclude items that do not have a supplier assigned
-        low_stock_items = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
-            incoming_qty=Coalesce(
-                Sum(
-                    'purchaseorderitem__quantity_ordered',
-                    filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
-                ),
-                0
-            )
-        ).annotate(
-            effective_qty=F('quantity') + F('incoming_qty')
-        ).filter(effective_qty__lte=F('reorder_point'))
+        target_supplier_id = request.GET.get('supplier_id')
 
+        if target_supplier_id:
+            auto_supplier_id = int(target_supplier_id)
+        else:
+            # Fallback if they click a generic link: pick the one with most items
+            top_supplier = suppliers_needing_restock.first()
+            if top_supplier:
+                auto_supplier_id = int(top_supplier['supplier__id'])
 
-        if low_stock_items.exists():
-
-                # Check for an existing draft for this supplier first
+        if auto_supplier_id:
             existing_draft = PurchaseOrder.objects.filter(
-                supplier_id=auto_supplier_id,
-                status='draft'
+                supplier_id=auto_supplier_id, status='draft'
             ).first()
+            
             if existing_draft:
                 return redirect('inventory:edit_po', po_id=existing_draft.id)
+                
+            items_for_supplier = low_stock_qs.filter(supplier_id=auto_supplier_id)
 
-            # Find the single supplier with the MOST critical low-stock items
-            top_supplier = low_stock_items.values('supplier').annotate(c=Count('id')).order_by('-c').first()
-
-            if top_supplier and top_supplier['supplier']:
-                auto_supplier_id = int(top_supplier['supplier'])
-                existing_draft = PurchaseOrder.objects.filter(
-                    supplier_id=auto_supplier_id, status='draft'
-                ).first()
-                if existing_draft:
-                    return redirect('inventory:edit_po', po_id=existing_draft.id)
-                items_for_supplier = low_stock_items.filter(supplier_id=auto_supplier_id)
-
-                for item in items_for_supplier:
-                    # --- NEW SMART ORDER QUANTITY LOGIC ---
-                    avg_sales = float(item.average_daily_sales or 0)
-                    safety_stock = getattr(item, 'safety_stock', 0)
+            for item in items_for_supplier:
+                avg_sales = float(item.average_daily_sales or 0)
+                safety_stock = getattr(item, 'safety_stock', 0)
+                
+                if avg_sales > 0:
+                    target_stock_level = int(round(avg_sales * 30)) + safety_stock
+                else:
+                    target_stock_level = item.reorder_point * 2
                     
-                    if avg_sales > 0:
-                        # If AI Calibrated: Order enough to last 30 days + keep Safety Stock
-                        target_stock_level = int(round(avg_sales * 30)) + safety_stock
-                    else:
-                        # Fallback if no sales data yet: Just double the ROP
-                        target_stock_level = item.reorder_point * 2
-                        
-                    # Formula: How much we need = Target Stock - (What we currently have + What is already arriving)
-                    recommended_qty = target_stock_level - item.effective_qty
-                    
-                    # Absolute fallback to ensure we don't order 0 or negative numbers
-                    if recommended_qty <= 0: 
-                        recommended_qty = max(item.reorder_point, 1)
+                recommended_qty = target_stock_level - item.effective_qty
+                if recommended_qty <= 0: 
+                    recommended_qty = max(item.reorder_point, 1)
 
-                    cost = float(item.unit_cost or 0)
-                    subtotal = recommended_qty * cost
+                cost = float(item.unit_cost or 0)
+                subtotal = recommended_qty * cost
 
+                auto_items.append({
+                    'id': item.id,
+                    'name': item.item_name,
+                    'qty': recommended_qty,
+                    'cost': str(item.unit_cost),
+                    'subtotal': f"{subtotal:.2f}"
+                })
 
-                    auto_items.append({
-                        'id': item.id,
-                        'name': item.item_name,
-                        'qty': recommended_qty,
-                        'cost': str(item.unit_cost),
-                        'subtotal': f"{subtotal:.2f}" # Dito nakukuha ang subtotal
-                    })
-
-                supplier_obj = Supplier.objects.get(id=auto_supplier_id)
-                messages.info(request, f"Draft auto-filled for {supplier_obj.name}. Items already pending delivery were ignored. Please review and Save.")
-            else:
-                # NEW: Tell the user if the logic failed to find a supplier
-                messages.warning(request, "Low stock items found, but they don't have a Supplier assigned! Please edit your products and assign a supplier.")
-        else:
+            supplier_obj = Supplier.objects.get(id=auto_supplier_id)
+            messages.info(request, f"Draft auto-filled for {supplier_obj.name}. Items already pending delivery were ignored.")
+        elif not target_supplier_id and not suppliers_needing_restock:
             messages.success(request, "Inventory is healthy or all low-stock items are already on their way!")
 
     purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
-
-    # THE FIX: Exclude items that do not have a supplier assigned here as well
-    pending_draft_count = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
-    incoming_qty=Coalesce(
-        Sum(
-            'purchaseorderitem__quantity_ordered',
-            filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
-        ),
-        0
-    )
-).annotate(
-    effective_qty=F('quantity') + F('incoming_qty')
-).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
-
-
 
     return render(request, 'inventory/create_po.html', {
         'suppliers': suppliers,
@@ -652,7 +635,7 @@ def create_po(request):
         'auto_items': auto_items,
         'fallback_date_str': fallback_date_str,
         'purchase_orders': purchase_orders,
-        'pending_draft_count': pending_draft_count
+        'suppliers_needing_restock': suppliers_needing_restock # Passed to template
     })
 
 def po_list(request):
@@ -838,20 +821,28 @@ def edit_po(request, po_id):
     # Safely format the date for the HTML date picker
     formatted_date = target_po.expected_delivery.strftime('%Y-%m-%d') if target_po.expected_delivery else ''
 
-    # Calculate how many unique suppliers currently have low stock (ignoring pending orders)
-    pending_draft_count = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
-    incoming_qty=Coalesce(
-        Sum(
-            'purchaseorderitem__quantity_ordered',
-            filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
-        ),
-        0
-    )
-).annotate(
-    effective_qty=F('quantity') + F('incoming_qty')
-).filter(effective_qty__lte=F('reorder_point')).values('supplier').distinct().count()
+    # --- REPLACED PENDING DRAFT COUNT WITH THE NEW DROPDOWN LOGIC ---
+    low_stock_qs = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
+        incoming_qty=Coalesce(
+            Sum(
+                'purchaseorderitem__quantity_ordered',
+                filter=Q(purchaseorderitem__purchase_order__status__in=['pending', 'draft'])
+            ),
+            0
+        )
+    ).annotate(
+        effective_qty=F('quantity') + F('incoming_qty')
+    ).filter(effective_qty__lte=F('reorder_point'))
 
-
+    suppliers_needing_restock = (
+    low_stock_qs
+    .values('supplier__id', 'supplier__name')
+    .annotate(item_count=Count('id', distinct=True))
+    .order_by('supplier__id')          # stable sort before dedup
+    .distinct()                        # drop any duplicate supplier rows
+    .order_by('-item_count')           # then re-sort by most items
+)
+    # ----------------------------------------------------------------
 
     return render(request, 'inventory/create_po.html', {
         'purchase_orders': purchase_orders,
@@ -860,7 +851,7 @@ def edit_po(request, po_id):
         'target_po': target_po,
         'edit_mode': True,
         'formatted_date': formatted_date,
-        'pending_draft_count': pending_draft_count # <--- Add this new variable to the list!
+        'suppliers_needing_restock': suppliers_needing_restock # <--- Updated context variable
     })
 
 def delete_po(request, po_id):
@@ -921,3 +912,8 @@ def auto_calibrate_rop(request):
     )
     messages.success(request, f"Done! ROP updated for {updated_count} items. Blank days were excluded from the average so your numbers stay accurate.")
     return redirect('inventory:inventory_list')
+
+def print_po(request, po_id):
+    """Generates a clean, printable A4 HTML view of the Purchase Order."""
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    return render(request, 'inventory/print_po.html', {'po': po})

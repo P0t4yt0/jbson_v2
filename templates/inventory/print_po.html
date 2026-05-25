@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PO-{{ po.po_number }} | JBSON</title>
+    <style>
+        /* Base Print Styles */
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 0; background: #fff; }
+        * { box-sizing: border-box; }
+        
+        /* A4 Page Formatting */
+        @page { size: A4; margin: 20mm; }
+        .document-container { max-width: 210mm; margin: 0 auto; padding: 20px; }
+
+        /* Header: Logo & Title */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #092c4c; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo-section img { max-height: 80px; width: auto; }
+        .title-section { text-align: right; }
+        .title-section h1 { margin: 0; font-size: 32px; color: #092c4c; letter-spacing: 2px; text-transform: uppercase; }
+        .po-meta { margin-top: 10px; font-size: 14px; color: #555; }
+        .po-meta strong { color: #333; }
+
+        /* Addresses */
+        .address-row { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .address-block { width: 45%; }
+        .address-block h3 { margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #777; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .address-block p { margin: 4px 0; font-size: 14px; line-height: 1.5; }
+        .address-block strong { color: #222; font-size: 16px; }
+
+        /* Items Table */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th { background-color: #f8fafc; color: #092c4c; font-size: 12px; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid #cbd5e1; }
+        td { padding: 12px; font-size: 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        /* Totals */
+        .totals-section { width: 40%; margin-left: auto; border-top: 2px solid #cbd5e1; padding-top: 15px; }
+        .total-row { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 10px; }
+        .grand-total { font-size: 20px; font-weight: bold; color: #092c4c; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
+
+        /* Footer & Signatures */
+        .footer-section { margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .notes { width: 50%; font-size: 12px; color: #666; background: #f8fafc; padding: 15px; border-radius: 6px; }
+        .signature-box { width: 35%; text-align: center; }
+        .signature-line { border-bottom: 1px solid #333; height: 40px; margin-bottom: 8px; }
+        .signature-text { font-size: 12px; color: #666; text-transform: uppercase; }
+
+        /* Hide buttons when actually printing */
+        @media print {
+            .no-print { display: none !important; }
+            .document-container { padding: 0; }
+        }
+        
+        .print-btn { display: block; width: 200px; margin: 20px auto; padding: 12px; background: #0D9488; color: white; text-align: center; text-decoration: none; font-weight: bold; border-radius: 6px; font-family: sans-serif; cursor: pointer; border: none; }
+    </style>
+</head>
+<body>
+
+    <button onclick="window.print()" class="no-print print-btn">🖨️ Print / Save as PDF</button>
+
+    <div class="document-container">
+        <div class="header">
+            <div class="logo-section">
+                <img src="{% static 'images/jbson-logo.png' %}" alt="JBSON Logo">
+            </div>
+            <div class="title-section">
+                <h1>Purchase Order</h1>
+                <div class="po-meta">
+                    <div><strong>PO Number:</strong> {{ po.po_number }}</div>
+                    <div><strong>Date:</strong> {{ po.order_date|date:"F j, Y" }}</div>
+                    <div><strong>Expected Delivery:</strong> {{ po.expected_delivery|date:"F j, Y" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="address-row">
+            <div class="address-block">
+                <h3>Vendor / Supplier</h3>
+                <p><strong>{{ po.supplier.name }}</strong></p>
+                <p>Attn: {{ po.supplier.contact_name|default:"Sales Department" }}</p>
+                <p>{{ po.supplier.address|default:"Address not provided" }}</p>
+                <p>Phone: {{ po.supplier.phone|default:"N/A" }}</p>
+                <p>Email: {{ po.supplier.email|default:"N/A" }}</p>
+            </div>
+            <div class="address-block">
+                <h3>Ship To</h3>
+                <p><strong>JBSON Hardware & Construction Supply</strong></p>
+                <p>123 Main Business Road</p>
+                <p>Antipolo City, Rizal, 1870</p>
+                <p>Phone: (02) 8123-4567</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Item Code</th>
+                    <th style="width: 40%;">Description</th>
+                    <th class="text-center" style="width: 15%;">Qty</th>
+                    <th class="text-right" style="width: 15%;">Unit Price</th>
+                    <th class="text-right" style="width: 15%;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in po.items.all %}
+                <tr>
+                    <td>{{ item.product.product_id }}</td>
+                    <td>{{ item.product.item_name }}</td>
+                    <td class="text-center">{{ item.quantity_ordered }}</td>
+                    <td class="text-right">₱{{ item.unit_cost }}</td>
+                    <td class="text-right">₱{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <div class="total-row grand-total">
+                <span>Total Amount:</span>
+                <span>₱{{ po.total_amount }}</span>
+            </div>
+        </div>
+
+        <div class="footer-section">
+            <div class="notes">
+                <strong>Instructions to Vendor:</strong><br>
+                Please include the PO Number on all invoices and delivery receipts. Notify us immediately if you are unable to ship as specified.
+            </div>
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-text">Authorized Signature</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // If the user clicked the PDF icon
+            if (urlParams.get('mode') === 'pdf') {
+                // 1. Hide the manual print button so it doesn't appear in the PDF
+                const printBtn = document.querySelector('.print-btn');
+                if(printBtn) printBtn.style.display = 'none';
+                
+                // 2. Configure the PDF settings
+                const element = document.querySelector('.document-container');
+                const opt = {
+                    margin:       0.5,
+                    filename:     '{{ po.po_number }}.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // 3. Generate and instantly download the PDF
+                html2pdf().set(opt).from(element).save().then(function() {
+                    // Optional: Restore the button after download completes
+                    if(printBtn) printBtn.style.display = 'block';
+                });
+                
+            } else {
+                // If the user clicked the Print icon (or no mode specified)
+                window.print();
+            }
+        }
+    </script>
+</body>
+</html>
