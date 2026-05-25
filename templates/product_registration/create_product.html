@@ -337,45 +337,40 @@ function submitNewSupplier() {
 })();
 
 // --- SUPPLIER LEAD TIME DISPLAY ---
-// Runs immediately since DOMContentLoaded already fired (this is a modal partial)
 (function() {
     const supplierSelect = document.getElementById('supplierSelect');
-    const avgDisplay = document.getElementById('avg-lead-display');
-    const maxDisplay = document.getElementById('max-lead-display');
-    const avgHidden = document.getElementById('id_avg_lead');
-    const maxHidden = document.getElementById('id_max_lead');
+    const avgInput = document.getElementById('id_avg_lead');
+    const maxInput = document.getElementById('id_max_lead');
 
-    function updateLeadTimeDisplay() {
+    if (!supplierSelect || !avgInput || !maxInput) return;
+
+    function updateLeadTime() {
         const selected = supplierSelect.options[supplierSelect.selectedIndex];
         const avgLead = selected.getAttribute('data-avg-lead');
         const maxLead = selected.getAttribute('data-max-lead');
 
-        if (selected.value && avgLead) {
-            avgDisplay.textContent = avgLead + ' days';
-            maxDisplay.textContent = maxLead + ' days';
-            avgDisplay.style.background = '#DBEAFE';
-            maxDisplay.style.background = '#DBEAFE';
-            avgDisplay.style.color = '#092c4c';
-            maxDisplay.style.color = '#092c4c';
-            avgHidden.value = avgLead;
-            maxHidden.value = maxLead;
+        if (selected.value && avgLead !== null) {
+            avgInput.value = avgLead;
+            maxInput.value = maxLead;
+
+            // Visual feedback — flash the fields blue briefly
+            [avgInput, maxInput].forEach(el => {
+                el.style.borderColor = '#3B82F6';
+                el.style.background = '#EFF6FF';
+                setTimeout(() => {
+                    el.style.borderColor = '#ddd';
+                    el.style.background = '';
+                }, 800);
+            });
         } else {
-            avgDisplay.textContent = '-- select a supplier --';
-            maxDisplay.textContent = '-- select a supplier --';
-            avgDisplay.style.background = '#E2E8F0';
-            maxDisplay.style.background = '#E2E8F0';
-            avgDisplay.style.color = '#94A3B8';
-            maxDisplay.style.color = '#94A3B8';
-            avgHidden.value = '0';
-            maxHidden.value = '0';
+            avgInput.value = '0';
+            maxInput.value = '0';
         }
     }
 
-    // Run immediately on load (for edit mode where supplier is already selected)
-    if (supplierSelect && supplierSelect.value) {
-        updateLeadTimeDisplay();
-    }
+    // Trigger on load for edit mode (supplier already selected)
+    if (supplierSelect.value) updateLeadTime();
 
-    supplierSelect?.addEventListener('change', updateLeadTimeDisplay);
+    supplierSelect.addEventListener('change', updateLeadTime);
 })();
 </script>

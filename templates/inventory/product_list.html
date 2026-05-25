@@ -219,28 +219,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* ------------------ AUTO-CALIBRATE ------------------ */
     const calibrateBtn = document.getElementById('autoCalibrateBtn');
-    calibrateBtn?.addEventListener('click', function(e) {
-        e.preventDefault();
-        Swal.fire({
-            title: 'Initiate Auto-Calibration?',
-            text: 'This action will analyze POS transaction data from the past 30 days to dynamically compute and update the Reorder Points and Safety Stocks for all eligible inventory items. Do you wish to proceed?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#811112',
-            cancelButtonColor: '#a0aec0',
-            confirmButtonText: 'Yes, proceed'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Calibrating...',
-                    text: 'Please wait while the system analyzes the sales data.',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-                window.location.href = "{% url 'inventory:auto_calibrate_rop' %}";
-            }
+        calibrateBtn?.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Auto-Calibrate ROP',
+                html: `
+                    <p style="font-size: 14px; color: #4a5568; margin-bottom: 15px;">
+                        How many days of sales history should the system analyze?
+                    </p>
+                    <input type="number" id="swal-days" value="7" min="7" max="365"
+                        style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16px; text-align: center;">
+                    <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Recommended: 7 days. Blank days are excluded from the average.</p>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#811112',
+                cancelButtonColor: '#a0aec0',
+                confirmButtonText: 'Yes, calibrate',
+                preConfirm: () => {
+                    const days = document.getElementById('swal-days').value;
+                    if (!days || days < 7) {
+                        Swal.showValidationMessage('Please enter at least 7 days.');
+                        return false;
+                    }
+                    return days;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Calibrating...',
+                        text: `Analyzing the last ${result.value} days of sales data.`,
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    window.location.href = "{% url 'inventory:auto_calibrate_rop' %}?days=" + result.value;
+                }
+            });
         });
-    });
+
 
     /* ------------------ ABC ANALYSIS ------------------ */
     const analyzeBtn = document.getElementById("analyze-priority-btn");

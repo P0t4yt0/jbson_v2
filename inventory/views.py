@@ -859,55 +859,39 @@ def delete_po(request, po_id):
 
 
 def auto_calibrate_rop(request):
-    """
-    Auto-Learning Feature: Scans POS transactions from the last 30 days,
-    computes the real Average and Max Daily Sales, and updates the ROP automatically.
-    """
-    # 1. Kunin ang petsa eksaktong 30 days ago
-    thirty_days_ago = timezone.now() - timedelta(days=30)
-    
-    # 2. Kunin lahat ng items sa inventory
+    days = int(request.GET.get('days', 7))
+    days = max(7, min(days, 365))
+
+    lookback = timezone.now() - timedelta(days=days)
     items = InventoryItem.objects.all()
-    
     updated_count = 0
-    
+
     for item in items:
-        # Kunin lahat ng benta ng specific item na ito from the last 30 days
         sales = TransactionItem.objects.filter(
             inventory_item=item,
             transaction__status__in=['completed', 'paid'],
-            transaction__date_created__gte=thirty_days_ago
+            transaction__date_created__gte=lookback
         )
-        
-        # I-group ang sales per day gamit ang dictionary (Para iwas SQLite bug)
+
         daily_sales_dict = {}
         for sale in sales:
             date_str = sale.transaction.date_created.strftime('%Y-%m-%d')
-            if date_str not in daily_sales_dict:
-                daily_sales_dict[date_str] = 0
-            daily_sales_dict[date_str] += sale.quantity
-            
-        # Kung may benta in the last 30 days, i-compute ang auto-learn data!
+            daily_sales_dict[date_str] = daily_sales_dict.get(date_str, 0) + sale.quantity
+
         if daily_sales_dict:
             total_sales = sum(daily_sales_dict.values())
-            
-            # Average Daily Sales (Total na benta hatiin sa 30 days)
-            item.average_daily_sales = float(total_sales) / 30.0
-            
-            # Max Daily Sales (Pinakamataas na benta sa isang araw)
+            active_days = len(daily_sales_dict)  # Only days that actually had sales
+
+            # Use active days for average so blank days don't drag it down
+            item.average_daily_sales = float(total_sales) / float(active_days)
             item.max_daily_sales = float(max(daily_sales_dict.values()))
-            
-            # I-save para mag-trigger yung formula sa models.py
             item.save()
             updated_count += 1
-            
-    # I-log sa system at magpakita ng success message
+
     log_system_activity(
         user=request.user,
         action="AUTO CALIBRATE",
-        description=f"System auto-calibrated Reorder Points for {updated_count} active items based on 30-day POS history."
+        description=f"Auto-calibrated ROP for {updated_count} items based on last {days} days of sales (blank days excluded)."
     )
-    
-    messages.success(request, f"Inventory Intelligence synced! ROP and Safety Stocks for {updated_count} items have been auto-calibrated based on your last 30 days of sales operations.")
-    
+    messages.success(request, f"Done! ROP updated for {updated_count} items. Blank days were excluded from the average so your numbers stay accurate.")
     return redirect('inventory:inventory_list')
