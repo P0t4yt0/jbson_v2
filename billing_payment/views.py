@@ -277,21 +277,28 @@ def invoice_items_json(request, invoice_id):
 
 def sales_return_list(request):
     query = request.GET.get('q', '').strip()
-    returns = SalesReturn.objects.all().order_by('-created_at')
     
-    # Search Filter Logic
+    # Gumamit ng select_related para mas mabilis kunin ang data ng transaction, customer, at cashier
+    returns = SalesReturn.objects.select_related(
+        'transaction', 
+        'transaction__customer', 
+        'transaction__processed_by'
+    ).all().order_by('-created_at')
+    
+    # --- SEARCH FILTER LOGIC ---
     if query:
         returns = returns.filter(
             Q(return_id__icontains=query) |
-            Q(transaction__transaction_ref__icontains=query)
+            Q(transaction__transaction_ref__icontains=query) |
+            Q(transaction__customer__name__icontains=query) |           # Hinahanap ang Customer Name
+            Q(transaction__processed_by__username__icontains=query)     # Hinahanap ang Cashier Username
         )
     
-    # Summary Data
+    # --- SUMMARY DATA ---
     total_refunds = returns.aggregate(Sum('total_refund'))['total_refund__sum'] or 0
     return_count = returns.count()
     
     # --- DYNAMIC PAGINATION LOGIC ---
-    # Default sa 10 items kung walang pinili
     returns_per_page = request.GET.get('returns_per_page', 10)
     try:
         returns_per_page = int(returns_per_page)
@@ -307,7 +314,7 @@ def sales_return_list(request):
         'total_refunds': total_refunds,
         'return_count': return_count,
         'query': query,
-        'returns_per_page': returns_per_page, # <-- Ipinasa natin ito para sa dropdown
+        'returns_per_page': returns_per_page, 
     }
     return render(request, 'billing_payment/sales_return_list.html', context)
 

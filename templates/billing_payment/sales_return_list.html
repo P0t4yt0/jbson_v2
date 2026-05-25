@@ -1,225 +1,299 @@
 {% extends 'dashboard/dashboard.html' %} 
 {% block content %}
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
 <style>
+    .table-container {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 30px; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        overflow-x: auto; 
+    }
+    
+    .filter-container {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 20px; 
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .table-clean {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-clean th, .table-clean td {
+        padding: 16px 14px; 
+        text-align: left;
+        border-bottom: 1px solid #edf2f7;
+        color: #4a5568;
+        font-size: 0.9rem; 
+        vertical-align: middle;
+    }
+    .table-clean th {
+        font-weight: 700;
+        color: #64748b; 
+        font-size: 0.8rem; 
+        text-transform: uppercase; 
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0; 
+    }
+
+    .action-group { display: flex; gap: 8px; align-items: center; justify-content: center; }
+    
+    .table-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        text-decoration: none;
+        font-size: 1.1rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .table-action-btn:hover { background-color: #edf2f7; transform: translateY(-2px); }
+    .btn-view:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
+
     /* PAGINATION STYLES */
-    .pagination-bar {
+    .pagination-wrapper {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 15px 24px;
-        background: #F8FAFC;
-        border-top: 1px solid #E2E8F0;
-        font-size: 0.85rem;
-        color: #64748B;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #edf2f7;
     }
-    .pagination-controls { display: flex; gap: 4px; align-items: center; }
-    .page-active { background: #092c4c; color: white; padding: 5px 12px; border-radius: 4px; font-weight: 700; }
-    .page-link { color: #334155; padding: 5px 12px; text-decoration: none; border-radius: 4px; }
-    .page-link:hover { background: #E2E8F0; }
-    .page-btn { border: 1px solid #CBD5E1; padding: 5px 10px; border-radius: 4px; color: #334155; text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
-    .page-btn:hover { background: #F1F5F9; }
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        gap: 6px;
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        border-radius: 6px;
+        color: #475569;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
+    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
+    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
 </style>
 
-<div style="padding: 30px; background: #F8FAFC; min-height: 100vh; font-family: 'Inter', sans-serif; position: relative;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
         <div>
-            <h1 style="font-size: 1.8rem; color: #092c4c; margin: 0 0 5px 0; font-weight: 800;">Sales Returns</h1>
-            <p style="color: #e07300; font-size: 0.95rem; margin: 0; font-weight: 500;">View and manage all returned hardware items and customer refunds.</p>
+            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Sales Returns</h2>
+            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+                View and manage all returned hardware items and customer refunds.
+            </p>
         </div>
-        <button onclick="openReturnModal()" style="background: #092c4c; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <button onclick="openReturnModal()" style="background: #092c4c; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.1);" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">
             <i class="ph ph-arrow-counter-clockwise" style="font-size: 1.2rem;"></i> Process New Return
         </button>
     </div>
 
-    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #E2E8F0;">
-        <form method="GET" style="display: flex; gap: 15px; margin: 0; align-items: center;">
-            <input type="text" name="q" value="{{ query }}" placeholder="Search Reference, Customer, Cashier..." style="flex: 1; padding: 12px 15px; border: 1px solid #CBD5E1; border-radius: 6px; outline: none; font-size: 0.95rem; color: #334155;">
+    <div class="filter-container">
+        <form method="GET" style="display: flex; gap: 15px; align-items: center; margin: 0;">
+            <input type="text" name="q" placeholder="Search Reference, Customer, Cashier..." value="{{ query|default:'' }}" 
+                   style="flex: 2; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;" 
+                   onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
             
-            <button type="submit" style="background: #092c4c; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">
+            <button type="submit" style="background: #092c4c; color: white; padding: 12px 30px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box;" 
+                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.borderColor='#092c4c';">
                 Filter
             </button>
 
             {% if query %}
-                <a href="{% url 'billing_payment:sales_return_list' %}" style="background: white; color: #64748B; border: 1px solid #CBD5E1; padding: 11px 30px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.95rem; display: flex; align-items: center; justify-content: center;">
-                    Clear
-                </a>
+            <a href="{% url 'billing_payment:sales_return_list' %}" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 12px 30px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box;" 
+               title="Clear all filters"
+               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
+               onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
+                Clear
+            </a>
             {% endif %}
         </form>
     </div>
 
-    <div style="background: white; border-radius: 8px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead style="background: #F8FAFC;">
-                <tr style="border-bottom: 1px solid #E2E8F0;">
-                    <th style="padding: 18px 24px; text-align: left; font-size: 0.75rem; color: #811112; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Return ID</th>
-                    <th style="padding: 18px 24px; text-align: left; font-size: 0.75rem; color: #811112; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Original TXN</th>
-                    <th style="padding: 18px 24px; text-align: left; font-size: 0.75rem; color: #811112; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Date</th>
-                    <th style="padding: 18px 24px; text-align: center; font-size: 0.75rem; color: #811112; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Actions</th>
+    <div class="table-container">
+        <table class="table-clean">
+            <thead>
+                <tr>
+                    <th>Return ID</th>
+                    <th>Original TXN</th>
+                    <th>Date</th>
+                    <th style="text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for return in returns %}
-                <tr style="border-bottom: 1px solid #F1F5F9;">
-                    <td style="padding: 18px 24px; font-weight: 700; color: #092c4c;">#{{ return.return_id }}</td>
-                    <td style="padding: 18px 24px; color: #64748B;">{{ return.transaction.transaction_ref }}</td>
-                    <td style="padding: 18px 24px; color: #64748B;">{{ return.created_at|date:"M d, Y" }}</td>
-                    <td style="padding: 18px 24px; text-align: center;">
-                        <button type="button" onclick="openDetailsModal('{{ return.return_id }}', '{{ return.transaction.transaction_ref }}', '{{ return.total_refund|floatformat:"2g" }}')" style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #64748B; transition: 0.2s;" onmouseover="this.style.borderColor='#092c4c'; this.style.color='#092c4c'" onmouseout="this.style.borderColor='#CBD5E1'; this.style.color='#64748B'">
-                            <i class="ph ph-eye" style="font-size: 1.2rem;"></i>
-                        </button>
+                <tr>
+                    <td><strong style="color: #092c4c; font-weight: 700;">{{ return.return_id }}</strong></td>
+                    <td style="color: #64748b;">{{ return.transaction.transaction_ref }}</td>
+                    <td style="color: #64748b;">{{ return.created_at|date:"M d, Y" }}</td>
+                    
+                    <td>
+                        <div class="action-group">
+                            <button type="button" onclick="openDetailsModal('{{ return.return_id }}', '{{ return.transaction.transaction_ref }}', '{{ return.total_refund|floatformat:"2g" }}')" class="table-action-btn btn-view" title="View Details">
+                                <i class="ph ph-eye"></i>
+                            </button>
+                        </div>
                         
                         <div style="display: none;">
                             <table id="details-data-{{ return.return_id }}">
                                 <tbody>
                                     {% for item in return.returned_items.all %}
                                     <tr>
-                                        <td style="padding: 12px 0; color: #092c4c; text-align: left; font-weight: 700; font-size: 0.90rem; width: 45%;">{{ item.product.name }}</td>
-                                        
-                                        <td class="item-price" style="padding: 12px 0; text-align: center; color: #64748B; font-weight: 500; font-size: 0.90rem; width: 20%;"></td>
-                                        
-                                        <td class="item-qty" style="padding: 12px 0; text-align: center; color: #64748B; font-weight: 500; font-size: 0.90rem; width: 10%;">{{ item.quantity }}</td>
-                                        
-                                        <td class="item-subtotal" data-val="{{ item.subtotal }}" style="padding: 12px 0; font-weight: 800; color: #092c4c; text-align: right; font-size: 0.90rem; width: 25%;">₱{{ item.subtotal|floatformat:"2g" }}</td>
+                                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">{{ item.product.name }}</td>
+                                        <td class="item-price" style="display: none;"></td>
+                                        <td class="item-qty" style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:0.9rem; font-weight:500;">{{ item.quantity }}</td>
+                                        <td class="item-subtotal" data-val="{{ item.subtotal }}" style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:0.95rem;">₱{{ item.subtotal|floatformat:"2g" }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="4" style="padding: 30px 0; text-align: center; color: #94A3B8; font-style: italic; font-size: 0.9rem;">
-                                            No explicit items saved for this old record.
-                                        </td>
+                                        <td colspan="3" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic; font-size:0.9rem;">No specific items recorded. Please check your database.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
-
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" style="padding: 60px; text-align: center; color: #94A3B8;">
-                        <i class="ph ph-folder-dashed" style="font-size: 3rem; display: block; margin-bottom: 15px; color: #CBD5E1;"></i>
-                        <p style="margin: 0; font-size: 1rem; color: #64748B;">No sales return records found.</p>
-                    </td>
+                    <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No sales return records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <div class="pagination-bar no-print">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <form method="GET" style="display: flex; align-items: center; gap: 8px; margin: 0;">
-                    <input type="hidden" name="q" value="{{ query|default:'' }}">
-                    
-                    <span>Row Per Page</span>
-                    <select name="returns_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid #D1D5DB; border-radius: 4px; outline: none; cursor: pointer; color: #374151;">
-                        <option value="5" {% if returns_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
-                        <option value="10" {% if returns_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
-                        <option value="20" {% if returns_per_page|stringformat:"s" == "20" %}selected{% endif %}>20</option>
-                        <option value="50" {% if returns_per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
-                    </select>
-                </form>
-                <span>Showing {{ returns.start_index|default:0 }} to {{ returns.end_index|default:0 }} of {{ returns.paginator.count|default:0 }} entries</span>
+        <div class="pagination-wrapper no-print">
+            <div class="page-info">
+                Row Per Page 
+                <select onchange="changePerPage(this.value)" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;">
+                    <option value="5" {% if returns_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
+                    <option value="10" {% if returns_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+                    <option value="20" {% if returns_per_page|stringformat:"s" == "20" %}selected{% endif %}>20</option>
+                </select> 
+                Entries &nbsp; Showing {{ returns.start_index|default:0 }} to {{ returns.end_index|default:0 }} of {{ returns.paginator.count|default:0 }}
             </div>
-
-            <div class="pagination-controls">
-                {% if returns.has_previous %}
-                    <a href="?page={{ returns.previous_page_number }}&returns_per_page={{ returns_per_page }}&q={{ query|default:'' }}" class="page-btn"><i class="ph ph-caret-left"></i></a>
-                {% endif %}
-                
-                {% for num in returns.paginator.page_range %}
-                    {% if returns.number == num %}
-                        <span class="page-active">{{ num }}</span>
-                    {% elif num > returns.number|add:'-3' and num < returns.number|add:'3' %}
-                        <a href="?page={{ num }}&returns_per_page={{ returns_per_page }}&q={{ query|default:'' }}" class="page-link">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-
-                {% if returns.has_next %}
-                    <a href="?page={{ returns.next_page_number }}&returns_per_page={{ returns_per_page }}&q={{ query|default:'' }}" class="page-btn"><i class="ph ph-caret-right"></i></a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div id="viewDetailsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: white; width: 90%; max-width: 480px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); padding: 35px 30px; position: relative;">
             
-            <div style="text-align: center; margin-bottom: 25px;">
-                <p style="margin: 0 0 5px 0; font-size: 0.75rem; color: #64748B; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Return Details</p>
-                <h2 id="modal_view_return_id" style="margin: 0; color: #092c4c; font-size: 1.6rem; font-weight: 800;"></h2>
-                <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #94A3B8;">Orig: <span id="modal_view_txn_id"></span></p>
+            <div style="display: flex; gap: 5px;">
+                {% for num in returns.paginator.page_range %}
+                    <a href="?q={{ query|default:'' }}&page={{ num }}&returns_per_page={{ returns_per_page }}" class="page-btn {% if returns.number == num %}active{% endif %}">
+                        {{ num }}
+                    </a>
+                {% endfor %}
+                
+                {% if returns.has_next %}
+                    <a href="?q={{ query|default:'' }}&page={{ returns.next_page_number }}&returns_per_page={{ returns_per_page }}" class="page-btn">
+                        <i class="ph ph-caret-right"></i>
+                    </a>
+                {% endif %}
             </div>
-
-            <div style="max-height: 40vh; overflow-y: auto; margin-bottom: 25px;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead style="position: sticky; top: 0; background: white;">
-                        <tr style="border-bottom: 1px solid #E2E8F0;">
-                            <th style="padding: 10px 0; text-align: left; font-size: 0.7rem; color: #94A3B8; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Item Name</th>
-                            <th style="padding: 10px 0; text-align: center; font-size: 0.7rem; color: #94A3B8; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Price</th>
-                            <th style="padding: 10px 0; text-align: center; font-size: 0.7rem; color: #94A3B8; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Qty</th>
-                            <th style="padding: 10px 0; text-align: right; font-size: 0.7rem; color: #94A3B8; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modal_view_body">
-                        </tbody>
-                </table>
-            </div>
-
-            <div style="border-top: 1px dashed #CBD5E1; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                <span style="font-size: 0.85rem; color: #64748B; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Total Amount</span>
-                <span style="color: #e07300; font-size: 1.8rem; font-weight: 800;">₱<span id="modal_view_total"></span></span>
-            </div>
-
-            <button type="button" onclick="closeDetailsModal()" style="width: 100%; background: #092c4c; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Close Details</button>
         </div>
     </div>
+</div>
 
-
-    <div id="returnModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: white; width: 90%; max-width: 700px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden;">
-            <div style="padding: 20px 25px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
-                <h3 style="margin: 0; color: #092c4c; font-size: 1.2rem; font-weight: 700;">Process Sales Return</h3>
-                <button onclick="closeReturnModal()" style="background: transparent; border: none; font-size: 1.5rem; color: #64748B; cursor: pointer;">&times;</button>
+<div id="viewDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+    <div style="background:#fff; width:450px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+        
+        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
+            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Return Details</p>
+            <h3 id="modal_view_return_id" style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;"></h3>
+            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748B; font-weight: 500;">Orig: <span id="modal_view_txn_id"></span></p>
+        </div>
+        
+        <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left;">
+                <thead>
+                    <tr>
+                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Product</th>
+                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty Returned</th>
+                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:right; border-bottom:2px solid #f1f5f9;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="modal_view_body">
+                </tbody>
+            </table>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px dashed #cbd5e1;">
+                <span style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Total Refunded</span>
+                <span style="font-weight:900; font-size:1.5rem; color:#e07300;">₱<span id="modal_view_total">0.00</span></span>
             </div>
+        </div>
+        
+        <div style="padding:0 25px 25px; background:#fff; text-align:center;">
+            <button onclick="closeDetailsModal()" style="width:100%; background:#092c4c; color:#fff; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.95rem; font-family: 'Inter', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(9, 44, 76, 0.3)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(9, 44, 76, 0.2)';">
+                Close Details
+            </button>
+        </div>
+    </div>
+</div>
 
-            <div style="padding: 25px; max-height: 70vh; overflow-y: auto;">
-                <form method="POST" action="{% url 'billing_payment:process_return' %}">
-                    {% csrf_token %}
+<div id="returnModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background:rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; width: 90%; max-width: 650px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; font-family: 'Inter', sans-serif;">
+        <div style="padding: 20px 25px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
+            <h3 style="margin: 0; color: #092c4c; font-size: 1.2rem; font-weight: 800;">Process Sales Return</h3>
+            <button onclick="closeReturnModal()" style="background: transparent; border: none; font-size: 1.5rem; color: #64748B; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#092c4c'" onmouseout="this.style.color='#64748B'">&times;</button>
+        </div>
+
+        <div style="padding: 25px; max-height: 70vh; overflow-y: auto;">
+            <form method="POST" action="{% url 'billing_payment:process_return' %}">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px;">Original Transaction ID <span style="color:#e07300;">*</span></label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color 0.2s;" onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                        <button type="button" onclick="verifyTxn()" style="background: #092c4c; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">Verify</button>
+                    </div>
+                    <p id="verify_msg" style="font-size: 0.85rem; font-weight: 500; margin-top: 8px;"></p>
+                </div>
+
+                <div id="items_section" style="display: none; border-top: 1px dashed #E2E8F0; padding-top: 20px;">
+                    <h4 style="color: #092c4c; margin: 0 0 15px 0; font-size: 1rem; font-weight: 800;">Select Items to Return</h4>
                     
-                    <div style="margin-bottom: 25px;">
-                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 8px;">Original Transaction ID *</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none; font-size: 0.95rem;">
-                            <button type="button" onclick="verifyTxn()" style="background: #092c4c; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 600; cursor: pointer;">Verify</button>
-                        </div>
-                        <p id="verify_msg" style="font-size: 0.8rem; margin-top: 8px;"></p>
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <thead style="background: #F8FAFC;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Select</th>
+                                <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Item</th>
+                                <th style="padding: 12px; text-align: center; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Qty</th>
+                                <th style="padding: 12px; text-align: center; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Return Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items_tbody">
+                        </tbody>
+                    </table>
+                </div>
 
-                    <div id="items_section" style="display: none; border-top: 1px solid #E2E8F0; padding-top: 20px;">
-                        <h4 style="color: #092c4c; margin-bottom: 15px; font-size: 1rem; font-weight: 700;">Select Items to Return</h4>
-                        
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                            <thead style="background: #F1F5F9;">
-                                <tr>
-                                    <th style="padding: 10px; text-align: left; font-size: 0.8rem; color: #811112; font-weight: 700; text-transform: uppercase;">Select</th>
-                                    <th style="padding: 10px; text-align: left; font-size: 0.8rem; color: #811112; font-weight: 700; text-transform: uppercase;">Item</th>
-                                    <th style="padding: 10px; text-align: center; font-size: 0.8rem; color: #811112; font-weight: 700; text-transform: uppercase;">Qty</th>
-                                    <th style="padding: 10px; text-align: center; font-size: 0.8rem; color: #811112; font-weight: 700; text-transform: uppercase;">Return Qty</th>
-                                </tr>
-                            </thead>
-                            <tbody id="items_tbody">
-                                </tbody>
-                        </table>
-                    </div>
-
-                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
-                        <button type="button" onclick="closeReturnModal()" style="background: white; border: 1px solid #CBD5E1; padding: 10px 20px; border-radius: 6px; color: #475569; font-weight: 600; cursor: pointer;">Cancel</button>
-                        <button type="submit" id="submit_return_btn" style="background: #811112; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; display: none;">Confirm Return</button>
-                    </div>
-                </form>
-            </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
+                    <button type="button" onclick="closeReturnModal()" style="background: white; border: 1px solid #CBD5E1; padding: 12px 20px; border-radius: 8px; color: #475569; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='white'">Cancel</button>
+                    <button type="submit" id="submit_return_btn" style="background: #e07300; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; display: none; transition: 0.2s; box-shadow: 0 4px 6px rgba(224, 115, 0, 0.2);" onmouseover="this.style.backgroundColor='#cc6800'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#e07300'; this.style.transform='translateY(0)';">Confirm Return</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -242,36 +316,16 @@
         {% endif %}
     });
 
-    // VIEW DETAILS MODAL SCRIPT WITH AUTO-PRICE COMPUTATION
+    // VIEW DETAILS MODAL SCRIPT
     function openDetailsModal(returnId, originalTxn, totalAmount) {
-        document.getElementById('modal_view_return_id').innerText = "#" + returnId;
+        document.getElementById('modal_view_return_id').innerText = returnId;
         document.getElementById('modal_view_txn_id').innerText = originalTxn;
         document.getElementById('modal_view_total').innerText = totalAmount;
         
         var hiddenTableBody = document.querySelector('#details-data-' + returnId + ' tbody');
         
-        // Gumawa ng copy (clone) para ma-edit natin ang price gamit ang JS
         var tempDiv = document.createElement('tbody');
         tempDiv.innerHTML = hiddenTableBody.innerHTML;
-        
-        // Compute Price (Subtotal / Qty)
-        var rows = tempDiv.querySelectorAll('tr');
-        rows.forEach(row => {
-            var qtyEl = row.querySelector('.item-qty');
-            var subEl = row.querySelector('.item-subtotal');
-            var priceEl = row.querySelector('.item-price');
-            
-            if (qtyEl && subEl && priceEl) {
-                var qty = parseFloat(qtyEl.innerText);
-                var sub = parseFloat(subEl.getAttribute('data-val'));
-                
-                if(qty > 0) {
-                    var price = sub / qty;
-                    // Format nang may magandang decimal at currency symbol
-                    priceEl.innerText = '₱' + price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                }
-            }
-        });
         
         document.getElementById('modal_view_body').innerHTML = tempDiv.innerHTML;
         document.getElementById('viewDetailsModal').style.display = 'flex';
@@ -320,7 +374,7 @@
             .then(data => {
                 if (data.success) {
                     msg.innerText = "Transaction found. Select items below.";
-                    msg.style.color = "#10B981";
+                    msg.style.color = "#16a34a";
                     tbody.innerHTML = ""; 
 
                     data.items.forEach(item => {
@@ -330,10 +384,10 @@
                                     <input type="checkbox" name="product_id[]" value="${item.id}" onclick="toggleInputs(this, '${item.id}')" style="cursor: pointer; transform: scale(1.2);">
                                     <input type="hidden" name="reason[]" id="reason_${item.id}" value="Excess Item (Sobra ang nabili)" disabled>
                                 </td>
-                                <td style="padding: 15px 10px; font-weight: 600; color: #334155;">${item.name}</td>
-                                <td style="padding: 15px 10px; text-align: center; color: #64748B;">${item.max_qty}</td>
+                                <td style="padding: 15px 10px; font-weight: 600; color: #334155; font-size: 14px;">${item.name}</td>
+                                <td style="padding: 15px 10px; text-align: center; color: #64748B; font-size: 14px;">${item.max_qty}</td>
                                 <td style="padding: 15px 10px; text-align: center;">
-                                    <input type="number" name="return_qty[]" id="qty_${item.id}" max="${item.max_qty}" min="1" disabled style="width: 60px; padding: 5px; border-radius: 4px; border: 1px solid #CBD5E1;">
+                                    <input type="number" name="return_qty[]" id="qty_${item.id}" max="${item.max_qty}" min="1" disabled style="width: 60px; padding: 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-family: 'Inter', sans-serif;">
                                 </td>
                             </tr>
                         `;
@@ -370,6 +424,13 @@
             qtyInput.value = "";
             qtyInput.required = false;
         }
+    }
+
+    function changePerPage(value) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('returns_per_page', value);
+        urlParams.set('page', 1); 
+        window.location.search = urlParams.toString();
     }
 </script>
 

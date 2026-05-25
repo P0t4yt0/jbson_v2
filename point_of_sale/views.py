@@ -26,7 +26,7 @@ from decimal import Decimal
 from activity_log.utils import log_system_activity
 from billing_payment.models import Invoice, InvoiceItem
 from django.db.models import Q, F, ProtectedError, Sum, DecimalField
-
+from django.core.paginator import Paginator
 from notifications.models import Notification
 
 
@@ -387,13 +387,48 @@ def reset_transaction(request):
     return void_transaction(request)
 
 def quotation_list_view(request):
-    """Kukunin lang natin yung mga transactions na may status na 'quotation'"""
-    # Kukunin lahat ng naka-draft pa lang
+    # 1. Kunin ang mga parameters
+    search_query = request.GET.get('search', '').strip()
+    start_date = request.GET.get('start_date', '').strip()
+    end_date = request.GET.get('end_date', '').strip()
+    per_page = request.GET.get('per_page', 10)
+
+    # 2. Base query
     quotations = Transaction.objects.filter(status='quotation').order_by('-date_created')
+
+    # 3. Apply Search Filter
+    if search_query:
+        quotations = quotations.filter(
+            Q(transaction_ref__icontains=search_query)
+        )
+
+    # 4. Apply Date Filters
+    if start_date:
+        # __date__gte ay ginagamit para i-compare ang exact date sa DateTimeField
+        quotations = quotations.filter(date_created__date__gte=start_date)
     
+    if end_date:
+        quotations = quotations.filter(date_created__date__lte=end_date)
+
+    # 5. Pagination
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+
+    paginator = Paginator(quotations, per_page)
+    page_number = request.GET.get('page', 1)
+    quotations_page = paginator.get_page(page_number)
+
+    # 6. Ipasa pabalik sa context
     context = {
-        'quotations': quotations
+        'quotations': quotations_page,
+        'search_query': search_query,
+        'start_date': start_date,  # <-- Important para hindi mawala yung laman ng box
+        'end_date': end_date,      # <-- Important para hindi mawala yung laman ng box
+        'per_page': per_page,
     }
+    
     return render(request, 'point_of_sale/quotation_list.html', context)
 
 def save_as_quotation(request, transaction_id):
