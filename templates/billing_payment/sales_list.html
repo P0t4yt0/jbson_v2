@@ -3,8 +3,10 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <style>
     .table-container {
@@ -182,7 +184,7 @@
             <tbody>
                 {% for txn in transactions %}
                 <tr>
-                    <td><strong style="color: #092c4c; font-weight: 700;">{{ txn.transaction_ref|default:txn.id }}</strong></td>
+                    <td><strong style="color: #092c4c; font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata'; ">{{ txn.transaction_ref|default:txn.id }}</strong></td>
                     <td style="color: #64748b;">{{ txn.date_completed|date:"M d, Y - h:i A" }}</td>
                     
                     <td style="font-weight: 500; color: #334155;">
@@ -194,7 +196,7 @@
                     </td>
                     
                     <td>{{ txn.processed_by.username|default:"N/A" }}</td>
-                    <td style="font-weight: 800; color: #092c4c;">₱{{ txn.total_amount }}</td>
+                    <td style="font-weight: 800; font-size: 1.05rem; font-family: 'Inconsolata'; color: #092c4c;">₱{{ txn.total_amount }}</td>
                     <td style="text-transform: capitalize; color: #64748b;">{{ txn.payment_method }}</td>
                     
                     <td>
@@ -288,7 +290,7 @@
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px dashed #cbd5e1;">
                 <span style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Total Amount</span>
-                <span style="font-weight:900; font-size:1.5rem; color:#e07300;">₱<span id="modalTotalAmount">0.00</span></span>
+                <span style="font-family: 'Inconsolata'; font-weight:900; font-size:1.8rem; color:#e07300;">₱<span style="font-family: 'Inconsolata';" id="modalTotalAmount">0.00</span></span>
             </div>
         </div>
         
@@ -309,7 +311,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    document.getElementById('modalRefTitle').innerText = data.ref;
+                    document.getElementById('modalRefTitle').innerHTML = `<span style="font-family: 'Inconsolata'; font-size: 1.4rem; font-weight: 900; color: #092c4c;">${data.ref}</span>`
                     document.getElementById('modalTotalAmount').innerText = data.total_amount.toLocaleString(undefined, {minimumFractionDigits: 2});
                     
                     let itemsHtml = '';
@@ -317,8 +319,8 @@
                         itemsHtml += `
                             <tr>
                                 <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">${item.name}</td>
-                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:0.9rem; font-weight:500;">${item.qty}</td>
-                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:0.95rem;">₱${item.subtotal.toFixed(2)}</td>
+                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; font-family: 'Inconsolata'; color:#475569; font-size:0.9rem; font-weight:500;">${item.qty}</td>
+                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-family: 'Inconsolata'; font-weight:800; color:#092c4c; font-size:1rem;">₱${item.subtotal.toFixed(2)}</td>
                             </tr>
                         `;
                     });

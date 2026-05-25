@@ -3,7 +3,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
@@ -170,11 +170,11 @@
                 {% for customer in customers %}
                 <tr>
                     <td><strong style="color: #092c4c; font-weight: 700;">{{ customer.name }}</strong></td>
-                    <td style="color: #64748b;">{{ customer.phone|default:"N/A" }}</td>
-                    <td style="color: #64748b; font-weight: 500;">Net {{ customer.payment_terms }}</td>
-                    <td style="font-weight: 600; color: #334155;">₱{{ customer.credit_limit }}</td>
+                    <td style="font-family:'Inconsolata'; font-size: 1.05rem; color: #64748b;">{{ customer.phone|default:"N/A" }}</td>
+                    <td style="color: #64748b; font-weight: 700;">Net {{ customer.payment_terms }}</td>
+                    <td style="font-weight: 800; font-size: 1.05rem; font-family:'Inconsolata'; color: #334155;">₱{{ customer.credit_limit }}</td>
                     
-                    <td style="font-weight: 800; color: {% if customer.credit_balance > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+                    <td style="font-weight: 800; font-size: 1.05rem; font-family:'Inconsolata'; color: {% if customer.credit_balance > 0 %}#dc2626{% else %}#16a34a{% endif %};">
                         ₱{{ customer.credit_balance }}
                     </td>
                     

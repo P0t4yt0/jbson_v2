@@ -3,8 +3,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
@@ -178,7 +177,7 @@
             <tbody>
                 {% for inv in invoices %}
                 <tr>
-                    <td><strong style="color: #092c4c; font-weight: 700;">{{ inv.invoice_no }}</strong></td>
+                    <td><strong style="color: #092c4c; font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata'; ">{{ inv.invoice_no }}</strong></td>
                     <td style="font-weight: 500; color: #334155;">{{ inv.customer.name }}</td>
                     <td style="color: #64748b;">{{ inv.issue_date|date:"M d, Y" }}</td>
                     
@@ -189,7 +188,7 @@
                         {% endif %}
                     </td>
                     
-                    <td style="font-weight: 800; color: #092c4c;">₱{{ inv.total_amount|floatformat:"2g" }}</td>
+                    <td style="font-weight: 800; color: #092c4c; font-size: 1.05rem; font-family: 'Inconsolata'; ">₱{{ inv.total_amount|floatformat:"2g" }}</td>
                     
                     <td>
                         {% if inv.status|lower == 'paid' %}
@@ -253,7 +252,7 @@
         
         <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
             <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Invoice Details</p>
-            <h3 id="modalTitle" style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;">Loading...</h3>
+            <h3 id="modalTitle" style="margin:5px 0 0 0; color:#092c4c; font-family: 'Inconsolata'; font-size:1.4rem; font-weight:900;">Loading...</h3>
         </div>
         
         <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
@@ -299,8 +298,8 @@ $(document).ready(function() {
                 data.items.forEach(item => {
                     html += `<tr>
                         <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">${item.product_name}</td>
-                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:0.9rem; font-weight:500;">${item.quantity}</td>
-                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:0.95rem;">₱${item.subtotal}</td>
+                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:1rem; font-family: 'Inconsolata'; font-weight:500;">${item.quantity}</td>
+                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:1rem; font-family: 'Inconsolata';">₱${item.subtotal}</td>
                     </tr>`;
                 });
                 $('#modalBodyItems').html(html);
