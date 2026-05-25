@@ -2,6 +2,31 @@
 {% block content %}
 
 <style>
+    /* Import Inconsolata for numbers */
+    @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@500;700;800&display=swap');
+
+    .num-font { font-family: 'Inconsolata', monospace; letter-spacing: 0.5px; }
+
+    /* Dropdown Styles for Smart Draft */
+    .dropdown-container { position: relative; display: inline-block; }
+    .dropdown-menu {
+        display: none; position: absolute; background-color: white;
+        min-width: 260px; box-shadow: 0px 10px 25px -5px rgba(0,0,0,0.15);
+        z-index: 100; border-radius: 10px; border: 1px solid #E2E8F0;
+        top: 110%; right: 0; overflow: hidden;
+    }
+    .dropdown-container:hover .dropdown-menu { display: block; }
+    .dropdown-header { padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; font-size: 11px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+    .dropdown-item {
+        color: #1E293B; padding: 14px 16px; text-decoration: none;
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 1px solid #F1F5F9; font-size: 13px; font-weight: 600; transition: all 0.2s;
+    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background-color: #F0FDFA; color: var(--primary-teal); padding-left: 20px; }
+    .item-count-badge { background: #FEE2E2; color: #EF4444; border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 800; }
+
+    /* Main Hub Styles */
     .po-container { max-width: 1500px; margin: 0 auto; padding: 25px; font-family: 'Inter', 'Segoe UI', sans-serif; color: var(--text-primary); }
     .header-section { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
     .header-section h2 { font-size: 1.75rem; font-weight: 800; margin: 0; color: var(--primary-navy); letter-spacing: -0.5px; }
@@ -9,14 +34,18 @@
     .split-layout { display: grid; grid-template-columns: 380px 1fr; gap: 30px; align-items: start; }
     .po-list-section { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color); max-height: 85vh; overflow-y: auto; }
     .po-list-section h3 { margin-top: 0; font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+    
+    /* PO Cards */
     .po-card { display: block; text-decoration: none; border: 1px solid var(--border-color); padding: 18px; border-radius: 10px; margin-bottom: 12px; background: #F8FAFC; transition: all 0.2s ease; position: relative; overflow: hidden; }
     .po-card:hover { border-color: var(--primary-teal); background: white; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(13,148,136,0.1); }
     .po-card.active { border-color: var(--primary-teal); background: white; box-shadow: 0 10px 15px -3px rgba(13,148,136,0.1); }
     .po-card.active::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--primary-teal); }
+    
     .status-badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
     .status-draft { background: #F1F5F9; color: #64748B; }
     .status-pending { background: #FEF3C7; color: #D97706; }
     .status-received { background: #D1FAE5; color: #059669; }
+    
     .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 25px; }
     .form-row { display: flex; gap: 25px; margin-bottom: 15px; }
     .form-group { flex: 1; }
@@ -24,26 +53,36 @@
     .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; color: var(--text-primary); transition: all 0.2s; background: #F8FAFC; }
     .form-group input:focus, .form-group select:focus { border-color: var(--primary-teal); background: white; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); outline: none; }
     .form-group input:disabled, .form-group select:disabled { background: #F8FAFC; color: #1E293B; cursor: default; border-color: #E2E8F0; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; }
+    
+    /* Table & Numbers */
     table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; }
     th { text-align: left; padding: 12px 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E2E8F0; }
     td { padding: 12px 15px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
+    
     .item-input { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; transition: 0.2s; }
     .item-input:focus { border-color: var(--primary-teal); }
     .item-input:disabled { background: transparent; color: #1E293B; border-color: transparent; font-weight: 600; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; appearance: none; -moz-appearance: none; -webkit-appearance: none; }
-    .number-input { width: 100px; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; outline: none; text-align: right; transition: 0.2s; font-family: monospace; }
+    
+    .number-input { width: 100px; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: 'Inconsolata', monospace; outline: none; text-align: right; transition: 0.2s; }
     .number-input:focus { border-color: var(--primary-teal); }
     .number-input:disabled { background: transparent; color: #1E293B; border-color: transparent; font-weight: 700; opacity: 1; -webkit-text-fill-color: #1E293B; cursor: default; }
-    .subtotal-text { font-weight: 700; color: var(--primary-navy); font-size: 14px; font-family: monospace; }
+    
+    .subtotal-text { font-weight: 700; color: var(--primary-navy); font-size: 16px; font-family: 'Inconsolata', monospace; }
+    
     .btn-add { background: #F8FAFC; color: var(--primary-navy); padding: 12px 20px; border-radius: 8px; border: 1px dashed #CBD5E1; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s; width: 100%; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-add:hover { background: #F1F5F9; border-color: var(--primary-navy); }
     .btn-remove { background: white; color: #EF4444; border: 1px solid #FCA5A5; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
     .btn-remove:hover { background: #FEF2F2; border-color: #EF4444; }
+    
     .grand-total-box { background: linear-gradient(135deg, #F8FAFC 0%, white 100%); padding: 25px; border-radius: 12px; border: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; margin-top: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
-    .grand-total-text { font-size: 28px; font-weight: 800; color: var(--primary-teal); margin: 0; font-family: monospace; letter-spacing: -1px; }
+    .grand-total-text { font-size: 28px; font-weight: 800; color: var(--primary-teal); margin: 0; font-family: 'Inconsolata', monospace; letter-spacing: -0.5px; }
+    
+    /* Action Buttons */
     .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 20px; }
     .action-group-right { display: flex; gap: 15px; align-items: center; }
     .btn-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; font-family: inherit; box-sizing: border-box; height: 48px; }
+    
     .btn-teal { background: var(--primary-teal); color: #0F766E; box-shadow: 0 4px 12px rgba(13,148,136,0.2); }
     .btn-teal:hover { background: #0F766E; color: white; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(13,148,136,0.3); }
     .btn-green { background: #10B981; color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
@@ -61,34 +100,54 @@
             <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">Manage existing orders or draft a new one.</p>
         </div>
         <div style="display: flex; gap: 12px; align-items: center;">
-            <a href="{% url 'inventory:create_po' %}?auto=true" class="btn" style="background: var(--primary-teal); color: #059669; padding: 10px 20px; border-radius: 8px; text-decoration: none; position: relative; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid #CBD5E1; transition: 0.2s;">
-                <i class="ph ph-magic-wand"></i> Auto-Draft
-                {% if pending_draft_count > 0 %}
-                    <span style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; font-size: 11px; font-weight: 800; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 6px rgba(239,68,68,0.4); border: 2px solid white;">
-                        {{ pending_draft_count }}
-                    </span>
-                {% endif %}
-            </a>
-            <a href="{% url 'inventory:create_po' %}" class="btn" style="background: white; color: var(--text-primary); border: 1px solid #CBD5E1; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+            
+            <div class="dropdown-container">
+                <button class="btn" style="background: #F0FDFA; color: #0D9488; border: 1px solid #14B8A6; padding: 10px 20px; border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; height: 100%;">
+                    <i class="ph ph-magic-wand"></i> Smart Draft Options
+                    {% if suppliers_needing_restock %}
+                        <span style="background: #EF4444; color: white; font-size: 11px; font-weight: 800; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center;">
+                            {{ suppliers_needing_restock|length }}
+                        </span>
+                    {% endif %}
+                </button>
+                
+                <div class="dropdown-menu">
+                    <div class="dropdown-header">Needs Restocking</div>
+                    {% if suppliers_needing_restock %}
+                        {% for s in suppliers_needing_restock %}
+                            <a href="{% url 'inventory:create_po' %}?auto=true&supplier_id={{ s.supplier__id }}" class="dropdown-item">
+                                {{ s.supplier__name }}
+                                <span class="item-count-badge">{{ s.item_count }} items</span>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div style="padding: 20px; text-align: center; color: #94A3B8; font-size: 13px;">
+                            <i class="ph ph-check-circle" style="font-size: 24px; color: #10B981; margin-bottom: 5px; display: block;"></i>
+                            All stock is healthy!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <a href="{% url 'inventory:create_po' %}" class="btn" style="background: white; color: var(--text-primary); border: 1px solid #CBD5E1; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s; height: 100%; box-sizing: border-box;">
                 <i class="ph ph-plus"></i> Manual
             </a>
         </div>
     </div>
 
     <div class="split-layout">
-
         <div class="po-list-section">
             <h3 style="margin-top: 0; font-size: 16px; color: #1A365D; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 15px;">Order History</h3>
             {% for po in purchase_orders %}
             <a href="{% url 'inventory:edit_po' po.id %}" class="po-card {% if target_po and target_po.id == po.id %}active{% endif %}">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong style="color: #111; font-size: 14px;">{{ po.po_number }}</strong>
+                    <strong class="num-font" style="color: #111; font-size: 15px;">{{ po.po_number }}</strong>
                     <span class="status-badge status-{{ po.status }}">{{ po.status }}</span>
                 </div>
                 <div style="font-size: 13px; color: #4A5568;">{{ po.supplier.name }}</div>
-                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #718096;">
-                    <span>{{ po.order_date|date:"M d, Y" }}</span>
-                    <strong style="color: #0D9488;">₱{{ po.total_amount }}</strong>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: #718096; align-items: center;">
+                    <span class="num-font">{{ po.order_date|date:"M d, Y" }}</span>
+                    <strong class="num-font" style="color: #0D9488; font-size: 15px;">₱{{ po.total_amount }}</strong>
                 </div>
             </a>
             {% empty %}
@@ -117,7 +176,7 @@
                         </div>
                         <div class="form-group">
                             <label>Expected Delivery Date</label>
-                            <input type="date" name="expected_delivery"
+                            <input type="date" name="expected_delivery" class="num-font"
                                 value="{% if edit_mode %}{{ formatted_date }}{% else %}{{ fallback_date_str }}{% endif %}"
                                 {% if target_po and target_po.status != 'draft' %}disabled{% endif %}>
                         </div>
@@ -143,7 +202,6 @@
                             </tr>
                         </thead>
                         <tbody id="po-body">
-
                             {% if edit_mode %}
                                 {% for item in target_po.items.all %}
                                 <tr>
@@ -178,7 +236,6 @@
                                     </td>
                                 </tr>
                                 {% endfor %}
-
                             {% elif auto_items %}
                                 {% for item in auto_items %}
                                 <tr>
@@ -207,7 +264,6 @@
                                     <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
                                 </tr>
                                 {% endfor %}
-
                             {% else %}
                                 <tr>
                                     <td>
@@ -228,7 +284,6 @@
                                     <td><button type="button" class="btn-remove" onclick="removeRow(this)">x</button></td>
                                 </tr>
                             {% endif %}
-
                         </tbody>
                     </table>
 
@@ -254,8 +309,21 @@
                             </a>
                         {% endif %}
                     </div>
+                    
                     <div class="action-group-right">
                         {% if edit_mode %}
+                            
+                            {% if target_po.status != 'draft' %}
+                                <div style="display: flex; gap: 10px; margin-right: 10px;">
+                                    <a href="{% url 'inventory:print_po' target_po.id %}?mode=print" target="_blank" class="btn-action" style="background: white; border: 1px solid #CBD5E1; color: #475569; width: 48px; padding: 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Print Order">
+                                        <i class="ph ph-printer" style="font-size: 22px;"></i>
+                                    </a>
+                                    <a href="{% url 'inventory:print_po' target_po.id %}?mode=pdf" target="_blank" class="btn-action" style="background: white; border: 1px solid #CBD5E1; color: #E3342F; width: 48px; padding: 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Download PDF">
+                                        <i class="ph ph-file-pdf" style="font-size: 22px;"></i>
+                                    </a>
+                                </div>
+                            {% endif %}
+
                             {% if target_po.status == 'draft' %}
                                 <button type="submit" name="action" value="save_draft" class="btn-action btn-secondary" style="background: white; border: 1px solid #CBD5E1; color: var(--text-primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                                     <i class="ph ph-floppy-disk"></i> Save Draft
@@ -285,7 +353,6 @@
                         {% endif %}
                     </div>
                 </div>
-
             </form>
         </div>
     </div>

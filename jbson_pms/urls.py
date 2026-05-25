@@ -25,5 +25,4 @@ urlpatterns = [
     path('manual/',     include('user_manual.urls',          namespace='user_manual')),
     path('dashboard/admin/settings/', security_views.settings_hub_view, name='settings_hub'),
     path('dashboard/admin/users/', security_views.user_management_view, name='user_management'),
-    path('maintenance/', include('maintenance.urls')),
     ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
