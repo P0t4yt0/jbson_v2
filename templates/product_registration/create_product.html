@@ -58,11 +58,15 @@
     <select name="supplier" id="supplierSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: white; outline: none;">
         <option value="">Select Supplier</option>
         {% for sup in suppliers %}
-        <option value="{{ sup.id }}" {% if item.supplier.id == sup.id %}selected{% endif %}>
+        <option value="{{ sup.id }}"
+                data-avg-lead="{{ sup.default_lead_time_days }}"
+                data-max-lead="{{ sup.max_lead_time_days }}"
+                {% if item.supplier.id == sup.id %}selected{% endif %}>
             {{ sup.name }}
         </option>
         {% endfor %}
     </select>
+
 </div>
 
             <!-- Barcode ID -->
@@ -112,33 +116,32 @@
     </div>
 
     <div style="background: #F8FAFC; padding: 16px; border-radius: 8px; border: 1px dashed #CBD5E0; margin-top: 20px; margin-bottom: 20px;">
-    
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
             <i class="ph ph-truck" style="color: #092c4c; font-size: 18px;"></i>
-            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #092c4c;">Delivery Lead Time (Optional)</h4>
+            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #092c4c;">Delivery Lead Time</h4>
         </div>
-        
-        <p style="font-size: 12px; color: #64748B; margin-bottom: 16px; line-height: 1.4;">
-            Leave these as <strong>0</strong> to automatically inherit the selected supplier's standard delivery schedule. Only fill these out if this specific item takes unusually long to arrive.
+
+        <p style="font-size: 12px; color: #64748B; margin-bottom: 14px; line-height: 1.4;">
+            Inherited from the selected supplier.
         </p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div>
-                <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">
-                    Specific Avg. Days
-                </label>
-                <input type="number" name="average_lead_time_days" id="id_avg_lead" value="0" min="0" 
-                    style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; outline: none; transition: border-color 0.2s;">
+        <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+            <div style="flex: 1;">
+                <label style="font-size: 12px;">Avg. Lead Time (Days)</label>
+                <input type="number" name="average_lead_time_days" id="id_avg_lead" 
+                    value="{{ item.average_lead_time_days|default:'0' }}" min="0"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
             </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">
-                    Specific Max Days
-                </label>
-                <input type="number" name="max_lead_time_days" id="id_max_lead" value="0" min="0" 
-                    style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; outline: none; transition: border-color 0.2s;">
+            <div style="flex: 1;">
+                <label style="font-size: 12px;">Max Lead Time (Days)</label>
+                <input type="number" name="max_lead_time_days" id="id_max_lead" 
+                    value="{{ item.max_lead_time_days|default:'0' }}" min="0"
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
             </div>
         </div>
+
     </div>
+
 </div>            
 
             <!-- Footer Buttons -->
@@ -220,7 +223,6 @@
 function openCatModal() {
     document.getElementById('categoryModal').style.display = 'flex';
 }
-
 function closeCatModal() {
     document.getElementById('categoryModal').style.display = 'none';
 }
@@ -228,105 +230,60 @@ function closeCatModal() {
 function submitNewCategory() {
     const name = document.getElementById('modal_cat_name').value;
     const prefix = document.getElementById('modal_cat_prefix').value;
-
     fetch("{% url 'product_registration:add_category_ajax' %}", {
         method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}" 
-        },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
         body: JSON.stringify({ name: name, prefix: prefix })
     })
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-
             fetch("{% url 'product_registration:get_categories_ajax' %}")
             .then(res => res.json())
             .then(categories => {
                 const select = document.querySelector('select[name="category"]');
-
                 select.innerHTML = '<option value="">Select</option>';
-
-                categories.forEach(cat => {
-                    const option = new Option(cat.name, cat.id);
-                    select.add(option);
-                });
-
+                categories.forEach(cat => { select.add(new Option(cat.name, cat.id)); });
                 select.value = data.id;
             });
-
             closeCatModal();
-    }
+        }
     });
 }
 
 document.getElementById('modal_cat_name').addEventListener('input', function () {
     const name = this.value.trim();
-
-    if (!name) {
-        document.getElementById('modal_cat_prefix').value = '';
-        return;
-    }
-
-    // Remove non-letters and split words
+    if (!name) { document.getElementById('modal_cat_prefix').value = ''; return; }
     const words = name.replace(/[^a-zA-Z ]/g, '').split(' ').filter(Boolean);
-
     let prefix = '';
-
     if (words.length === 1) {
-        // Single word: take first 3 consonants or letters
-        prefix = words[0]
-            .replace(/[AEIOUaeiou]/g, '')
-            .substring(0, 3)
-            .toUpperCase();
-
-        // fallback if too short
-        if (prefix.length < 2) {
-            prefix = words[0].substring(0, 3).toUpperCase();
-        }
+        prefix = words[0].replace(/[AEIOUaeiou]/g, '').substring(0, 3).toUpperCase();
+        if (prefix.length < 2) prefix = words[0].substring(0, 3).toUpperCase();
     } else {
-        // Multiple words: take first letter of each word
         prefix = words.map(w => w[0]).join('').substring(0, 3).toUpperCase();
     }
-
     document.getElementById('modal_cat_prefix').value = prefix;
 });
+
 // --- SUPPLIER FUNCTIONS ---
 function openSupModal() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randomPart = '';
-    for (let i = 0; i < 4; i++) {
-        randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const generatedID = "SUP-" + randomPart;
-    document.getElementById('newSupID').value = generatedID;
+    for (let i = 0; i < 4; i++) randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    document.getElementById('newSupID').value = "SUP-" + randomPart;
     document.getElementById('supModal').style.display = 'flex';
 }
-
 function closeSupModal() {
     document.getElementById('supModal').style.display = 'none';
 }
-
 function submitNewSupplier() {
     const supID = document.getElementById('newSupID').value;
     const name = document.getElementById('newSupName').value;
-
-    if (!supID || !name) {
-        alert("Please fill in both fields");
-        return;
-    }
-
+    if (!supID || !name) { alert("Please fill in both fields"); return; }
     fetch("{% url 'product_registration:add_supplier_ajax' %}", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ 
-            supplier_id: supID, 
-            name: name 
-        })
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        body: JSON.stringify({ supplier_id: supID, name: name })
     })
     .then(response => response.json())
     .then(data => {
@@ -334,7 +291,7 @@ function submitNewSupplier() {
             const select = document.getElementById('supplierSelect');
             const option = new Option(data.name, data.id);
             select.add(option);
-            select.value = data.id; 
+            select.value = data.id;
             closeSupModal();
             document.getElementById('newSupID').value = '';
             document.getElementById('newSupName').value = '';
@@ -344,33 +301,8 @@ function submitNewSupplier() {
     });
 }
 
-// --- GENERAL FORM LOGIC & BARCODE SCANNER ---
-// We put all event listeners inside a SINGLE DOMContentLoaded block    
-    // Validate Price
-    const priceField = document.getElementById('productPrice');
-    if(priceField) {
-        priceField.addEventListener('input', function() {
-            if (this.value < 0) this.value = 0;
-        });
-    }
-
-    // Validate Unit Cost
-    const costField = document.getElementById('unitCost');
-    if(costField) {
-        costField.addEventListener('input', function() {
-            if (this.value < 0) this.value = 0;
-        });
-    }
-
-    // Validate Annual Demand
-    const demandField = document.getElementById('annualDemand');
-    if(demandField) {
-        demandField.addEventListener('input', function() {
-            if (this.value < 0) this.value = 0;
-        });
-    }
-    
-    // --- BARCODE SCANNER FUNCTIONS ---
+// --- BARCODE SCANNER ---
+(function() {
     const scanBtn = document.getElementById('trigger-scan-btn');
     const scannerModal = document.getElementById('barcodeScannerModal');
     const closeScannerBtn = document.getElementById('close-barcode-modal');
@@ -378,71 +310,72 @@ function submitNewSupplier() {
     const mainInput = document.getElementById('main-barcode-input');
 
     if (scanBtn && scannerModal) {
-        // 1. Open the modal and auto-focus the hidden input
         scanBtn.addEventListener('click', function(e) {
             e.preventDefault();
             scannerModal.style.display = 'flex';
-            modalInput.value = ''; // Clear previous scans
+            modalInput.value = '';
             modalInput.focus();
         });
-
-        // 2. Close the modal
         closeScannerBtn.addEventListener('click', function() {
             scannerModal.style.display = 'none';
         });
-
-        // 3. Keep focus locked on the modal input (grocery store behavior)
         document.addEventListener('click', function(e) {
             if (scannerModal.style.display === 'flex' && e.target !== closeScannerBtn && e.target !== scanBtn) {
                 modalInput.focus();
             }
         });
-
-        // 4. Transfer the value when the scanner hits "Enter"
         modalInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Stop the main form from saving!
-                
-                // Copy the scanned value to the main form
+                e.preventDefault();
                 mainInput.value = modalInput.value;
-                
-                // Close the modal
                 scannerModal.style.display = 'none';
-                
-                // Flash the main input green for half a second
                 mainInput.style.backgroundColor = '#f0fff4';
-                setTimeout(() => {
-                    mainInput.style.backgroundColor = '';
-                }, 800);
+                setTimeout(() => { mainInput.style.backgroundColor = ''; }, 800);
             }
         });
-    };
+    }
+})();
 
+// --- SUPPLIER LEAD TIME DISPLAY ---
+// Runs immediately since DOMContentLoaded already fired (this is a modal partial)
+(function() {
+    const supplierSelect = document.getElementById('supplierSelect');
+    const avgDisplay = document.getElementById('avg-lead-display');
+    const maxDisplay = document.getElementById('max-lead-display');
+    const avgHidden = document.getElementById('id_avg_lead');
+    const maxHidden = document.getElementById('id_max_lead');
 
-document.addEventListener("DOMContentLoaded", function() {
-    const avgInput = document.getElementById('id_avg_lead');
-    const maxInput = document.getElementById('id_max_lead');
+    function updateLeadTimeDisplay() {
+        const selected = supplierSelect.options[supplierSelect.selectedIndex];
+        const avgLead = selected.getAttribute('data-avg-lead');
+        const maxLead = selected.getAttribute('data-max-lead');
 
-    function visuallyDimIfZero(inputElement) {
-        if (!inputElement) return;
-        
-        if (inputElement.value === "0" || inputElement.value === "") {
-            inputElement.style.color = "#94A3B8"; // Grayed out
-            inputElement.style.backgroundColor = "#F1F5F9";
-            inputElement.style.borderColor = "#E2E8F0";
+        if (selected.value && avgLead) {
+            avgDisplay.textContent = avgLead + ' days';
+            maxDisplay.textContent = maxLead + ' days';
+            avgDisplay.style.background = '#DBEAFE';
+            maxDisplay.style.background = '#DBEAFE';
+            avgDisplay.style.color = '#092c4c';
+            maxDisplay.style.color = '#092c4c';
+            avgHidden.value = avgLead;
+            maxHidden.value = maxLead;
         } else {
-            inputElement.style.color = "#092c4c"; // Dark Navy (Active)
-            inputElement.style.backgroundColor = "#FFFFFF";
-            inputElement.style.borderColor = "#092c4c";
+            avgDisplay.textContent = '-- select a supplier --';
+            maxDisplay.textContent = '-- select a supplier --';
+            avgDisplay.style.background = '#E2E8F0';
+            maxDisplay.style.background = '#E2E8F0';
+            avgDisplay.style.color = '#94A3B8';
+            maxDisplay.style.color = '#94A3B8';
+            avgHidden.value = '0';
+            maxHidden.value = '0';
         }
     }
 
-    // Run on page load (important for Edit pages)
-    visuallyDimIfZero(avgInput);
-    visuallyDimIfZero(maxInput);
+    // Run immediately on load (for edit mode where supplier is already selected)
+    if (supplierSelect && supplierSelect.value) {
+        updateLeadTimeDisplay();
+    }
 
-    // Run every time the user types or clicks
-    avgInput?.addEventListener('input', () => visuallyDimIfZero(avgInput));
-    maxInput?.addEventListener('input', () => visuallyDimIfZero(maxInput));
-});
+    supplierSelect?.addEventListener('change', updateLeadTimeDisplay);
+})();
 </script>

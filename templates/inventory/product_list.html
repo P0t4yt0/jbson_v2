@@ -365,9 +365,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(html => {
                     modalContent.innerHTML = html;
                     modal.style.display = "flex";
+
+                    // Manually execute any <script> tags injected via innerHTML
+                    modalContent.querySelectorAll("script").forEach(oldScript => {
+                        const newScript = document.createElement("script");
+                        newScript.textContent = oldScript.textContent;
+                        document.body.appendChild(newScript);
+                        document.body.removeChild(newScript);
+                    });
                 });
         });
     });
+
 
     closeBtn?.addEventListener("click", function () {
         modal.style.display = "none";

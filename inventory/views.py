@@ -702,8 +702,9 @@ def edit_supplier(request, supplier_id):
         # --- NEW LOGIC: INSTANTLY UPDATE ALL LINKED PRODUCTS ---
         # This loops through every product connected to this supplier
         # and triggers the save() method, which forces the ROP math to recalculate immediately!
-        for product in supplier.inventoryitem_set.all():
+        for product in InventoryItem.objects.filter(supplier=supplier):
             product.save()
+
         # -------------------------------------------------------
 
         messages.success(request, f"Supplier '{supplier.name}' updated! All associated product reorder points have been instantly recalculated.")
