@@ -111,22 +111,34 @@
         </div>
     </div>
 
-    <div style="display: flex; gap: 15px;">
-        <div style="flex: 1;">
-            <label style="font-size: 12px;">Avg. Lead Time (Days)</label>
-            <input type="number" name="average_lead_time_days" value="{{ item.average_lead_time_days|default:'0' }}"                   
-            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+    <div style="background: #F8FAFC; padding: 16px; border-radius: 8px; border: 1px dashed #CBD5E0; margin-top: 20px; margin-bottom: 20px;">
+    
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <i class="ph ph-truck" style="color: #092c4c; font-size: 18px;"></i>
+            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #092c4c;">Delivery Lead Time (Optional)</h4>
         </div>
-        <div style="flex: 1;">
-            <label style="font-size: 12px;">Max Lead Time (Days)</label>
-            <input type="number" name="max_lead_time_days" value="{{ item.max_lead_time_days|default:'0' }}"                   
-            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        
+        <p style="font-size: 12px; color: #64748B; margin-bottom: 16px; line-height: 1.4;">
+            Leave these as <strong>0</strong> to automatically inherit the selected supplier's standard delivery schedule. Only fill these out if this specific item takes unusually long to arrive.
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">
+                    Specific Avg. Days
+                </label>
+                <input type="number" name="average_lead_time_days" id="id_avg_lead" value="0" min="0" 
+                    style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; outline: none; transition: border-color 0.2s;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">
+                    Specific Max Days
+                </label>
+                <input type="number" name="max_lead_time_days" id="id_max_lead" value="0" min="0" 
+                    style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 6px; outline: none; transition: border-color 0.2s;">
+            </div>
         </div>
     </div>
-
-    <p style="font-size: 11px; color: #888; margin-top: 10px;">
-        Tip: Fill in the Daily Sales and Lead Times so the system can compute your exact Reorder Point and Safety Stock automatically.
-    </p>
 </div>            
 
             <!-- Footer Buttons -->
@@ -405,4 +417,32 @@ function submitNewSupplier() {
             }
         });
     };
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const avgInput = document.getElementById('id_avg_lead');
+    const maxInput = document.getElementById('id_max_lead');
+
+    function visuallyDimIfZero(inputElement) {
+        if (!inputElement) return;
+        
+        if (inputElement.value === "0" || inputElement.value === "") {
+            inputElement.style.color = "#94A3B8"; // Grayed out
+            inputElement.style.backgroundColor = "#F1F5F9";
+            inputElement.style.borderColor = "#E2E8F0";
+        } else {
+            inputElement.style.color = "#092c4c"; // Dark Navy (Active)
+            inputElement.style.backgroundColor = "#FFFFFF";
+            inputElement.style.borderColor = "#092c4c";
+        }
+    }
+
+    // Run on page load (important for Edit pages)
+    visuallyDimIfZero(avgInput);
+    visuallyDimIfZero(maxInput);
+
+    // Run every time the user types or clicks
+    avgInput?.addEventListener('input', () => visuallyDimIfZero(avgInput));
+    maxInput?.addEventListener('input', () => visuallyDimIfZero(maxInput));
+});
 </script>

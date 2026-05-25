@@ -44,6 +44,22 @@
             <input type="email" name="email" value="{{ supplier.email|default:'' }}">
         </div>
 
+        <div style="background: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px dashed #CBD5E0; margin-bottom: 20px;">
+            <label style="font-weight: 700; color: #1A365D; font-size: 13px; margin-bottom: 10px; display: block;">
+                <i class="ph ph-truck" style="margin-right: 5px;"></i> Standard Delivery Schedule
+            </label>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label style="font-size: 11px; color: #4A5568;">Average Wait (Days)</label>
+                    <input type="number" name="default_lead_time_days" value="{{ supplier.default_lead_time_days }}" min="1" required style="background: white;">
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label style="font-size: 11px; color: #4A5568;">Max Wait (Days)</label>
+                    <input type="number" name="max_lead_time_days" value="{{ supplier.max_lead_time_days }}" min="1" required style="background: white;">
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Business Address</label>
             <textarea name="address" rows="3">{{ supplier.address|default:'' }}</textarea>

@@ -20,6 +20,7 @@ from django.db.models.functions import Coalesce
 from django.db.models import Q, F, Sum, Count, ProtectedError, DecimalField
 from django.db.models.functions import Coalesce
 from point_of_sale.models import Transaction, TransactionItem
+from django.db import transaction
 
 from point_of_sale.models import Transaction
 from inventory.models import InventoryItem, PurchaseOrder
@@ -31,44 +32,63 @@ from django.db.models import F
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
     
-    # Naka-sort alphabetically para laging nasa taas ang Class A
-    items = InventoryItem.objects.all().order_by('abc_classification', '-id')
-    categories = Category.objects.all()
-
-    # Kunin ang mga GET parameters
     search_query = request.GET.get('search', '')
     category_id = request.GET.get('category', '')
     low_stock = request.GET.get('low_stock', '')
-    priority = request.GET.get('priority', '') # BAGONG PARAMETER
+    priority = request.GET.get('priority', '')
+    sort_query = request.GET.get('sort', '')
+    supplier_id = request.GET.get('supplier', '')
 
-    # 1. Search Logic
+    # Always define items first
+    items = InventoryItem.objects.all()
+
+    # 1. Search
     if search_query:
         items = items.filter(
-            Q(item_name__icontains=search_query) | 
+            Q(item_name__icontains=search_query) |
             Q(barcode_id__icontains=search_query)
         )
-    
-    # 2. Category Filter
+
+    # 2. Category
     if category_id:
         items = items.filter(category_id=category_id)
 
-    # 3. Priority Level Filter
+    # 3. Priority
     if priority:
         items = items.filter(abc_classification=priority)
 
-    # 4. Low Stocks Filter
+    # 4. Low Stock
     if low_stock == 'on':
         items = items.filter(quantity__lte=F('reorder_point'))
+
+    # 5. Supplier
+    if supplier_id:
+        items = items.filter(supplier_id=supplier_id)
+
+    # 6. Sorting (applied last)
+    if sort_query == 'supplier':
+        items = items.order_by('supplier__name', 'abc_classification', '-id')
+    elif sort_query == '-supplier':
+        items = items.order_by('-supplier__name', 'abc_classification', '-id')
+    else:
+        items = items.order_by('abc_classification', '-id')
+
+    categories = Category.objects.all()
 
     context = {
         'items': items,
         'categories': categories,
+        'suppliers': Supplier.objects.filter(is_active=True).order_by('name'),
         'search_query': search_query,
         'selected_category': category_id,
         'low_stock': low_stock,
-        'selected_priority': priority, # IPAPASA SA TEMPLATE
+        'selected_priority': priority,
+        'current_sort': sort_query,
+        'selected_supplier': supplier_id,
     }
     return render(request, 'inventory/product_list.html', context)
+
+
 
 def run_abc_analysis(request):
     items = InventoryItem.objects.all()
@@ -420,6 +440,8 @@ def supplier_list(request):
         phone = request.POST.get('phone')
         email = request.POST.get('email')
         address = request.POST.get('address')
+        default_lt = request.POST.get('default_lead_time_days', 7)
+        max_lt = request.POST.get('max_lead_time_days', 14)
         
         # Simple check to prevent duplicates
         if Supplier.objects.filter(name__iexact=name).exists():
@@ -430,7 +452,9 @@ def supplier_list(request):
                 contact_name=contact_name,
                 phone=phone,
                 email=email,
-                address=address
+                address=address,
+                default_lead_time_days=default_lt,
+                max_lead_time_days=max_lt
             )
             messages.success(request, f"Supplier '{name}' added successfully!")
             
@@ -613,6 +637,7 @@ def po_list(request):
         'purchase_orders': purchase_orders
     })
 
+@transaction.atomic
 def receive_po(request, po_id):
     po = get_object_or_404(PurchaseOrder, id=po_id)
     
@@ -621,19 +646,27 @@ def receive_po(request, po_id):
         messages.error(request, "This order has already been processed or cancelled.")
         return redirect('inventory:create_po')
         
-    # The Magic: Loop through the PO items and update the main inventory!
     for item in po.items.all():
         product = item.product
         
-        # 1. Add the new stock to the current quantity
+        # --- SAFE COSTING: Weighted Average Cost (WAC) ---
+        current_qty = Decimal(product.quantity)
+        ordered_qty = Decimal(item.quantity_ordered)
+        
+        current_total_value = current_qty * product.unit_cost
+        new_delivery_value = ordered_qty * item.unit_cost
+        
+        new_total_quantity = current_qty + ordered_qty
+        
+        if new_total_quantity > 0:
+            new_average_cost = (current_total_value + new_delivery_value) / new_total_quantity
+            product.unit_cost = round(new_average_cost, 2)
+            
+        # Add the new stock
         product.quantity += item.quantity_ordered
-        
-        # 2. Update the system's unit cost to the latest supplier price
-        product.unit_cost = item.unit_cost 
-        
         product.save()
         
-        # 3. Mark the PO item as fully received
+        # Mark the PO item as fully received
         item.quantity_received = item.quantity_ordered
         item.save()
         
@@ -644,32 +677,42 @@ def receive_po(request, po_id):
     log_system_activity(
         user=request.user,
         action="RECEIVE PO",
-        description=f"Received delivery for PO {po.po_number}. Inventory stocks and costs updated."
+        description=f"Received delivery for PO {po.po_number}. Inventory stock and average costs updated."
     )
-    messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been updated.")
+    messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been safely updated.")
     return redirect('inventory:create_po')
 
 
 def edit_supplier(request, supplier_id):
-    # Find the supplier or return a 404 error if it doesn't exist
     supplier = get_object_or_404(Supplier, id=supplier_id)
     
     if request.method == 'POST':
-        # Update the fields with the new data from the form
         supplier.name = request.POST.get('name')
         supplier.contact_name = request.POST.get('contact_name')
         supplier.phone = request.POST.get('phone')
         supplier.email = request.POST.get('email')
         supplier.address = request.POST.get('address')
         
+        # Save the new logistics fields
+        supplier.default_lead_time_days = request.POST.get('default_lead_time_days', 7)
+        supplier.max_lead_time_days = request.POST.get('max_lead_time_days', 14)
+        
         supplier.save()
-        messages.success(request, f"Supplier '{supplier.name}' updated successfully!")
+        
+        # --- NEW LOGIC: INSTANTLY UPDATE ALL LINKED PRODUCTS ---
+        # This loops through every product connected to this supplier
+        # and triggers the save() method, which forces the ROP math to recalculate immediately!
+        for product in supplier.inventoryitem_set.all():
+            product.save()
+        # -------------------------------------------------------
+
+        messages.success(request, f"Supplier '{supplier.name}' updated! All associated product reorder points have been instantly recalculated.")
         return redirect('inventory:supplier_list')
         
-    # If it's a GET request, just show the page with the current data
     return render(request, 'inventory/edit_supplier.html', {
         'supplier': supplier
     })
+
 
 def delete_supplier(request, supplier_id):
     if request.method == 'POST':
@@ -794,15 +837,25 @@ def edit_po(request, po_id):
     })
 
 def delete_po(request, po_id):
-    """Deletes a drafted or pending Purchase Order."""
+    """Cancels a drafted or pending Purchase Order instead of deleting it."""
     po = get_object_or_404(PurchaseOrder, id=po_id)
-    if po.status != 'received':
+    
+    if po.status in ['draft', 'pending']:
         po_num = po.po_number
-        po.delete()
-        messages.success(request, f"Order {po_num} has been successfully deleted.")
+        po.status = 'cancelled'
+        po.save()
+        
+        log_system_activity(
+            user=request.user,
+            action="CANCEL PO",
+            description=f"Cancelled Purchase Order {po_num}."
+        )
+        messages.success(request, f"Order {po_num} has been successfully cancelled.")
     else:
-        messages.error(request, "You cannot delete a completed delivery.")
+        messages.error(request, "You cannot cancel a completed delivery.")
+        
     return redirect('inventory:create_po')
+
 
 def auto_calibrate_rop(request):
     """

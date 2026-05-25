@@ -30,6 +30,8 @@ class Supplier(models.Model):
     email        = models.EmailField(blank=True)
     address      = models.TextField(blank=True)
     is_active    = models.BooleanField(default=True) # <-- ADD THIS LINE
+    default_lead_time_days = models.PositiveIntegerField(default=7, help_text="Standard days to deliver")
+    max_lead_time_days = models.PositiveIntegerField(default=14, help_text="Maximum expected delay")
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -63,9 +65,8 @@ class InventoryItem(models.Model):
     # --- NEW FIELDS FOR ROP & LEAD TIME COMPUTATION ---
     average_daily_sales = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Average items sold per day")
     max_daily_sales = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Highest number of items sold in a single day")
-    average_lead_time_days = models.PositiveIntegerField(default=0, help_text="Average days for supplier to deliver")
-    max_lead_time_days = models.PositiveIntegerField(default=0, help_text="Maximum days it took for a delivery to arrive")
-    
+    average_lead_time_days = models.PositiveIntegerField(default=0, help_text="Leave as 0 to use Supplier's default")
+    max_lead_time_days = models.PositiveIntegerField(default=0, help_text="Leave as 0 to use Supplier's maximum")    
     # These will be auto-calculated now, so we can make them editable=False (optional, but good for data integrity)
     safety_stock = models.PositiveIntegerField(default=0, editable=False)
     reorder_point = models.PositiveIntegerField(default=10) # Overwritten during save()
@@ -107,8 +108,18 @@ class InventoryItem(models.Model):
         # 2. ROP & Safety Stock Computation
         avg_sales = float(self.average_daily_sales or 0)
         max_sales = float(self.max_daily_sales or 0)
-        avg_lt = float(self.average_lead_time_days or 0)
-        max_lt = float(self.max_lead_time_days or 0)
+        avg_lt = float(self.average_lead_time_days)
+        max_lt = float(self.max_lead_time_days)
+        
+        if avg_lt == 0 and self.supplier:
+            avg_lt = float(self.supplier.default_lead_time_days)
+            
+        if max_lt == 0 and self.supplier:
+            max_lt = float(self.supplier.max_lead_time_days)
+
+        # --- ROP COMPUTATION ---
+        avg_sales = float(self.average_daily_sales or 0)
+        max_sales = float(self.max_daily_sales or 0)
         
         lead_time_demand = avg_sales * avg_lt
         max_lt_demand = max_sales * max_lt
@@ -186,40 +197,6 @@ class PurchaseOrder(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.po_number} - {self.supplier.name}"
-
-
-def save(self, *args, **kwargs):
-        # 1. Generate Product ID 
-        if not self.product_id:
-            prefix = self.category.prefix.upper()
-            last_item = InventoryItem.objects.filter(category=self.category).order_by('id').last()
-            if not last_item:
-                new_no = 1
-            else:
-                numeric_matches = re.findall(r'\d+', last_item.product_id)
-                new_no = int(numeric_matches[-1]) + 1 if numeric_matches else 1
-            self.product_id = f"{prefix}{new_no:03d}"
-
-        # 2. ROP & Safety Stock Computation
-        # Kinonvert natin sa float lahat para safe at hindi mag-crash!
-        avg_sales = float(self.average_daily_sales or 0)
-        max_sales = float(self.max_daily_sales or 0)
-        avg_lt = float(self.average_lead_time_days or 0)
-        max_lt = float(self.max_lead_time_days or 0)
-        
-        # Dahil lahat sila ay purong numbers na, pwede na i-multiply:
-        lead_time_demand = avg_sales * avg_lt
-        
-        max_lt_demand = max_sales * max_lt
-        raw_safety_stock = max_lt_demand - lead_time_demand
-        
-        self.safety_stock = int(max(0, round(raw_safety_stock)))
-        self.reorder_point = int(round(lead_time_demand)) + self.safety_stock
-
-        super().save(*args, **kwargs)
-
-def __str__(self):
         return f"{self.po_number} - {self.supplier.name}"
 
 

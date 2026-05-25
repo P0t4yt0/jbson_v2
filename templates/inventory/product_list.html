@@ -4,22 +4,36 @@
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
-    /* CSS classes to fix the red squiggle errors in VS Code */
     .stock-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; }
-    
-    /* UPDATED: Based on System Alerts/Badges style guide */
-    .stock-low { background: #ffaca4; color: #d50a0a; }   /* WARNING */
-    .stock-good { background: #9ae6b4; color: #22543d; }  /* SUCCESS */
-    
-    /* Hover effects for buttons */
+    .stock-low { background: #ffaca4; color: #d50a0a; }   
+    .stock-good { background: #9ae6b4; color: #22543d; }  
     .btn-filter:hover { background: #edf2f7 !important; }
     .search-input:focus { border-color: #092c4c !important; }
+
+    /* QUANTITY HOVER & STOCK HEALTH TOOLTIP */
+    .vertical-stock-wrapper { position: relative; cursor: help; }
+    .stock-tooltip { visibility: hidden; width: 170px; background-color: #1E293B; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 9999; top: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 11px; font-weight: 500; line-height: 1.4; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .stock-tooltip::after { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: transparent transparent #1E293B transparent; }
+    .vertical-stock-wrapper:hover .stock-tooltip { visibility: visible; opacity: 1; }
+    .fill-healthy { background-color: #10B981; } 
+    .fill-warning { background-color: #F59E0B; } 
+    .fill-critical { background-color: #EF4444; } 
+
+    /* PRIORITY DOT & HOVER LABELS TOOLTIP */
+    .priority-container { position: relative; display: inline-flex; align-items: center; cursor: help; margin-left: 8px; }
+    .priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot-A { background-color: #10B981; } 
+    .dot-B { background-color: #F59E0B; } 
+    .dot-C { background-color: #94A3B8; } 
+    .priority-tooltip { visibility: hidden; width: 130px; background-color: #1E293B; color: #fff; text-align: center; border-radius: 6px; padding: 6px; position: absolute; z-index: 100; bottom: 130%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 11px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .priority-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1E293B transparent transparent transparent; }
+    .priority-container:hover .priority-tooltip { visibility: visible; opacity: 1; }
 </style>
 
-<!-- MAIN WRAPPER: Pantay na sa ibang pages -->
+<!-- MAIN WRAPPER -->
 <div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; display: flex; flex-direction: column;">
 
-    <!-- HEADER SECTION: May border-bottom at saktong padding gaya ng PO Hub -->
+    <!-- HEADER SECTION -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #E5E7EB;">
         <div>
             <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Product Management</h2>
@@ -29,8 +43,8 @@
         </div>
 
         <div style="display: flex; gap: 10px; margin-bottom: 5px;">
-             <!-- BULK DELETE BUTTON -->
-             <button type="button" id="bulk-delete-btn" style="display: none; background: #e07300; color: white; padding: 10px 16px; border-radius: 8px; border: none; font-weight: 600; font-size: 13px; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
+            <!-- BULK DELETE BUTTON -->
+            <button type="button" id="bulk-delete-btn" style="display: none; background: #e07300; color: white; padding: 10px 16px; border-radius: 8px; border: none; font-weight: 600; font-size: 13px; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;">
                 <i class="ph ph-trash"></i> Delete Selected (<span id="delete-count">0</span>)
             </button>
 
@@ -52,51 +66,58 @@
     </div>
 
     <!-- POS-Style Barcode Scanner Modal -->
-
     <div id="scanner-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;">
         <div style="background: white; padding: 30px; border-radius: 12px; width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
             <i class="ph ph-barcode" style="font-size: 48px; color: #092c4c; margin-bottom: 10px;"></i>
             <h2 style="margin: 0 0 10px 0; color: #092c4c; font-size: 20px; font-family: 'Montserrat', sans-serif;">Ready to Scan</h2>
             <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">Point your scanner at the barcode.</p>
-           
             <input type="text" id="dedicated-barcode-input"
                    placeholder="Waiting for scanner..."
                    autocomplete="off"
                    style="width: 100%; padding: 12px; border: 2px solid #092c4c; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
-            
             <button type="button" id="close-scanner-modal" style="background: #edf2f7; color: #4a5568; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%;">
                 Cancel
             </button>
         </div>
     </div>
+
     <!-- MAIN FILTER & TABLE SECTION -->
     <form method="GET" action="{% url 'inventory:inventory_list' %}" id="inventory-filter-form">
-        
-        <!-- SEARCH & CLEAR FILTERS BAR -->
+
+        <!-- SEARCH & FILTER BAR -->
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div style="position: relative;">
                 <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a0aec0;"></i>
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Search name or barcode..." 
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search name or barcode..."
                        onchange="this.form.submit()"
                        style="padding: 10px 12px 10px 40px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-size: 14px; width: 320px; color: #2d3748; background: white;">
             </div>
-            
-            {% if search_query or selected_category or low_stock or selected_priority %}
+
+            {% if search_query or selected_category or low_stock or selected_priority or selected_supplier %}
                 <a href="{% url 'inventory:inventory_list' %}" style="font-size: 13px; color: #811112; text-decoration: none; padding: 8px 14px; border-radius: 8px; background: #fff5f5; border: 1px solid #ffaca4; font-weight: 600;">Clear All Filters</a>
             {% endif %}
         </div>
 
         <!-- TABLE CARD -->
-        <div style="background: white; border-radius: 12px; border: 1px solid #E5E7EB; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div style="background: white; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; table-layout: fixed;">
                 <thead style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
                     <tr>
                         <th style="padding: 15px 10px; width: 45px; text-align: center;">
                             <input type="checkbox" id="selectAll" style="cursor: pointer; width: 16px; height: 16px;">
-                        </th>                    
+                        </th>
                         <th style="padding: 15px 10px; width: 10%; color: #811112; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">ID</th>
                         <th style="padding: 15px 10px; width: 22%; color: #811112; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Product Name</th>
-                        
+
+                        <th style="padding: 15px 10px; width: 18%;">
+                            <select name="supplier" onchange="this.form.submit()" style="width: 100%; font-size: 11px; font-weight: 700; color: #811112; text-transform: uppercase; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
+                                <option value="">Supplier (All)</option>
+                                {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" {% if selected_supplier == supplier.id|stringformat:"s" %}selected{% endif %}>{{ supplier.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </th>
+
                         <th style="padding: 15px 10px; width: 15%;">
                             <select name="category" onchange="this.form.submit()" style="width: 100%; font-size: 11px; font-weight: 700; color: #811112; text-transform: uppercase; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
                                 <option value="">Category (All)</option>
@@ -105,62 +126,76 @@
                                 {% endfor %}
                             </select>
                         </th>
-                        
-                        <th style="padding: 15px 10px; width: 10%; color: #811112; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Price</th>
-                        
-                        <th style="padding: 15px 10px; width: 15%;">
-                            <select name="priority" onchange="this.form.submit()" style="width: 100%; font-size: 11px; font-weight: 700; color: #811112; text-transform: uppercase; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
-                                <option value="">Priority (All)</option>
-                                <option value="A" {% if selected_priority == 'A' %}selected{% endif %}>Always in Stock</option>
-                                <option value="B" {% if selected_priority == 'B' %}selected{% endif %}>Regular Check</option>
-                                <option value="C" {% if selected_priority == 'C' %}selected{% endif %}>Bulk Order</option>
-                            </select>
-                        </th>
 
+                        <th style="padding: 15px 10px; width: 10%; color: #811112; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Price</th>
                         <th style="padding: 15px 10px; width: 12%; color: #811112; font-weight: 700; font-size: 11px; text-transform: uppercase;">Barcode</th>
-                        
-                        <th style="padding: 15px 10px; width: 10%;">
+
+                        <th style="padding: 15px 10px; width: 12%;">
                             <select name="low_stock" onchange="this.form.submit()" style="width: 100%; font-size: 11px; font-weight: 700; color: #811112; text-transform: uppercase; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
-                                <option value="">Qty (All)</option>
+                                <option value="">Qty</option>
                                 <option value="on" {% if low_stock == 'on' %}selected{% endif %}>Low Stock</option>
                             </select>
                         </th>
-                        
+
                         <th style="padding: 15px 10px; width: 90px; text-align: center; color: #811112; font-weight: 700; font-size: 11px; text-transform: uppercase;">Actions</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     {% for item in items %}
                     <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+
                         <td style="padding: 15px 10px; text-align: center;">
                             <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer; width: 16px; height: 16px;">
                         </td>
+
                         <td style="padding: 15px 10px; font-family: monospace; color: #64748b;">{{ item.product_id }}</td>
-                        <td style="padding: 15px 10px; font-weight: 600; color: #092c4c;">{{ item.item_name }}</td>
+
+                        <td style="padding: 15px 10px; font-weight: 600; color: #092c4c;">
+                            <div style="display: flex; align-items: center;">
+                                {{ item.item_name }}
+                                <div class="priority-container">
+                                    <span class="priority-dot dot-{{ item.abc_classification|default:'C' }}"></span>
+                                    <div class="priority-tooltip">
+                                        {% if item.abc_classification == 'A' %}Always in Stock (A)
+                                        {% elif item.abc_classification == 'B' %}Regular Check (B)
+                                        {% elif item.abc_classification == 'C' %}Bulk Order (C)
+                                        {% else %}Unclassified{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td style="padding: 15px 10px; color: #4a5568; font-weight: 500;">
+                            {{ item.supplier.name|default:"--" }}
+                        </td>
+
                         <td style="padding: 15px 10px; color: #4a5568;">{{ item.category.name }}</td>
                         <td style="padding: 15px 10px; color: #4a5568; font-weight: 500;">₱{{ item.price }}</td>
-                        <td style="padding: 15px 10px; text-align: center;">
-                            {% if item.abc_classification == 'A' %}
-                                <span style="background: #9ae6b4; color: #22543d; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block;">Always in Stock</span>
-                            {% elif item.abc_classification == 'B' %}
-                                <span style="background: #ffd895; color: #e07300; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block;">Regular Check</span>
-                            {% elif item.abc_classification == 'C' %}
-                                <span style="background: #e2e8f0; color: #4a5568; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block;">Bulk Order</span>
-                            {% else %}
-                                <span style="color: #a0aec0; font-size: 11px;">Unclassified</span>
-                            {% endif %}
-                        </td>
                         <td style="padding: 15px 10px; color: #64748b; font-size: 12px;">{{ item.barcode_id }}</td>
+
                         <td style="padding: 15px 10px; text-align: center;">
-                            <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">
-                                {{ item.quantity }}
-                            </span>
+                            <div class="vertical-stock-wrapper" style="display: inline-flex; justify-content: center;">
+                                <div class="stock-tooltip">
+                                    <strong>Stock Health Details</strong><br>
+                                    <span style="color: #34D399;">Green:</span> Safe levels.<br>
+                                    <span style="color: #FBBF24;">Yellow:</span> Getting close.<br>
+                                    <span style="color: #F87171;">Red:</span> Reached restock trigger!<br>
+                                    <hr style="border-color: #475569; margin: 6px 0;">
+                                    <span style="font-size: 10px; color: #94A3B8; font-weight: bold;">Restock threshold: {{ item.reorder_point }}</span>
+                                </div>
+                                <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">
+                                    {{ item.quantity }}
+                                </span>
+                            </div>
                         </td>
+
                         <td style="padding: 15px 10px; text-align: center;">
                             <div style="display: flex; gap: 8px; justify-content: center;">
                                 <a href="#" class="edit-product-btn" data-url="{% url 'inventory:edit_product' item.pk %}" style="border: 1px solid #e2e8f0; background: white; padding: 6px; border-radius: 6px; color: #092c4c; transition: 0.2s;"><i class="ph ph-pencil"></i></a>
                             </div>
                         </td>
+
                     </tr>
                     {% empty %}
                     <tr>
@@ -173,7 +208,7 @@
     </form>
 </div>
 
-<!-- HIDDEN FORM PARA SA BULK DELETE -->
+<!-- HIDDEN FORM FOR BULK DELETE -->
 <form id="bulk-delete-form" method="POST" action="{% url 'inventory:bulk_delete_products' %}" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="product_ids" id="hidden-delete-ids">
@@ -182,17 +217,16 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+    /* ------------------ AUTO-CALIBRATE ------------------ */
     const calibrateBtn = document.getElementById('autoCalibrateBtn');
-    
     calibrateBtn?.addEventListener('click', function(e) {
-        e.preventDefault(); 
-        
+        e.preventDefault();
         Swal.fire({
             title: 'Initiate Auto-Calibration?',
             text: 'This action will analyze POS transaction data from the past 30 days to dynamically compute and update the Reorder Points and Safety Stocks for all eligible inventory items. Do you wish to proceed?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#811112', // Pinalitan ko para pumantay sa red theme mo!
+            confirmButtonColor: '#811112',
             cancelButtonColor: '#a0aec0',
             confirmButtonText: 'Yes, proceed'
         }).then((result) => {
@@ -201,31 +235,24 @@ document.addEventListener("DOMContentLoaded", function () {
                     title: 'Calibrating...',
                     text: 'Please wait while the system analyzes the sales data.',
                     allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => { Swal.showLoading(); }
                 });
-                // Redirect sa backend auto-learn function
                 window.location.href = "{% url 'inventory:auto_calibrate_rop' %}";
             }
         });
     });
-    /* ------------------ ABC ANALYSIS LOGIC ------------------ */
+
+    /* ------------------ ABC ANALYSIS ------------------ */
     const analyzeBtn = document.getElementById("analyze-priority-btn");
-
     analyzeBtn?.addEventListener("click", function (e) {
-        e.preventDefault(); 
+        e.preventDefault();
         const targetUrl = this.href;
-
         Swal.fire({
             title: 'Analyzing Inventory...',
             text: 'Please wait while we calculate the priority levels.',
             allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+            didOpen: () => { Swal.showLoading(); }
         });
-
         fetch(targetUrl)
             .then(response => {
                 if (response.ok) {
@@ -233,30 +260,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         title: 'Analysis Complete!',
                         text: 'Priority levels have been successfully updated.',
                         icon: 'success',
-                        confirmButtonColor: '#092c4c' // Updated to Navy
-                    }).then(() => {
-                        window.location.reload();
-                    });
+                        confirmButtonColor: '#092c4c'
+                    }).then(() => { window.location.reload(); });
                 } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Something went wrong while analyzing priority levels.',
-                        icon: 'error',
-                        confirmButtonColor: '#811112' // Updated to Main Red
-                    });
+                    Swal.fire({ title: 'Error!', text: 'Something went wrong while analyzing priority levels.', icon: 'error', confirmButtonColor: '#811112' });
                 }
             })
-            .catch(error => {
-                Swal.fire({
-                    title: 'Connection Error!',
-                    text: 'Unable to connect to the server.',
-                    icon: 'error',
-                    confirmButtonColor: '#811112' // Updated to Main Red
-                });
+            .catch(() => {
+                Swal.fire({ title: 'Connection Error!', text: 'Unable to connect to the server.', icon: 'error', confirmButtonColor: '#811112' });
             });
     });
 
-    /* ------------------ BARCODE SCANNER LOGIC ------------------ */
+    /* ------------------ BARCODE SCANNER ------------------ */
     const scannerModal = document.getElementById("scanner-modal");
     const scanBtn = document.getElementById("scan-barcode-btn");
     const closeScannerBtn = document.getElementById("close-scanner-modal");
@@ -267,11 +282,8 @@ document.addEventListener("DOMContentLoaded", function () {
     scanBtn?.addEventListener("click", function (e) {
         e.preventDefault();
         scannerModal.style.display = "flex";
-        barcodeInput.value = ""; 
-        
-        setTimeout(() => {
-            barcodeInput.focus();
-        }, 100);
+        barcodeInput.value = "";
+        setTimeout(() => { barcodeInput.focus(); }, 100);
     });
 
     closeScannerBtn?.addEventListener("click", function () {
@@ -280,7 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     barcodeInput?.addEventListener("keypress", function (e) {
         if (e.key === "Enter") {
-            e.preventDefault(); 
+            e.preventDefault();
             mainSearchInput.value = barcodeInput.value;
             scannerModal.style.display = "none";
             filterForm.submit();
@@ -295,13 +307,11 @@ document.addEventListener("DOMContentLoaded", function () {
             text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#811112', // Updated to Main Red
+            confirmButtonColor: '#811112',
             cancelButtonColor: '#a0aec0',
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = url;
-            }
+            if (result.isConfirmed) { window.location.href = url; }
         });
     };
 
@@ -324,9 +334,7 @@ document.addEventListener("DOMContentLoaded", function () {
         toggleBulkDeleteBtn();
     });
 
-    rowCheckboxes.forEach(cb => {
-        cb.addEventListener("change", toggleBulkDeleteBtn);
-    });
+    rowCheckboxes.forEach(cb => { cb.addEventListener("change", toggleBulkDeleteBtn); });
 
     bulkDeleteBtn?.addEventListener("click", function () {
         const checked = document.querySelectorAll(".rowCheckbox:checked");
@@ -335,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function () {
             text: `Delete ${checked.length} selected product(s)?`,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#811112" // Updated to Main Red
+            confirmButtonColor: "#811112"
         }).then(result => {
             if (result.isConfirmed) {
                 hiddenIdsInput.value = [...checked].map(cb => cb.value).join(",");
@@ -352,7 +360,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".edit-product-btn").forEach(btn => {
         btn.addEventListener("click", function (e) {
             e.preventDefault();
-
             fetch(this.dataset.url)
                 .then(res => res.text())
                 .then(html => {
@@ -367,9 +374,12 @@ document.addEventListener("DOMContentLoaded", function () {
         modalContent.innerHTML = "";
     });
 
+
+
 });
 </script>
 
+<!-- EDIT PRODUCT MODAL -->
 <div id="edit-product-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;">
     <div style="background: white; width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 24px; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
         <button id="close-edit-modal" style="position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #718096;">✕</button>
