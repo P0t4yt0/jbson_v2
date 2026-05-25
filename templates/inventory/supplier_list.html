@@ -2,7 +2,6 @@
 {% block content %}
 
 <style>
-    
     .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .header-section h2 { font-size: 1.5rem; margin: 0; color: #111; }
     .header-section p { color: #0D9488; font-size: 0.85rem; margin: 5px 0 0 0; font-weight: bold; }
@@ -16,9 +15,8 @@
     td { padding: 15px; border-bottom: 1px solid #EDF2F7; vertical-align: middle; color: #2D3748; font-size: 14px; }
     tr:hover td { background-color: #F8FAFC; }
 
-    /* Modal Styling */
     .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-    .modal-box { background: white; padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+    .modal-box { background: white; padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; font-weight: 700; margin-bottom: 5px; font-size: 13px; color: #1A365D; }
     .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #E2E8F0; border-radius: 8px; outline: none; font-size: 14px; transition: 0.2s; box-sizing: border-box; }
@@ -44,6 +42,8 @@
                     <th>Contact Person</th>
                     <th>Phone Number</th>
                     <th>Email</th>
+                    <th>Avg. Lead Time</th>
+                    <th>Max Lead Time</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -55,6 +55,8 @@
                     <td>{{ supplier.contact_name|default:"--" }}</td>
                     <td style="color: #718096;">{{ supplier.phone|default:"--" }}</td>
                     <td style="color: #718096;">{{ supplier.email|default:"--" }}</td>
+                    <td style="color: #718096;">{{ supplier.default_lead_time_days }} days</td>
+                    <td style="color: #718096;">{{ supplier.max_lead_time_days }} days</td>
                     <td>
                         {% if supplier.is_active %}
                             <span style="background: #C6F6D5; color: #22543D; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">Active</span>
@@ -62,47 +64,64 @@
                             <span style="background: #E2E8F0; color: #4A5568; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">Archived</span>
                         {% endif %}
                     </td>
-                    <td style="display: flex; gap: 5px;">
-                        <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='flex'" style="background: #EDF2F7; color: #4A5568; padding: 6px 12px; border: 1px solid #CBD5E0; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s;">
-                            Edit
+                    <td style="display: flex; gap: 8px; align-items: center;">
+
+                        <a href="{% url 'inventory:inventory_list' %}?supplier={{ supplier.id }}"
+                           title="View Products from this Supplier"
+                           style="background: #E0F2FE; color: #0284C7; padding: 8px; border: 1px solid #BAE6FD; border-radius: 6px; display: inline-flex; transition: 0.2s; text-decoration: none;"
+                           onmouseover="this.style.background='#BAE6FD'" onmouseout="this.style.background='#E0F2FE'">
+                            <i class="ph ph-eye" style="font-size: 16px;"></i>
+                        </a>
+
+                        <button type="button"
+                                title="Edit Supplier Profile"
+                                onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='flex'"
+                                style="background: #EDF2F7; color: #4A5568; padding: 8px; border: 1px solid #CBD5E0; border-radius: 6px; cursor: pointer; display: inline-flex; transition: 0.2s;"
+                                onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#EDF2F7'">
+                            <i class="ph ph-pencil" style="font-size: 16px;"></i>
                         </button>
-                        
+
                         {% if supplier.is_active %}
                             <form method="POST" action="{% url 'inventory:delete_supplier' supplier.id %}" onsubmit="return confirm('Are you sure you want to archive {{ supplier.name|escapejs }}? They will be hidden from new orders.');" style="margin: 0;">
                                 {% csrf_token %}
-                                <button type="submit" style="background: #FFF5F5; color: #E53E3E; padding: 6px 12px; border: 1px solid #FED7D7; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s;">
-                                    Archive
+                                <button type="submit"
+                                        title="Archive Supplier"
+                                        style="background: #FFF5F5; color: #E53E3E; padding: 8px; border: 1px solid #FED7D7; border-radius: 6px; cursor: pointer; display: inline-flex; transition: 0.2s;"
+                                        onmouseover="this.style.background='#FED7D7'" onmouseout="this.style.background='#FFF5F5'">
+                                    <i class="ph ph-archive" style="font-size: 16px;"></i>
                                 </button>
                             </form>
                         {% else %}
                             <form method="POST" action="{% url 'inventory:unarchive_supplier' supplier.id %}" style="margin: 0;">
                                 {% csrf_token %}
-                                <button type="submit" style="background: #E0F2FE; color: #0369A1; padding: 6px 12px; border: 1px solid #BAE6FD; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s;">
-                                    Restore
+                                <button type="submit"
+                                        title="Restore Supplier"
+                                        style="background: #F0FDF4; color: #16A34A; padding: 8px; border: 1px solid #BBF7D0; border-radius: 6px; cursor: pointer; display: inline-flex; transition: 0.2s;"
+                                        onmouseover="this.style.background='#BBF7D0'" onmouseout="this.style.background='#F0FDF4'">
+                                    <i class="ph ph-arrow-counter-clockwise" style="font-size: 16px;"></i>
                                 </button>
                             </form>
                         {% endif %}
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" style="text-align: center; color: #A0AEC0; padding: 40px;">No suppliers registered yet. Click the button above to add one.</td></tr>
+                <tr><td colspan="8" style="text-align: center; color: #A0AEC0; padding: 40px;">No suppliers registered yet. Click the button above to add one.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
 
+<!-- ADD SUPPLIER MODAL -->
 <div id="addSupplierModal" class="modal-overlay">
     <div class="modal-box">
         <h3 style="margin-top: 0; color: #1A365D; border-bottom: 1px solid #EDF2F7; padding-bottom: 15px; margin-bottom: 20px;">Register Supplier</h3>
-        
         <form method="POST" action="{% url 'inventory:supplier_list' %}">
             {% csrf_token %}
             <div class="form-group">
                 <label>Company / Supplier Name *</label>
                 <input type="text" name="name" required placeholder="e.g. Boysen Paints Inc.">
             </div>
-            
             <div style="display: flex; gap: 15px;">
                 <div class="form-group" style="flex: 1;">
                     <label>Contact Person</label>
@@ -113,17 +132,29 @@
                     <input type="text" name="phone" placeholder="e.g. 0917-XXX-XXXX">
                 </div>
             </div>
-
             <div class="form-group">
                 <label>Email Address</label>
                 <input type="email" name="email" placeholder="sales@company.com">
             </div>
-
+            <div style="background: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px dashed #CBD5E0; margin-bottom: 15px;">
+                <label style="font-weight: 700; color: #1A365D; font-size: 12px; margin-bottom: 10px; display: block;">
+                    <i class="ph ph-truck" style="margin-right: 5px;"></i> Standard Delivery Schedule
+                </label>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label style="font-size: 11px; color: #4A5568;">Average Wait (Days)</label>
+                        <input type="number" name="default_lead_time_days" value="7" min="1" required style="background: white;">
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label style="font-size: 11px; color: #4A5568;">Max Wait (Days)</label>
+                        <input type="number" name="max_lead_time_days" value="14" min="1" required style="background: white;">
+                    </div>
+                </div>
+            </div>
             <div class="form-group">
                 <label>Business Address</label>
                 <textarea name="address" rows="2" placeholder="Full address of the supplier..."></textarea>
             </div>
-            
             <div style="display: flex; gap: 10px; margin-top: 25px;">
                 <button type="button" onclick="document.getElementById('addSupplierModal').style.display='none'" style="flex: 1; padding: 12px; border: 1px solid #CBD5E0; background: white; border-radius: 8px; cursor: pointer; font-weight: 700; color: #4A5568;">Cancel</button>
                 <button type="submit" class="btn-main" style="flex: 1; padding: 12px;">Save Supplier</button>
@@ -132,22 +163,20 @@
     </div>
 </div>
 
-
+<!-- EDIT SUPPLIER MODALS -->
 {% for supplier in suppliers %}
 <div id="editSupplierModal-{{ supplier.id }}" class="modal-overlay">
     <div class="modal-box">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDF2F7; padding-bottom: 15px; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #1A365D;">Edit Supplier Profile</h3>
-            <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #A0AEC0; transition: 0.2s;">&times;</button>
+            <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #A0AEC0;">&times;</button>
         </div>
-        
         <form method="POST" action="{% url 'inventory:edit_supplier' supplier.id %}">
             {% csrf_token %}
             <div class="form-group">
                 <label>Company / Supplier Name *</label>
                 <input type="text" name="name" value="{{ supplier.name }}" required>
             </div>
-            
             <div style="display: flex; gap: 15px;">
                 <div class="form-group" style="flex: 1;">
                     <label>Contact Person</label>
@@ -158,17 +187,29 @@
                     <input type="text" name="phone" value="{{ supplier.phone|default:'' }}">
                 </div>
             </div>
-
             <div class="form-group">
                 <label>Email Address</label>
                 <input type="email" name="email" value="{{ supplier.email|default:'' }}">
             </div>
-
+            <div style="background: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px dashed #CBD5E0; margin-bottom: 15px;">
+                <label style="font-weight: 700; color: #1A365D; font-size: 12px; margin-bottom: 10px; display: block;">
+                    <i class="ph ph-truck" style="margin-right: 5px;"></i> Standard Delivery Schedule
+                </label>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label style="font-size: 11px; color: #4A5568;">Average Wait (Days)</label>
+                        <input type="number" name="default_lead_time_days" value="{{ supplier.default_lead_time_days }}" min="1" required style="background: white;">
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label style="font-size: 11px; color: #4A5568;">Max Wait (Days)</label>
+                        <input type="number" name="max_lead_time_days" value="{{ supplier.max_lead_time_days }}" min="1" required style="background: white;">
+                    </div>
+                </div>
+            </div>
             <div class="form-group">
                 <label>Business Address</label>
                 <textarea name="address" rows="2">{{ supplier.address|default:'' }}</textarea>
             </div>
-            
             <div style="display: flex; gap: 10px; margin-top: 25px;">
                 <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='none'" style="flex: 1; padding: 12px; border: 1px solid #CBD5E0; background: white; border-radius: 8px; cursor: pointer; font-weight: 700; color: #4A5568;">Cancel</button>
                 <button type="submit" class="btn-main" style="flex: 1; padding: 12px;">Save Changes</button>
@@ -177,4 +218,5 @@
     </div>
 </div>
 {% endfor %}
+
 {% endblock %}

@@ -95,6 +95,30 @@ def mark_all_read_api(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
+@csrf_exempt
+def mark_single_read_api(request, notif_id):
+    """Marks a single notification as read via AJAX without redirecting."""
+    if request.method == 'POST' and request.user.is_authenticated:
+        try:
+            notif = Notification.objects.get(id=notif_id, is_read=False)
+            if notif.user == request.user or notif.user is None:
+                notif.is_read = True
+                notif.date_read = timezone.now()
+                notif.save(update_fields=['is_read', 'date_read'])
+                
+                # NEW: Calculate the remaining unread notifications to send back
+                remaining_count = Notification.objects.filter(
+                    Q(user=request.user) | Q(user__isnull=True),
+                    is_read=False
+                ).count()
+                
+                return JsonResponse({'status': 'success', 'unread_count': remaining_count})
+        except Notification.DoesNotExist:
+            pass
+            
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
 def mark_single_read_and_redirect(request, notif_id):
     """Marks one notification as read, then sends the user to the action_url."""
     notif = get_object_or_404(Notification, id=notif_id)
@@ -107,7 +131,6 @@ def mark_single_read_and_redirect(request, notif_id):
     if notif.action_url:
         return redirect(notif.action_url)
     return redirect('admin_dashboard')
-
 
 @login_required
 def notification_history_view(request):
