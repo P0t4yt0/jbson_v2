@@ -464,10 +464,10 @@ def supplier_list(request):
     search_query = request.GET.get('search', '').strip()
     per_page = request.GET.get('per_page', 10)
 
-    # 1. Base Query
-    suppliers = Supplier.objects.all().order_by('name')
+    # 1. Base Query (Naka-filter na sa active suppliers lang)
+    suppliers = Supplier.objects.filter(is_active=True).order_by('name')
     
-    # 2. Search Filter (Company Name, Contact, Phone, o Email)
+    # 2. Search Filter
     if search_query:
         suppliers = suppliers.filter(
             Q(name__icontains=search_query) |
@@ -486,12 +486,61 @@ def supplier_list(request):
     page_number = request.GET.get('page', 1)
     suppliers_page = paginator.get_page(page_number)
     
-    # 4. Ipasa sa context
     return render(request, 'inventory/supplier_list.html', {
         'suppliers': suppliers_page,
         'search_query': search_query,
         'per_page': per_page,
     })
+
+# BAGONG VIEW PARA SA ARCHIVED SUPPLIERS
+def archived_supplier_list(request):
+    search_query = request.GET.get('search', '').strip()
+    per_page = request.GET.get('per_page', 10)
+
+    # Filter para sa archived suppliers
+    suppliers = Supplier.objects.filter(is_active=False).order_by('name')
+    
+    if search_query:
+        suppliers = suppliers.filter(
+            Q(name__icontains=search_query) |
+            Q(contact_name__icontains=search_query) |
+            Q(phone__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+        
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+
+    paginator = Paginator(suppliers, per_page)
+    page_number = request.GET.get('page', 1)
+    suppliers_page = paginator.get_page(page_number)
+    
+    return render(request, 'inventory/archived_supplier_list.html', {
+        'suppliers': suppliers_page,
+        'search_query': search_query,
+        'per_page': per_page,
+    })
+
+# I-update ang redirection ng unarchive
+def unarchive_supplier(request, supplier_id):
+    if request.method == 'POST':
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        
+        supplier.is_active = True
+        supplier.save()
+
+        # Assuming log_system_activity is imported
+        log_system_activity(
+            user=request.user,
+            action="RESTORE SUPPLIER",
+            description=f"Restored archived supplier '{supplier.name}'"
+        )
+        messages.success(request, f"Supplier '{supplier.name}' has been restored.")
+            
+    # I-redirect pabalik sa archived page imbes na sa main list
+    return redirect('inventory:archived_supplier_list')
 
 
 def create_po(request):

@@ -67,8 +67,33 @@
         transition: all 0.2s ease;
         cursor: pointer;
     }
-    .table-action-btn:hover { background-color: #edf2f7; transform: translateY(-2px); }
-    .btn-view:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
+
+    .table-action-btn:hover { 
+    transform: translateY(-2px); 
+    }
+
+    .btn-view {
+        color: #092c4c;
+        background-color: #f2f7fb; 
+    }
+
+    .btn-view:hover { 
+        background-color: #092c4c; 
+        color: white; 
+        border-color: #092c4c; 
+    }
+
+    .table-action-btn.disabled { 
+        opacity: 0.5; 
+        cursor: not-allowed; 
+    }
+
+    .table-action-btn.disabled:hover { 
+        transform: none; 
+        background-color: #f8fafc; 
+        color: #64748b; 
+        border-color: #e2e8f0; 
+    }
 
     /* PAGINATION STYLES */
     .pagination-wrapper {
@@ -166,13 +191,18 @@
                                     {% for item in return.returned_items.all %}
                                     <tr>
                                         <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">{{ item.product.name }}</td>
-                                        <td class="item-price" style="display: none;"></td>
-                                        <td class="item-qty" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-weight:500;">{{ item.quantity }}</td>
-                                        <td class="item-subtotal" data-val="{{ item.subtotal }}" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c;">₱{{ item.subtotal|floatformat:"2g" }}</td>
+                                        
+                                        <td class="item-price" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-weight:500;">
+                                            ₱{{ item.product.price|floatformat:"2g" }}
+                                        </td>
+                                        
+                                        <td class="item-qty" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-weight:500;">{{ item.quantity }}</td>
+                                        
+                                        <td class="item-subtotal" data-val="{{ item.subtotal }}" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; font-weight:800; color:#092c4c;">₱{{ item.subtotal|floatformat:"2g" }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="3" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic; font-size:0.9rem;">No specific items recorded. Please check your database.</td>
+                                        <td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic; font-size:0.9rem;">No specific items recorded. Please check your database.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -217,12 +247,12 @@
 </div>
 
 <div id="viewDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background:#fff; width:450px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+    <div style="background:#fff; width:600px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
         
         <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
             <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Return Details</p>
             <h3 id="modal_view_return_id" style="margin:5px 0 0 0; color:#092c4c; font-family: 'Inconsolata'; font-size:1.4rem; font-weight:900;"></h3>
-            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748B; font-weight: 500;">Original: <span style="font-weight: 700; font-size: 0.9rem; font-family: 'Inconsolata';" id="modal_view_txn_id"></span></p>
+            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748B; font-weight: 500;">Original: <span style="font-weight: 700; font-size: 1rem; font-family: 'Inconsolata';" id="modal_view_txn_id"></span></p>
         </div>
         
         <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
@@ -230,8 +260,9 @@
                 <thead>
                     <tr>
                         <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Product</th>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty Returned</th>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:right; border-bottom:2px solid #f1f5f9;">Subtotal</th>
+                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Price</th>                       
+                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty Returned</th>                        
+                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody id="modal_view_body">
@@ -266,7 +297,7 @@
                 <div style="margin-bottom: 25px;">
                     <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px;">Original Transaction ID <span style="color:#e07300;">*</span></label>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none; font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color 0.2s;" onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                        <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none; font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata'; transition: border-color 0.2s;" onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
                         <button type="button" onclick="verifyTxn()" style="background: #092c4c; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">Verify</button>
                     </div>
                     <p id="verify_msg" style="font-size: 0.85rem; font-weight: 500; margin-top: 8px;"></p>

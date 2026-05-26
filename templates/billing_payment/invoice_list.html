@@ -81,15 +81,45 @@
         font-size: 1.1rem;
         transition: all 0.2s ease;
     }
-    .table-action-btn:hover {
-        background-color: #edf2f7;
-        transform: translateY(-2px);
+
+    .table-action-btn:hover { 
+    transform: translateY(-2px); 
     }
-    
-    .btn-view:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
-    .btn-settle { color: #e07300; background-color: #fffaf0; border-color: #feebc8; }
-    .btn-settle:hover { background-color: #e07300; color: white; border-color: #e07300; }
-    
+
+    .btn-view {
+        color: #092c4c;
+        background-color: #f2f7fb; 
+    }
+
+    .btn-view:hover { 
+        background-color: #092c4c; 
+        color: white; 
+        border-color: #092c4c; 
+    }
+
+    .btn-settle { 
+        color: #22543d; 
+        background-color: #eefff4;
+    }
+
+    .btn-settle:hover { 
+        background-color: #22543d; 
+        color: white; 
+        border-color: #22543d; 
+    }
+
+    .table-action-btn.disabled { 
+        opacity: 0.5; 
+        cursor: not-allowed; 
+    }
+
+    .table-action-btn.disabled:hover { 
+        transform: none; 
+        background-color: #f8fafc; 
+        color: #64748b; 
+        border-color: #e2e8f0; 
+    }
+
     /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
@@ -202,7 +232,7 @@
                     
                     <td>
                         <div class="action-group">
-                            <a href="javascript:void(0)" class="table-action-btn btn-view view-items" data-id="{{ inv.id }}" title="View Items">
+                            <a href="javascript:void(0)" class="table-action-btn btn-view view-items" data-id="{{ inv.id }}" data-total="{{ inv.total_amount|floatformat:'2g' }}" title="View Items">
                                 <i class="ph ph-eye"></i>
                             </a>
                             
@@ -248,7 +278,7 @@
 </div>
 
 <div id="itemsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background:#fff; width:450px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+    <div style="background:#fff; width:600px; max-width:90%; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
         
         <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
             <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Invoice Details</p>
@@ -260,13 +290,19 @@
                 <thead>
                     <tr>
                         <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Product</th>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty</th>
+                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Price</th>
+                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty</th>
                         <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:right; border-bottom:2px solid #f1f5f9;">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody id="modalBodyItems">
                 </tbody>
             </table>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px dashed #cbd5e1;">
+                <span style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Total Amount</span>
+                <span style="font-weight:900; font-family: 'Inconsolata'; font-size:1.8rem; color:#e07300;">₱<span style="font-family: 'Inconsolata';" id="modal_view_total_invoice">0.00</span></span>
+            </div>
         </div>
         
         <div style="padding:0 25px 25px; background:#fff; text-align:center;">
@@ -276,6 +312,7 @@
                 Close Details
             </button>
         </div>
+        
     </div>
 </div>
 
@@ -284,11 +321,13 @@ $(document).ready(function() {
     $('.view-items').on('click', function(e) {
         e.preventDefault();
         let invId = $(this).data('id');
+        let invTotal = $(this).data('total'); 
         let invNo = $(this).closest('tr').find('td:first strong').text().trim(); 
         
         $('#modalTitle').text(invNo);
+        $('#modal_view_total_invoice').text(invTotal); 
         $('#itemsModal').css('display', 'flex'); 
-        $('#modalBodyItems').html('<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8; font-size:0.9rem; font-weight:500;">Loading items...</td></tr>');
+        $('#modalBodyItems').html('<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-size:0.9rem; font-weight:500;">Loading items...</td></tr>');
 
         $.ajax({
             url: '/billing/invoice/' + invId + '/items-json/',
@@ -296,16 +335,19 @@ $(document).ready(function() {
             success: function(data) {
                 let html = '';
                 data.items.forEach(item => {
+                    // Check if price exists from your backend, default to 0.00 if none
+                    let price = item.unit_price || "0.00"; 
                     html += `<tr>
                         <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">${item.product_name}</td>
-                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:1rem; font-family: 'Inconsolata'; font-weight:500;">${item.quantity}</td>
-                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:1rem; font-family: 'Inconsolata';">₱${item.subtotal}</td>
+                        <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:1.05rem; font-family: 'Inconsolata'; font-weight:500;">₱${item.unit_price}</td>
+                        <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:1.05rem; font-family: 'Inconsolata'; font-weight:500;">${item.quantity}</td>
+                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:1.05rem; font-family: 'Inconsolata';">₱${item.subtotal}</td>
                     </tr>`;
                 });
                 $('#modalBodyItems').html(html);
             },
             error: function() {
-                $('#modalBodyItems').html('<tr><td colspan="3" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">Error loading items.</td></tr>');
+                $('#modalBodyItems').html('<tr><td colspan="4" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">Error loading items.</td></tr>');
             }
         });
     });

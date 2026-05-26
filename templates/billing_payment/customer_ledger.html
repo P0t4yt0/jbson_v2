@@ -98,13 +98,44 @@
         cursor: pointer;
         padding: 0; /* Siguraduhing walang padding */
     }
-    .table-action-btn:hover { background-color: #edf2f7; transform: translateY(-2px); }
-    
-    .btn-settle { color: #e07300; background-color: #fffaf0; border-color: #feebc8; }
-    .btn-settle:hover { background-color: #e07300; color: white; border-color: #e07300; }
-    
-    /* Bagong style para sa History button */
-    .btn-history:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
+
+    .table-action-btn:hover { 
+    transform: translateY(-2px); 
+    }
+
+    .btn-history {
+        color: #4b5563; 
+        background-color: #f9fafb; 
+    }
+
+    .btn-history:hover { 
+        background-color: #4b5563; 
+        color: white; 
+        border-color: #4b5563; 
+    }
+
+    .btn-settle { 
+        color: #22543d; 
+        background-color: #eefff4;
+    }
+
+    .btn-settle:hover { 
+        background-color: #22543d; 
+        color: white; 
+        border-color: #22543d; 
+    }
+
+    .table-action-btn.disabled { 
+        opacity: 0.5; 
+        cursor: not-allowed; 
+    }
+
+    .table-action-btn.disabled:hover { 
+        transform: none; 
+        background-color: #f8fafc; 
+        color: #64748b; 
+        border-color: #e2e8f0; 
+    }
 
     /* FORM STYLES FOR MODAL */
     .form-group { margin-bottom: 15px; text-align: left; }
@@ -272,7 +303,7 @@
                     <label>Amount to Pay (₱)</label>
                     <input type="number" id="pay-amount" name="amount" required step="0.01" style="font-family:'Inconsolata'; font-size: 1.5rem; font-weight: 800; color: #092c4c; padding: 15px; text-align: center; border: 2px solid #cbd5e1;" onfocus="this.style.borderColor='#e07300'" onblur="this.style.borderColor='#cbd5e1'">
                     <div style="text-align: right; margin-top: 5px;">
-                        <small style="color: #64748b; font-weight: 500;">Max: ₱<span id="modal-max-amount"></span></small>
+                        <small style="font-family: 'Inconsolata'; font-weight: 700; font-size: 0.9rem; color: #64748b;">MAX: ₱<span style="font-family: 'Inconsolata'; font-weight: 700; font-size: 0.9rem;" id="modal-max-amount"></span></small>
                     </div>
                 </div>
 

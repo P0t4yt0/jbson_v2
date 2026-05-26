@@ -3,7 +3,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
@@ -78,14 +78,52 @@
         transition: all 0.2s ease;
         cursor: pointer;
     }
-    .table-action-btn:hover { transform: translateY(-2px); }
-    
-    /* CUSTOM HOVER COLORS PARA SA ACTIONS */
-    .btn-view:hover { color: #0284c7; border-color: #0284c7; background-color: #e0f2fe; }   /* Blue */
-    .btn-edit:hover { color: #475569; border-color: #475569; background-color: #f1f5f9; }   /* Grey */
-    .btn-archive:hover { color: #dc2626; border-color: #dc2626; background-color: #fef2f2; } /* Red */
-    .btn-restore:hover { color: #16a34a; border-color: #16a34a; background-color: #f0fdf4; } /* Green */
+    .table-action-btn:hover { 
+        transform: translateY(-2px); 
+    }
 
+    /* --- VIEW BUTTON (NAVY BLUE) --- */
+    .btn-view {
+        color: #092c4c;
+        background-color: #f2f7fb; 
+    }
+    .btn-view:hover { 
+        background-color: #092c4c; 
+        color: white; 
+        border-color: #092c4c; 
+    }
+
+    /* --- EDIT BUTTON (GREY) --- */
+    .btn-edit {
+        color: #4b5563; 
+        background-color: #f9fafb; 
+    }
+    .btn-edit:hover { 
+        background-color: #4b5563; 
+        color: white; 
+        border-color: #4b5563; 
+    }
+
+    /* --- ARCHIVE BUTTON (RED) --- */
+    .btn-archive {
+        color: #811112; 
+        background-color: #fdf4f4; /* Light red tint */
+    }
+    .btn-archive:hover { 
+        background-color: #811112; 
+        color: white; 
+        border-color: #811112; 
+    }
+
+    .btn-restore {
+        color: #22543d; 
+        background-color: #eefff4;
+    }
+    .btn-restore:hover { 
+        background-color: #22543d; 
+        color: white; 
+        border-color: #22543d; 
+    }
     /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
@@ -122,13 +160,22 @@
         backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     }
     .modal-box {
-        background: #fff; width: 450px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); 
+        background: #fff; width: 600px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); 
         overflow: hidden; font-family: 'Inter', sans-serif; max-height: 90vh; overflow-y: auto;
     }
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.85rem; color: #475569; }
     .form-group input, .form-group textarea { width: 100%; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
     .form-group input:focus, .form-group textarea:focus { border-color: #092c4c; }
+    
+    .filter-form-wrapper {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin: 0;
+        flex-wrap: wrap;
+        width: 100%;
+    }
 </style>
 
 <div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
@@ -146,7 +193,7 @@
     </div>
 
     <div class="filter-container">
-        <form method="GET" style="display: flex; gap: 15px; align-items: center; margin: 0; flex-wrap: wrap;">
+        <form method="GET" class="filter-form-wrapper">
             <input type="text" name="search" placeholder="Search Company, Contact, Phone, Email..." value="{{ search_query }}" 
                    style="flex: 2; min-width: 250px; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;" 
                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
@@ -164,6 +211,10 @@
                 Clear
             </a>
             {% endif %}
+
+            <a href="{% url 'inventory:archived_supplier_list' %}" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; background: #fff1f2; color: #e11d48; padding: 12px 20px; border: 1px solid #fecdd3; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#ffe4e6'" onmouseout="this.style.backgroundColor='#fff1f2'">
+                <i class="ph ph-archive" style="font-size: 1.1rem;"></i> View Archived
+            </a>
         </form>
     </div>
 
@@ -177,7 +228,6 @@
                     <th>Email</th>
                     <th>Avg. Lead Time</th>
                     <th>Max Lead Time</th>
-                    <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -186,17 +236,10 @@
                 <tr>
                     <td><strong style="color: #092c4c; font-weight: 600;">{{ supplier.name }}</strong></td>
                     <td style="color: #4a5568;">{{ supplier.contact_name|default:"--" }}</td>
-                    <td style="color: #64748b;">{{ supplier.phone|default:"--" }}</td>
+                    <td style="font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b;">{{ supplier.phone|default:"--" }}</td>
                     <td style="color: #64748b;">{{ supplier.email|default:"--" }}</td>
                     <td style="color: #64748b; font-weight: 500;">{{ supplier.default_lead_time_days }} days</td>
                     <td style="color: #64748b; font-weight: 500;">{{ supplier.max_lead_time_days }} days</td>
-                    <td>
-                        {% if supplier.is_active %}
-                            <span class="badge bg-sage-green">ACTIVE</span>
-                        {% else %}
-                            <span class="badge bg-secondary">ARCHIVED</span>
-                        {% endif %}
-                    </td>
                     <td>
                         <div class="action-group">
                             <a href="{% url 'inventory:inventory_list' %}?supplier={{ supplier.id }}" class="table-action-btn btn-view" title="View Products">
@@ -207,33 +250,23 @@
                                 <i class="ph ph-pencil"></i>
                             </button>
 
-                            {% if supplier.is_active %}
-                                <form method="POST" action="{% url 'inventory:delete_supplier' supplier.id %}" onsubmit="return confirm('Are you sure you want to archive {{ supplier.name|escapejs }}?');" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="table-action-btn btn-archive" title="Archive Supplier">
-                                        <i class="ph ph-archive"></i>
-                                    </button>
-                                </form>
-                            {% else %}
-                                <form method="POST" action="{% url 'inventory:unarchive_supplier' supplier.id %}" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="table-action-btn btn-restore" title="Restore Supplier">
-                                        <i class="ph ph-arrow-counter-clockwise"></i>
-                                    </button>
-                                </form>
-                            {% endif %}
+                            <form method="POST" action="{% url 'inventory:delete_supplier' supplier.id %}" class="archive-form" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="button" class="table-action-btn btn-archive archive-btn" data-name="{{ supplier.name|escapejs }}" title="Archive Supplier">
+                                    <i class="ph ph-archive"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No suppliers registered yet. Click the button above to add one.</td>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No active suppliers found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
-        <div class="pagination-wrapper">
+<div class="pagination-wrapper">
             <div class="page-info">
                 Row Per Page 
                 <select onchange="changePerPage(this.value)" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;">
@@ -259,7 +292,6 @@
         </div>
     </div>
 </div>
-
 <div id="addSupplierModal" class="blur-modal">
     <div class="modal-box">
         <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
@@ -281,7 +313,7 @@
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Phone Number</label>
-                        <input type="text" name="phone" placeholder="e.g. 0917-XXX-XXXX">
+                        <input type="text" name="phone" placeholder="e.g. 0917-XXX-XXXX" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';">
                     </div>
                 </div>
                 <div class="form-group">
@@ -295,11 +327,11 @@
                     <div style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
                             <label style="font-size: 11px;">Average Wait (Days)</label>
-                            <input type="number" name="default_lead_time_days" value="7" min="1" required>
+                            <input type="number" name="default_lead_time_days" value="7" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
                         </div>
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
                             <label style="font-size: 11px;">Max Wait (Days)</label>
-                            <input type="number" name="max_lead_time_days" value="14" min="1" required>
+                            <input type="number" name="max_lead_time_days" value="14" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
                         </div>
                     </div>
                 </div>
@@ -339,7 +371,7 @@
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Phone Number</label>
-                        <input type="text" name="phone" value="{{ supplier.phone|default:'' }}">
+                        <input type="text" name="phone" value="{{ supplier.phone|default:'' }}"style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" >
                     </div>
                 </div>
                 <div class="form-group">
@@ -353,11 +385,11 @@
                     <div style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
                             <label style="font-size: 11px;">Average Wait (Days)</label>
-                            <input type="number" name="default_lead_time_days" value="{{ supplier.default_lead_time_days }}" min="1" required>
+                            <input type="number" name="default_lead_time_days" value="{{ supplier.default_lead_time_days }}" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
                         </div>
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
                             <label style="font-size: 11px;">Max Wait (Days)</label>
-                            <input type="number" name="max_lead_time_days" value="{{ supplier.max_lead_time_days }}" min="1" required>
+                            <input type="number" name="max_lead_time_days" value="{{ supplier.max_lead_time_days }}" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
                         </div>
                     </div>
                 </div>
@@ -374,9 +406,7 @@
     </div>
 </div>
 {% endfor %}
-
 <script>
-    // Isara ang modal kapag pinindot sa labas ng puting kahon
     window.onclick = function(event) {
         if (event.target.classList.contains('blur-modal')) {
             event.target.style.display = "none";
@@ -389,5 +419,60 @@
         urlParams.set('page', 1); 
         window.location.search = urlParams.toString();
     }
+
+    // --- SWEETALERT CONFIGURATIONS ---
+    
+    // 1. Django Messages to SweetAlert
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if messages %}
+            {% for message in messages %}
+                let iconType = 'info';
+                let titleText = 'Notification';
+                
+                {% if message.tags == 'error' %}
+                    iconType = 'error';
+                    titleText = 'Oops!';
+                {% elif message.tags == 'success' %}
+                    iconType = 'success';
+                    titleText = 'Success!';
+                {% elif message.tags == 'warning' %}
+                    iconType = 'warning';
+                    titleText = 'Warning!';
+                {% endif %}
+                
+                Swal.fire({
+                    icon: iconType,
+                    title: titleText,
+                    text: "{{ message|escapejs }}",
+                    confirmButtonColor: '#092c4c',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            {% endfor %}
+        {% endif %}
+
+        // 2. SweetAlert for Archive Confirmation
+        const archiveButtons = document.querySelectorAll('.archive-btn');
+        archiveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const form = this.closest('.archive-form');
+                const supplierName = this.getAttribute('data-name');
+                
+                Swal.fire({
+                    title: 'Archive Supplier?',
+                    text: `Are you sure you want to archive ${supplierName}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Yes, archive it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
 </script>
 {% endblock %}

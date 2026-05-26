@@ -204,8 +204,13 @@ def get_sale_details_api(request, txn_id):
         
         items_data = []
         for item in items:
+            # Safe calculation: Subtotal divided by Quantity
+            # If quantity is 0 (to avoid division by zero error), set to 0
+            computed_price = float(item.subtotal) / int(item.quantity) if int(item.quantity) > 0 else 0
+            
             items_data.append({
                 'name': item.inventory_item.item_name,
+                'price': computed_price,
                 'qty': item.quantity,
                 'subtotal': float(item.subtotal)
             })
@@ -218,6 +223,9 @@ def get_sale_details_api(request, txn_id):
         })
     except Transaction.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Transaction not found'})
+    except Exception as e:
+        # Catch any other backend errors so it doesn't cause a Network Error in JS
+        return JsonResponse({'status': 'error', 'message': str(e)})
     
 def invoice_list_view(request):
     search_query = request.GET.get('search', '').strip()

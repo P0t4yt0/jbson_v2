@@ -490,10 +490,12 @@ def get_quotation_details(request):
         
         items_data = []
         for item in items:
+            # Safe computation para sa Price (Subtotal / Qty)
+            computed_price = float(item.subtotal) / int(item.quantity) if int(item.quantity) > 0 else 0
+            
             items_data.append({
-                # Note: I-check mo rin kung 'inventory_item' ba talaga ang field name
-                # ng product sa loob ng TransactionItem model mo. Kung iba, palitan mo rin ito.
                 'name': item.inventory_item.item_name,
+                'price': computed_price, # <-- Eto yung idinagdag
                 'qty': item.quantity,
                 'subtotal': float(item.subtotal) 
             })
@@ -505,6 +507,9 @@ def get_quotation_details(request):
         })
     except Transaction.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Quotation not found'})
+    except Exception as e:
+        # Catch any backend errors para hindi mag-crash yung server at mag "Network Error"
+        return JsonResponse({'status': 'error', 'message': str(e)})
     
 def reprint_receipt(request, txn_id):
     transaction = get_object_or_404(Transaction, id=txn_id)

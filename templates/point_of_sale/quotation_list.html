@@ -67,11 +67,44 @@
         transition: all 0.2s ease;
         cursor: pointer;
     }
-    .table-action-btn:hover { background-color: #edf2f7; transform: translateY(-2px); }
-    
-    .btn-view:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
-    .btn-settle { color: #e07300; background-color: #fffaf0; border-color: #feebc8; }
-    .btn-settle:hover { background-color: #e07300; color: white; border-color: #e07300; }
+        .table-action-btn:hover { 
+    transform: translateY(-2px); 
+    }
+
+    .btn-view {
+        color: #092c4c;
+        background-color: #f2f7fb; 
+    }
+
+    .btn-view:hover { 
+        background-color: #092c4c; 
+        color: white; 
+        border-color: #092c4c; 
+    }
+
+    .btn-load { 
+    color: #e07300; 
+    background-color: #fffaf0; 
+    border-color: #feebc8; 
+    }
+
+    .btn-load:hover { 
+        background-color: #e07300; 
+        color: white; 
+        border-color: #e07300; 
+    }
+
+    .table-action-btn.disabled { 
+        opacity: 0.5; 
+        cursor: not-allowed; 
+    }
+
+    .table-action-btn.disabled:hover { 
+        transform: none; 
+        background-color: #f8fafc; 
+        color: #64748b; 
+        border-color: #e2e8f0; 
+    }
 
     /* PAGINATION STYLES */
     .pagination-wrapper {
@@ -172,7 +205,7 @@
                                 <i class="ph ph-eye"></i>
                             </button>
                             
-                            <a href="{% url 'pos:load_quotation' quote.id %}" class="table-action-btn btn-settle" title="Load to POS">
+                            <a href="{% url 'pos:load_quotation' quote.id %}" class="table-action-btn btn-load" title="Load to POS">
                                 <i class="ph ph-shopping-cart"></i>
                             </a>
                         </div>
@@ -214,7 +247,7 @@
 </div> 
 
 <div id="detailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background:#fff; width:450px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+    <div style="background:#fff; width:600px; max-width:90%; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
         
         <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
             <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Quotation Details</p>
@@ -226,7 +259,8 @@
                 <thead>
                     <tr>
                         <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Item Name</th>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty</th>
+                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Price</th>
+                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty</th>
                         <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:right; border-bottom:2px solid #f1f5f9;">Subtotal</th>
                     </tr>
                 </thead>
@@ -251,32 +285,38 @@
 <script>
     function openModal(refNumber) {
         document.getElementById('detailsModal').style.display = 'flex';
-        document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8; font-size:0.9rem; font-weight:500;">Fetching data...</td></tr>';
+        document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-size:0.9rem; font-weight:500;">Fetching data...</td></tr>';
         document.getElementById('modalRefTitle').innerText = refNumber;
 
         fetch(`/pos/get-quotation-details/?ref=${refNumber}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    document.getElementById('modalTotalAmount').innerText = data.total_amount;
+                    // Added formatting for total amount to show decimals nicely
+                    document.getElementById('modalTotalAmount').innerText = data.total_amount.toLocaleString(undefined, {minimumFractionDigits: 2});
                     
                     let itemsHtml = '';
                     data.items.forEach(item => {
+                        let price = item.price || 0;
+                        let formattedPrice = parseFloat(price).toFixed(2);
+                        let formattedSubtotal = parseFloat(item.subtotal).toFixed(2);
+
                         itemsHtml += `
                             <tr>
                                 <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">${item.name}</td>
-                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569;  font-size: 1.05rem; font-family: 'Inconsolata'; font-weight:500;">${item.qty}</td>
-                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size: 1.05rem; font-family: 'Inconsolata';">₱${item.subtotal}</td>
+                                <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; font-family: 'Inconsolata'; color:#475569; font-size:1.05rem; font-weight:500;">₱${formattedPrice}</td>
+                                <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569;  font-size: 1.05rem; font-family: 'Inconsolata'; font-weight:500;">${item.qty}</td>
+                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size: 1.05rem; font-family: 'Inconsolata';">₱${formattedSubtotal}</td>
                             </tr>
                         `;
                     });
                     document.getElementById('modalItemsBody').innerHTML = itemsHtml;
                 } else {
-                    document.getElementById('modalItemsBody').innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">Error loading details.</td></tr>`;
+                    document.getElementById('modalItemsBody').innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">${data.message}</td></tr>`;
                 }
             })
             .catch(error => {
-                document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">Network error. Please try again.</td></tr>';
+                document.getElementById('modalItemsBody').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">Network error. Please try again.</td></tr>';
             });
     }
 

@@ -78,9 +78,33 @@
         transition: all 0.2s ease;
         cursor: pointer;
     }
-    .table-action-btn:hover { background-color: #edf2f7; transform: translateY(-2px); }
-    .btn-view:hover { color: #092c4c; border-color: #092c4c; background-color: #f0f4f8; }
+    .table-action-btn:hover { 
+    transform: translateY(-2px); 
+    }
 
+    .btn-view {
+        color: #092c4c;
+        background-color: #f2f7fb; 
+    }
+
+    .btn-view:hover { 
+        background-color: #092c4c; 
+        color: white; 
+        border-color: #092c4c; 
+    }
+    
+    .table-action-btn.disabled { 
+        opacity: 0.5; 
+        cursor: not-allowed; 
+    }
+
+    .table-action-btn.disabled:hover { 
+        transform: none; 
+        background-color: #f8fafc; 
+        color: #64748b; 
+        border-color: #e2e8f0; 
+    }
+    
     /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
