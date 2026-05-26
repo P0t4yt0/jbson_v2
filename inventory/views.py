@@ -32,40 +32,38 @@ from django.db.models import F
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
     
-    search_query = request.GET.get('search', '')
+    search_query = request.GET.get('search', '').strip()
     category_id = request.GET.get('category', '')
     low_stock = request.GET.get('low_stock', '')
     priority = request.GET.get('priority', '')
     sort_query = request.GET.get('sort', '')
     supplier_id = request.GET.get('supplier', '')
+    per_page = request.GET.get('per_page', 10) 
 
-    # Always define items first
     items = InventoryItem.objects.all()
 
-    # 1. Search
+    # FIX 1: Idinagdag ang product_id at barcode_id sa search logic
     if search_query:
         items = items.filter(
             Q(item_name__icontains=search_query) |
-            Q(barcode_id__icontains=search_query)
+            Q(barcode_id__icontains=search_query) |
+            Q(supplier__name__icontains=search_query) |
+            Q(product_id__icontains=search_query) 
         )
 
-    # 2. Category
     if category_id:
         items = items.filter(category_id=category_id)
 
-    # 3. Priority
     if priority:
         items = items.filter(abc_classification=priority)
 
-    # 4. Low Stock
     if low_stock == 'on':
         items = items.filter(quantity__lte=F('reorder_point'))
 
-    # 5. Supplier
     if supplier_id:
         items = items.filter(supplier_id=supplier_id)
 
-    # 6. Sorting (applied last)
+    # Sorting
     if sort_query == 'supplier':
         items = items.order_by('supplier__name', 'abc_classification', '-id')
     elif sort_query == '-supplier':
@@ -73,11 +71,19 @@ def inventory_list(request):
     else:
         items = items.order_by('abc_classification', '-id')
 
-    categories = Category.objects.all()
+    # Pagination Setup
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+
+    paginator = Paginator(items, per_page)
+    page_number = request.GET.get('page', 1)
+    items_page = paginator.get_page(page_number)
 
     context = {
-        'items': items,
-        'categories': categories,
+        'items': items_page, 
+        'categories': Category.objects.all(),
         'suppliers': Supplier.objects.filter(is_active=True).order_by('name'),
         'search_query': search_query,
         'selected_category': category_id,
@@ -85,6 +91,7 @@ def inventory_list(request):
         'selected_priority': priority,
         'current_sort': sort_query,
         'selected_supplier': supplier_id,
+        'per_page': per_page,
     }
     return render(request, 'inventory/product_list.html', context)
 
