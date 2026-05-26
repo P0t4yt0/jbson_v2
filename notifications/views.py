@@ -54,22 +54,22 @@ def live_notifications_api(request):
                     }
                 )
 
-    # --- FETCH NOTIFICATIONS ---
-    unread_qs = Notification.objects.filter(
-        Q(user=request.user) | Q(user__isnull=True),
-        is_read=False
-    ).order_by('-date_created')[:5] 
-    
+    # --- FETCH NOTIFICATIONS --- (replace from this line down to the return)
+    notifications_qs = Notification.objects.filter(
+        Q(user=request.user) | Q(user__isnull=True)
+    ).order_by('is_read', '-date_created')[:10]  # unread first, then read, max 10
+
     notifications_data = []
-    for notif in unread_qs:
+    for notif in notifications_qs:
         notifications_data.append({
             'id': notif.id,
             'title': notif.title,
             'message': notif.message,
-            'priority': notif.priority, 
+            'priority': notif.priority,
             'type': notif.notification_type,
             'time': notif.date_created.strftime("%I:%M %p"),
-            'action_url': notif.action_url if notif.action_url else '#'
+            'action_url': notif.action_url if notif.action_url else '#',
+            'is_read': notif.is_read,   # <-- THIS is the key addition
         })
 
     total_unread = Notification.objects.filter(
@@ -81,6 +81,7 @@ def live_notifications_api(request):
         'unread_count': total_unread,
         'notifications': notifications_data
     })
+
 
 
 @csrf_exempt
@@ -144,3 +145,22 @@ def notification_history_view(request):
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'notifications/history.html', {'page_obj': page_obj})
+
+def delete_notification_api(request, notif_id):
+    if request.method == 'POST':
+        notif = get_object_or_404(Notification, id=notif_id)
+        notif.delete()
+        
+        # FIXED - only count current user's unread
+        from django.db.models import Q
+        unread_count = Notification.objects.filter(
+            Q(user=request.user) | Q(user__isnull=True),
+            is_read=False
+        ).count()
+        
+        return JsonResponse({
+            'status': 'success',
+            'unread_count': unread_count
+        })
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)

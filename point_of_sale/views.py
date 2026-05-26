@@ -256,13 +256,18 @@ def process_payment(request):
                     messages.error(request, "Customer account is on HOLD.")
                     return redirect('point_of_sale:pos_index')
 
-                if customer.credit_balance + transaction.total_amount > customer.credit_limit:
-                    messages.error(request, "Credit limit exceeded.")
+                # --- NEW: CALCULATE 2% INTEREST ---
+                interest_amount = transaction.subtotal * Decimal('0.02')
+                new_total = transaction.subtotal + interest_amount
+
+                if customer.credit_balance + new_total > customer.credit_limit:
+                    messages.error(request, "Credit limit exceeded including 2% interest.")
                     return redirect('point_of_sale:pos_index')
 
                 transaction.payment_method = 'credit'
                 transaction.customer = customer
                 transaction.status = 'credit'
+                transaction.total_amount = new_total # Override the total with interest!
                 transaction.date_completed = timezone.now()
                 transaction.save()
 
@@ -320,6 +325,18 @@ def process_payment(request):
                         quantity=item.quantity,
                         unit_price=item.unit_price,
                         subtotal=item.subtotal
+                    )
+                
+                # --- NEW: RECORD THE INTEREST ON THE INVOICE ---
+                if method == 'Trade Credit':
+                    # Calculate difference so it matches exactly
+                    applied_interest = transaction.total_amount - transaction.subtotal
+                    InvoiceItem.objects.create(
+                        invoice=invoice,
+                        product_name="Trade Credit Interest (2%)",
+                        quantity=1,
+                        unit_price=applied_interest,
+                        subtotal=applied_interest
                     )
 
             payment_type = "Trade Credit" if method == 'Trade Credit' else method

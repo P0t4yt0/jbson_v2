@@ -743,102 +743,86 @@
                 return;
             }
 
-            data.forEach(item => {
-                let htmlElement = '';
+            data.notifications.forEach(notif => {
+                let iconColor = notif.priority === 'critical' ? 'var(--status-red)' :
+                                notif.priority === 'high' ? '#F97316' :
+                                notif.priority === 'medium' ? 'var(--status-yellow)' : '#3B82F6';
 
-                if (item.type === 'shortcut') {
-                    htmlElement = `
-                        <a href="${item.url}" class="search-item-shortcut">
-                            <span style="font-size: 20px; margin-right: 15px;"></span>
-                            <div class="shortcut-text">
-                                <h4>${item.title}</h4>
-                                <p>${item.breadcrumb} &rarr; ${item.title}</p>
+                const unreadBg = '#EFF6FF';
+                const readBg   = 'var(--bg-main)';
+                const itemBg   = notif.is_read ? readBg : unreadBg;
+                const blueDot  = notif.is_read ? '' : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3B82F6;margin-left:5px;vertical-align:middle;"></span>';
+                const titleWeight = notif.is_read ? '600' : '800';
+
+                dropdownList.innerHTML += `
+                    <div id="notif-${notif.id}" style="position:relative;margin-bottom:5px;">
+                        <a href="${notif.action_url && notif.action_url !== 'None' ? notif.action_url : '#'}"
+                        style="text-decoration:none;display:block;"
+                        onclick="markNotifRead(${notif.id}, this, event)">
+                            <div class="dropdown-item"
+                                style="display:flex;padding:12px;border-left:3px solid ${iconColor};background:${itemBg};transition:background 0.2s;cursor:pointer;"
+                                onmouseover="this.style.background='#FCE8E8'"
+                                onmouseout="this.style.background='${itemBg}'">
+                                <div style="margin-right:12px;color:${iconColor};margin-top:2px;">
+                                    <i class="ph ph-warning-circle" style="font-size:20px;"></i>
+                                </div>
+                                <div style="padding-right:20px;">
+                                    <strong style="display:block;font-size:13px;color:var(--text-primary);font-weight:${titleWeight};">
+                                        ${notif.title}${blueDot}
+                                    </strong>
+                                    <span style="display:block;font-size:12px;color:var(--text-secondary);margin-top:2px;">${notif.message}</span>
+                                    <small style="display:block;font-size:10px;color:#9CA3AF;margin-top:6px;">${notif.time}</small>
+                                </div>
                             </div>
                         </a>
-                    `;
-                } else if (item.type === 'record') {
-                    htmlElement = `
-                        <a href="${item.url}" class="search-item-record">
-                            <div class="record-header">
-                                <span class="record-title">${item.title}</span>
-                                <span class="record-status">${item.status}</span>
-                            </div>
-                            <div class="record-details">
-                                <span>${item.detail1}</span>
-                                <span><strong>${item.detail2}</strong></span>
-                            </div>
-                        </a>
-                    `;
-                }
-
-                searchDropdown.insertAdjacentHTML('beforeend', htmlElement);
+                        <button onclick="dismissSingleNotification(${notif.id}, event)"
+                                style="position:absolute;top:12px;right:12px;background:transparent;border:none;cursor:pointer;color:var(--text-secondary);font-size:16px;z-index:10;padding:4px;border-radius:4px;"
+                                onmouseover="this.style.color='var(--status-red)'"
+                                onmouseout="this.style.color='var(--text-secondary)'">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
+                `;
             });
 
-            searchDropdown.style.display = 'block'; 
-        }
-    });
 </script>
 
             <div class="header-actions">
                 <a href="#" class="btn btn-primary" onclick="openCreateProduct(event)">
                     <i class="ph ph-plus-circle"></i> Add Product
                 </a>
-                <a href="{% url 'point_of_sale:pos_index' %}" class="btn btn-secondary" style="text-decoration: none;">
+                <a href="{% url 'pos:pos_index' %}" class="btn btn-secondary" style="text-decoration: none;">
                     <i class="ph ph-desktop"></i> POS
                 </a>
-                
+
+                <!-- BELL with dropdown -->
                 <div style="position: relative;">
-                    <div style="position: relative;">
                     <button class="icon-btn" id="bell-btn">
                         <i class="ph ph-bell"></i>
-                        <span id="dynamic-badge" class="notification-badge" style="display: none; background: var(--status-red); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -5px;">
-                            0
-                        </span>
+                        <span id="dynamic-badge" style="display:none; background:var(--status-red); color:white; border-radius:50%; padding:2px 6px; font-size:10px; position:absolute; top:-5px; right:-5px;">0</span>
                     </button>
-                    
                     <div class="dropdown-menu" id="notif-menu">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); background: #F8FAFC; border-radius: 8px 8px 0 0;">
-                            <strong style="font-size: 13px; color: var(--text-primary);">Notifications</strong>
-                            <button onclick="markAllAsRead()" style="background: none; border: none; color: var(--text-secondary); font-size: 12px; cursor: pointer; font-weight: 600;">Clear All</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; border-bottom:1px solid var(--border-color); background:#F8FAFC; border-radius:8px 8px 0 0;">
+                            <strong style="font-size:13px; color:var(--text-primary);">Notifications</strong>
+                            <button onclick="markAllAsRead()" style="background:none; border:none; color:var(--text-secondary); font-size:12px; cursor:pointer; font-weight:600;">Clear All</button>
                         </div>
-                        
-                        <div id="dynamic-notif-list" style="max-height: 350px; overflow-y: auto;">
-                            <div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">Loading alerts...</div>
+                        <div id="dynamic-notif-list" style="max-height:350px; overflow-y:auto;">
+                            <div class="dropdown-item" style="padding:15px; text-align:center;">Loading alerts...</div>
                         </div>
                     </div>
                 </div>
-                    
-                    <div class="dropdown-menu" id="notif-menu">
-                        
-                        {% if pending_resets %}
-                            {% for profile in pending_resets %}
-                            <div class="dropdown-item" style="border-left: 3px solid var(--primary-red); margin-bottom: 8px; background-color: var(--bg-main);">
-                                <strong>Password Reset:</strong><br>
-                                <span style="color: var(--text-secondary);">Employee <strong>{{ profile.user.username }}</strong> requested account recovery.</span><br>
-                                <a href="{% url 'security:review_resets' %}" style="color: var(--primary-red); font-size: 12px; font-weight: bold; display: inline-block; margin-top: 4px; text-decoration: none;">Review Request &rarr;</a>
-                            </div>
-                            {% endfor %}
-                        {% endif %}
 
-                        {% if notifications %}
-                            {% for notif in notifications %}
-                            <div class="dropdown-item">
-                                <strong>{{ notif.created_at|timesince }} ago:</strong> {{ notif.message }}
-                            </div>
-                            {% endfor %}
-                        {% elif not pending_resets %}
-                            <div class="dropdown-item text-secondary">No new activity logs.</div>
-                        {% endif %}
-                        
-                    </div>
-                </div>
-            
-                <button class="icon-btn"><a href="{% url 'settings_hub' %}" style="color: inherit; display:flex; align-items:center;">
-                    <i class="ph ph-gear"></i>
+                <!-- Gear icon -->
+                <button class="icon-btn">
+                    <a href="{% url 'settings_hub' %}" style="color:inherit; display:flex; align-items:center;">
+                        <i class="ph ph-gear"></i>
                     </a>
                 </button>
+
+                <!-- User icon -->
                 <button class="icon-btn"><i class="ph ph-user"></i></button>
             </div>
+
         </header>
 
         
@@ -1260,8 +1244,25 @@ document.addEventListener("DOMContentLoaded", function() {
     const badgeElement = document.getElementById('dynamic-badge');
     const dropdownList = document.getElementById('dynamic-notif-list');
 
+    // 1. SAFELY GET CSRF TOKEN FOR DJANGO POST REQUESTS
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken' + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     function showToast(title, message, priority) {
         const container = document.getElementById('toast-container');
+        if (!container) return;
         const toast = document.createElement('div');
         toast.className = `toast toast-${priority}`;
         toast.innerHTML = `<strong style="display:block; color:#111; font-size:14px; margin-bottom:4px;">${title}</strong>
@@ -1272,33 +1273,29 @@ document.addEventListener("DOMContentLoaded", function() {
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, 6000); // Disappears after 6 seconds
+        }, 6000); 
     }
 
-    // Grab the last notification ID we saw from localStorage (or default to 0)
     let lastNotifId = parseInt(localStorage.getItem('lastNotifId')) || 0;
 
     function fetchLiveNotifications() {
         fetch("{% url 'notifications:live_api' %}") 
             .then(response => response.json())
             .then(data => {
-                
-                // 1. Handle Sound & Toast (ONLY for brand new IDs)
+                if (!data.notifications) return; // Safety check
+
+                // Handle Sounds and Toasts
                 if (data.notifications.length > 0) {
                     const newest = data.notifications[0];
-                    
-                    // If the database has an ID higher than the last one we saw...
                     if (newest.id > lastNotifId) {
-                        alertSound.play().catch(e => console.log("Sound muted until interaction."));
+                        if (alertSound) alertSound.play().catch(e => console.log("Sound muted until interaction."));
                         showToast(newest.title, newest.message, newest.priority);
-                        
-                        // Save this new ID so we never ding for it again!
                         localStorage.setItem('lastNotifId', newest.id);
                         lastNotifId = newest.id;
                     }
                 }
                 
-                // 2. Update the Red Bell Badge
+                // Update the Red Badge
                 let currentUnreadCount = data.unread_count;
                 if (currentUnreadCount > 0) {
                     badgeElement.style.display = 'block';
@@ -1307,26 +1304,33 @@ document.addEventListener("DOMContentLoaded", function() {
                     badgeElement.style.display = 'none';
                 }
 
-                // 3. Rebuild the Dropdown Menu
-dropdownList.innerHTML = '';
+                // Rebuild the Dropdown Menu
+                dropdownList.innerHTML = '';
                 if (data.notifications.length === 0) {
                     dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">No new notifications</div>';
                 } else {
+                    
+                    // --- SORTING LOGIC: Unread stay on top, Read go to the bottom ---
+                    data.notifications.sort((a, b) => {
+                        if (a.is_read === b.is_read) return 0;
+                        return a.is_read ? 1 : -1; 
+                    });
+
                     data.notifications.forEach(notif => {
                         let iconColor = notif.priority === 'critical' ? 'var(--status-red)' : 
                                         notif.priority === 'high' ? '#F97316' : 
                                         notif.priority === 'medium' ? 'var(--status-yellow)' : '#3B82F6';
                         
-                        // NEW: Wrapped the entire div inside an <a> tag using notif.action_url
                         dropdownList.innerHTML += `
                             <div id="notif-${notif.id}" style="position: relative; margin-bottom: 5px;">
-                                <a href="${notif.action_url}" style="text-decoration: none; display: block;">
-                                    <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; background: var(--bg-main); transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#FCE8E8'" onmouseout="this.style.background='var(--bg-main)'">
+                                <a href="${notif.action_url && notif.action_url !== 'None' ? notif.action_url : '#'}" style="text-decoration: none; display: block;" onclick="markNotifRead(${notif.id}, this, event)">
+                                    <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; background: ${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#FCE8E8'" onmouseout="this.style.background='${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}'">
+
                                         <div style="margin-right: 12px; color: ${iconColor}; margin-top: 2px;">
                                             <i class="ph ph-warning-circle" style="font-size: 20px;"></i>
                                         </div>
                                         <div style="padding-right: 20px;">
-                                            <strong style="display:block; font-size:13px; color: var(--text-primary);">${notif.title}</strong>
+                                            <strong style="display:block; font-size:13px; color: var(--text-primary); ${notif.is_read ? 'font-weight:600;' : 'font-weight:800;'}">${notif.title}${notif.is_read ? '' : ' <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3B82F6; margin-left:5px; vertical-align:middle;"></span>'}</strong>
                                             <span style="display:block; font-size:12px; color: var(--text-secondary); margin-top:2px;">${notif.message}</span>
                                             <small style="display:block; font-size:10px; color: #9CA3AF; margin-top:6px;">${notif.time}</small>
                                         </div>
@@ -1348,33 +1352,29 @@ dropdownList.innerHTML = '';
         event.stopPropagation();
         
         const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
-        const singleUrl = clearAllUrl.replace('mark-read/', `mark-read-single/${notifId}/`);
+        const deleteUrl = clearAllUrl.replace('mark-read', `delete/${notifId}`).replace('//', '/');
 
-        fetch(singleUrl, {
+        fetch(deleteUrl, {
             method: 'POST',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCSRFToken() // Safely fetched token!
             }
         }).then(response => response.json())
         .then(data => {
             if(data.status === 'success') {
-                // 1. Remove the specific notification visually
                 const notifElement = document.getElementById(`notif-${notifId}`);
                 if (notifElement) notifElement.remove();
                 
-                // 2. Instantly update the red badge using the server's new count
-                const badgeElement = document.getElementById('dynamic-badge');
-                const dropdownList = document.getElementById('dynamic-notif-list');
                 const newCount = data.unread_count;
-                
                 if (newCount > 0) {
                     badgeElement.style.display = 'block';
                     badgeElement.innerText = newCount > 9 ? '9+' : newCount;
                 } else {
-                    // Hide the badge if 0
                     badgeElement.style.display = 'none';
-                    // Show empty state in the dropdown
-                    dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center; font-size: 13px;">No new notifications</div>';
+                    if (dropdownList.children.length === 0) {
+                        dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center; font-size: 13px;">No new notifications</div>';
+                    }
                 }
             }
         });
@@ -1383,25 +1383,63 @@ dropdownList.innerHTML = '';
     window.markAllAsRead = function() {
         fetch("{% url 'notifications:mark_read_api' %}", {
             method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCSRFToken()
             }
         }).then(response => response.json())
         .then(data => {
-            if(data.status === 'success') {
-                // Instantly hide the red badge
+            if (data.status === 'success') {
                 document.getElementById('dynamic-badge').style.display = 'none';
                 currentUnreadCount = 0;
-                
-                // Clear the dropdown visually
-                document.getElementById('dynamic-notif-list').innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center; font-size: 13px;">No new notifications</div>';
+                fetchLiveNotifications(); // Force a refresh to resort the list
             }
         });
     };
 
-    // Ping the server every 10 seconds
-    setInterval(fetchLiveNotifications, 10000);
-    fetchLiveNotifications(); // Run immediately on load
+    // Auto-refresh every 10 seconds
+    setInterval(() => {
+        const notifMenu = document.getElementById('notif-menu');
+        if (notifMenu && !notifMenu.classList.contains('show')) {
+            fetchLiveNotifications();
+        }
+    }, 10000);
+    
+    fetchLiveNotifications();
+
+    window.markNotifRead = function(notifId, linkEl, event) {
+        // Allow the browser to navigate normally if it's a real link
+        const targetUrl = linkEl.getAttribute('href');
+        if (!targetUrl || targetUrl === '#' || targetUrl === 'None') {
+            event.preventDefault(); 
+        }
+
+        const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
+        const singleUrl = clearAllUrl.replace('mark-read', `mark-read-single/${notifId}`).replace('//', '/');
+
+        fetch(singleUrl, {
+            method: 'POST',
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCSRFToken()
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Instantly update badge count
+                const newCount = data.unread_count;
+                if (newCount > 0) {
+                    badgeElement.style.display = 'block';
+                    badgeElement.innerText = newCount > 9 ? '9+' : newCount;
+                } else {
+                    badgeElement.style.display = 'none';
+                }
+                
+                // Force a fast resort of the list so it drops to the bottom
+                setTimeout(() => { fetchLiveNotifications(); }, 300);
+            }
+        });
+    };
 });
 </script>
 
