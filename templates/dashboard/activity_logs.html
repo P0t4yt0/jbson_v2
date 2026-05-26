@@ -1,117 +1,196 @@
 {% extends 'dashboard/dashboard.html' %} 
-
 {% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
 <style>
-    /* Card & Layout */
-    .logs-card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #e0e0e0; overflow: hidden; }
+    .table-container {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 30px; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        overflow-x: auto; 
+    }
     
-    /* Top Controls (Search & Filters) */
-    .controls-bar { display: flex; justify-content: space-between; padding: 20px; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; gap: 15px; }
-    .search-box { position: relative; width: 300px; }
-    .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; }
-    .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; outline: none; }
-    .filter-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .filter-select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; color: #555; background: white; cursor: pointer; outline: none; }
+    .filter-container {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 20px; 
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .table-clean {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-clean th, .table-clean td {
+        padding: 16px 14px; 
+        text-align: left;
+        border-bottom: 1px solid #edf2f7;
+        color: #4a5568;
+        font-size: 0.9rem; 
+        vertical-align: middle;
+    }
+    .table-clean th {
+        font-weight: 700;
+        color: #64748b; 
+        font-size: 0.8rem; 
+        text-transform: uppercase; 
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0; 
+    }
 
-    /* Table Styling */
-    .logs-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .logs-table th { text-align: left; padding: 15px 15px; color: #555; font-weight: 600; background-color: #fcfcfc; border-bottom: 1px solid #e0e0e0; }
-    .logs-table td { padding: 15px 15px; border-bottom: 1px solid #f0f0f0; color: #444; }
-    .logs-table tr:last-child td { border-bottom: none; }
+    /* ACTION BADGES */
+    .badge-add { background-color: #f0fdf4; color: #16a34a; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid #bbf7d0; }
+    .badge-edit { background-color: #fff7ed; color: #e07300; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid #feebc8; }
+    .badge-delete { background-color: #fef2f2; color: #dc2626; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid #fecaca; }
 
-    /* Pagination Footer */
-    .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-top: 1px solid #e0e0e0; font-size: 0.85rem; color: #777; }
-    .page-numbers { display: flex; gap: 5px; align-items: center; }
-    .page-btn { padding: 6px 12px; border-radius: 4px; border: 1px solid transparent; color: #555; text-decoration: none; cursor: pointer; }
-    .page-btn:hover { background-color: #f0f0f0; }
-    .page-btn.active { background-color: #851618; color: white; border-color: #851618; }
+    /* PAGINATION STYLES */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #edf2f7;
+    }
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        gap: 6px;
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        border-radius: 6px;
+        color: #475569;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
+    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
+    .page-btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
 </style>
 
-<div style="padding: 30px;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
         <div>
-            <h1 style="font-family: 'Oswald', sans-serif; font-size: 1.6rem; margin: 0; color: #111;">Activity Logs</h1>
-            <div style="font-size: 0.85rem; color: #777; margin-top: 5px;">
-                User Management > <span style="color: #333; font-weight: 500;">Activity Logs</span>
-            </div>
+            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Activity Logs</h2>
+            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+                Track user activities, review audit trails, and monitor system changes.
+            </p>
         </div>
-        <button style="background: white; border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; cursor: pointer; color: #555;" onclick="window.location.href='?'" title="Reset Filters">
-            <i class="ph ph-arrows-clockwise" style="font-size: 1.2rem;"></i>
-        </button>
     </div>
 
-    <div class="logs-card">
-        
-        <form method="GET" class="controls-bar" id="filterForm">
+    <div class="filter-container">
+        <form method="GET" id="filterForm" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%;">
             <input type="hidden" name="page" id="pageInput" value="{{ logs.number }}">
             
-            <div class="search-box">
-                <i class="ph ph-magnifying-glass"></i>
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Search by username or action...">
-                <button type="submit" style="display: none;"></button>
+            <div style="position: relative; flex: 2; min-width: 200px;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
+                <input type="text" name="search" placeholder="Search by username or action..." value="{{ search_query }}" 
+                       style="width: 100%; padding: 10px 14px 10px 35px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; box-sizing: border-box;" 
+                       onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
             </div>
-            
-            <div class="filter-group">
-                <div style="display: flex; align-items: center; gap: 5px; border-right: 1px solid #ddd; padding-right: 10px; margin-right: 5px;">
-                    <span style="font-size: 0.8rem; color: #777;">From:</span>
-                    <input type="date" name="start_date" class="filter-select" value="{{ start_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
-                    
-                    <span style="font-size: 0.8rem; color: #777; margin-left: 5px;">To:</span>
-                    <input type="date" name="end_date" class="filter-select" value="{{ end_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
-                </div>
 
-                <select name="role" class="filter-select" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
-                    <option value="">Filter by Role</option>
-                    <option value="Admin" {% if role_filter == 'Admin' %}selected{% endif %}>Admin</option>
-                    <option value="Employee" {% if role_filter == 'Employee' %}selected{% endif %}>Employee</option>
-                </select>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <input type="date" name="start_date" value="{{ start_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();"
+                       style="padding: 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; color: #4a5568; transition: border-color 0.2s;"
+                       onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
                 
-                <select name="action" class="filter-select" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
-                    <option value="">All Actions</option>
-                    <option value="LOGIN" {% if action_filter == 'LOGIN' %}selected{% endif %}>Login</option>
-                    <option value="LOGOUT" {% if action_filter == 'LOGOUT' %}selected{% endif %}>Logout</option>
-                    <option value="USER_CREATED" {% if action_filter == 'USER_CREATED' %}selected{% endif %}>User Created</option>
-                    <option value="USER_MODIFIED" {% if action_filter == 'USER_MODIFIED' %}selected{% endif %}>User Modified</option>
-                    <option value="0" {% if action_filter == '0' %}selected{% endif %}>Added Records</option>
-                    <option value="1" {% if action_filter == '1' %}selected{% endif %}>Edited Records</option>
-                    <option value="2" {% if action_filter == '2' %}selected{% endif %}>Deleted Records</option>
-                    <option value="GENERATE REPORT" {% if action_filter == 'GENERATE REPORT' %}selected{% endif %}>Generate Report</option>
-                    <option value="POS TRANSACTION" {% if action_filter == 'POS TRANSACTION' %}selected{% endif %}>POS Transaction</option>
-                    <option value="SALES RETURN" {% if action_filter == 'SALES RETURN' %}selected{% endif %}>Sales Return</option>
-                    <option value="CREATE PO" {% if action_filter == 'CREATE PO' %}selected{% endif %}>Purchase Order</option>
-                    <option value="RECEIVE PO" {% if action_filter == 'RECEIVE PO' %}selected{% endif %}>Receive Delivery</option>
-                    <option value="BULK DELETE" {% if action_filter == 'BULK DELETE' %}selected{% endif %}>Bulk Delete</option>
-                    <option value="ABC ANALYSIS" {% if action_filter == 'ABC ANALYSIS' %}selected{% endif %}>ABC Analysis</option>
-                </select>
+                <span style="font-size: 13px; color: #64748b; font-weight: 500; margin-left: 5px;">to</span>
+                <input type="date" name="end_date" value="{{ end_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();"
+                       style="padding: 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; color: #4a5568; transition: border-color 0.2s;"
+                       onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
             </div>
-        </form>
 
-        <table class="logs-table">
+            <select name="role" onchange="document.getElementById('pageInput').value=1; this.form.submit();" 
+                    style="flex: 1; min-width: 120px; padding: 10px 14px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color 0.2s;"
+                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                <option value="">Filter by Role</option>
+                <option value="Admin" {% if role_filter == 'Admin' %}selected{% endif %}>Admin</option>
+                <option value="Employee" {% if role_filter == 'Employee' %}selected{% endif %}>Employee</option>
+            </select>
+
+            <select name="action" onchange="document.getElementById('pageInput').value=1; this.form.submit();" 
+                    style="flex: 1; min-width: 120px; padding: 10px 14px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color 0.2s;"
+                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                <option value="">All Actions</option>
+                <option value="LOGIN" {% if action_filter == 'LOGIN' %}selected{% endif %}>Login</option>
+                <option value="LOGOUT" {% if action_filter == 'LOGOUT' %}selected{% endif %}>Logout</option>
+                <option value="USER_CREATED" {% if action_filter == 'USER_CREATED' %}selected{% endif %}>User Created</option>
+                <option value="USER_MODIFIED" {% if action_filter == 'USER_MODIFIED' %}selected{% endif %}>User Modified</option>
+                <option value="0" {% if action_filter == '0' %}selected{% endif %}>Added Records</option>
+                <option value="1" {% if action_filter == '1' %}selected{% endif %}>Edited Records</option>
+                <option value="2" {% if action_filter == '2' %}selected{% endif %}>Deleted Records</option>
+                <option value="GENERATE REPORT" {% if action_filter == 'GENERATE REPORT' %}selected{% endif %}>Generate Report</option>
+                <option value="POS TRANSACTION" {% if action_filter == 'POS TRANSACTION' %}selected{% endif %}>POS Transaction</option>
+                <option value="SALES RETURN" {% if action_filter == 'SALES RETURN' %}selected{% endif %}>Sales Return</option>
+                <option value="CREATE PO" {% if action_filter == 'CREATE PO' %}selected{% endif %}>Purchase Order</option>
+                <option value="RECEIVE PO" {% if action_filter == 'RECEIVE PO' %}selected{% endif %}>Receive Delivery</option>
+                <option value="BULK DELETE" {% if action_filter == 'BULK DELETE' %}selected{% endif %}>Bulk Delete</option>
+                <option value="ABC ANALYSIS" {% if action_filter == 'ABC ANALYSIS' %}selected{% endif %}>ABC Analysis</option>
+            </select>
+
+            <button type="submit" style="background: #092c4c; color: white; padding: 10px 24px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box; white-space: nowrap;" 
+                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.borderColor='#092c4c';">
+                Filter
+            </button>
+            
+            {% if search_query or start_date or end_date or role_filter or action_filter %}
+            <a href="?" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 10px 24px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;" 
+               title="Clear all filters"
+               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
+               onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="table-clean">
             <thead>
                 <tr>
-                    <th>ID </th>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Action</th>
-                    <th>Date</th>
-                    <th>Time</th>
+                    <th style="width: 15%; white-space: nowrap;">ID</th>
+                    <th style="width: 10%; white-space: nowrap;">User</th>
+                    <th style="width: 10%; white-space: nowrap;">Role</th>
+                    <th style="width: 45%;">Action</th>
+                    <th style="width: 10%; white-space: nowrap;">Date</th>
+                    <th style="width: 10%; white-space: nowrap;">Time</th>
                 </tr>
             </thead>
             <tbody>
                 {% for log in logs %}
                 <tr>
-                    <td style="font-size: 0.7rem;">{{ log.id }}</td>
+                    <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 700; color: #092c4c; white-space: nowrap;">
+                        {{ log.id }}
+                    </td>
                     
-                    <td>
+                    <td style="font-weight: 500; color: #334155; white-space: nowrap;">
                         {% if log.actor %}
                             {{ log.actor.username }}
                         {% else %}
-                            <span style="color: #999; font-style: italic;">System</span>
+                            <span style="color: #94a3b8; font-style: italic;">System</span>
                         {% endif %}
                     </td>
                     
-                    <td>
+                    <td style="color: #64748b; white-space: nowrap;">
                         {% if log.actor %}
                             {% if log.actor.is_superuser %}Admin{% else %}Employee{% endif %}
                         {% else %}
@@ -121,33 +200,23 @@
                     
                     <td>
                         {% if log.description %}
-                            {# 1. KUNG CUSTOM LOG (Login, Logout, Requests) - WALA NANG BADGES, PURE SENTENCE NA LANG #}
-                            <span style="font-weight: 500; color: #333;">
+                            <span style="font-weight: 500; color: #334155;">
                                 {{ log.description }}
                             </span>
-                            
                         {% else %}
-                            {# 2. KUNG AUDITLOG (Products, Suppliers, Categories, Users) #}
-                            
                             <div style="display: flex; align-items: flex-start; gap: 8px;">
-                                {# A. RETAIN THE ADD/EDIT/DELETE BADGES PARA MADALING MAKITA ANG ACTION #}
-                                {% if log.action == 0 or log.action == "0" %}<span style="color: #22C55E; font-weight: bold; background: #e8f7ed; padding: 2px 6px; border-radius: 4px;">ADD</span>
-                                {% elif log.action == 1 or log.action == "1" %}<span style="color: #FACC15; font-weight: bold; background: #fffbe6; padding: 2px 6px; border-radius: 4px;">EDIT</span>
-                                {% elif log.action == 2 or log.action == "2" %}<span style="color: #EF4444; font-weight: bold; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">DELETE</span>
+                                {% if log.action == 0 or log.action == "0" %}<span class="badge-add">ADD</span>
+                                {% elif log.action == 1 or log.action == "1" %}<span class="badge-edit">EDIT</span>
+                                {% elif log.action == 2 or log.action == "2" %}<span class="badge-delete">DELETE</span>
                                 {% endif %}
 
-                                {# B. SENTENCE FORMAT KUNG ANONG MODEL ANG GINALAW #}
-                                <span style="font-weight: 500; color: #555; margin-top: 2px;">
-                                    {% if log.action == 0 or log.action == "0" %}
-                                        Added new {{ log.model_name|lower }}: 
-                                    {% elif log.action == 1 or log.action == "1" %}
-                                        Modified {{ log.model_name|lower }}: 
-                                    {% elif log.action == 2 or log.action == "2" %}
-                                        Deleted {{ log.model_name|lower }}: 
+                                <span style="font-weight: 500; color: #475569; margin-top: 1px;">
+                                    {% if log.action == 0 or log.action == "0" %} Added new {{ log.model_name|lower }}: 
+                                    {% elif log.action == 1 or log.action == "1" %} Modified {{ log.model_name|lower }}: 
+                                    {% elif log.action == 2 or log.action == "2" %} Deleted {{ log.model_name|lower }}: 
                                     {% endif %}
                                     
-                                    {# ACTUAL NA PANGALAN NG ITEM/USER/SUPPLIER #}
-                                    <span style="font-weight: 600; color: #111;">
+                                    <span style="font-weight: 700; color: #0f172a;">
                                         {% if log.action == 2 or log.action == "2" %}
                                             {% if log.object_repr and log.object_repr|stringformat:"s" != "None" and log.object_repr|stringformat:"s" != "" %}
                                                 '{{ log.object_repr }}'
@@ -155,52 +224,45 @@
                                                 Item #{{ log.object_id }}
                                             {% endif %}
                                         {% else %}
-                                            {% if log.content_object.item_name %}
-                                                '{{ log.content_object.item_name }}'
-                                            {% elif log.content_object.name %}
-                                                '{{ log.content_object.name }}'
-                                            {% elif log.changes_dict.item_name %}
-                                                '{{ log.changes_dict.item_name.1 }}'
-                                            {% elif "object" in log.object_repr %}
-                                                Item ID: #{{ log.object_id }}
-                                            {% else %}
-                                                '{{ log.object_repr }}'
+                                            {% if log.content_object.item_name %} '{{ log.content_object.item_name }}'
+                                            {% elif log.content_object.name %} '{{ log.content_object.name }}'
+                                            {% elif log.changes_dict.item_name %} '{{ log.changes_dict.item_name.1 }}'
+                                            {% elif "object" in log.object_repr %} Item ID: #{{ log.object_id }}
+                                            {% else %} '{{ log.object_repr }}'
                                             {% endif %}
                                         {% endif %}
                                     </span>
                                 </span>
                             </div>
 
-                            {# C. DETAILS NG CHANGES (Para sa mga edits/updates) #}
                             {% if log.action == 1 or log.action == "1" %}
                                 {% if log.changes_dict %}
-                                    <div style="margin-top: 8px; font-size: 0.8rem; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                                    <div style="margin-top: 8px; font-size: 0.85rem; background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
                                         {% for field, values in log.changes_dict.items %}
                                             {% with old_val=values.0 new_val=values.1 %}
                                                 {% if old_val|slugify != new_val|slugify %}
-                                                    <li style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                                                        <span style="font-weight: 600; color: #666; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
-                                                        <span style="color: #EF4444; text-decoration: line-through; background: #fee2e2; padding: 0 4px; border-radius: 2px;">
+                                                    <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="font-weight: 600; color: #64748b; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
+                                                        <span style="color: #dc2626; text-decoration: line-through; background: #fef2f2; padding: 0 4px; border-radius: 4px;">
                                                             {{ old_val|default:"---" }}
                                                         </span> 
-                                                        <span style="color: #22C55E; font-weight: bold;">&rarr; {{ new_val|default:"---" }}</span>
-                                                    </li>
+                                                        <span style="color: #16a34a; font-weight: 700;">&rarr; {{ new_val|default:"---" }}</span>
+                                                    </div>
                                                 {% endif %}
                                             {% endwith %}
                                         {% endfor %}
                                     </div>
                                 {% endif %}
                             {% endif %}
-                            
                         {% endif %}
                     </td>
                             
-                    <td>{{ log.timestamp|date:"m-d-Y" }}</td>
-                    <td>{{ log.timestamp|time:"H:i:s" }}</td>
+                    <td style="font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b; white-space: nowrap;">{{ log.timestamp|date:"m-d-Y" }}</td>
+                    <td style="font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b; white-space: nowrap;">{{ log.timestamp|time:"H:i:s" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align: center; color: #888; padding: 30px;">
+                    <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">
                         No activity logs found.
                     </td>
                 </tr>
@@ -208,21 +270,22 @@
             </tbody>
         </table>
 
-        <div class="pagination-bar">
-            <div>
+        <div class="pagination-wrapper">
+            <div class="page-info">
                 Row Per Page 
-                <select name="rows" form="filterForm" style="margin: 0 10px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; outline: none;" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
+                <select name="rows" form="filterForm" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
                     <option value="10" {% if rows == 10 %}selected{% endif %}>10</option>
                     <option value="20" {% if rows == 20 %}selected{% endif %}>20</option>
                     <option value="50" {% if rows == 50 %}selected{% endif %}>50</option>
                 </select> 
-                Entries
-                <span style="margin-left: 15px; color: #999;">Showing {{ logs.start_index }} to {{ logs.end_index }} of {{ logs.paginator.count }}</span>
+                Entries &nbsp; Showing {{ logs.start_index|default:0 }} to {{ logs.end_index|default:0 }} of {{ logs.paginator.count|default:0 }}
             </div>
             
-            <div class="page-numbers">
+            <div style="display: flex; gap: 5px;">
                 {% if logs.has_previous %}
-                    <a href="javascript:void(0);" onclick="goToPage({{ logs.previous_page_number }})" class="page-btn"><i class="ph ph-caret-left"></i></a>
+                    <a href="javascript:void(0);" onclick="goToPage({{ logs.previous_page_number }})" class="page-btn">
+                        <i class="ph ph-caret-left"></i>
+                    </a>
                 {% endif %}
 
                 {% for num in logs.paginator.page_range %}
@@ -234,13 +297,16 @@
                 {% endfor %}
 
                 {% if logs.has_next %}
-                    <a href="javascript:void(0);" onclick="goToPage({{ logs.next_page_number }})" class="page-btn"><i class="ph ph-caret-right"></i></a>
+                    <a href="javascript:void(0);" onclick="goToPage({{ logs.next_page_number }})" class="page-btn">
+                        <i class="ph ph-caret-right"></i>
+                    </a>
                 {% endif %}
             </div>
         </div>
 
     </div>
 </div>
+
 <script>
     function goToPage(pageNumber) {
         // Set the hidden page input to the number we clicked

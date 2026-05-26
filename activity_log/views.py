@@ -11,7 +11,7 @@ def activity_logs_view(request):
     # 1. KUNIN ANG DATA MULA SA DALAWANG TABLES
     audit_logs = LogEntry.objects.all()
     custom_logs = ActivityLog.objects.all()
-
+    role_filter = request.GET.get('role', '')
     # 2. SEARCH FILTER LOGIC
     search_query = request.GET.get('search', '').strip()
     if search_query:
@@ -123,6 +123,13 @@ def activity_logs_view(request):
             'content_object': None,
             'object_id': '',
         })
+    # FILTER BY ROLE
+    if role_filter == 'Admin':
+        audit_logs = audit_logs.filter(actor__is_superuser=True)
+        custom_logs = custom_logs.filter(user__is_superuser=True)
+    elif role_filter == 'Employee':
+        audit_logs = audit_logs.filter(actor__is_superuser=False)
+        custom_logs = custom_logs.filter(user__is_superuser=False)
         
     # 5. I-SORT BY DATE & TIME (Pinakabago sa taas)
     unified_logs.sort(key=lambda x: x['timestamp'], reverse=True)
@@ -137,8 +144,9 @@ def activity_logs_view(request):
         'logs': logs,
         'search_query': search_query,
         'action_filter': action_filter,
-        'start_date': start_date,  # Ipinasa sa context para manatili ang value sa HTML input
-        'end_date': end_date,      # Ipinasa sa context para manatili ang value sa HTML input
+        'role_filter': role_filter,    # <--- SIGURADUHING NASA CONTEXT ITO!
+        'start_date': start_date, 
+        'end_date': end_date, 
         'rows': int(rows_per_page),
     }
     
