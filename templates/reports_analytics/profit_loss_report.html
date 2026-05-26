@@ -1,5 +1,5 @@
-{% extends 'dashboard/dashboard.html' %}
-{% block content %}
+{% extends 'reports_analytics/reports_hub.html' %}
+{% block report_content %}
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Roboto+Mono:wght@500;600;700&display=swap');
@@ -9,10 +9,10 @@
 
 <style>
     :root {
-        /* BRAND FONTS */
+        /* BRAND FONTS FROM DESIGN GUIDE */
         --font-heading: 'Montserrat', sans-serif;
         --font-body: 'Inter', sans-serif;
-        --font-mono: 'Roboto Mono', monospace;
+        --font-mono: 'Roboto Mono', monospace; 
 
         /* MAIN SYSTEM COLORS */
         --color-main-red: #811112;
@@ -41,8 +41,9 @@
     
     .action-btn { background: white; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; font-family: var(--font-body); }
     .action-btn:hover { background: #F3F4F6; }
+    .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     
-    .card-box { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); padding: 24px; margin-bottom: 24px; }
+    .card-box { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); padding: 24px; }
     
     /* TABLE STANDARDS */
     .table-header-cell { background: #F8FAFC; padding: 12px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--border-color); font-family: var(--font-body); }
@@ -57,7 +58,15 @@
     .page-btn { border: 1px solid #D1D5DB; padding: 5px 10px; border-radius: 4px; color: #374151; text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
     .page-btn:hover { background: #F9FAFB; }
 
-    /* MODAL OVERLAY STYLES */
+    /* PDF EXPORT CUSTOM CLASS CODES TO PREVENT TABLE CUT-OFFS */
+    .pdf-export-wrapper { background: white !important; padding: 20px !important; font-family: 'Inter', sans-serif; }
+    .pdf-export-wrapper .card-box { border: 1px solid #E5E7EB !important; box-shadow: none !important; margin-bottom: 20px !important; break-inside: avoid; width: 100% !important; flex: none !important; }
+    .pdf-export-wrapper table { width: 100% !important; border-collapse: collapse !important; page-break-inside: auto; }
+    .pdf-export-wrapper tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+    .pdf-export-wrapper thead { display: table-header-group !important; }
+    .pdf-export-wrapper th, .pdf-export-wrapper td { border-bottom: 1px solid #E5E7EB !important; padding: 10px 12px !important; }
+
+    /* MODAL OVERLAY STYLES (For Add Expense) */
     .modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.5); display: none; justify-content: center;
@@ -67,53 +76,63 @@
         background: white; border-radius: 8px;
         width: 100%; max-width: 480px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
-
-    /* SEARCH INPUT STYLE */
     .search-input {
         padding: 8px 12px 8px 32px; border: 1px solid #D1D5DB; border-radius: 6px;
         outline: none; font-size: 0.85rem; width: 220px; font-family: var(--font-body); background-color: #F9FAFB;
     }
-
-    @media print {
-        body * { visibility: hidden; }
-        #printable-area, #printable-area * { visibility: visible; }
-        #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
-        .no-print { display: none !important; }
-        .report-container { padding: 0; background: white; }
-        .card-box { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
-    }
 </style>
 
 <div class="report-container">
-    <div class="no-print" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
-        <div>
-            <h1 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--color-main-navy); margin: 0;">Profit & Loss Report</h1>
-            <p style="color: var(--color-accent-orange); font-size: 0.9rem; font-weight: 600; margin-top: 5px; font-family: var(--font-body);">
-                Date Covered: {% if start_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
-            </p>
-        </div>
-        <div style="display: flex; gap: 12px;">
-            <button onclick="downloadPDF()" class="action-btn" style="color: #EF4444; border-color: #FCA5A5;"><i class="ph ph-file-pdf"></i> Export PDF</button>
-            <button onclick="downloadCSV()" class="action-btn" style="color: #10B981; border-color: #6EE7B7;"><i class="ph ph-file-xls"></i> Export CSV</button>
-        </div>
-    </div>
-
-    <div class="card-box no-print" style="padding: 20px;">
-        <form method="GET" style="display: flex; gap: 15px; align-items: flex-end;">
-            <div style="flex: 1;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="date" name="start_date" value="{{ start_date }}" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body);">
-                    <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body);">
+    <div id="printable-area">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <h1 style="font-family: var(--font-heading); font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--color-main-navy);">Profit & Loss Report</h1>
+                <p id="report-date" style="color: var(--color-accent-orange); font-size: 0.9rem; margin: 5px 0 0 0; font-weight: 600; font-family: var(--font-body);">
+                    Date Covered: {% if start_date and end_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
+                </p>
+            </div>
+            
+            <div data-html2canvas-ignore="true" class="no-print" style="display: flex; gap: 10px; align-items: center; background: white; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <label style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Export Target</label>
+                    <select id="export-scope" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-body); font-weight: 600; color: var(--color-main-navy); outline: none; cursor: pointer; background-color: #F8FAFC;">
+                        <option value="whole">Whole Report (All Data)</option>
+                        <option value="purchase">Purchase Cost Logs Only</option>
+                        <option value="expense">Operating Expense Logs Only</option>
+                    </select>
+                </div>
+                <div style="width: 1px; height: 32px; background: var(--border-color); margin: 0 4px;"></div>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <button id="btn-pdf-export" onclick="processExport('pdf')" class="action-btn" style="color: #EF4444; border-color: #FCA5A5; height: 36px;">
+                        <i class="ph ph-file-pdf" style="font-size: 1.1rem;"></i>
+                        Export PDF
+                    </button>
+                    <button id="btn-csv-export" onclick="processExport('csv')" class="action-btn" style="color: #10B981; border-color: #6EE7B7; height: 36px;">
+                        <i class="ph ph-file-csv" style="font-size: 1.1rem;"></i>
+                        Export CSV
+                    </button>
                 </div>
             </div>
-            <button type="submit" name="is_generating" style="background: var(--color-main-red); color: white; border: none; padding: 10px 30px; border-radius: 6px; font-weight: 600; font-family: var(--font-body); cursor: pointer;">Generate</button>
-            <a href="{% url 'reports_analytics:profit_loss_report' %}" style="padding: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600;">Clear</a>
-        </form>
-    </div>
+        </div>
 
-    <div id="printable-area">
-        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+        <div data-html2canvas-ignore="true" class="no-print card-box" style="padding: 20px; margin-bottom: 24px;">
+            <form method="GET" style="display: flex; gap: 20px; align-items: flex-end;">
+                <input type="hidden" name="po_per_page" value="{{ po_per_page }}">
+                <input type="hidden" name="exp_per_page" value="{{ exp_per_page }}">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Filter by Date</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" name="start_date" value="{{ start_date }}" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body);">
+                        <input type="date" name="end_date" value="{{ end_date }}" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; font-family: var(--font-body);">
+                    </div>
+                </div>
+                <button type="submit" name="is_generating" style="background: var(--color-main-red); color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: var(--font-body);">Generate</button>
+                <a href="{% url 'reports_analytics:profit_loss_report' %}" style="padding: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600;">Clear</a>
+            </form>
+        </div>
+
+        <div id="kpi-section" style="display: flex; gap: 15px; margin-bottom: 25px;">
             <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid var(--color-main-navy); margin-bottom: 0;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Gross Sales</div>
                 <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: var(--color-main-navy); font-weight: 700;">₱{{ total_income|floatformat:"2g" }}</h2>
@@ -132,8 +151,7 @@
             </div>
         </div>
 
-        <div style="background: white; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 25px;">
-            
+        <div id="purchase-section" class="card-box" style="padding: 0; overflow: hidden; margin-bottom: 25px;">
             <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Purchase Cost Logs</h3>
                 
@@ -151,7 +169,7 @@
                     </form>
 
                     <a href="{% url 'inventory:po_list' %}" class="action-btn" style="background: var(--color-main-red); color: white; border: none; padding: 8px 16px; text-decoration: none;">
-                        <i class="ph ph-plus"></i> New Purchase Order
+                        <i class="ph ph-plus"></i> New PO
                     </a>
                 </div>
             </div>
@@ -179,7 +197,7 @@
                 </tbody>
             </table>
             
-            <div class="pagination-bar no-print">
+            <div class="pagination-bar no-print" data-html2canvas-ignore="true">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <form method="GET" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                         <input type="hidden" name="exp_page" value="{{ expenses.number }}">
@@ -192,6 +210,8 @@
                         <select name="po_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; outline: none; cursor: pointer; color: var(--text-main); font-family: var(--font-body);">
                             <option value="5" {% if po_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
                             <option value="10" {% if po_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+                            <option value="20" {% if po_per_page|stringformat:"s" == "20" %}selected{% endif %}>20</option>
+                            <option value="50" {% if po_per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
                         </select>
                         <span>Entries</span>
                     </form>
@@ -208,8 +228,7 @@
             </div>
         </div>
 
-        <div style="background: white; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden;">
-            
+        <div id="expense-section" class="card-box" style="padding: 0; overflow: hidden; margin-bottom: 25px;">
             <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Operating Expense Logs</h3>
                 
@@ -227,7 +246,7 @@
                     </form>
 
                     <button onclick="openModal()" class="action-btn" style="background: var(--color-main-red); color: white; border: none; padding: 8px 16px;">
-                        <i class="ph ph-plus"></i> Add Operating Expense
+                        <i class="ph ph-plus"></i> Add Expense
                     </button>
                 </div>
             </div>
@@ -255,7 +274,7 @@
                 </tbody>
             </table>
 
-            <div class="pagination-bar no-print">
+            <div class="pagination-bar no-print" data-html2canvas-ignore="true">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <form method="GET" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                         <input type="hidden" name="po_page" value="{{ purchases.number }}">
@@ -268,6 +287,8 @@
                         <select name="exp_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; outline: none; cursor: pointer; color: var(--text-main); font-family: var(--font-body);">
                             <option value="5" {% if exp_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
                             <option value="10" {% if exp_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
+                            <option value="20" {% if exp_per_page|stringformat:"s" == "20" %}selected{% endif %}>20</option>
+                            <option value="50" {% if exp_per_page|stringformat:"s" == "50" %}selected{% endif %}>50</option>
                         </select>
                         <span>Entries</span>
                     </form>
@@ -356,44 +377,135 @@
     function openModal() { document.getElementById('expenseModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('expenseModal').style.display = 'none'; }
 
-    // PDF AND CSV LOGIC
-    function downloadPDF() {
-        const element = document.getElementById('printable-area');
-        html2pdf().set({ 
-            margin: 0.5, 
-            filename: 'Profit_Loss_Report.pdf', 
-            image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2 }, 
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } 
-        }).from(element).save();
+    // ==========================================
+    // EXPORT LOGIC: FETCHING ALL DATA (UNPAGINATED)
+    // ==========================================
+
+    async function fetchCompleteDataDOM() {
+        const currentUrl = new URL(window.location.href);
+        // Force server to return all rows by setting huge per-page values
+        currentUrl.searchParams.set('po_per_page', '999999');
+        currentUrl.searchParams.set('exp_per_page', '999999');
+        
+        const response = await fetch(currentUrl.toString());
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        return parser.parseFromString(htmlText, 'text/html');
     }
 
-    function downloadCSV() {
-        let csv = ['"DATE","DESCRIPTION","CATEGORY","AMOUNT"'];
-        let rows = document.querySelectorAll("#expense-table tbody tr");
+    async function processExport(format) {
+        const scope = document.getElementById('export-scope').value;
+        const pdfBtn = document.getElementById('btn-pdf-export');
+        const csvBtn = document.getElementById('btn-csv-export');
         
-        for (let i = 0; i < rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll("td");
-            if (cols.length > 1) {
+        // Disable buttons & show loading
+        pdfBtn.disabled = true;
+        csvBtn.disabled = true;
+        pdfBtn.innerHTML = "Fetching All...";
+        csvBtn.innerHTML = "Fetching All...";
+
+        try {
+            // Fetch unpaginated DOM context
+            const fullDOM = await fetchCompleteDataDOM();
+
+            if (format === 'pdf') {
+                await generateUnpaginatedPDF(fullDOM, scope);
+            } else if (format === 'csv') {
+                generateUnpaginatedCSV(fullDOM, scope);
+            }
+        } catch (error) {
+            console.error("Export Error: ", error);
+            alert("Error, try again.");
+        } finally {
+            // Restore buttons WITH THE NEW ICONS
+            pdfBtn.disabled = false;
+            csvBtn.disabled = false;
+            pdfBtn.innerHTML = '<i class="ph ph-file-pdf" style="font-size: 1.1rem;"></i> Export PDF';
+            csvBtn.innerHTML = '<i class="ph ph-file-csv" style="font-size: 1.1rem;"></i> Export CSV';
+        }
+    }
+
+    async function generateUnpaginatedPDF(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        const pdfContainer = document.createElement('div');
+        pdfContainer.className = 'pdf-export-wrapper';
+
+        // 1. Append Header to PDF Canvas
+        const clonedHeader = fullDOM.querySelector('#printable-area > div:first-child').cloneNode(true);
+        const actionControls = clonedHeader.querySelector('.no-print');
+        if(actionControls) actionControls.remove();
+        pdfContainer.appendChild(clonedHeader);
+
+        // Helper function: Cleans the section by removing pagination & action buttons
+        function cleanAndAppend(sectionId) {
+            const section = fullDOM.querySelector(sectionId);
+            if (section) {
+                const clone = section.cloneNode(true);
+                const pagination = clone.querySelector('.pagination-bar'); if(pagination) pagination.remove();
+                const actions = clone.querySelector('.no-print'); if(actions) actions.remove();
+                pdfContainer.appendChild(clone);
+            }
+        }
+
+        // 2. Selectively append elements based on Export Target dropdown
+        if (scope === 'whole') {
+            cleanAndAppend('#kpi-section'); // For P&L, KPI summary is crucial
+            cleanAndAppend('#purchase-section');
+            cleanAndAppend('#expense-section');
+        } else if (scope === 'purchase') {
+            cleanAndAppend('#purchase-section');
+        } else if (scope === 'expense') {
+            cleanAndAppend('#expense-section');
+        }
+
+        // Generate PDF
+        const opt = { 
+            margin: 0.4, 
+            filename: `JBSON_${scope.toUpperCase()}_ProfitLoss_${dateStamp}.pdf`, 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
+            pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
+        };
+
+        await html2pdf().set(opt).from(pdfContainer).save();
+    }
+
+    function generateUnpaginatedCSV(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        let csv = [];
+        let reportDate = document.getElementById("report-date").innerText.replace("Date Covered: ", "").trim();
+        
+        csv.push(`"JBSON PROFIT AND LOSS REPORT - ${scope.toUpperCase()}"`);
+        csv.push(`"Date Covered: ${reportDate}"`);
+        csv.push("");
+
+        // Function helper para i-convert ang table elements sa text format
+        function appendTableToCSV(tableElement, titleLabel) {
+            if (!tableElement) return;
+            csv.push(`"${titleLabel}"`);
+            let rows = tableElement.querySelectorAll("tr");
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                if (cols.length === 0) continue;
                 for (let j = 0; j < cols.length; j++) {
-                    let cleanData = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').trim();
-                    row.push('"' + cleanData + '"');
+                    let text = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/\n/g, ' ').trim();
+                    row.push('"' + text + '"');
                 }
                 csv.push(row.join(","));
             }
-        }
-        
-        if (csv.length <= 1) {
-            Swal.fire('Info', 'No data available to export.', 'info');
-            return;
+            csv.push("");
         }
 
-        let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+        // Extracting data based on dropdown selection
+        if (scope === 'whole' || scope === 'purchase') appendTableToCSV(fullDOM.querySelector('#purchase-table'), "PURCHASE COST LOGS");
+        if (scope === 'whole' || scope === 'expense') appendTableToCSV(fullDOM.querySelector('#expense-table'), "OPERATING EXPENSE LOGS");
+
+        // Download CSV Logic
+        let csvBlob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
         let link = document.createElement("a");
-        const dateNow = new Date().toISOString().split('T')[0];
-        
-        link.download = `Profit_Loss_Expenses_${dateNow}.csv`;
-        link.href = window.URL.createObjectURL(csvFile);
+        link.download = `JBSON_${scope.toUpperCase()}_ProfitLoss_${dateStamp}.csv`;
+        link.href = window.URL.createObjectURL(csvBlob);
         link.click();
     }
 </script>

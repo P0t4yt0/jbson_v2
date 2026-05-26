@@ -1,5 +1,5 @@
-{% extends 'dashboard/dashboard.html' %}
-{% block content %}
+{% extends 'reports_analytics/reports_hub.html' %}
+{% block report_content %}
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Roboto+Mono:wght@600;700&display=swap');
@@ -12,7 +12,7 @@
         /* BRAND FONTS FROM DESIGN GUIDE */
         --font-heading: 'Montserrat', sans-serif;
         --font-body: 'Inter', sans-serif;
-        --font-mono: 'Roboto Mono', monospace; /* MONOSPACE PARA SA NUMBERS */
+        --font-mono: 'Roboto Mono', monospace; 
 
         /* MAIN SYSTEM COLORS */
         --color-main-red: #811112;
@@ -41,6 +41,7 @@
     
     .action-btn { background: white; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; font-family: var(--font-body); }
     .action-btn:hover { background: #F3F4F6; }
+    .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     
     .card-box { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); padding: 24px; }
     
@@ -57,14 +58,17 @@
     .page-btn { border: 1px solid #D1D5DB; padding: 5px 10px; border-radius: 4px; color: #374151; text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
     .page-btn:hover { background: #F9FAFB; }
 
-    @media print {
-        body * { visibility: hidden; }
-        #printable-area, #printable-area * { visibility: visible; }
-        #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
-        .no-print { display: none !important; }
-        .report-container { background: white; padding: 0; }
-        .card-box { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
-    }
+    /* PDF EXPORT CUSTOM CLASS CODES TO PREVENT TABLE CUT-OFFS */
+    .pdf-export-wrapper { background: white !important; padding: 20px !important; font-family: 'Inter', sans-serif; }
+    .pdf-export-wrapper .card-box { border: 1px solid #E5E7EB !important; box-shadow: none !important; margin-bottom: 20px !important; break-inside: avoid; width: 100% !important; flex: none !important; }
+    
+    /* Pinipilit na maging vertical stack ang KPI sa PDF para hindi maputol */
+    .pdf-export-wrapper #kpi-section { display: flex !important; flex-direction: column !important; gap: 12px !important; }
+    
+    .pdf-export-wrapper table { width: 100% !important; border-collapse: collapse !important; page-break-inside: auto; }
+    .pdf-export-wrapper tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+    .pdf-export-wrapper thead { display: table-header-group !important; }
+    .pdf-export-wrapper th, .pdf-export-wrapper td { border-bottom: 1px solid #E5E7EB !important; padding: 10px 12px !important; }
 </style>
 
 <div class="report-container">
@@ -77,9 +81,23 @@
                     Date Covered: {% if start_date and end_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
                 </p>
             </div>
-            <div data-html2canvas-ignore="true" class="no-print" style="display: flex; gap: 12px;">
-                <button onclick="generatePDF()" class="action-btn" style="color: #EF4444; border-color: #FCA5A5;"><i class="ph ph-file-pdf"></i> Export PDF</button>
-                <button onclick="exportTableToCSV()" class="action-btn" style="color: #10B981; border-color: #6EE7B7;"><i class="ph ph-file-xls"></i> Export CSV</button>
+            
+            <div data-html2canvas-ignore="true" class="no-print" style="display: flex; gap: 10px; align-items: center; background: white; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <label style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Export Target</label>
+                    <select id="export-scope" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-body); font-weight: 600; color: var(--color-main-navy); outline: none; cursor: pointer; background-color: #F8FAFC;">
+                        <option value="whole">Whole Report (All Data)</option>
+                        <option value="payment">Payment Breakdown Only</option>
+                        <option value="top_revenue">Top Revenue Products Only</option>
+                        <option value="transactions">Transaction Breakdown Only</option>
+                        <option value="returns">Sales Return Logs Only</option>
+                    </select>
+                </div>
+                <div style="width: 1px; height: 32px; background: var(--border-color); margin: 0 4px;"></div>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <button id="btn-pdf-export" onclick="processExport('pdf')" class="action-btn" style="color: #EF4444; border-color: #FCA5A5; height: 36px;"><i class="ph ph-file-pdf"></i> Export PDF</button>
+                    <button id="btn-csv-export" onclick="processExport('csv')" class="action-btn" style="color: #10B981; border-color: #6EE7B7; height: 36px;"><i class="ph ph-file-xls"></i> Export CSV</button>
+                </div>
             </div>
         </div>
 
@@ -99,7 +117,7 @@
             </form>
         </div>
 
-        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+        <div id="kpi-section" style="display: flex; gap: 15px; margin-bottom: 25px;">
             <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid var(--color-main-navy);">
                 <div style="color: var(--text-muted); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em;">Total Gross Sales</div>
                 <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: var(--color-main-navy); font-weight: 700;">₱{{ total_revenue|floatformat:"2g" }}</h2>
@@ -118,12 +136,12 @@
             </div>
         </div>
 
-        <div style="display: flex; gap: 20px; margin-bottom: 25px;">
-            <div class="card-box" style="flex: 1; padding: 0; overflow: hidden;">
+        <div id="breakdown-section" style="display: flex; gap: 20px; margin-bottom: 25px;">
+            <div id="payment-sub-section" class="card-box" style="flex: 1; padding: 0; overflow: hidden;">
                 <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
                     <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Payment Breakdown</h3>
                 </div>
-                <table style="width: 100%; border-collapse: collapse;">
+                <table id="payment-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th class="table-header-cell" style="text-align: left;">Method</th>
@@ -141,11 +159,11 @@
                 </table>
             </div>
 
-            <div class="card-box" style="flex: 1.5; padding: 0; overflow: hidden;">
+            <div id="top-revenue-sub-section" class="card-box" style="flex: 1.5; padding: 0; overflow: hidden;">
                 <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
                     <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Top Revenue Products</h3>
                 </div>
-                <table style="width: 100%; border-collapse: collapse;">
+                <table id="top-revenue-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th class="table-header-cell" style="text-align: left;">Product Name</th>
@@ -166,7 +184,7 @@
             </div>
         </div>
 
-        <div class="card-box" style="padding: 0; overflow: hidden; margin-bottom: 25px;">
+        <div id="transactions-section" class="card-box" style="padding: 0; overflow: hidden; margin-bottom: 25px;">
             <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Transaction Breakdown (Receipts)</h3>
                 
@@ -179,7 +197,6 @@
                         <input type="hidden" name="returns_search" value="{{ returns_search }}"> 
                         <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                         <input type="text" name="sales_search" value="{{ sales_search }}" placeholder="Search Receipt # or Method..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; outline: none; font-family: var(--font-body); background-color: #F9FAFB;">
-                        <button type="submit" style="display: none;"></button>
                     </form>
                 </div>
             </div>
@@ -218,7 +235,6 @@
                         <input type="hidden" name="returns_per_page" value="{{ returns_per_page }}">
                         <input type="hidden" name="sales_search" value="{{ sales_search }}">
                         <input type="hidden" name="returns_search" value="{{ returns_search }}">
-                        
                         <span>Row Per Page</span>
                         <select name="sales_per_page" onchange="this.form.submit()" style="padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; outline: none; cursor: pointer; color: var(--text-main); font-family: var(--font-body);">
                             <option value="10" {% if sales_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
@@ -250,7 +266,7 @@
             </div>
         </div>
 
-        <div class="card-box" style="padding: 0; overflow: hidden;">
+        <div id="returns-section" class="card-box" style="padding: 0; overflow: hidden;">
             <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Sales Return Logs (Deductions)</h3>
                 
@@ -263,12 +279,11 @@
                         <input type="hidden" name="sales_search" value="{{ sales_search }}"> 
                         <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
                         <input type="text" name="returns_search" value="{{ returns_search }}" placeholder="Search Return ID or Original Receipt..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; outline: none; font-family: var(--font-body); background-color: #F9FAFB;">
-                        <button type="submit" style="display: none;"></button>
                     </form>
                 </div>
             </div>
 
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <table id="returns-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
                     <tr>
                         <th class="table-header-cell">Return ID</th>
@@ -336,35 +351,152 @@
 </div>
 
 <script>
-    function generatePDF() {
-        const element = document.getElementById('printable-area');
-        const opt = { margin: 0.5, filename: 'JBSON_Sales_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } };
-        html2pdf().set(opt).from(element).save();
-    }
-    
-    function exportTableToCSV() {
-        let csv = [];
+
+    async function fetchCompleteDataDOM() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('sales_per_page', '999999');
+        currentUrl.searchParams.set('returns_per_page', '999999');
         
+        const response = await fetch(currentUrl.toString());
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        return parser.parseFromString(htmlText, 'text/html');
+    }
+
+    async function processExport(format) {
+        const scope = document.getElementById('export-scope').value;
+        const pdfBtn = document.getElementById('btn-pdf-export');
+        const csvBtn = document.getElementById('btn-csv-export');
+        
+        pdfBtn.disabled = true;
+        csvBtn.disabled = true;
+        pdfBtn.innerHTML = "Fetching All...";
+
+        try {
+            const fullDOM = await fetchCompleteDataDOM();
+
+            if (format === 'pdf') {
+                await generateUnpaginatedPDF(fullDOM, scope);
+            } else if (format === 'csv') {
+                generateUnpaginatedCSV(fullDOM, scope);
+            }
+        } catch (error) {
+            console.error("Export Error: ", error);
+            alert("An error occurred during export. Please try again.");
+        } finally {
+            pdfBtn.disabled = false;
+            csvBtn.disabled = false;
+            pdfBtn.innerHTML = '<i class="ph ph-file-pdf"></i> Export PDF';
+            csvBtn.innerHTML = '<i class="ph ph-file-xls"></i> Export CSV';
+        }
+    }
+
+    async function generateUnpaginatedPDF(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        const pdfContainer = document.createElement('div');
+        pdfContainer.className = 'pdf-export-wrapper';
+
+        // 1. Append Header
+        const clonedHeader = fullDOM.querySelector('#printable-area > div:first-child').cloneNode(true);
+        const actionControls = clonedHeader.querySelector('.no-print');
+        if(actionControls) actionControls.remove();
+        pdfContainer.appendChild(clonedHeader);
+
+        // Helper para sa pag-linis ng section
+        function cleanAndAppend(sectionId) {
+            const section = fullDOM.querySelector(sectionId);
+            if (section) {
+                const clone = section.cloneNode(true);
+                const pagination = clone.querySelector('.pagination-bar'); if(pagination) pagination.remove();
+                const search = clone.querySelector('.no-print'); if(search) search.remove();
+                pdfContainer.appendChild(clone);
+            }
+        }
+
+        // 2. Logic Selection based on scope
+        if (scope === 'whole') {
+            cleanAndAppend('#kpi-section'); // <- DAGDAG: Isinama na ang mga KPI cards sa buong PDF
+            cleanAndAppend('#payment-sub-section');
+            cleanAndAppend('#top-revenue-sub-section');
+            cleanAndAppend('#transactions-section');
+            cleanAndAppend('#returns-section');
+        } else if (scope === 'payment') {
+            cleanAndAppend('#payment-sub-section');
+        } else if (scope === 'top_revenue') {
+            cleanAndAppend('#top-revenue-sub-section');
+        } else if (scope === 'transactions') {
+            cleanAndAppend('#transactions-section');
+        } else if (scope === 'returns') {
+            cleanAndAppend('#returns-section');
+        }
+
+        const opt = { 
+            margin: 0.4, 
+            filename: `JBSON_${scope.toUpperCase()}_Report_${dateStamp}.pdf`, 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
+            pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
+        };
+
+        await html2pdf().set(opt).from(pdfContainer).save();
+    }
+
+    function generateUnpaginatedCSV(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        let csv = [];
         let reportDate = document.getElementById("report-date").innerText.replace("Date Covered: ", "").trim();
-        csv.push('"Sales & Returns Report"');
-        csv.push(`"${reportDate}"`);
+        
+        csv.push(`"JBSON SYSTEM REPORT - ${scope.toUpperCase()}"`);
+        csv.push(`"Date Covered: ${reportDate}"`);
         csv.push("");
 
-        let rows = document.querySelectorAll("table tr");
-        for (let i = 0; i < rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll("td, th");
-            for (let j = 0; j < cols.length; j++) {
-                let cleanData = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/REFUNDED/g, '').trim();
-                row.push('"' + cleanData + '"');
+
+        if (scope === 'whole') {
+            csv.push(`"SUMMARY"`);
+            const kpiSection = fullDOM.querySelector('#kpi-section');
+            if (kpiSection) {
+                const cards = kpiSection.querySelectorAll('.card-box');
+                cards.forEach(card => {
+                    const labelNode = card.querySelector('div');
+                    const valueNode = card.querySelector('h2');
+                    if (labelNode && valueNode) {
+                        let label = labelNode.innerText.trim();
+                        let value = valueNode.innerText.replace(/₱/g, '').replace(/,/g, '').replace(/-/g, '').trim();
+       
+                        if(valueNode.innerText.includes('-')) value = '-' + value;
+                        csv.push(`"${label}","${value}"`);
+                    }
+                });
             }
-            csv.push(row.join(","));
+            csv.push("");
         }
-        
-        let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+
+        function appendTableToCSV(tableElement, titleLabel) {
+            if (!tableElement) return;
+            csv.push(`"${titleLabel}"`);
+            let rows = tableElement.querySelectorAll("tr");
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                if (cols.length === 0) continue;
+                for (let j = 0; j < cols.length; j++) {
+                    let text = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/REFUNDED/g, '').replace(/\n/g, ' ').trim();
+                    row.push('"' + text + '"');
+                }
+                csv.push(row.join(","));
+            }
+            csv.push("");
+        }
+
+        if (scope === 'whole' || scope === 'payment') appendTableToCSV(fullDOM.querySelector('#payment-table'), "PAYMENT BREAKDOWN");
+        if (scope === 'whole' || scope === 'top_revenue') appendTableToCSV(fullDOM.querySelector('#top-revenue-table'), "TOP REVENUE PRODUCTS");
+        if (scope === 'whole' || scope === 'transactions') appendTableToCSV(fullDOM.querySelector('#sales-table'), "TRANSACTION BREAKDOWN (RECEIPTS)");
+        if (scope === 'whole' || scope === 'returns') appendTableToCSV(fullDOM.querySelector('#returns-table'), "SALES RETURN LOGS (DEDUCTIONS)");
+
+        let csvBlob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
         let link = document.createElement("a");
-        const dateNow = new Date().toISOString().split('T')[0];
-        link.download = `JBSON_Sales_Report_${dateNow}.csv`;
-        link.href = window.URL.createObjectURL(csvFile);
+        link.download = `JBSON_${scope.toUpperCase()}_Report_${dateStamp}.csv`;
+        link.href = window.URL.createObjectURL(csvBlob);
         link.click();
     }
 </script>

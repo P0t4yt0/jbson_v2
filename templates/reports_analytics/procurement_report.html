@@ -1,5 +1,5 @@
-{% extends 'dashboard/dashboard.html' %}
-{% block content %}
+{% extends 'reports_analytics/reports_hub.html' %}
+{% block report_content %}
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Roboto+Mono:wght@500;600;700&display=swap');
@@ -41,6 +41,7 @@
     
     .action-btn { background: white; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; font-family: var(--font-body); }
     .action-btn:hover { background: #F3F4F6; }
+    .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     
     .card-box { background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color); padding: 24px; }
     
@@ -57,14 +58,13 @@
     .page-btn { border: 1px solid #D1D5DB; padding: 5px 10px; border-radius: 4px; color: #374151; text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
     .page-btn:hover { background: #F9FAFB; }
 
-    @media print {
-        body * { visibility: hidden; }
-        #printable-area, #printable-area * { visibility: visible; }
-        #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
-        .no-print { display: none !important; }
-        .report-container { padding: 0; background: white; }
-        .card-box { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
-    }
+    /* PDF EXPORT CUSTOM CLASS CODES TO PREVENT TABLE CUT-OFFS (KOPYA SA SALES REPORT) */
+    .pdf-export-wrapper { background: white !important; padding: 20px !important; font-family: 'Inter', sans-serif; }
+    .pdf-export-wrapper .card-box { border: 1px solid #E5E7EB !important; box-shadow: none !important; margin-bottom: 20px !important; break-inside: avoid; width: 100% !important; flex: none !important; }
+    .pdf-export-wrapper table { width: 100% !important; border-collapse: collapse !important; page-break-inside: auto; }
+    .pdf-export-wrapper tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+    .pdf-export-wrapper thead { display: table-header-group !important; }
+    .pdf-export-wrapper th, .pdf-export-wrapper td { border-bottom: 1px solid #E5E7EB !important; padding: 10px 12px !important; }
 </style>
 
 <div class="report-container">
@@ -78,13 +78,20 @@
                 </p>
             </div>
             
-            <div class="no-print" data-html2canvas-ignore="true" style="display: flex; gap: 12px;">
-                <button onclick="generatePDF()" class="action-btn" style="color: #EF4444; border-color: #FCA5A5;">
-                    <i class="ph ph-file-pdf" style="font-size: 1.1rem;"></i> Export PDF
-                </button>
-                <button onclick="downloadCSV()" class="action-btn" style="color: #10B981; border-color: #6EE7B7;">
-                    <i class="ph ph-file-xls" style="font-size: 1.1rem;"></i> Export CSV
-                </button>
+            <div data-html2canvas-ignore="true" class="no-print" style="display: flex; gap: 10px; align-items: center; background: white; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <label style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Export Target</label>
+                    <select id="export-scope" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-body); font-weight: 600; color: var(--color-main-navy); outline: none; cursor: pointer; background-color: #F8FAFC;">
+                        <option value="whole">Whole Report (All Data)</option>
+                        <option value="leaderboard">Supplier Spend Leaderboard Only</option>
+                        <option value="history">Master Purchase History Only</option>
+                    </select>
+                </div>
+                <div style="width: 1px; height: 32px; background: var(--border-color); margin: 0 4px;"></div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-pdf-export" onclick="processExport('pdf')" class="action-btn" style="color: #EF4444; border-color: #FCA5A5; height: 36px;"><i class="ph ph-file-pdf"></i> Export PDF</button>
+                    <button id="btn-csv-export" onclick="processExport('csv')" class="action-btn" style="color: #10B981; border-color: #6EE7B7; height: 36px;"><i class="ph ph-file-xls"></i> Export CSV</button>
+                </div>
             </div>
         </div>
 
@@ -103,7 +110,7 @@
             </form>
         </div>
 
-        <div style="display: flex; gap: 20px; margin-bottom: 24px;">
+        <div id="kpi-section" style="display: flex; gap: 20px; margin-bottom: 24px;">
             <div class="card-box" style="flex: 1; padding: 20px; border-top: 5px solid var(--color-main-navy); margin-bottom: 0;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Total Procurement Spend</div>
                 <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: var(--color-main-navy); font-weight: 700;">₱{{ total_spent|floatformat:"2g" }}</h2>
@@ -118,11 +125,11 @@
             </div>
         </div>
 
-        <div class="card-box" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+        <div id="supplier-leaderboard-section" class="card-box" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
             <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color);">
                 <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Supplier Spend Leaderboard</h3>
             </div>
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <table id="supplier-leaderboard-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
                     <tr>
                         <th class="table-header-cell" style="padding-left: 25px;">Supplier Name</th>
@@ -144,7 +151,7 @@
             </table>
         </div>
 
-        <div class="card-box" style="padding: 0; overflow: hidden;">
+        <div id="master-history-section" class="card-box" style="padding: 0; overflow: hidden;">
             <div style="padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Master Purchase History</h3>
                 
@@ -234,42 +241,121 @@
 </div>
 
 <script>
-    function getFormattedDate() { const today = new Date(); return today.toISOString().split('T')[0]; }
-
-    function generatePDF() {
-        const element = document.getElementById('printable-area');
-        const opt = { 
-            margin: 0.5, 
-            filename: `JBSON_Procurement_Report_${getFormattedDate()}.pdf`, 
-            image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2 }, 
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } 
-        };
-        html2pdf().set(opt).from(element).save();
+    // Async background fetch para sa unpaginated layout
+    async function fetchCompleteDataDOM() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('po_per_page', '999999');
+        
+        const response = await fetch(currentUrl.toString());
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        return parser.parseFromString(htmlText, 'text/html');
     }
 
-    function downloadCSV() {
-        let csv = [];
+    async function processExport(format) {
+        const scope = document.getElementById('export-scope').value;
+        const pdfBtn = document.getElementById('btn-pdf-export');
+        const csvBtn = document.getElementById('btn-csv-export');
         
-        let reportDate = document.getElementById("report-date").innerText.replace("Covered: ", "").replace("Date Covered: ", "").trim();
-        csv.push('"JBSON HARDWARE - PROCUREMENT REPORT"');
-        csv.push(`"Date: ${reportDate}"`);
-        csv.push(""); 
+        pdfBtn.disabled = true;
+        csvBtn.disabled = true;
+        pdfBtn.innerHTML = "Fetching All...";
 
-        let rows = document.querySelectorAll("#purchases-table tr");
-        for (let i = 0; i < rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll("td, th");
-            for (let j = 0; j < cols.length; j++) {
-                let cleanText = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/\nRECEIVED|\nPENDING/g, '').trim();
-                row.push('"' + cleanText + '"');
+        try {
+            const fullDOM = await fetchCompleteDataDOM();
+
+            if (format === 'pdf') {
+                await generateUnpaginatedPDF(fullDOM, scope);
+            } else if (format === 'csv') {
+                generateUnpaginatedCSV(fullDOM, scope);
             }
-            csv.push(row.join(","));
+        } catch (error) {
+            console.error("Export Error: ", error);
+            alert("Nagkaroon ng error sa pag-export. Pakisubukang muli.");
+        } finally {
+            pdfBtn.disabled = false;
+            csvBtn.disabled = false;
+            pdfBtn.innerHTML = '<i class="ph ph-file-pdf"></i> Export PDF';
+            csvBtn.innerHTML = '<i class="ph ph-file-xls"></i> Export CSV';
+        }
+    }
+
+    async function generateUnpaginatedPDF(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        const pdfContainer = document.createElement('div');
+        pdfContainer.className = 'pdf-export-wrapper';
+
+        // 1. Append Header
+        const clonedHeader = fullDOM.querySelector('#printable-area > div:first-child').cloneNode(true);
+        const actionControls = clonedHeader.querySelector('.no-print');
+        if(actionControls) actionControls.remove();
+        pdfContainer.appendChild(clonedHeader);
+
+        // Helper para sa paglinis at pag-append ng target card layouts
+        function cleanAndAppend(sectionId) {
+            const section = fullDOM.querySelector(sectionId);
+            if (section) {
+                const clone = section.cloneNode(true);
+                const pagination = clone.querySelector('.pagination-bar'); if(pagination) pagination.remove();
+                const search = clone.querySelector('.no-print'); if(search) search.remove();
+                pdfContainer.appendChild(clone);
+            }
         }
 
-        let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+        // 2. Logic Selection (Sumusunod sa exact configuration ng Sales Report)
+        if (scope === 'whole') {
+            cleanAndAppend('#supplier-leaderboard-section');
+            cleanAndAppend('#master-history-section');
+        } else if (scope === 'leaderboard') {
+            cleanAndAppend('#supplier-leaderboard-section');
+        } else if (scope === 'history') {
+            cleanAndAppend('#master-history-section');
+        }
+
+        const opt = { 
+            margin: 0.4, 
+            filename: `JBSON_${scope.toUpperCase()}_Procurement_Report_${dateStamp}.pdf`, 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
+            pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
+        };
+
+        await html2pdf().set(opt).from(pdfContainer).save();
+    }
+
+    function generateUnpaginatedCSV(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        let csv = [];
+        let reportDate = document.getElementById("report-date").innerText.replace("Covered: ", "").replace("Date Covered: ", "").trim();
+        
+        csv.push(`"JBSON PROCUREMENT REPORT - ${scope.toUpperCase()}"`);
+        csv.push(`"Date Covered: ${reportDate}"`);
+        csv.push("");
+
+        function appendTableToCSV(tableElement, titleLabel) {
+            if (!tableElement) return;
+            csv.push(`"${titleLabel}"`);
+            let rows = tableElement.querySelectorAll("tr");
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                if (cols.length === 0) continue;
+                for (let j = 0; j < cols.length; j++) {
+                    let text = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/\nRECEIVED|\nPENDING/g, '').replace(/\n/g, ' ').trim();
+                    row.push('"' + text + '"');
+                }
+                csv.push(row.join(","));
+            }
+            csv.push("");
+        }
+
+        if (scope === 'whole' || scope === 'leaderboard') appendTableToCSV(fullDOM.querySelector('#supplier-leaderboard-table'), "SUPPLIER SPEND LEADERBOARD");
+        if (scope === 'whole' || scope === 'history') appendTableToCSV(fullDOM.querySelector('#purchases-table'), "MASTER PURCHASE HISTORY");
+
+        let csvBlob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
         let link = document.createElement("a");
-        link.download = `JBSON_Procurement_Report_${getFormattedDate()}.csv`;
-        link.href = window.URL.createObjectURL(csvFile);
+        link.download = `JBSON_${scope.toUpperCase()}_Procurement_Report_${dateStamp}.csv`;
+        link.href = window.URL.createObjectURL(csvBlob);
         link.click();
     }
 </script>

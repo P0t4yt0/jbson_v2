@@ -16,7 +16,7 @@
             --bg-card: #FFFFFF;
             --primary-red: #891C1C;
             --primary-navy: #0D1E2D;
-            --sidebar-active: #FCE8E8;
+            --sidebar-active: #c1def7;
             --text-primary: #212529;
             --text-secondary: #6B7280;
             --border-color: #E5E7EB;
@@ -105,12 +105,12 @@
             font-size: 20px;
         }
 
-        .nav-item:hover { background-color: #f3f4f6; }
+        .nav-item:hover { background-color: #d9ebfa; }
 
         .nav-item.active {
             background-color: var(--sidebar-active);
-            color: var(--primary-red);
-            border-right: 4px solid var(--primary-red);
+            color: var(--primary-navy);
+            border-right: 4px solid var(--primary-navy);
         }
 
         /* --- Main Content Area --- */
@@ -509,37 +509,9 @@
         </a>
 
         <div class="nav-category">Reports and Analytics</div>
-        
-        <a href="{% url 'reports_analytics:sales_report' %}" class="nav-item {% if '/reports/sales/' in request.path %}active{% endif %}">
-            <i class="ph ph-chart-line-up"></i> Sales Report
-        </a>
-
-        <a href="{% url 'reports_analytics:purchase_report' %}" 
-        class="nav-item {% if '/reports/purchase/' in request.path %}active{% endif %}">
-            <i class="ph ph-clock"></i> Purchase Report
-        </a>
-        
-        <a href="{% url 'reports_analytics:inventory_report' %}" class="nav-item {% if '/reports/inventory/' in request.path %}active{% endif %}">
-            <i class="ph ph-stack"></i> Inventory Report
-        </a>
-        
-        <a href="{% url 'reports_analytics:invoice_report' %}" class="nav-item {% if '/reports/invoice/' in request.path %}active{% endif %}">
-            <i class="ph ph-file-text"></i> Invoice Report
-        </a>
-        
-        <a href="{% url 'reports_analytics:procurement_report' %}" class="nav-item {% if '/procurement/' in request.path %}active{% endif %}">
-            <i class="ph ph-chart-bar"></i> Procurement & Supplier Report
-        </a>        
-        
-
-        <a href="{% url 'reports_analytics:profit_loss_report' %}" class="nav-item {% if '/profit-loss/' in request.path %}active{% endif %}">
-            <i class="ph ph-scales"></i> Profit & Loss
-        </a>
-        
-        <a href="{% url 'reports_analytics:annual_report' %}" class="nav-item {% if '/annual-report/' in request.path %}active{% endif %}">
-            <i class="ph ph-book-open"></i> Annual Report
-        </a>
-
+            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
+                <i class="ph ph-chart-pie-slice"></i> Reports Hub
+            </a>
         
         {% if request.user.role == 'admin' or request.user.is_superuser %}
         <div class="nav-category">User Management</div>

@@ -709,3 +709,7 @@ def annual_report_view(request):
             pass
 
     return render(request, 'reports_analytics/annual_report.html', context)
+
+def reports_hub(request):
+    """Main hub para sa lahat ng reports."""
+    return render(request, 'reports_analytics/reports_hub.html')

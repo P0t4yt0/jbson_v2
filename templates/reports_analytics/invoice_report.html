@@ -1,5 +1,5 @@
-{% extends 'dashboard/dashboard.html' %}
-{% block content %}
+{% extends 'reports_analytics/reports_hub.html' %}
+{% block report_content %}
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Roboto+Mono:wght@500;600;700&display=swap');
@@ -58,11 +58,20 @@
     .page-btn { border: 1px solid #D1D5DB; padding: 5px 10px; border-radius: 4px; color: #374151; text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
     .page-btn:hover { background: #F9FAFB; }
 
+    /* PDF EXPORT CUSTOM CLASS CODES TO PREVENT TABLE CUT-OFFS */
+    .pdf-export-wrapper { background: white !important; padding: 20px !important; font-family: 'Inter', sans-serif; }
+    .pdf-export-wrapper .card-box { border: 1px solid #E5E7EB !important; box-shadow: none !important; margin-bottom: 20px !important; break-inside: avoid; width: 100% !important; flex: none !important; }
+    .pdf-export-wrapper table { width: 100% !important; border-collapse: collapse !important; page-break-inside: auto; }
+    .pdf-export-wrapper tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+    .pdf-export-wrapper thead { display: table-header-group !important; }
+    .pdf-export-wrapper th, .pdf-export-wrapper td { border-bottom: 1px solid #E5E7EB !important; padding: 10px 12px !important; }
+
+    /* STRICT native print styles override */
     @media print {
         body * { visibility: hidden; }
         #printable-area, #printable-area * { visibility: visible; }
         #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
-        .no-print { display: none !important; }
+        .no-print, .no-print *, [data-html2canvas-ignore="true"], [data-html2canvas-ignore="true"] * { display: none !important; visibility: hidden !important; opacity: 0 !important; }
         .report-container { background: white; padding: 0; }
         .card-box { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
     }
@@ -71,20 +80,27 @@
 <div class="report-container">
     <div id="printable-area">
         
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <div>
                 <h1 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--color-main-navy); margin: 0;">Invoice Report</h1>
                 <p id="report-date" style="color: var(--color-accent-orange); font-size: 0.9rem; font-weight: 600; margin-top: 5px; font-family: var(--font-body);">
                     Date Covered: {% if start_date %}{{ start_date }} to {{ end_date }}{% else %}As of {% now "F j, Y" %}{% endif %}
                 </p>
             </div>
-            <div data-html2canvas-ignore="true" class="no-print" style="display: flex; gap: 12px;">
-                <button onclick="downloadPDF()" class="action-btn" style="color: #EF4444; border-color: #FCA5A5;">
-                    <i class="ph ph-file-pdf"></i> Export PDF
-                </button>
-                <button onclick="downloadCSV()" class="action-btn" style="color: #10B981; border-color: #6EE7B7;">
-                    <i class="ph ph-file-xls"></i> Export CSV
-                </button>
+            
+            <div data-html2canvas-ignore="true" class="no-print" style="display: flex; gap: 10px; align-items: center; background: white; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <label style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Export Target</label>
+                    <select id="export-scope" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-family: var(--font-body); font-weight: 600; color: var(--color-main-navy); outline: none; cursor: pointer; background-color: #F8FAFC;">
+                        <option value="whole">Whole Report (All Data)</option>
+                        <option value="detailed_invoice">Detailed Invoice Logs Only</option>
+                    </select>
+                </div>
+                <div style="width: 1px; height: 32px; background: var(--border-color); margin: 0 4px;"></div>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <button id="btn-pdf-export" onclick="processExport('pdf')" class="action-btn" style="color: #EF4444; border-color: #FCA5A5; height: 36px;"><i class="ph ph-file-pdf"></i> Export PDF</button>
+                    <button id="btn-csv-export" onclick="processExport('csv')" class="action-btn" style="color: #10B981; border-color: #6EE7B7; height: 36px;"><i class="ph ph-file-xls"></i> Export CSV</button>
+                </div>
             </div>
         </div>
 
@@ -103,7 +119,7 @@
             </form>
         </div>
 
-        <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+        <div id="kpi-section" style="display: flex; gap: 20px; margin-bottom: 25px;">
             <div class="card-box" style="flex: 1; border-top: 5px solid var(--color-main-navy); padding: 20px; margin-bottom: 0;">
                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Total Invoiced</div>
                 <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: var(--color-main-navy); font-weight: 700;">₱{{ summary.total_invoiced|floatformat:"2g" }}</h2>
@@ -118,7 +134,7 @@
             </div>
         </div>
 
-        <div style="background: white; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
+        <div id="detailed-invoice-section" class="card-box" style="padding: 0; overflow: hidden;">
             <div style="padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
                 <h3 style="font-family: var(--font-heading); margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--color-main-navy);">Detailed Invoice Logs</h3>
                 
@@ -212,42 +228,120 @@
 </div>
 
 <script>
-    function getFormattedDate() { const today = new Date(); return today.toISOString().split('T')[0]; }
-
-    function downloadPDF() {
-        const element = document.getElementById('printable-area');
-        const opt = {
-            margin: 0.5,
-            filename: `JBSON_Invoice_Report_${getFormattedDate()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
-        };
-        html2pdf().set(opt).from(element).save();
+    async function fetchCompleteDataDOM() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('invoice_per_page', '999999');
+        
+        const response = await fetch(currentUrl.toString());
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        return parser.parseFromString(htmlText, 'text/html');
     }
 
-    function downloadCSV() {
-        let csv = [];
+    async function processExport(format) {
+        const scope = document.getElementById('export-scope').value;
+        const pdfBtn = document.getElementById('btn-pdf-export');
+        const csvBtn = document.getElementById('btn-csv-export');
         
-        let reportDate = document.getElementById("report-date").innerText.replace("Date Covered: ", "").trim();
-        csv.push('"Invoice Report"');
-        csv.push(`"Date Covered: ${reportDate}"`);
-        csv.push(""); // Empty line separator
+        pdfBtn.disabled = true;
+        csvBtn.disabled = true;
+        pdfBtn.innerHTML = "Fetching All...";
 
-        let rows = document.querySelectorAll("#invoice-table tr");
-        for (let i = 0; i < rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll("td, th");
-            for (let j = 0; j < cols.length; j++) {
-                let cleanText = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/\nUNPAID|\nPAID/g, '').trim();
-                row.push('"' + cleanText + '"');
+        try {
+            const fullDOM = await fetchCompleteDataDOM();
+
+            if (format === 'pdf') {
+                await generateUnpaginatedPDF(fullDOM, scope);
+            } else if (format === 'csv') {
+                generateUnpaginatedCSV(fullDOM, scope);
             }
-            csv.push(row.join(","));
+        } catch (error) {
+            console.error("Export Error: ", error);
+            alert("Nagkaroon ng error sa pag-export. Pakisubukang muli.");
+        } finally {
+            pdfBtn.disabled = false;
+            csvBtn.disabled = false;
+            pdfBtn.innerHTML = '<i class="ph ph-file-pdf"></i> Export PDF';
+            csvBtn.innerHTML = '<i class="ph ph-file-xls"></i> Export CSV';
         }
+    }
+
+    async function generateUnpaginatedPDF(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        const pdfContainer = document.createElement('div');
+        pdfContainer.className = 'pdf-export-wrapper';
+
+        // 1. Append Header
+        const clonedHeader = fullDOM.querySelector('#printable-area > div:first-child').cloneNode(true);
+        pdfContainer.appendChild(clonedHeader);
+
+        // Helper function to clone clean sections
+        function cleanAndAppend(sectionId) {
+            const section = fullDOM.querySelector(sectionId);
+            if (section) {
+                const clone = section.cloneNode(true);
+                pdfContainer.appendChild(clone);
+            }
+        }
+
+        // 2. Filter content based on scope choice
+        if (scope === 'whole') {
+            cleanAndAppend('#kpi-section');
+            cleanAndAppend('#detailed-invoice-section');
+        } else if (scope === 'detailed_invoice') {
+            cleanAndAppend('#detailed-invoice-section');
+        }
+
+        // 3. FINAL SWEEP: Purge ALL interactive/non-print elements anywhere inside the container
+        pdfContainer.querySelectorAll('.no-print, [data-html2canvas-ignore="true"], .pagination-bar').forEach(el => {
+            el.remove();
+        });
+
+        const opt = { 
+            margin: 0.4, 
+            filename: `JBSON_${scope.toUpperCase()}_Report_${dateStamp}.pdf`, 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
+            pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
+        };
+
+        await html2pdf().set(opt).from(pdfContainer).save();
+    }
+
+    function generateUnpaginatedCSV(fullDOM, scope) {
+        const dateStamp = new Date().toISOString().split('T')[0];
+        let csv = [];
+        let reportDate = document.getElementById("report-date").innerText.replace("Date Covered: ", "").trim();
         
-        let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+        csv.push(`"JBSON SYSTEM REPORT - ${scope.toUpperCase()}"`);
+        csv.push(`"Date Covered: ${reportDate}"`);
+        csv.push("");
+
+        function appendTableToCSV(tableElement, titleLabel) {
+            if (!tableElement) return;
+            csv.push(`"${titleLabel}"`);
+            let rows = tableElement.querySelectorAll("tr");
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                if (cols.length === 0) continue;
+                for (let j = 0; j < cols.length; j++) {
+                    let cleanText = cols[j].innerText.replace(/₱/g, '').replace(/,/g, '').replace(/\nUNPAID|\nPAID/g, '').replace(/\n/g, ' ').trim();
+                    row.push('"' + cleanText + '"');
+                }
+                csv.push(row.join(","));
+            }
+            csv.push("");
+        }
+
+        if (scope === 'whole' || scope === 'detailed_invoice') {
+            appendTableToCSV(fullDOM.querySelector('#invoice-table'), "DETAILED INVOICE LOGS");
+        }
+
+        let csvBlob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
         let link = document.createElement("a");
-        link.download = `JBSON_Invoice_Report_${getFormattedDate()}.csv`;
-        link.href = window.URL.createObjectURL(csvFile);
+        link.download = `JBSON_${scope.toUpperCase()}_Report_${dateStamp}.csv`;
+        link.href = window.URL.createObjectURL(csvBlob);
         link.click();
     }
 </script>
