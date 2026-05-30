@@ -9,20 +9,20 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    body { background-color: #F0F4F8; margin: 0; overflow: hidden; }
+    body { background-color: var(--bg-main, #F4F6F9); margin: 0; overflow: hidden; }
 
     /* Sleek scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+    ::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.8); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
     /* ── LAYOUT ────────────────────────────────────── */
     .pos-container {
         display: flex;
         height: calc(100vh - 85px);
-        gap: 20px;
-        padding: 20px;
+        gap: 24px;
+        padding: 24px;
         overflow: hidden;
     }
     .swal2-container { z-index: 100000 !important; }
@@ -30,76 +30,138 @@
     /* ── LEFT: INVENTORY ────────────────────────────── */
     .inventory-section { flex: 2.2; display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: hidden; }
 
-    .search-header { display: flex; gap: 15px; margin-bottom: 15px; flex-shrink: 0; }
+    .search-header { display: flex; gap: 16px; margin-bottom: 20px; flex-shrink: 0; }
+    
     .search-input-group { position: relative; flex: 1.5; }
-    .search-input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 20px; color: #092c4c; }
-    .search-input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #092c4c; border-radius: 10px; outline: none; background: white; font-size: 13px; box-shadow: 0 4px 6px rgba(9,44,76,0.05); }
-    .search-input:focus { box-shadow: 0 0 0 3px rgba(9,44,76,0.2); }
-    .text-search { flex: 1; padding: 14px 15px; border: 1px solid #CBD5E0; border-radius: 10px; outline: none; font-size: 13px; background: white; }
-    .text-search:focus { border-color: #092c4c; }
+    .search-input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--french-blue); }
+    
+    .search-input { 
+        width: 100%; 
+        padding: 14px 16px 14px 48px; 
+        border: 2px solid var(--french-blue); 
+        border-radius: 12px; 
+        outline: none; 
+        background: rgba(255, 255, 255, 0.9); 
+        font-size: 14px; 
+        font-family: var(--font-main);
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.1); 
+        transition: all 0.3s ease;
+    }
+    .search-input:focus { box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.2); background: #FFFFFF; }
+    
+    .text-search { 
+        flex: 1; 
+        padding: 14px 16px; 
+        border: 1px solid var(--border-color); 
+        border-radius: 12px; 
+        outline: none; 
+        font-size: 14px; 
+        font-family: var(--font-main);
+        background: rgba(255, 255, 255, 0.8); 
+        backdrop-filter: blur(8px);
+        transition: all 0.3s ease;
+    }
+    .text-search:focus { border-color: var(--french-blue); background: #FFFFFF; box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1); }
 
-    .category-tabs { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; flex-shrink: 0; }
-    .tab { padding: 10px 20px; border-radius: 8px; border: 1px solid #E2E8F0; font-weight: 600; font-size: 13px; cursor: pointer; background: white; color: #4A5568; flex-shrink: 0; transition: all 0.2s; }
-    .tab:hover { border-color: #CBD5E0; background: #F8FAFC; }
-    .tab.active { background: #092c4c; color: white; border-color: #092c4c; box-shadow: 0 4px 10px rgba(9,44,76,0.2); }
+    .category-tabs { display: flex; gap: 12px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px; flex-shrink: 0; }
+    .tab { 
+        padding: 10px 24px; 
+        border-radius: 10px; 
+        border: 1px solid var(--border-color); 
+        font-weight: 600; 
+        font-size: 13px; 
+        font-family: var(--font-main);
+        cursor: pointer; 
+        background: rgba(255, 255, 255, 0.7); 
+        backdrop-filter: blur(8px);
+        color: var(--text-secondary); 
+        flex-shrink: 0; 
+        transition: all 0.2s ease; 
+    }
+    .tab:hover { border-color: var(--french-blue); background: rgba(255, 255, 255, 0.9); color: var(--french-blue); transform: translateY(-2px); }
+    .tab.active { background: var(--french-blue); color: white; border-color: var(--french-blue); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2); }
 
-    .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; overflow-y: auto; align-content: start; padding-right: 5px; padding-bottom: 20px; }
-    .product-card { background: white; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #E2E8F0; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; height: 120px; }
-    .product-card:hover { border-color: #e07300; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(9,44,76,0.1); }
-    .product-card .pid { font-size: 12px; font-family: 'Inconsolata'; color: #A0AEC0; font-weight: 600; }
-    .product-card .name { font-weight: 700; color: #2D3748; font-size: 14px; margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .product-card .price { color: #e07300; font-family: 'Inconsolata'; font-weight: 800; font-size: 16px; margin-top: auto; }
+    .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; overflow-y: auto; align-content: start; padding-right: 8px; padding-bottom: 24px; }
+    
+    .product-card { 
+        background: rgba(255, 255, 255, 0.75); 
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px; 
+        padding: 16px; 
+        text-align: center; 
+        border: 1px solid rgba(255, 255, 255, 0.6); 
+        cursor: pointer; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 8px 24px -8px rgba(47, 63, 123, 0.08); 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: space-between; 
+        height: 130px; 
+    }
+    .product-card:hover { border-color: var(--amber-flame); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(47, 63, 123, 0.15); background: rgba(255, 255, 255, 0.95); }
+    .product-card .pid { font-size: 12px; font-family: 'Inconsolata', monospace; color: var(--text-secondary); font-weight: 600; }
+    .product-card .name { font-weight: 700; color: var(--text-primary); font-size: 14px; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .product-card .price { color: #e07300; font-family: 'Inconsolata', monospace; font-weight: 800; font-size: 18px; margin-top: auto; }
 
-    /* ── RIGHT: ORDER SECTION ───────────────────────── */
+    /* ── RIGHT: ORDER SECTION (GLASSMORPHISM) ────────── */
     .order-section {
         flex: 1.1;
-        background: white;
-        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: var(--border-radius, 20px);
         display: flex;
         flex-direction: column;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        border: 1px solid #E2E8F0;
+        box-shadow: 0 16px 40px -12px rgba(47, 63, 123, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.6);
         overflow: hidden;
-        min-width: 400px;
+        min-width: 420px;
         height: 100%;
     }
 
     .order-header {
-        padding: 20px;
-        border-bottom: 1px solid #EDF2F7;
-        background: #FAFCFF;
+        padding: 24px;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(248, 250, 252, 0.6);
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-shrink: 0;
     }
-    .order-header h3 { margin: 0; font-size: 18px; color: #092c4c; font-weight: 800; }
+    .order-header h3 { margin: 0; font-size: 20px; color: var(--french-blue); font-weight: 800; font-family: var(--font-heading); }
 
     /* ── CART VIEW ──────────────────────────────────── */
     #cart-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
-    .cart-container { flex: 1; overflow-y: auto; padding: 20px; min-height: 0; }
+    .cart-container { flex: 1; overflow-y: auto; padding: 24px; min-height: 0; }
 
-    .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #E2E8F0; }
-    .cart-item-name { margin: 0; font-size: 14px; color: #2D3748; font-weight: 700; margin-bottom: 4px; }
-    .cart-item-price { color: #718096; font-size: 14px; font-family: 'Inconsolata'; font-weight: 600; }
-    .qty-controls { display: flex; align-items: center; gap: 5px; background: #F8FAFC; padding: 4px; border-radius: 8px; border: 1px solid #EDF2F7; }
-    .qty-btn { background: white; border: 1px solid #E2E8F0; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-weight: 900; font-size: 16px; color: #4A5568; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
-    .qty-btn:hover { background: #EDF2F7; }
-    .qty-input { width: 40px; height: 28px; text-align: center; font-family: 'Inconsolata'; font-weight: 700; font-size: 14px; border: none; background: transparent; outline: none; color: #092c4c; }
-    .delete-btn { background: #FFF5F5; border: 1px solid #ffaca4; color: #d50a0a; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-    .delete-btn:hover { background: #ffaca4; color: white; }
-    .item-subtotal { font-weight: 800; color: #092c4c; min-width: 70px; font-family: 'Inconsolata'; text-align: right; font-size: 15px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color); }
+    .cart-item-name { margin: 0; font-size: 14px; color: var(--text-primary); font-weight: 700; margin-bottom: 6px; }
+    .cart-item-price { color: var(--text-secondary); font-size: 14px; font-family: 'Inconsolata', monospace; font-weight: 600; }
+    .qty-controls { display: flex; align-items: center; gap: 6px; background: rgba(248, 250, 252, 0.8); padding: 6px; border-radius: 10px; border: 1px solid var(--border-color); }
+    .qty-btn { background: white; border: 1px solid var(--border-color); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: 900; font-size: 16px; color: var(--text-secondary); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .qty-btn:hover { background: var(--french-blue); color: white; border-color: var(--french-blue); }
+    .qty-input { width: 44px; height: 30px; text-align: center; font-family: 'Inconsolata', monospace; font-weight: 700; font-size: 15px; border: none; background: transparent; outline: none; color: var(--french-blue); }
+    
+    .delete-btn { background: #FFF5F5; border: 1px solid #FECACA; color: var(--status-red); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .delete-btn:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+    
+    .item-subtotal { font-weight: 800; color: var(--french-blue); min-width: 80px; font-family: 'Inconsolata', monospace; text-align: right; font-size: 16px; }
 
-    .order-summary { padding: 25px 20px; background: white; border-top: 1px solid #EDF2F7; box-shadow: 0 -4px 15px rgba(0,0,0,0.02); flex-shrink: 0; }
-    .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 26px; color: #092c4c; margin-bottom: 20px; align-items: center; }
-    .btn-action-group { display: flex; gap: 10px; width: 100%; margin-bottom: 12px; }
-    .btn-void { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ffaca4; background: #FFF5F5; color: #d50a0a; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; font-size: 13px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-    .btn-void:hover { background: #ffaca4; color: white; }
-    .btn-quote { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; background: white; color: #4A5568; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: 0.2s; width: 100%; }
-    .btn-quote:hover { background: #EDF2F7; border-color: #092c4c; color: #092c4c; }
-    .btn-main { width: 100%; padding: 18px; border-radius: 10px; border: none; background: #092c4c; color: white; font-weight: 800; font-size: 18px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(9,44,76,0.2); display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-main:hover { background: #061f38; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(9,44,76,0.3); }
+    .order-summary { padding: 24px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid var(--border-color); box-shadow: 0 -8px 24px rgba(47, 63, 123, 0.05); flex-shrink: 0; }
+    .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 28px; color: var(--amber-flame); margin-bottom: 24px; align-items: center; letter-spacing: -1px; }
+    
+    .btn-action-group { display: flex; gap: 12px; width: 100%; margin-bottom: 16px; }
+    
+    .btn-void { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #FECACA; background: #FFF5F5; color: var(--status-red); font-weight: 700; font-family: var(--font-main); cursor: pointer; text-align: center; text-decoration: none; font-size: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .btn-void:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+    
+    .btn-quote { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid var(--border-color); background: white; color: var(--text-secondary); font-weight: 700; font-family: var(--font-main); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; width: 100%; }
+    .btn-quote:hover { background: var(--french-blue); border-color: var(--french-blue); color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15); }
+    
+    .btn-main { width: 100%; padding: 20px; border-radius: 12px; border: none; background: var(--french-blue); color: white; font-weight: 800; font-family: var(--font-main); font-size: 18px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(47, 63, 123, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.5px; }
+    .btn-main:hover { background: #1a2858; transform: translateY(-3px); box-shadow: 0 12px 24px rgba(47, 63, 123, 0.35); }
 
     /* ── PAYMENT VIEW ───────────────────────────────── */
     #payment-view { flex: 1; display: none; flex-direction: column; overflow: hidden; min-height: 0; }
@@ -107,107 +169,107 @@
     /* Tabs */
     .pay-method-tabs {
         display: flex;
-        border-bottom: 2px solid #EDF2F7;
-        background: #FAFCFF;
+        border-bottom: 2px solid var(--border-color);
+        background: rgba(248, 250, 252, 0.6);
         flex-shrink: 0;
     }
     .pay-tab {
         flex: 1;
-        padding: 13px 6px;
+        padding: 16px 8px;
         border: none;
         border-bottom: 3px solid transparent;
         margin-bottom: -2px;
         background: transparent;
         font-weight: 700;
-        font-size: 12px;
-        color: #718096;
+        font-size: 13px;
+        font-family: var(--font-main);
+        color: var(--text-secondary);
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 6px;
     }
-    .pay-tab i { font-size: 15px; }
-    .pay-tab:hover { background: #F0F4F8; color: #092c4c; }
+    .pay-tab i { font-size: 18px; }
+    .pay-tab:hover { background: rgba(255, 255, 255, 0.5); color: var(--french-blue); }
     .pay-tab.active {
-        color: #092c4c;
-        border-bottom-color: #092c4c;
-        background: white;
+        color: var(--french-blue);
+        border-bottom-color: var(--french-blue);
+        background: rgba(255, 255, 255, 0.8);
         font-weight: 800;
     }
 
     /* Scrollable payment body */
-    .payment-body { flex: 1; overflow-y: auto; padding: 20px; min-height: 0; }
+    .payment-body { flex: 1; overflow-y: auto; padding: 24px; min-height: 0; }
 
     /* Total display inside payment view */
     .pay-total-display {
-        background: linear-gradient(135deg, #EEF3FA 0%, #E5EDF7 100%);
-        border: 1px solid #D0DCEE;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 20px;
+        background: rgba(47, 63, 123, 0.05);
+        border: 1px solid rgba(47, 63, 123, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
         text-align: center;
     }
 
     /* Footer with back + confirm */
     .pay-footer {
-        padding: 16px 20px;
-        border-top: 2px solid #EDF2F7;
-        background: white;
+        padding: 20px 24px;
+        border-top: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.9);
         flex-shrink: 0;
     }
     .btn-back {
         flex: 1;
-        padding: 13px;
-        border-radius: 8px;
-        border: 1.5px solid #CBD5E0;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
         background: white;
-        color: #4A5568;
+        color: var(--text-secondary);
         font-weight: 700;
+        font-family: var(--font-main);
         cursor: pointer;
-        font-size: 14px;
+        font-size: 15px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
         transition: 0.2s;
     }
-    .btn-back:hover { background: #F8FAFC; border-color: #A0AEC0; }
+    .btn-back:hover { background: #F8FAFC; border-color: var(--french-blue); color: var(--french-blue); transform: translateY(-2px); }
 
     .btn-confirm {
         flex: 2.5;
-        padding: 13px;
-        border-radius: 8px;
+        padding: 16px;
+        border-radius: 12px;
         border: none;
-        background: #e07300;
+        background: var(--amber-flame);
         color: white;
         font-weight: 800;
+        font-family: var(--font-main);
         cursor: pointer;
-        font-size: 15px;
-        transition: all 0.2s;
-        box-shadow: 0 4px 12px rgba(224,115,0,0.25);
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 16px rgba(255, 185, 21, 0.25);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
     }
-    .btn-confirm:hover { background: #cc6800; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(224,115,0,0.35); }
-    .btn-confirm i { font-size: 18px; }
+    .btn-confirm:hover { background: #e6a300; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 185, 21, 0.35); }
+    .btn-confirm i { font-size: 20px; }
 </style>
 
 <div class="pos-container">
 
-    <!-- ════════════════════════════════════
-         LEFT: INVENTORY
-         ════════════════════════════════════ -->
     <div class="inventory-section">
         <div class="search-header">
             <div class="search-input-group">
                 <i class="ph ph-barcode"></i>
                 <input type="text" id="barcode-input" class="search-input" placeholder="Scan Barcode..." autofocus>
             </div>
-            <input type="text" class="text-search" placeholder="Search product name...">
+            <input type="text" class="text-search" placeholder="Enter product name or barcode...">
         </div>
 
         <div class="category-tabs">
@@ -232,32 +294,25 @@
         </div>
     </div>
 
-    <!-- ════════════════════════════════════
-         RIGHT: ORDER SECTION
-         ════════════════════════════════════ -->
     <div class="order-section">
 
-        <!-- Shared header (always visible) -->
         <div class="order-header">
             <h3 id="order-header-title">Order Details</h3>
-            <p style="font-family:'Inconsolata'; font-weight:600; font-size:15px; margin:0; color:#718096; background:#EDF2F7; padding:4px 10px; border-radius:8px;">
+            <p style="font-family: 'Inconsolata', monospace; font-weight: 700; font-size: 16px; margin: 0; color: var(--french-blue); background: rgba(47, 63, 123, 0.1); padding: 6px 12px; border-radius: 10px;">
                 #{{ transaction.transaction_ref }}
             </p>
         </div>
 
-        <!-- ──────────────────────────────────────────
-             CART VIEW  (shown by default)
-             ────────────────────────────────────────── -->
         <div id="cart-view">
             <div class="cart-container">
                 {% for item in sold_items %}
                 <div class="cart-item">
-                    <div style="flex:1; padding-right:10px;">
+                    <div style="flex:1; padding-right:12px;">
                         <h5 class="cart-item-name">{{ item.inventory_item.item_name }}</h5>
                         <div class="cart-item-price">₱{{ item.unit_price }} each</div>
                     </div>
 
-                    <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
                         <div class="qty-controls">
                             <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'decrease')">-</button>
                             <input type="number" min="1" class="qty-input" value="{{ item.quantity }}" onchange="setQty('{{ item.id }}', this.value)">
@@ -271,9 +326,9 @@
                     <div class="item-subtotal">₱{{ item.subtotal }}</div>
                 </div>
                 {% empty %}
-                <div style="text-align:center; color:#A0AEC0; margin-top:50px; display:flex; flex-direction:column; align-items:center; gap:10px;">
-                    <i class="ph ph-shopping-cart" style="font-size:48px; color:#E2E8F0;"></i>
-                    <span style="font-weight:600;">Cart is empty</span>
+                <div style="text-align:center; color:var(--text-secondary); margin-top:60px; display:flex; flex-direction:column; align-items:center; gap:12px;">
+                    <i class="ph ph-shopping-cart" style="font-size:56px; color: rgba(203, 213, 225, 0.8);"></i>
+                    <span style="font-weight:600; font-size: 16px;">Cart is empty</span>
                 </div>
                 {% endfor %}
             </div>
@@ -281,19 +336,19 @@
             <div class="order-summary">
                 <div class="total-row">
                     <span>Total Due</span>
-                    <span style="font-family:'Inconsolata'; font-weight:800; font-size:30px;">
+                    <span style="font-family: 'Inconsolata', monospace; font-weight: 800; font-size: 32px; color: var(--amber-flame);">
                         ₱<span id="grand-total">{{ transaction.total_amount }}</span>
                     </span>
                 </div>
 
                 <div class="btn-action-group">
                     <a href="{% url 'point_of_sale:void_transaction' %}" class="btn-void" onclick="confirmVoid(event, this.href)">
-                        <i class="ph ph-x-circle" style="margin-right:5px;"></i>Void Order
+                        <i class="ph ph-x-circle" style="margin-right:6px; font-size: 18px;"></i>Void Order
                     </a>
                     <form action="{% url 'pos:save_quotation' transaction.id %}" method="POST" style="flex:1; display:flex;">
                         {% csrf_token %}
                         <button type="submit" class="btn-quote">
-                            <i class="ph ph-file-text" style="margin-right:5px;"></i>Save Quotation
+                            <i class="ph ph-file-text" style="margin-right:6px; font-size: 18px;"></i>Save Quotation
                         </button>
                     </form>
                 </div>
@@ -302,14 +357,8 @@
                  PAY NOW
                 </button>
             </div>
-        </div><!-- /#cart-view -->
+        </div><div id="payment-view">
 
-        <!-- ──────────────────────────────────────────
-             PAYMENT VIEW  (hidden by default)
-             ────────────────────────────────────────── -->
-        <div id="payment-view">
-
-            <!-- Payment Method Tabs -->
             <div class="pay-method-tabs">
                 <button class="pay-tab active" data-method="Cash" onclick="switchPayTab('Cash')">
                     <i class="ph ph-money"></i> Cash
@@ -322,118 +371,107 @@
                 </button>
             </div>
 
-            <!-- Scrollable body -->
             <div class="payment-body">
 
-                <!-- Total Due banner -->
                 <div class="pay-total-display">
-                    <p style="color:#718096; font-size:11px; margin:0 0 4px; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Total Due</p>
-                    <div style="color:#092c4c; font-size:32px; font-family:'Inconsolata'; font-weight:900; line-height:1.1;">
+                    <p style="color:var(--french-blue); font-size:12px; margin:0 0 6px; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Total Due</p>
+                    <div style="color:var(--amber-flame); font-size:36px; font-family:'Inconsolata', monospace; font-weight:800; line-height:1.1; letter-spacing:-1px;">
                         ₱<span id="modal-total-due">0.00</span>
                     </div>
                 </div>
 
-                <!-- ── ONLINE BANK: Reference number ── -->
-                <div id="ref-number-group" style="display:none; margin-bottom:18px;">
-                    <label style="font-weight:700; font-size:13px; color:#092c4c; display:block; margin-bottom:7px;">
-                        Reference Number <span style="color:#E53E3E;">*</span>
+                <div id="ref-number-group" style="display:none; margin-bottom:20px;">
+                    <label style="font-weight:700; font-size:14px; color:var(--text-secondary); display:block; margin-bottom:8px;">
+                        Reference Number <span style="color:var(--status-red);">*</span>
                     </label>
                     <input type="text" id="ref-number-input" placeholder="e.g. GCash / Transfer Ref #"
-                        style="width:100%; padding:13px 14px; border-radius:8px; border:2px solid #CBD5E0; font-size:14px; font-family:'Inconsolata'; letter-spacing:0.5px; outline:none; box-sizing:border-box; transition:border-color 0.2s;"
-                        onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#CBD5E0'">
+                        style="width:100%; padding:14px 16px; border-radius:10px; border:2px solid var(--border-color); background: rgba(255, 255, 255, 0.8); font-size:15px; font-family:'Inconsolata', monospace; letter-spacing:0.5px; outline:none; box-sizing:border-box; transition:all 0.3s ease;"
+                        onfocus="this.style.borderColor='var(--french-blue)'; this.style.boxShadow='0 0 0 3px rgba(47, 63, 123, 0.1)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                 </div>
 
-                <!-- ── TRADE CREDIT: Customer + terms ── -->
-                <div id="credit-customer-group" style="display:none; margin-bottom:18px; background:#FFF8F5; padding:16px; border-radius:10px; border:1px solid #FED7D7;">
-                    <label style="font-weight:700; font-size:13px; color:#d50a0a; display:block; margin-bottom:7px;">
-                        Select Approved Customer <span style="color:#E53E3E;">*</span>
+                <div id="credit-customer-group" style="display:none; margin-bottom:20px; background:rgba(255, 245, 245, 0.6); padding:20px; border-radius:12px; border:1px solid #FECACA;">
+                    <label style="font-weight:700; font-size:14px; color:var(--status-red); display:block; margin-bottom:8px;">
+                        Select Approved Customer <span style="color:var(--status-red);">*</span>
                     </label>
                     <select id="credit-customer" onchange="updateCreditSummary()"
-                        style="width:100%; padding:12px; border-radius:8px; border:1px solid #ffaca4; font-size:13px; outline:none; background:white; cursor:pointer; color:#2D3748;">
+                        style="width:100%; padding:14px; border-radius:10px; border:1px solid #FECACA; font-size:14px; font-family: var(--font-main); outline:none; background:white; cursor:pointer; color:var(--text-primary); transition: all 0.2s ease;"
+                        onfocus="this.style.borderColor='var(--status-red)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)';" onblur="this.style.borderColor='#FECACA'; this.style.boxShadow='none';">
                         <option value="">-- Choose Contractor --</option>
                         {% for customer in credit_customers %}
                             <option value="{{ customer.id }}">{{ customer.name }} (Limit: ₱{{ customer.available_credit }})</option>
                         {% endfor %}
                     </select>
 
-                    <!-- Credit summary (shown after selection) -->
-                    <div id="credit-summary" style="display:none; margin-top:14px; border-top:1px dashed #FED7D7; padding-top:14px;">
-                        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px;">
-                            <span style="color:#718096; font-weight:600;">Principal Amount:</span>
-                            <span id="cs-principal" style="font-family:'Inconsolata'; font-weight:700; color:#2D3748;">₱0.00</span>
+                    <div id="credit-summary" style="display:none; margin-top:16px; border-top:1px dashed #FECACA; padding-top:16px;">
+                        <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:12px;">
+                            <span style="color:var(--text-secondary); font-weight:600;">Principal Amount:</span>
+                            <span id="cs-principal" style="font-family:'Inconsolata', monospace; font-weight:700; color:var(--text-primary); font-size: 16px;">₱0.00</span>
                         </div>
 
-                        <!-- Net 60 -->
-                        <div style="background:white; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:8px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                <span style="font-weight:700; font-size:13px; color:#092c4c;">Net 60</span>
-                                <span style="font-size:11px; color:#718096; background:#EDF2F7; padding:2px 8px; border-radius:20px; font-weight:600;">Due in 60 days</span>
+                        <div style="background:white; border:1px solid var(--border-color); border-radius:10px; padding:14px; margin-bottom:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span style="font-weight:700; font-size:14px; color:var(--french-blue);">Net 60</span>
+                                <span style="font-size:12px; color:var(--text-secondary); background:rgba(248, 250, 252, 0.8); padding:4px 10px; border-radius:20px; font-weight:600;">Due in 60 days</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-size:12px; color:#718096; margin-bottom:2px;">
+                            <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-secondary); margin-bottom:4px;">
                                 <span>Interest (2%):</span>
-                                <span id="cs-interest-60" style="font-family:'Inconsolata'; font-weight:600;">+₱0.00</span>
+                                <span id="cs-interest-60" style="font-family:'Inconsolata', monospace; font-weight:600;">+₱0.00</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px; color:#092c4c; border-top:1px solid #EDF2F7; padding-top:6px; margin-top:6px;">
+                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:16px; color:var(--french-blue); border-top:1px solid var(--border-color); padding-top:8px; margin-top:8px;">
                                 <span>Total Payable:</span>
-                                <span id="cs-total-60" style="font-family:'Inconsolata';">₱0.00</span>
+                                <span id="cs-total-60" style="font-family:'Inconsolata', monospace;">₱0.00</span>
                             </div>
-                            <div id="cs-due-date-60" style="font-size:11px; color:#A0AEC0; margin-top:4px; text-align:right;"></div>
+                            <div id="cs-due-date-60" style="font-size:12px; color:var(--text-secondary); margin-top:6px; text-align:right;"></div>
                         </div>
 
-                        <!-- Net 90 -->
-                        <div style="background:white; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:12px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                <span style="font-weight:700; font-size:13px; color:#092c4c;">Net 90</span>
-                                <span style="font-size:11px; color:#718096; background:#EDF2F7; padding:2px 8px; border-radius:20px; font-weight:600;">Due in 90 days</span>
+                        <div style="background:white; border:1px solid var(--border-color); border-radius:10px; padding:14px; margin-bottom:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span style="font-weight:700; font-size:14px; color:var(--french-blue);">Net 90</span>
+                                <span style="font-size:12px; color:var(--text-secondary); background:rgba(248, 250, 252, 0.8); padding:4px 10px; border-radius:20px; font-weight:600;">Due in 90 days</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-size:12px; color:#718096; margin-bottom:2px;">
+                            <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-secondary); margin-bottom:4px;">
                                 <span>Interest (4%):</span>
-                                <span id="cs-interest-90" style="font-family:'Inconsolata'; font-weight:600;">+₱0.00</span>
+                                <span id="cs-interest-90" style="font-family:'Inconsolata', monospace; font-weight:600;">+₱0.00</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px; color:#092c4c; border-top:1px solid #EDF2F7; padding-top:6px; margin-top:6px;">
+                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:16px; color:var(--french-blue); border-top:1px solid var(--border-color); padding-top:8px; margin-top:8px;">
                                 <span>Total Payable:</span>
-                                <span id="cs-total-90" style="font-family:'Inconsolata';">₱0.00</span>
+                                <span id="cs-total-90" style="font-family:'Inconsolata', monospace;">₱0.00</span>
                             </div>
-                            <div id="cs-due-date-90" style="font-size:11px; color:#A0AEC0; margin-top:4px; text-align:right;"></div>
+                            <div id="cs-due-date-90" style="font-size:12px; color:var(--text-secondary); margin-top:6px; text-align:right;"></div>
                         </div>
 
-                        <!-- Term picker -->
                         <div>
-                            <label style="font-weight:700; font-size:13px; color:#092c4c; display:block; margin-bottom:7px;">Payment Term:</label>
-                            <div style="display:flex; gap:8px;">
+                            <label style="font-weight:700; font-size:14px; color:var(--french-blue); display:block; margin-bottom:8px;">Payment Term:</label>
+                            <div style="display:flex; gap:10px;">
                                 <button type="button" id="term-btn-60" onclick="selectTerm(60)"
-                                    style="flex:1; padding:10px; border-radius:8px; border:2px solid #092c4c; background:#092c4c; color:white; font-weight:700; font-size:13px; cursor:pointer; transition:0.2s;">
+                                    style="flex:1; padding:12px; border-radius:10px; border:2px solid var(--french-blue); background:var(--french-blue); color:white; font-family: var(--font-main); font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s ease;">
                                     Net 60
                                 </button>
                                 <button type="button" id="term-btn-90" onclick="selectTerm(90)"
-                                    style="flex:1; padding:10px; border-radius:8px; border:2px solid #E2E8F0; background:white; color:#4A5568; font-weight:700; font-size:13px; cursor:pointer; transition:0.2s;">
+                                    style="flex:1; padding:12px; border-radius:10px; border:2px solid var(--border-color); background:white; color:var(--text-secondary); font-family: var(--font-main); font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s ease;">
                                     Net 90
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div><!-- /#credit-customer-group -->
-
-                <!-- ── CASH + ONLINE BANK: Amount paid ── -->
-                <div id="amount-paid-group" style="margin-bottom:16px;">
-                    <label style="font-weight:700; font-size:13px; color:#4A5568; display:block; margin-bottom:7px;">Amount Paid:</label>
+                </div><div id="amount-paid-group" style="margin-bottom:20px;">
+                    <label style="font-weight:700; font-size:14px; color:var(--text-secondary); display:block; margin-bottom:8px;">Amount Paid:</label>
                     <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00"
-                        style="width:100%; padding:15px; border-radius:8px; border:2px solid #e07300; font-family:'Inconsolata'; font-size:24px; font-weight:700; margin-bottom:12px; box-sizing:border-box; outline:none;">
-                    <div style="background:#F0FFF4; border:1px solid #C6F6D5; border-radius:8px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:700; color:#2F855A; font-size:16px;">Change:</span>
-                        <span style="font-weight:800; color:#276749; font-size:22px; font-family:'Inconsolata';">
+                        style="width:100%; padding:16px; border-radius:12px; border:2px solid var(--amber-flame); background: rgba(255, 255, 255, 0.9); font-family:'Inconsolata', monospace; font-size:28px; font-weight:800; color: var(--french-blue); margin-bottom:16px; box-sizing:border-box; outline:none; transition: box-shadow 0.3s ease;"
+                        onfocus="this.style.boxShadow='0 0 0 4px rgba(255, 185, 21, 0.15)'" onblur="this.style.boxShadow='none'">
+                    
+                    <div style="background:rgba(240, 253, 244, 0.8); border:1px solid #bbf7d0; border-radius:12px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:700; color:var(--status-green); font-size:16px;">Change:</span>
+                        <span style="font-weight:800; color:#15803d; font-size:24px; font-family:'Inconsolata', monospace;">
                             ₱<span id="sum-change">0.00</span>
                         </span>
                     </div>
                 </div>
 
-            </div><!-- /.payment-body -->
-
-            <!-- Footer -->
-            <div class="pay-footer">
-                <div style="display:flex; gap:10px;">
+            </div><div class="pay-footer">
+                <div style="display:flex; gap:12px;">
                     <button class="btn-back" onclick="showCartView()">
-                        <i class="ph ph-arrow-left" style="font-size:16px;"></i> Back
+                        <i class="ph ph-arrow-left" style="font-size:18px;"></i> Back
                     </button>
                     <button class="btn-confirm" onclick="finalizeAndPrint()">
                         <i class="ph ph-check-circle"></i> Confirm Payment
@@ -441,20 +479,21 @@
                 </div>
             </div>
 
-        </div><!-- /#payment-view -->
-
-    </div><!-- /.order-section -->
-</div><!-- /.pos-container -->
-
-<script>
+        </div></div></div><script>
     // ── Django messages ──────────────────────────────
     {% if messages %}
         {% for message in messages %}
+            let swalIcon = 'info';
+            {% if message.tags == 'error' %} swalIcon = 'error'; {% endif %}
+            {% if message.tags == 'success' %} swalIcon = 'success'; {% endif %}
+            
             Swal.fire({
-                title: '{% if message.tags == "error" %}Oops!{% else %}Notice{% endif %}',
-                text: '{{ message }}',
-                icon: '{{ message.tags }}',
-                confirmButtonColor: '#e07300'
+                title: swalIcon === 'error' ? 'Oops!' : 'Notice',
+                text: '{{ message|escapejs }}',
+                icon: swalIcon,
+                confirmButtonColor: 'var(--french-blue)',
+                timer: 3000,
+                timerProgressBar: true
             });
         {% endfor %}
     {% endif %}
@@ -473,7 +512,7 @@
                 if (data.status === 'success') {
                     location.reload();
                 } else {
-                    Swal.fire({ title: 'Cannot Add Item', text: data.message || 'Insufficient stock or item is unavailable.', icon: 'warning', confirmButtonColor: '#e07300' });
+                    Swal.fire({ title: 'Cannot Add Item', text: data.message || 'Insufficient stock or item is unavailable.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
                 }
             })
             .catch(err => console.error("Error adding to cart:", err));
@@ -486,8 +525,8 @@
             text: 'Are you sure you want to void this transaction? This cannot be undone.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d50a0a',
-            cancelButtonColor: '#CBD5E0',
+            confirmButtonColor: 'var(--status-red)',
+            cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, Void It'
         }).then(result => { if (result.isConfirmed) window.location.href = targetUrl; });
     }
@@ -528,8 +567,8 @@
             text: `Are you sure you want to remove '${itemName}'?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d50a0a',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: 'var(--status-red)',
+            cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, remove it!'
         }).then(result => { if (result.isConfirmed) updateQty(itemId, 'remove'); });
     }
@@ -574,9 +613,15 @@
 
     function applyFilters(categoryName, searchTerm) {
         document.querySelectorAll('.product-card').forEach(p => {
+            // UPDATED: Now searches by both Name and Barcode (pid)
             const name = p.querySelector('.name').innerText.toLowerCase();
+            const pid = p.querySelector('.pid').innerText.toLowerCase();
             const cat  = p.getAttribute('data-category');
-            const ok   = name.includes(searchTerm) && (categoryName === 'All' || cat === categoryName);
+            
+            const matchesSearch = name.includes(searchTerm) || pid.includes(searchTerm);
+            const matchesCategory = (categoryName === 'All' || cat === categoryName);
+            
+            const ok = matchesSearch && matchesCategory;
             p.style.display = ok ? 'flex' : 'none';
         });
     }
@@ -593,7 +638,7 @@
                     .then(r => r.json())
                     .then(d => {
                         if (d.status === 'success') { location.reload(); }
-                        else { Swal.fire({ title: 'Scan Error', text: d.message, icon: 'error', confirmButtonColor: '#e07300' }); }
+                        else { Swal.fire({ title: 'Scan Error', text: d.message, icon: 'error', confirmButtonColor: 'var(--amber-flame)' }); }
                     });
             }
             this.value = '';
@@ -607,7 +652,7 @@
     function showPaymentView() {
         const totalText = document.getElementById('grand-total').innerText.replace(/,/g, '');
         if (parseFloat(totalText) <= 0 || isNaN(parseFloat(totalText))) {
-            return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: '#e07300' });
+            return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
         }
         // Sync the total display
         document.getElementById('modal-total-due').innerText = document.getElementById('grand-total').innerText;
@@ -680,7 +725,7 @@
 
         const el = document.getElementById('sum-change');
         el.innerText   = change >= 0 ? change.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
-        el.style.color = change >= 0 ? '#276749' : '#E53E3E';
+        el.style.color = change >= 0 ? '#15803d' : 'var(--status-red)';
     }
 
     // ════════════════════════════════════════════════
@@ -696,13 +741,13 @@
 
         // Validation
         if (selectedMethod !== 'Trade Credit' && parseFloat(paidVal) < total) {
-            return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: '#e07300' });
+            return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
         }
         if (selectedMethod === 'Trade Credit' && !customerId) {
-            return Swal.fire('Missing Customer', 'You must select an approved customer for Trade Credit.', 'warning');
+            return Swal.fire({ title: 'Missing Customer', text: 'You must select an approved customer for Trade Credit.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
         }
         if (selectedMethod === 'Online Bank' && refNum === '') {
-            return Swal.fire('Missing Details', 'Reference Number is required for Online Bank transactions.', 'warning');
+            return Swal.fire({ title: 'Missing Details', text: 'Reference Number is required for Online Bank transactions.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
         }
 
         Swal.fire({
@@ -710,8 +755,8 @@
             text: `Finalizing sale using ${selectedMethod}.`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#092c4c',
-            cancelButtonColor: '#CBD5E0',
+            confirmButtonColor: 'var(--french-blue)',
+            cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, Confirm!',
             cancelButtonText: 'Cancel'
         }).then(result => {
@@ -772,11 +817,11 @@
         const btn60 = document.getElementById('term-btn-60');
         const btn90 = document.getElementById('term-btn-90');
         if (days === 60) {
-            btn60.style.cssText += '; background:#092c4c; color:white; border-color:#092c4c;';
-            btn90.style.cssText += '; background:white; color:#4A5568; border-color:#E2E8F0;';
+            btn60.style.cssText += '; background:var(--french-blue); color:white; border-color:var(--french-blue);';
+            btn90.style.cssText += '; background:white; color:var(--text-secondary); border-color:var(--border-color);';
         } else {
-            btn90.style.cssText += '; background:#092c4c; color:white; border-color:#092c4c;';
-            btn60.style.cssText += '; background:white; color:#4A5568; border-color:#E2E8F0;';
+            btn90.style.cssText += '; background:var(--french-blue); color:white; border-color:var(--french-blue);';
+            btn60.style.cssText += '; background:white; color:var(--text-secondary); border-color:var(--border-color);';
         }
     }
 </script>

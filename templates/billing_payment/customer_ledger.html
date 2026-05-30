@@ -7,43 +7,51 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
+    /* GLASSMORPHISM STAT CARDS */
     .stats-grid { 
         display: grid; 
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-        gap: 20px; 
-        margin-bottom: 30px; 
+        gap: 24px; 
+        margin-bottom: 32px; 
     }
     .stat-card { 
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 25px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
+        padding: 28px; 
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.15);
     }
     .stat-card p { 
-        margin: 0 0 5px 0; 
-        color: #64748b; 
-        font-size: 0.8rem; 
+        margin: 0 0 8px 0; 
+        color: var(--text-secondary); 
+        font-size: 13px; 
         font-weight: 700; 
         text-transform: uppercase; 
-        letter-spacing: 0.05em; 
+        letter-spacing: 0.5px; 
     }
     .stat-card h3 { 
         margin: 0; 
-        font-size: 1.7rem; 
-        font-weight: 900; 
+        font-size: 32px; 
+        font-weight: 800; 
+        letter-spacing: -1px;
     }
 
+    /* GLASSMORPHISM TABLE CONTAINER */
     .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
         overflow-x: auto; 
     }
     
@@ -54,32 +62,42 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
-        vertical-align: middle; /* Binago ko ito para pumantay ang icons */
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary);
+        font-size: 14px; 
+        vertical-align: middle;
+        transition: background-color 0.2s ease;
     }
+
+    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
     .table-clean th {
         font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
+        color: var(--text-secondary); 
+        font-size: 12px; 
         text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
     
+    /* AESTHETIC STATUS BADGES */
     .badge {
         padding: 6px 14px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 12px;
         font-weight: 700;
         display: inline-block;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .bg-sage-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-    .bg-soft-lavender { background-color: #fff7ed; color: #dd6b20; border: 1px solid #feebc8; }
+    .bg-soft-lavender { background-color: #fffdf0; color: #FFB915; border: 1px solid #fcfed6; }
     .bg-danger { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
+    /* ACTION BUTTONS */
     .action-group { display: flex; gap: 8px; align-items: center; justify-content: center; }
     
     .table-action-btn {
@@ -88,62 +106,52 @@
         justify-content: center;
         width: 36px;
         height: 36px;
-        border-radius: 8px;
-        background-color: #f8fafc;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid #e2e8f0;
-        color: #64748b;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 1.2rem;
-        transition: all 0.2s ease;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
-        padding: 0; /* Siguraduhing walang padding */
+        padding: 0; 
     }
 
     .table-action-btn:hover { 
-    transform: translateY(-2px); 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
 
-    .btn-history {
-        color: #4b5563; 
-        background-color: #f9fafb; 
-    }
+    .btn-history { color: var(--text-secondary); }
+    .btn-history:hover { background-color: var(--text-secondary); color: white; border-color: var(--text-secondary); }
 
-    .btn-history:hover { 
-        background-color: #4b5563; 
-        color: white; 
-        border-color: #4b5563; 
-    }
+    .btn-settle { color: #16a34a; }
+    .btn-settle:hover { background-color: #16a34a; color: white; border-color: #16a34a; }
 
-    .btn-settle { 
-        color: #22543d; 
-        background-color: #eefff4;
-    }
-
-    .btn-settle:hover { 
-        background-color: #22543d; 
-        color: white; 
-        border-color: #22543d; 
-    }
-
-    .table-action-btn.disabled { 
-        opacity: 0.5; 
-        cursor: not-allowed; 
-    }
-
-    .table-action-btn.disabled:hover { 
-        transform: none; 
-        background-color: #f8fafc; 
-        color: #64748b; 
-        border-color: #e2e8f0; 
-    }
+    .table-action-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+    .table-action-btn.disabled:hover { transform: none; box-shadow: none; background-color: rgba(255, 255, 255, 0.9); color: var(--text-secondary); border-color: #e2e8f0; }
 
     /* FORM STYLES FOR MODAL */
-    .form-group { margin-bottom: 15px; text-align: left; }
-    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.85rem; color: #475569; }
-    .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
-    .form-group input:focus, .form-group select:focus { border-color: #092c4c; }
+    .form-group { margin-bottom: 16px; text-align: left; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); }
+    .form-group input, .form-group select { 
+        width: 100%; 
+        padding: 12px 16px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        transition: all 0.3s ease; 
+        box-sizing: border-box; 
+        background: rgba(255, 255, 255, 0.8);
+    }
+    .form-group input:focus, .form-group select:focus { 
+        border-color: var(--french-blue); 
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
+    }
 
-    /* Modal general styles (Image 2 style) */
+    /* GLASS MODAL GENERAL STYLES */
     .blur-modal {
         display:none; 
         position:fixed; 
@@ -152,52 +160,55 @@
         width:100%; 
         height:100%; 
         background:rgba(15, 23, 42, 0.6); 
-        z-index:1000; 
+        z-index:5000; 
         justify-content:center; 
         align-items:center; 
-        backdrop-filter: blur(4px); 
-        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(6px); 
+        -webkit-backdrop-filter: blur(6px);
     }
     .modal-box {
-        background:#fff; 
-        border-radius:16px; 
-        box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); 
+        background: rgba(255, 255, 255, 0.95); 
+        border-radius: var(--border-radius, 20px); 
+        box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); 
         overflow:hidden; 
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-main);
+        border: 1px solid rgba(255, 255, 255, 0.5);
     }
     .modal-header {
-        padding:25px 25px 20px; 
-        border-bottom:1px solid #edf2f7; 
+        padding:24px 30px; 
+        border-bottom:1px solid var(--border-color); 
         text-align:center;
+        background: rgba(248, 250, 252, 0.8);
     }
     .modal-header-tag {
         margin:0; 
-        font-size:0.75rem; 
+        font-size:12px; 
         font-weight:700; 
-        color:#64748b; 
+        color:var(--text-secondary); 
         text-transform:uppercase; 
-        letter-spacing:0.05em;
+        letter-spacing:0.5px;
     }
     .modal-header-title {
-        margin:5px 0 0 0; 
-        color:#092c4c; 
-        font-size:1.2rem; 
-        font-weight:900;
+        margin:8px 0 0 0; 
+        color:var(--french-blue); 
+        font-size:24px; 
+        font-weight:800;
+        font-family: 'Inconsolata', monospace;
     }
     .modal-body {
-        padding:25px;
+        padding:30px;
     }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 25px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <a href="{% url 'billing_payment:customer_list' %}" style="color: #64748b; text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 12px; transition: color 0.2s;" onmouseover="this.style.color='#092c4c'" onmouseout="this.style.color='#64748b'">
+            <a href="{% url 'billing_payment:customer_list' %}" style="color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; transition: color 0.2s;" onmouseover="this.style.color='var(--french-blue)'" onmouseout="this.style.color='var(--text-secondary)'">
                 <i class="ph ph-arrow-left"></i> Back to Customers
             </a>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">{{ customer.name }} - Account Ledger</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 6px 0; font-size: 28px; letter-spacing: -0.5px;">{{ customer.name }} - Account Ledger</h2>
+            <p style="font-family: var(--font-main); font-weight: 300; color:#6B7280; margin: 0; font-size: 15px;">
                 Detailed history of invoices, payments, and balances.
             </p>
         </div>
@@ -206,20 +217,20 @@
     <div class="stats-grid">
         <div class="stat-card">
             <p>Outstanding Balance</p>
-            <h3 style="font-family:'Inconsolata'; color: #dc2626;">₱{{ customer.credit_balance }}</h3>
+            <h3 style="font-family: 'Inconsolata', monospace; color: var(--status-red);">₱{{ customer.credit_balance|floatformat:"2g" }}</h3>
         </div>
         <div class="stat-card">
             <p>Available Credit</p>
-            <h3 style="font-family:'Inconsolata'; color: #16a34a;">₱{{ customer.available_credit }}</h3>
+            <h3 style="font-family: 'Inconsolata', monospace; color: var(--status-green);">₱{{ customer.available_credit|floatformat:"2g" }}</h3>
         </div>
         <div class="stat-card">
             <p>Total Credit Limit</p>
-            <h3 style="font-family:'Inconsolata'; color: #092c4c;">₱{{ customer.credit_limit }}</h3>
+            <h3 style="font-family: 'Inconsolata', monospace; color: var(--french-blue);">₱{{ customer.credit_limit|floatformat:"2g" }}</h3>
         </div>
     </div>
 
     <div class="table-container">
-        <h3 style="margin: 0 0 20px 0; color: #092c4c; font-size: 1.2rem; font-weight: 800;">INVOICE HISTORY</h3>
+        <h3 style="margin: 0 0 24px 0; color: var(--french-blue); font-size: 16px; font-weight: 800; font-family: var(--font-heading);">INVOICE HISTORY</h3>
         <table class="table-clean">
             <thead>
                 <tr>
@@ -236,15 +247,15 @@
                 {% for invoice in invoices %}
                 <tr>
                     <td>
-                        <strong style="font-family:'Inconsolata'; font-size: 1.05rem; font-weight: 700; color: #092c4c; ">{{ invoice.invoice_no }}</strong>
+                        <strong style="font-family: 'Inconsolata', monospace; font-size: 16px; font-weight: 700; color: var(--french-blue);">{{ invoice.invoice_no }}</strong>
                     </td>
 
-                    <td style="color: #64748b;">{{ invoice.issue_date|date:"M d, Y" }}</td>
-                    <td style="color: #64748b;">{{ invoice.due_date|date:"M d, Y" }}</td>
-                    <td style="font-family:'Inconsolata'; font-size: 1.05rem; font-weight: 600; color: #334155;">₱{{ invoice.total_amount }}</td>
+                    <td style="color: var(--text-secondary);">{{ invoice.issue_date|date:"M d, Y" }}</td>
+                    <td style="color: var(--text-secondary);">{{ invoice.due_date|date:"M d, Y" }}</td>
+                    <td style="font-family: 'Inconsolata', monospace; font-size: 16px; font-weight: 600; color: var(--text-primary);">₱{{ invoice.total_amount|floatformat:"2g" }}</td>
                     
-                    <td style="font-family:'Inconsolata'; font-size: 1.05rem; font-weight: 800; color: {% if invoice.balance_due > 0 %}#dc2626{% else %}#16a34a{% endif %};">
-                        ₱{{ invoice.balance_due }}
+                    <td style="font-family: 'Inconsolata', monospace; font-size: 16px; font-weight: 800; color: {% if invoice.balance_due > 0 %}var(--status-red){% else %}var(--status-green){% endif %};">
+                        ₱{{ invoice.balance_due|floatformat:"2g" }}
                     </td>
                     
                     <td>
@@ -265,7 +276,6 @@
                                 </button>
                             {% endif %}
 
-                            {# Palitan ang 'invoice.payments.all' kung iba ang related name mo sa model #}
                             {% if invoice.payments.all or invoice.invoicepayment_set.all %}
                                 <button type="button" 
                                         data-fetch-url="{% url 'billing_payment:api_invoice_payments' invoice.id %}"
@@ -280,7 +290,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No invoices found for this customer.</td>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">No invoices found for this customer.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -289,7 +299,7 @@
 </div>
 
 <div id="payModal" class="blur-modal">
-    <div class="modal-box" style="width:420px;">
+    <div class="modal-box" style="width:450px;">
         <div class="modal-header">
             <p class="modal-header-tag">Receive Payment</p>
             <h3 id="modal-invoice-no" class="modal-header-title">Loading...</h3>
@@ -301,13 +311,13 @@
                 
                 <div class="form-group">
                     <label>Amount to Pay (₱)</label>
-                    <input type="number" id="pay-amount" name="amount" required step="0.01" style="font-family:'Inconsolata'; font-size: 1.5rem; font-weight: 800; color: #092c4c; padding: 15px; text-align: center; border: 2px solid #cbd5e1;" onfocus="this.style.borderColor='#e07300'" onblur="this.style.borderColor='#cbd5e1'">
-                    <div style="text-align: right; margin-top: 5px;">
-                        <small style="font-family: 'Inconsolata'; font-weight: 700; font-size: 0.9rem; color: #64748b;">MAX: ₱<span style="font-family: 'Inconsolata'; font-weight: 700; font-size: 0.9rem;" id="modal-max-amount"></span></small>
+                    <input type="number" id="pay-amount" name="amount" required step="0.01" style="font-family: 'Inconsolata', monospace; font-size: 24px; font-weight: 800; color: var(--french-blue); padding: 16px; text-align: center; border: 2px solid rgba(203, 213, 225, 0.8);" onfocus="this.style.borderColor='var(--amber-flame)'; this.style.boxShadow='0 0 0 3px rgba(255, 185, 21, 0.1)';" onblur="this.style.borderColor='rgba(203, 213, 225, 0.8)'; this.style.boxShadow='none';">
+                    <div style="text-align: right; margin-top: 8px;">
+                        <small style="font-family: var(--font-main); font-weight: 600; font-size: 12px; color: var(--text-secondary);">MAX: ₱<span style="font-family: 'Inconsolata', monospace; font-weight: 700; font-size: 14px;" id="modal-max-amount"></span></small>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 20px;">
+                <div class="form-group" style="margin-top: 24px;">
                     <label>Payment Method</label>
                     <select name="method" required>
                         <option value="cash">Cash</option>
@@ -315,31 +325,30 @@
                     </select>
                 </div>
                 
-                <div style="display: flex; gap: 10px; margin-top: 30px;">
-                    <button type="button" onclick="closeAllModals()" style="flex: 1; padding: 12px; border: 1px solid #CBD5E1; background: white; color: #475569; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif; transition: 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='white'">Cancel</button>
+                <div style="display: flex; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px dashed var(--border-color);">
+                    <button type="button" onclick="closeAllModals()" style="flex: 1; padding: 12px; border: 1px solid rgba(203, 213, 225, 0.8); background: rgba(248, 250, 252, 0.8); color: var(--text-secondary); border-radius: 10px; cursor: pointer; font-weight: 600; font-family: var(--font-main); font-size: 14px; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#FFFFFF'; this.style.color='var(--french-blue)';" onmouseout="this.style.backgroundColor='rgba(248, 250, 252, 0.8)'; this.style.color='var(--text-secondary)';">Cancel</button>
                     
-                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: #e07300; color: white; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: 'Inter', sans-serif; transition: 0.2s; box-shadow: 0 4px 6px rgba(224, 115, 0, 0.2);" onmouseover="this.style.backgroundColor='#cc6800'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#e07300'; this.style.transform='translateY(0)';">Confirm</button>
+                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: var(--amber-flame); color: white; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: var(--font-main); font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(255, 185, 21, 0.2);" onmouseover="this.style.backgroundColor='#e6a300'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='var(--amber-flame)'; this.style.transform='translateY(0)';">Confirm</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background:#fff; width:450px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
-        
-        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
-            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Payment History</p>
-            <h3 id="history-modal-invoice-no" style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;">Loading...</h3>
+<div id="historyModal" class="blur-modal">
+    <div class="modal-box" style="width:500px;">
+        <div class="modal-header">
+            <p class="modal-header-tag">Payment History</p>
+            <h3 id="history-modal-invoice-no" class="modal-header-title">Loading...</h3>
         </div>
         
-        <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
+        <div style="padding:24px 30px; max-height:400px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse; text-align:left;">
                 <thead>
                     <tr>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Amount Paid</th>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Date</th>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:right; border-bottom:2px solid #f1f5f9;">Method</th>
+                        <th style="padding-bottom:12px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--border-color);">Amount Paid</th>
+                        <th style="padding-bottom:12px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:center; border-bottom:2px solid var(--border-color);">Date</th>
+                        <th style="padding-bottom:12px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:right; border-bottom:2px solid var(--border-color);">Method</th>
                     </tr>
                 </thead>
                 <tbody id="history-table-body">
@@ -347,10 +356,10 @@
             </table>
         </div>
         
-        <div style="padding:0 25px 25px; background:#fff; text-align:center;">
-            <button onclick="closeAllModals()" style="width:100%; background:#092c4c; color:#fff; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.95rem; font-family: 'Inter', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" 
-                    onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(9, 44, 76, 0.3)';" 
-                    onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(9, 44, 76, 0.2)';">
+        <div style="padding:20px 30px 30px; background:transparent; text-align:center;">
+            <button onclick="closeAllModals()" style="width:100%; background:var(--french-blue); color:#fff; border:none; padding:16px 20px; border-radius:12px; cursor:pointer; font-weight:600; font-size:15px; font-family: var(--font-main); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);" 
+                    onmouseover="this.style.backgroundColor='#1a2858'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(47, 63, 123, 0.3)';" 
+                    onmouseout="this.style.backgroundColor='var(--french-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(47, 63, 123, 0.2)';">
                 Close Details
             </button>
         </div>
@@ -358,28 +367,25 @@
 </div>
 
 <script>
-    // General function para isara ang lahat ng modals gamit ang ID
     function closeAllModals() {
         document.getElementById('payModal').style.display = 'none';
         document.getElementById('historyModal').style.display = 'none';
     }
 
-    // Isara ang modal kapag pinindot sa labas ng puting kahon
     window.onclick = function(event) {
         if (event.target.id === 'payModal' || event.target.id === 'historyModal') {
             closeAllModals();
         }
     }
 
-    // Function para sa Receive Payment Modal
     function openPayModal(invoiceId, invoiceNo, balanceDue) {
         closeAllModals();
 
         document.getElementById('modal-invoice-no').innerText = invoiceNo;
-        document.getElementById('modal-max-amount').innerText = balanceDue;
+        document.getElementById('modal-max-amount').innerText = parseFloat(balanceDue).toLocaleString(undefined, {minimumFractionDigits: 2});
         
-        document.getElementById('pay-amount').value = balanceDue;
-        document.getElementById('pay-amount').max = balanceDue;
+        document.getElementById('pay-amount').value = parseFloat(balanceDue).toFixed(2);
+        document.getElementById('pay-amount').max = parseFloat(balanceDue).toFixed(2);
         
         const form = document.getElementById('payForm');
         form.action = `/billing/invoice/${invoiceId}/pay/`; 
@@ -387,7 +393,6 @@
         document.getElementById('payModal').style.display = 'flex';
     }
 
-    // Function para sa Payment History Modal (AJAX/Fetch)
     function openHistoryModal(buttonElement) {
         closeAllModals();
 
@@ -395,10 +400,10 @@
         const tableBody = document.getElementById('history-table-body');
         const titleElement = document.getElementById('history-modal-invoice-no');
 
-        titleElement.innerText = "Loading...";
+        titleElement.innerHTML = `<i class="ph ph-spinner ph-spin" style="font-size: 24px; color: var(--french-blue); vertical-align: middle;"></i>`;
         tableBody.innerHTML = `
             <tr>
-                <td colspan="3" style="text-align: center; padding: 30px; color: #94a3b8; font-style: italic;">
+                <td colspan="3" style="text-align: center; padding: 30px; color: var(--text-secondary); font-size: 14px; font-weight: 500;">
                     Fetching payment details...
                 </td>
             </tr>
@@ -413,13 +418,13 @@
             })
             .then(data => {
                 if (data.status === 'success') {
-                    titleElement.innerHTML = `<span style="font-family: 'Inconsolata'; font-size: 1.4rem; font-weight: 900; color: #092c4c;">${data.invoice_no}</span>`;
+                    titleElement.innerHTML = `<span style="font-family: 'Inconsolata', monospace; font-size: 24px; font-weight: 800; color: var(--french-blue);">${data.invoice_no}</span>`;
                     tableBody.innerHTML = '';
 
                     if (data.payments.length === 0) {
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8; font-size:0.9rem; font-weight:500;">
+                                <td colspan="3" style="text-align: center; padding: 30px; color: var(--text-secondary); font-size:14px; font-style: italic;">
                                     No payment records found.
                                 </td>
                             </tr>
@@ -427,14 +432,14 @@
                     } else {
                         data.payments.forEach(payment => {
                             const row = `
-                                <tr>
-                                    <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:800; font-family:'Inconsolata'; font-size: 1.05rem; color:#092c4c;">
+                                <tr style="transition: background 0.2s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.8)'" onmouseout="this.style.background='transparent'">
+                                    <td style="padding:16px 0; border-bottom:1px solid var(--border-color); font-weight:800; font-family:'Inconsolata', monospace; font-size: 16px; color:var(--french-blue);">
                                         ₱${payment.amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}
                                     </td>
-                                    <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:0.9rem; font-weight:500;">
+                                    <td style="padding:16px 15px; border-bottom:1px solid var(--border-color); text-align:center; color:var(--text-secondary); font-size:14px; font-weight:600;">
                                         ${payment.date}
                                     </td>
-                                    <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:600; color:#1e293b; font-size:0.9rem;">
+                                    <td style="padding:16px 0; border-bottom:1px solid var(--border-color); text-align:right; font-weight:700; color:var(--text-primary); font-size:14px; text-transform: capitalize;">
                                         ${payment.method}
                                     </td>
                                 </tr>
@@ -451,9 +456,9 @@
                 titleElement.innerText = "Error";
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="3" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">
+                        <td colspan="3" style="text-align:center; padding:30px; color:var(--status-red); font-weight:600; font-size: 14px;">
                             Failed to load payment history.<br>
-                            <span style="font-size: 0.75rem; font-weight: 400; color: #718096;">Please try again later.</span>
+                            <span style="font-size: 12px; font-weight: 500; color: var(--text-secondary);">Please try again later.</span>
                         </td>
                     </tr>
                 `;

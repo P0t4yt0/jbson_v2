@@ -7,28 +7,27 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
+    /* GLASSMORPHISM PANELS */
+    .table-container, .filter-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+    }
+    
+    .table-container {
         overflow-x: auto; 
     }
     
     .filter-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 20px; 
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 24px 30px; 
+        margin-bottom: 24px;
     }
     
+    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -36,63 +35,116 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary, #4a5568);
+        font-size: 14px; 
         vertical-align: middle;
+        transition: background-color 0.2s ease;
     }
-    .table-clean th {
-        font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
-        text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+    
+    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
     }
 
+    .table-clean th {
+        font-weight: 700;
+        color: var(--text-secondary, #64748b); 
+        font-size: 12px; 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
+    }
+
+    /* ACTION BUTTONS WITH HOVER EFFECTS */
     .action-group { display: flex; gap: 8px; align-items: center; justify-content: center; }
     
     .table-action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background-color: #f8fafc;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid #e2e8f0;
-        color: #64748b;
+        color: var(--text-secondary, #64748b);
         text-decoration: none;
-        font-size: 1.1rem;
-        transition: all 0.2s ease;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
     }
 
     .table-action-btn:hover { 
-    transform: translateY(-2px); 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
 
-    .btn-view {
-        color: #092c4c;
-        background-color: #f2f7fb; 
+    .btn-view { color: var(--french-blue); }
+    .btn-view:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+
+    .table-action-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+    .table-action-btn.disabled:hover { transform: none; box-shadow: none; background-color: rgba(255, 255, 255, 0.9); color: #64748b; border-color: #e2e8f0; }
+
+    /* FORM & FILTER STYLES */
+    .filter-input {
+        flex: 2; 
+        padding: 12px 16px; 
+        font-size: 13px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+    }
+    .filter-input:focus {
+        border-color: var(--french-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 
-    .btn-view:hover { 
-        background-color: #092c4c; 
+    .btn-primary {
+        background: var(--french-blue); 
         color: white; 
-        border-color: #092c4c; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        font-weight: 600; 
+        font-family: var(--font-main); 
+        font-size: 14px; 
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
+    }
+    .btn-primary:hover {
+        background-color: #1a2858;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
     }
 
-    .table-action-btn.disabled { 
-        opacity: 0.5; 
-        cursor: not-allowed; 
+    .btn-clear {
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        text-decoration: none; 
+        background: rgba(248, 250, 252, 0.8); 
+        color: var(--text-secondary); 
+        padding: 12px 24px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-size: 13px; 
+        font-weight: 600; 
+        transition: all 0.3s ease;
     }
-
-    .table-action-btn.disabled:hover { 
-        transform: none; 
-        background-color: #f8fafc; 
-        color: #64748b; 
-        border-color: #e2e8f0; 
+    .btn-clear:hover {
+        background-color: rgba(255, 255, 255, 1); 
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
     }
 
     /* PAGINATION STYLES */
@@ -102,60 +154,65 @@
         align-items: center;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid #edf2f7;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
     }
     .page-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 32px;
+        min-width: 36px;
+        height: 36px;
         gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        background: white;
-        border-radius: 6px;
-        color: #475569;
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 13px;
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
-    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
-    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+    .page-btn:hover { 
+        border-color: var(--french-blue); 
+        color: var(--french-blue); 
+        background-color: #FFFFFF; 
+        transform: translateY(-2px);
+    }
+    .page-btn.active { 
+        background: var(--mustard); 
+        color: #1E293B; 
+        font-weight: bold; 
+        border-color: var(--mustard); 
+        box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4);
+    }
+    .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Sales Returns</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 6px 0; font-size: 28px; letter-spacing: -0.5px;">Sales Returns</h2>
+            <p style="font-family: var(--font-main); color:#6B7280; margin: 0; font-size: 15px;">
                 View and manage all returned hardware items and customer refunds.
             </p>
         </div>
-        <button onclick="openReturnModal()" style="background: #092c4c; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.1);" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">
-            <i class="ph ph-arrow-counter-clockwise" style="font-size: 1.2rem;"></i> Process New Return
+        <button onclick="openReturnModal()" class="btn-primary">
+            <i class="ph ph-arrow-counter-clockwise" style="font-size: 20px;"></i> Process New Return
         </button>
     </div>
 
     <div class="filter-container">
-        <form method="GET" style="display: flex; gap: 15px; align-items: center; margin: 0;">
-            <input type="text" name="q" placeholder="Search Reference, Customer, Cashier..." value="{{ query|default:'' }}" 
-                   style="flex: 2; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;" 
-                   onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+        <form method="GET" style="display: flex; gap: 16px; align-items: center; margin: 0;">
+            <input type="text" name="q" class="filter-input" placeholder="Search Reference, Customer, Cashier..." value="{{ query|default:'' }}">
             
-            <button type="submit" style="background: #092c4c; color: white; padding: 12px 30px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box;" 
-                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.borderColor='#092c4c';">
-                Filter
+            <button type="submit" class="btn-primary" style="padding: 12px 30px;">
+                <i class="ph ph-funnel" style="margin-right: 4px;"></i> Filter
             </button>
 
             {% if query %}
-            <a href="{% url 'billing_payment:sales_return_list' %}" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 12px 30px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box;" 
-               title="Clear all filters"
-               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
-               onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
-                Clear
+            <a href="{% url 'billing_payment:sales_return_list' %}" class="btn-clear" title="Clear all filters">
+                <i class="ph ph-x-circle" style="margin-right: 4px;"></i> Clear
             </a>
             {% endif %}
         </form>
@@ -174,9 +231,9 @@
             <tbody>
                 {% for return in returns %}
                 <tr>
-                    <td><strong style="color: #092c4c; font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata';">{{ return.return_id }}</strong></td>
-                    <td style="color: #64748b; font-weight:500; font-size: 1.05rem; font-family: 'Inconsolata';">{{ return.transaction.transaction_ref }}</td>
-                    <td style="color: #64748b;">{{ return.created_at|date:"M d, Y" }}</td>
+                    <td><strong style="color: var(--french-blue); font-weight: 700; font-size: 16px; font-family: 'Inconsolata', monospace;">{{ return.return_id }}</strong></td>
+                    <td style="color: var(--text-secondary); font-weight:500; font-size: 16px; font-family: 'Inconsolata', monospace;">{{ return.transaction.transaction_ref }}</td>
+                    <td style="color: var(--text-secondary);">{{ return.created_at|date:"M d, Y" }}</td>
                     
                     <td>
                         <div class="action-group">
@@ -189,20 +246,20 @@
                             <table id="details-data-{{ return.return_id }}">
                                 <tbody>
                                     {% for item in return.returned_items.all %}
-                                    <tr>
-                                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">{{ item.product.name }}</td>
+                                    <tr style="transition: background 0.2s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.8)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:16px 0; border-bottom:1px solid var(--border-color); font-weight:600; color:var(--text-primary); font-size:14px;">{{ item.product.name }}</td>
                                         
-                                        <td class="item-price" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-weight:500;">
+                                        <td class="item-price" style="font-size: 16px; font-family: 'Inconsolata', monospace; padding:16px 15px; border-bottom:1px solid var(--border-color); text-align:center; color:var(--text-secondary); font-weight:600;">
                                             ₱{{ item.product.price|floatformat:"2g" }}
                                         </td>
                                         
-                                        <td class="item-qty" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-weight:500;">{{ item.quantity }}</td>
+                                        <td class="item-qty" style="font-size: 16px; font-family: 'Inconsolata', monospace; padding:16px 15px; border-bottom:1px solid var(--border-color); text-align:center; color:var(--text-secondary); font-weight:600;">{{ item.quantity }}</td>
                                         
-                                        <td class="item-subtotal" data-val="{{ item.subtotal }}" style="font-size: 1.05rem; font-family: 'Inconsolata'; padding:14px 0; border-bottom:1px solid #f8fafc; text-align:center; font-weight:800; color:#092c4c;">₱{{ item.subtotal|floatformat:"2g" }}</td>
+                                        <td class="item-subtotal" data-val="{{ item.subtotal }}" style="font-size: 16px; font-family: 'Inconsolata', monospace; padding:16px 0; border-bottom:1px solid var(--border-color); text-align:right; font-weight:800; color:var(--french-blue);">₱{{ item.subtotal|floatformat:"2g" }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic; font-size:0.9rem;">No specific items recorded. Please check your database.</td>
+                                        <td colspan="4" style="text-align:center; padding:30px; color:var(--text-secondary); font-style:italic; font-size:14px;">No specific items recorded. Please check your database.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -212,7 +269,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No sales return records found.</td>
+                    <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">No sales return records found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -221,15 +278,15 @@
         <div class="pagination-wrapper no-print">
             <div class="page-info">
                 Row Per Page 
-                <select onchange="changePerPage(this.value)" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;">
+                <select onchange="changePerPage(this.value)" style="padding: 6px; margin: 0 8px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.8); cursor: pointer;">
                     <option value="5" {% if returns_per_page|stringformat:"s" == "5" %}selected{% endif %}>5</option>
                     <option value="10" {% if returns_per_page|stringformat:"s" == "10" %}selected{% endif %}>10</option>
                     <option value="20" {% if returns_per_page|stringformat:"s" == "20" %}selected{% endif %}>20</option>
                 </select> 
-                Entries &nbsp; Showing {{ returns.start_index|default:0 }} to {{ returns.end_index|default:0 }} of {{ returns.paginator.count|default:0 }}
+                Entries &nbsp;|&nbsp; Showing <strong style="color: var(--text-primary);">{{ returns.start_index|default:0 }}</strong> to <strong style="color: var(--text-primary);">{{ returns.end_index|default:0 }}</strong> of <strong style="color: var(--text-primary);">{{ returns.paginator.count|default:0 }}</strong>
             </div>
             
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 8px;">
                 {% for num in returns.paginator.page_range %}
                     <a href="?q={{ query|default:'' }}&page={{ num }}&returns_per_page={{ returns_per_page }}" class="page-btn {% if returns.number == num %}active{% endif %}">
                         {{ num }}
@@ -246,73 +303,74 @@
     </div>
 </div>
 
-<div id="viewDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background:#fff; width:600px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+<div id="viewDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:5000; justify-content:center; align-items:center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);">
+    <div style="background: rgba(255, 255, 255, 0.95); width:600px; border-radius:var(--border-radius, 20px); box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); overflow:hidden; font-family: var(--font-main); border: 1px solid rgba(255, 255, 255, 0.5);">
         
-        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
-            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Return Details</p>
-            <h3 id="modal_view_return_id" style="margin:5px 0 0 0; color:#092c4c; font-family: 'Inconsolata'; font-size:1.4rem; font-weight:900;"></h3>
-            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #64748B; font-weight: 500;">Original: <span style="font-weight: 700; font-size: 1rem; font-family: 'Inconsolata';" id="modal_view_txn_id"></span></p>
+        <div style="padding:30px 30px 20px; border-bottom:1px solid var(--border-color); text-align:center; background: rgba(248, 250, 252, 0.8);">
+            <p style="margin:0; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Return Details</p>
+            <h3 id="modal_view_return_id" style="margin:8px 0 0 0; color:var(--french-blue); font-family: 'Inconsolata', monospace; font-size:24px; font-weight:800;"></h3>
+            <p style="margin: 5px 0 0 0; font-size: 13px; color: var(--text-secondary); font-weight: 500;">Original: <span style="font-weight: 700; font-size: 16px; font-family: 'Inconsolata', monospace;" id="modal_view_txn_id"></span></p>
         </div>
         
-        <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
+        <div style="padding:24px 30px; max-height:400px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse; text-align:left;">
                 <thead>
                     <tr>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Product</th>
-                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Price</th>                       
-                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty Returned</th>                        
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Subtotal</th>
+                        <th style="padding-bottom:12px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--border-color);">Product</th>
+                        <th style="padding:0 15px 12px 15px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:center; border-bottom:2px solid var(--border-color);">Price</th>                       
+                        <th style="padding:0 15px 12px 15px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:center; border-bottom:2px solid var(--border-color);">Qty Returned</th>                        
+                        <th style="padding-bottom:12px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:right; border-bottom:2px solid var(--border-color);">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody id="modal_view_body">
                 </tbody>
             </table>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px dashed #cbd5e1;">
-                <span style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Total Refunded</span>
-                <span style="font-weight:900; font-family: 'Inconsolata'; font-size:1.8rem; color:#e07300;">₱<span style="font-family: 'Inconsolata';" id="modal_view_total">0.00</span></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px; padding-top:24px; border-top:1px dashed var(--border-color);">
+                <span style="font-size:14px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Total Refunded</span>
+                <span style="font-weight:800; font-family: 'Inconsolata', monospace; font-size:32px; color:var(--amber-flame); letter-spacing:-1px;">₱<span style="font-family: 'Inconsolata', monospace;" id="modal_view_total">0.00</span></span>
             </div>
         </div>
         
-        <div style="padding:0 25px 25px; background:#fff; text-align:center;">
-            <button onclick="closeDetailsModal()" style="width:100%; background:#092c4c; color:#fff; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.95rem; font-family: 'Inter', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(9, 44, 76, 0.3)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(9, 44, 76, 0.2)';">
+        <div style="padding:20px 30px 30px; background:transparent; text-align:center;">
+            <button onclick="closeDetailsModal()" style="width:100%; background:var(--french-blue); color:#fff; border:none; padding:16px 20px; border-radius:12px; cursor:pointer; font-weight:600; font-size:15px; font-family: var(--font-main); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);" onmouseover="this.style.backgroundColor='#1a2858'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(47, 63, 123, 0.3)';" onmouseout="this.style.backgroundColor='var(--french-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(47, 63, 123, 0.2)';">
                 Close Details
             </button>
         </div>
     </div>
 </div>
 
-<div id="returnModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background:rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: white; width: 90%; max-width: 650px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; font-family: 'Inter', sans-serif;">
-        <div style="padding: 20px 25px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC;">
-            <h3 style="margin: 0; color: #092c4c; font-size: 1.2rem; font-weight: 800;">Process Sales Return</h3>
-            <button onclick="closeReturnModal()" style="background: transparent; border: none; font-size: 1.5rem; color: #64748B; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#092c4c'" onmouseout="this.style.color='#64748B'">&times;</button>
+<div id="returnModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background:rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 5000; justify-content: center; align-items: center;">
+    <div style="background: rgba(255, 255, 255, 0.95); width: 90%; max-width: 650px; border-radius: var(--border-radius, 20px); box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); overflow: hidden; font-family: var(--font-main); border: 1px solid rgba(255, 255, 255, 0.5);">
+        
+        <div style="padding: 24px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(248, 250, 252, 0.8);">
+            <h3 style="margin: 0; color: var(--french-blue); font-size: 20px; font-weight: 800; font-family: var(--font-heading);">Process Sales Return</h3>
+            <button onclick="closeReturnModal()" style="background: transparent; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
         </div>
 
-        <div style="padding: 25px; max-height: 70vh; overflow-y: auto;">
+        <div style="padding: 30px; max-height: 70vh; overflow-y: auto;">
             <form method="POST" action="{% url 'billing_payment:process_return' %}">
                 {% csrf_token %}
                 
-                <div style="margin-bottom: 25px;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px;">Original Transaction ID <span style="color:#e07300;">*</span></label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none; font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata'; transition: border-color 0.2s;" onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
-                        <button type="button" onclick="verifyTxn()" style="background: #092c4c; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">Verify</button>
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px;">Original Transaction ID <span style="color:var(--amber-flame);">*</span></label>
+                    <div style="display: flex; gap: 12px;">
+                        <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); border-radius: 10px; outline: none; font-weight: 600; font-size: 16px; font-family: 'Inconsolata', monospace; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--french-blue)'; this.style.boxShadow='0 0 0 3px rgba(47, 63, 123, 0.1)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                        <button type="button" onclick="verifyTxn()" class="btn-primary" style="padding: 0 24px;">Verify</button>
                     </div>
-                    <p id="verify_msg" style="font-size: 0.85rem; font-weight: 500; margin-top: 8px;"></p>
+                    <p id="verify_msg" style="font-size: 13px; font-weight: 500; margin-top: 8px;"></p>
                 </div>
 
-                <div id="items_section" style="display: none; border-top: 1px dashed #E2E8F0; padding-top: 20px;">
-                    <h4 style="color: #092c4c; margin: 0 0 15px 0; font-size: 1rem; font-weight: 800;">Select Items to Return</h4>
+                <div id="items_section" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 24px;">
+                    <h4 style="color: var(--french-blue); margin: 0 0 16px 0; font-size: 16px; font-weight: 800;">Select Items to Return</h4>
                     
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                        <thead style="background: #F8FAFC;">
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+                        <thead style="background: rgba(248, 250, 252, 0.8);">
                             <tr>
-                                <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Select</th>
-                                <th style="padding: 12px; text-align: left; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Item</th>
-                                <th style="padding: 12px; text-align: center; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Qty</th>
-                                <th style="padding: 12px; text-align: center; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #e2e8f0;">Return Qty</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border-color);">Select</th>
+                                <th style="padding: 12px; text-align: left; font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border-color);">Item</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border-color);">Qty</th>
+                                <th style="padding: 12px; text-align: center; font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border-color);">Return Qty</th>
                             </tr>
                         </thead>
                         <tbody id="items_tbody">
@@ -320,9 +378,9 @@
                     </table>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
-                    <button type="button" onclick="closeReturnModal()" style="background: white; border: 1px solid #CBD5E1; padding: 12px 20px; border-radius: 8px; color: #475569; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='white'">Cancel</button>
-                    <button type="submit" id="submit_return_btn" style="background: #e07300; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; display: none; transition: 0.2s; box-shadow: 0 4px 6px rgba(224, 115, 0, 0.2);" onmouseover="this.style.backgroundColor='#cc6800'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#e07300'; this.style.transform='translateY(0)';">Confirm Return</button>
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="closeReturnModal()" class="btn-clear" style="padding: 12px 24px;">Cancel</button>
+                    <button type="submit" id="submit_return_btn" style="background: var(--amber-flame); color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-family: var(--font-main); font-size: 14px; cursor: pointer; display: none; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(255, 185, 21, 0.2);" onmouseover="this.style.backgroundColor='#e6a300'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='var(--amber-flame)'; this.style.transform='translateY(0)';">Confirm Return</button>
                 </div>
             </form>
         </div>
@@ -339,7 +397,7 @@
                     title: "{% if message.tags == 'success' %}Success!{% else %}Oops!{% endif %}",
                     text: "{{ message|escapejs }}",
                     icon: "{% if message.tags == 'success' %}success{% else %}error{% endif %}",
-                    confirmButtonColor: "{% if message.tags == 'success' %}#092c4c{% else %}#EF4444{% endif %}",
+                    confirmButtonColor: "{% if message.tags == 'success' %}var(--french-blue){% else %}var(--status-red){% endif %}",
                     timer: 3000,
                     timerProgressBar: true
                 });
@@ -388,12 +446,12 @@
 
         if (!txnId) {
             msg.innerText = "Please enter a Transaction ID.";
-            msg.style.color = "#EF4444";
+            msg.style.color = "var(--status-red)";
             return;
         }
 
         msg.innerText = "Verifying...";
-        msg.style.color = "#64748B";
+        msg.style.color = "var(--text-secondary)";
 
         const url = "{% url 'billing_payment:verify_transaction' %}?txn_ref=" + encodeURIComponent(txnId);
 
@@ -405,20 +463,20 @@
             .then(data => {
                 if (data.success) {
                     msg.innerText = "Transaction found. Select items below.";
-                    msg.style.color = "#16a34a";
+                    msg.style.color = "var(--status-green)";
                     tbody.innerHTML = ""; 
 
                     data.items.forEach(item => {
                         tbody.innerHTML += `
-                            <tr style="border-bottom: 1px solid #E2E8F0;">
-                                <td style="padding: 15px 10px;">
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 16px 10px;">
                                     <input type="checkbox" name="product_id[]" value="${item.id}" onclick="toggleInputs(this, '${item.id}')" style="cursor: pointer; transform: scale(1.2);">
                                     <input type="hidden" name="reason[]" id="reason_${item.id}" value="Excess Item (Sobra ang nabili)" disabled>
                                 </td>
-                                <td style="padding: 15px 10px; font-weight: 600; color: #334155; font-size: 14px;">${item.name}</td>
-                                <td style="padding: 15px 10px; text-align: center; color: #64748B; font-size: 14px;">${item.max_qty}</td>
-                                <td style="padding: 15px 10px; text-align: center;">
-                                    <input type="number" name="return_qty[]" id="qty_${item.id}" max="${item.max_qty}" min="1" disabled style="width: 60px; padding: 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-family: 'Inter', sans-serif;">
+                                <td style="padding: 16px 10px; font-weight: 600; color: var(--text-primary); font-size: 14px;">${item.name}</td>
+                                <td style="padding: 16px 10px; text-align: center; font-family: 'Inconsolata', monospace; color: var(--text-secondary); font-size: 16px;">${item.max_qty}</td>
+                                <td style="padding: 16px 10px; text-align: center;">
+                                    <input type="number" name="return_qty[]" id="qty_${item.id}" max="${item.max_qty}" min="1" disabled style="width: 60px; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); font-family: 'Inconsolata', monospace; background: rgba(255, 255, 255, 0.8);">
                                 </td>
                             </tr>
                         `;
@@ -428,7 +486,7 @@
                     submitBtn.style.display = "block"; 
                 } else {
                     msg.innerText = data.message;
-                    msg.style.color = "#EF4444";
+                    msg.style.color = "var(--status-red)";
                     itemsSection.style.display = "none";
                     submitBtn.style.display = "none";
                 }
@@ -436,7 +494,7 @@
             .catch(error => {
                 console.error(error);
                 msg.innerText = "System error. Check terminal.";
-                msg.style.color = "#EF4444";
+                msg.style.color = "var(--status-red)";
             });
     }
 

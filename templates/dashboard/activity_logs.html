@@ -7,28 +7,27 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
+    /* GLASSMORPHISM PANELS */
+    .table-container, .filter-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+    }
+    
+    .table-container {
         overflow-x: auto; 
     }
     
     .filter-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 20px; 
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 24px 30px; 
+        margin-bottom: 24px;
     }
     
+    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -36,24 +35,126 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary);
+        font-size: 14px; 
         vertical-align: middle;
+        transition: background-color 0.2s ease;
     }
+
+    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
     .table-clean th {
         font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
+        color: var(--text-secondary); 
+        font-size: 12px; 
         text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
 
     /* ACTION BADGES */
-    .badge-add { background-color: #f0fdf4; color: #16a34a; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid #bbf7d0; }
-    .badge-edit { background-color: #fff7ed; color: #e07300; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid #feebc8; }
-    .badge-delete { background-color: #fef2f2; color: #dc2626; font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid #fecaca; }
+    .badge-add { background-color: rgba(34, 197, 94, 0.1); color: var(--status-green); font-weight: bold; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid rgba(34, 197, 94, 0.2); }
+    .badge-edit { background-color: rgba(255, 185, 21, 0.1); color: var(--amber-flame); font-weight: bold; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid rgba(255, 185, 21, 0.2); }
+    .badge-delete { background-color: rgba(239, 68, 68, 0.1); color: var(--status-red); font-weight: bold; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    /* FORM & FILTER STYLES (WITH WRAP AND SPACING FIX) */
+    .filter-form-wrapper {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap; /* Allows wrapping instead of overlapping */
+        width: 100%;
+    }
+
+    .search-wrapper {
+        flex: 2 1 250px; /* Grow, shrink, base width */
+        position: relative;
+    }
+
+    .date-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1.5 1 280px; /* Grow, shrink, base width */
+    }
+
+    .filter-input {
+        flex: 1 1 auto; 
+        min-width: 120px;
+        padding: 12px 16px; 
+        font-size: 13px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+        color: var(--text-primary);
+        box-sizing: border-box;
+    }
+    
+    .filter-input:focus {
+        border-color: var(--french-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
+    }
+
+    .date-input {
+        flex: 1; 
+        width: 100%;
+    }
+
+    .btn-primary {
+        background: var(--french-blue); 
+        color: white; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        font-weight: 600; 
+        font-family: var(--font-main); 
+        font-size: 14px; 
+        cursor: pointer; 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center;
+        gap: 8px; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
+        white-space: nowrap;
+        flex: 0 1 auto;
+    }
+    .btn-primary:hover {
+        background-color: #1a2858;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
+    }
+
+    .btn-clear {
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        text-decoration: none; 
+        background: rgba(248, 250, 252, 0.8); 
+        color: var(--text-secondary); 
+        padding: 12px 24px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-size: 13px; 
+        font-weight: 600; 
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        flex: 0 1 auto;
+    }
+    .btn-clear:hover {
+        background-color: rgba(255, 255, 255, 1); 
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
+    }
 
     /* PAGINATION STYLES */
     .pagination-wrapper {
@@ -62,74 +163,74 @@
         align-items: center;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid #edf2f7;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
     }
     .page-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 32px;
+        min-width: 36px;
+        height: 36px;
         gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        background: white;
-        border-radius: 6px;
-        color: #475569;
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 13px;
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
-    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
+    .page-btn:hover { 
+        border-color: var(--french-blue); 
+        color: var(--french-blue); 
+        background-color: #FFFFFF; 
+        transform: translateY(-2px);
+    }
+    .page-btn.active { 
+        background: var(--mustard); 
+        color: #1E293B; 
+        font-weight: bold; 
+        border-color: var(--mustard); 
+        box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4);
+    }
     .page-btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
-    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+    .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Activity Logs</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 6px 0; font-size: 28px; letter-spacing: -0.5px;">Activity Logs</h2>
+            <p style="font-family: var(--font-main); color:#6B7280; margin: 0; font-size: 15px;">
                 Track user activities, review audit trails, and monitor system changes.
             </p>
         </div>
     </div>
 
     <div class="filter-container">
-        <form method="GET" id="filterForm" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%;">
+        <form method="GET" id="filterForm" class="filter-form-wrapper">
             <input type="hidden" name="page" id="pageInput" value="{{ logs.number }}">
             
-            <div style="position: relative; flex: 2; min-width: 200px;">
-                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
-                <input type="text" name="search" placeholder="Search by username or action..." value="{{ search_query }}" 
-                       style="width: 100%; padding: 10px 14px 10px 35px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; box-sizing: border-box;" 
-                       onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+            <div class="search-wrapper">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 18px;"></i>
+                <input type="text" name="search" placeholder="Search by username or action..." value="{{ search_query }}" class="filter-input" style="width: 100%; padding-left: 44px;">
             </div>
 
-            <div style="display: flex; align-items: center; gap: 5px;">
-                <input type="date" name="start_date" value="{{ start_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();"
-                       style="padding: 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; color: #4a5568; transition: border-color 0.2s;"
-                       onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
-                
-                <span style="font-size: 13px; color: #64748b; font-weight: 500; margin-left: 5px;">to</span>
-                <input type="date" name="end_date" value="{{ end_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();"
-                       style="padding: 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; color: #4a5568; transition: border-color 0.2s;"
-                       onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+            <div class="date-wrapper">
+                <input type="date" name="start_date" value="{{ start_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();" class="filter-input date-input">
+                <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">to</span>
+                <input type="date" name="end_date" value="{{ end_date }}" onchange="document.getElementById('pageInput').value=1; this.form.submit();" class="filter-input date-input">
             </div>
 
-            <select name="role" onchange="document.getElementById('pageInput').value=1; this.form.submit();" 
-                    style="flex: 1; min-width: 120px; padding: 10px 14px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color 0.2s;"
-                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+            <select name="role" onchange="document.getElementById('pageInput').value=1; this.form.submit();" class="filter-input" style="cursor: pointer;">
                 <option value="">Filter by Role</option>
                 <option value="Admin" {% if role_filter == 'Admin' %}selected{% endif %}>Admin</option>
                 <option value="Employee" {% if role_filter == 'Employee' %}selected{% endif %}>Employee</option>
             </select>
 
-            <select name="action" onchange="document.getElementById('pageInput').value=1; this.form.submit();" 
-                    style="flex: 1; min-width: 120px; padding: 10px 14px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color 0.2s;"
-                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+            <select name="action" onchange="document.getElementById('pageInput').value=1; this.form.submit();" class="filter-input" style="cursor: pointer;">
                 <option value="">All Actions</option>
                 <option value="LOGIN" {% if action_filter == 'LOGIN' %}selected{% endif %}>Login</option>
                 <option value="LOGOUT" {% if action_filter == 'LOGOUT' %}selected{% endif %}>Logout</option>
@@ -147,17 +248,13 @@
                 <option value="ABC ANALYSIS" {% if action_filter == 'ABC ANALYSIS' %}selected{% endif %}>ABC Analysis</option>
             </select>
 
-            <button type="submit" style="background: #092c4c; color: white; padding: 10px 24px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box; white-space: nowrap;" 
-                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.borderColor='#092c4c';">
-                Filter
+            <button type="submit" class="btn-primary">
+                <i class="ph ph-funnel" style="margin-right: 4px;"></i> Filter
             </button>
             
             {% if search_query or start_date or end_date or role_filter or action_filter %}
-            <a href="?" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 10px 24px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box; white-space: nowrap;" 
-               title="Clear all filters"
-               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
-               onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
-                Clear
+            <a href="?" class="btn-clear" title="Clear all filters">
+                <i class="ph ph-x-circle" style="margin-right: 4px;"></i> Clear
             </a>
             {% endif %}
         </form>
@@ -167,10 +264,10 @@
         <table class="table-clean">
             <thead>
                 <tr>
-                    <th style="width: 15%; white-space: nowrap;">ID</th>
-                    <th style="width: 10%; white-space: nowrap;">User</th>
+                    <th style="width: 8%; white-space: nowrap; padding-right: 24px;">ID</th>
+                    <th style="width: 12%; white-space: nowrap;">User</th>
                     <th style="width: 10%; white-space: nowrap;">Role</th>
-                    <th style="width: 45%;">Action</th>
+                    <th style="width: 50%;">Action</th>
                     <th style="width: 10%; white-space: nowrap;">Date</th>
                     <th style="width: 10%; white-space: nowrap;">Time</th>
                 </tr>
@@ -178,19 +275,19 @@
             <tbody>
                 {% for log in logs %}
                 <tr>
-                    <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 700; color: #092c4c; white-space: nowrap;">
-                        {{ log.id }}
+                    <td style="font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 700; color: var(--french-blue); white-space: nowrap; padding-right: 24px;">
+                        #{{ log.id }}
                     </td>
                     
-                    <td style="font-weight: 500; color: #334155; white-space: nowrap;">
+                    <td style="font-weight: 600; color: var(--text-primary); white-space: nowrap;">
                         {% if log.actor %}
                             {{ log.actor.username }}
                         {% else %}
-                            <span style="color: #94a3b8; font-style: italic;">System</span>
+                            <span style="color: var(--text-secondary); font-style: italic;">System</span>
                         {% endif %}
                     </td>
                     
-                    <td style="color: #64748b; white-space: nowrap;">
+                    <td style="color: var(--text-secondary); font-weight: 500; white-space: nowrap;">
                         {% if log.actor %}
                             {% if log.actor.is_superuser %}Admin{% else %}Employee{% endif %}
                         {% else %}
@@ -200,23 +297,23 @@
                     
                     <td>
                         {% if log.description %}
-                            <span style="font-weight: 500; color: #334155;">
+                            <span style="font-weight: 500; color: var(--text-primary);">
                                 {{ log.description }}
                             </span>
                         {% else %}
-                            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
                                 {% if log.action == 0 or log.action == "0" %}<span class="badge-add">ADD</span>
                                 {% elif log.action == 1 or log.action == "1" %}<span class="badge-edit">EDIT</span>
                                 {% elif log.action == 2 or log.action == "2" %}<span class="badge-delete">DELETE</span>
                                 {% endif %}
 
-                                <span style="font-weight: 500; color: #475569; margin-top: 1px;">
+                                <span style="font-weight: 500; color: var(--text-secondary); margin-top: 2px;">
                                     {% if log.action == 0 or log.action == "0" %} Added new {{ log.model_name|lower }}: 
                                     {% elif log.action == 1 or log.action == "1" %} Modified {{ log.model_name|lower }}: 
                                     {% elif log.action == 2 or log.action == "2" %} Deleted {{ log.model_name|lower }}: 
                                     {% endif %}
                                     
-                                    <span style="font-weight: 700; color: #0f172a;">
+                                    <span style="font-weight: 700; color: var(--text-primary);">
                                         {% if log.action == 2 or log.action == "2" %}
                                             {% if log.object_repr and log.object_repr|stringformat:"s" != "None" and log.object_repr|stringformat:"s" != "" %}
                                                 '{{ log.object_repr }}'
@@ -237,16 +334,16 @@
 
                             {% if log.action == 1 or log.action == "1" %}
                                 {% if log.changes_dict %}
-                                    <div style="margin-top: 8px; font-size: 0.85rem; background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <div style="margin-top: 10px; font-size: 13px; background: rgba(248, 250, 252, 0.6); padding: 12px 16px; border-radius: 10px; border: 1px dashed rgba(203, 213, 225, 0.8);">
                                         {% for field, values in log.changes_dict.items %}
                                             {% with old_val=values.0 new_val=values.1 %}
                                                 {% if old_val|slugify != new_val|slugify %}
-                                                    <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                                                        <span style="font-weight: 600; color: #64748b; min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
-                                                        <span style="color: #dc2626; text-decoration: line-through; background: #fef2f2; padding: 0 4px; border-radius: 4px;">
+                                                    <div style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                                        <span style="font-weight: 600; color: var(--text-secondary); min-width: 100px;">{{ field|title|cut:"_" }}:</span> 
+                                                        <span style="color: var(--status-red); text-decoration: line-through; background: rgba(239, 68, 68, 0.05); padding: 2px 6px; border-radius: 6px; font-family: 'Inconsolata', monospace;">
                                                             {{ old_val|default:"---" }}
                                                         </span> 
-                                                        <span style="color: #16a34a; font-weight: 700;">&rarr; {{ new_val|default:"---" }}</span>
+                                                        <span style="color: var(--status-green); font-weight: 700; font-family: 'Inconsolata', monospace;">&rarr; {{ new_val|default:"---" }}</span>
                                                     </div>
                                                 {% endif %}
                                             {% endwith %}
@@ -257,12 +354,12 @@
                         {% endif %}
                     </td>
                             
-                    <td style="font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b; white-space: nowrap;">{{ log.timestamp|date:"m-d-Y" }}</td>
-                    <td style="font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b; white-space: nowrap;">{{ log.timestamp|time:"H:i:s" }}</td>
+                    <td style="font-size: 15px; font-family: 'Inconsolata', monospace; color: var(--text-secondary); white-space: nowrap;">{{ log.timestamp|date:"m-d-Y" }}</td>
+                    <td style="font-size: 15px; font-family: 'Inconsolata', monospace; color: var(--text-secondary); white-space: nowrap;">{{ log.timestamp|time:"H:i:s" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">
                         No activity logs found.
                     </td>
                 </tr>
@@ -273,15 +370,15 @@
         <div class="pagination-wrapper">
             <div class="page-info">
                 Row Per Page 
-                <select name="rows" form="filterForm" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
+                <select name="rows" form="filterForm" style="padding: 6px; margin: 0 8px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.8); cursor: pointer;" onchange="document.getElementById('pageInput').value=1; this.form.submit();">
                     <option value="10" {% if rows == 10 %}selected{% endif %}>10</option>
                     <option value="20" {% if rows == 20 %}selected{% endif %}>20</option>
                     <option value="50" {% if rows == 50 %}selected{% endif %}>50</option>
                 </select> 
-                Entries &nbsp; Showing {{ logs.start_index|default:0 }} to {{ logs.end_index|default:0 }} of {{ logs.paginator.count|default:0 }}
+                Entries &nbsp;|&nbsp; Showing <strong style="color: var(--text-primary);">{{ logs.start_index|default:0 }}</strong> to <strong style="color: var(--text-primary);">{{ logs.end_index|default:0 }}</strong> of <strong style="color: var(--text-primary);">{{ logs.paginator.count|default:0 }}</strong>
             </div>
             
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 8px;">
                 {% if logs.has_previous %}
                     <a href="javascript:void(0);" onclick="goToPage({{ logs.previous_page_number }})" class="page-btn">
                         <i class="ph ph-caret-left"></i>

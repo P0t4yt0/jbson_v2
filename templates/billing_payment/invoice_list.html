@@ -7,28 +7,27 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <style>
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
+    /* GLASSMORPHISM PANELS (Retained as requested) */
+    .table-container, .filter-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        overflow-x: auto;
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
     }
     
-    .filter-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 20px; 
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    .table-container {
+        overflow-x: auto;
     }
 
+    .filter-container {
+        padding: 24px 30px; 
+        margin-bottom: 24px;
+    }
+
+    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -36,32 +35,42 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary, #4a5568);
+        font-size: 14px; 
         vertical-align: middle;
-    }
-    .table-clean th {
-        font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
-        text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+        transition: background-color 0.2s ease;
     }
     
+    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
+    .table-clean th {
+        font-weight: 700;
+        color: var(--text-secondary, #64748b); 
+        font-size: 12px; 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
+    }
+    
+    /* AESTHETIC STATUS BADGES */
     .badge {
         padding: 6px 14px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 12px;
         font-weight: 700;
         display: inline-block;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .bg-sage-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-    .bg-soft-lavender { background-color: #fff7ed; color: #dd6b20; border: 1px solid #feebc8; }
+    .bg-soft-lavender { background-color: #fffdf0; color: #FFB915; border: 1px solid #fcfed6; }
     .bg-danger { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     
+    /* ACTION BUTTONS WITH HOVER EFFECTS */
     .action-group {
         display: flex;
         gap: 8px;
@@ -71,53 +80,87 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background-color: #f8fafc;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid #e2e8f0;
-        color: #64748b;
+        color: var(--text-secondary, #64748b);
         text-decoration: none;
-        font-size: 1.1rem;
-        transition: all 0.2s ease;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .table-action-btn:hover { 
-    transform: translateY(-2px); 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
 
-    .btn-view {
-        color: #092c4c;
-        background-color: #f2f7fb; 
+    .btn-view { color: var(--french-blue); }
+    .btn-view:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+
+    .btn-settle { color: #16a34a; }
+    .btn-settle:hover { background-color: #16a34a; color: white; border-color: #16a34a; }
+
+    .table-action-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+    .table-action-btn.disabled:hover { transform: none; box-shadow: none; background-color: rgba(255, 255, 255, 0.9); color: #64748b; border-color: #e2e8f0; }
+
+    /* FORM & FILTER STYLES */
+    .filter-input {
+        flex: 1; 
+        padding: 12px 16px; 
+        font-size: 13px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+    }
+    .filter-input:focus {
+        border-color: var(--french-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 
-    .btn-view:hover { 
-        background-color: #092c4c; 
+    .btn-filter {
+        background: var(--french-blue); 
         color: white; 
-        border-color: #092c4c; 
+        padding: 12px 24px; 
+        border: none; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-size: 13px; 
+        font-weight: 600; 
+        font-family: var(--font-main); 
+        transition: all 0.3s ease; 
+        box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
+    }
+    .btn-filter:hover {
+        background-color: #1a2858;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
     }
 
-    .btn-settle { 
-        color: #22543d; 
-        background-color: #eefff4;
+    .btn-clear {
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        text-decoration: none; 
+        background: rgba(248, 250, 252, 0.8); 
+        color: var(--text-secondary); 
+        padding: 12px 24px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-size: 13px; 
+        font-weight: 600; 
+        transition: all 0.3s ease;
     }
-
-    .btn-settle:hover { 
-        background-color: #22543d; 
-        color: white; 
-        border-color: #22543d; 
-    }
-
-    .table-action-btn.disabled { 
-        opacity: 0.5; 
-        cursor: not-allowed; 
-    }
-
-    .table-action-btn.disabled:hover { 
-        transform: none; 
-        background-color: #f8fafc; 
-        color: #64748b; 
-        border-color: #e2e8f0; 
+    .btn-clear:hover {
+        background-color: rgba(255, 255, 255, 1); 
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
     }
 
     /* PAGINATION STYLES */
@@ -127,65 +170,69 @@
         align-items: center;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid #edf2f7;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
     }
     .page-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 32px;
+        min-width: 36px;
+        height: 36px;
         gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        background: white;
-        border-radius: 6px;
-        color: #475569;
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 13px;
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
-    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
-    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+    .page-btn:hover { 
+        border-color: var(--french-blue); 
+        color: var(--french-blue); 
+        background-color: #FFFFFF; 
+        transform: translateY(-2px);
+    }
+    .page-btn.active { 
+        background: var(--mustard); 
+        color: #1E293B; 
+        font-weight: bold; 
+        border-color: var(--mustard); 
+        box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4);
+    }
+    .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Invoices</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 6px 0; font-size: 28px; letter-spacing: -0.5px;">Invoices</h2>
+            <p style="font-family: var(--font-main); color:#6B7280; margin: 0; font-size: 15px;">
                 Manage and track customer billing and invoice records.
             </p>
         </div>
     </div>
 
     <div class="filter-container">
-        <form method="GET" style="display: flex; gap: 15px; align-items: center;">
-            <input type="text" name="search" placeholder="Search Invoice or Customer..." value="{{ search_query }}" 
-                   style="flex: 2; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;" 
-                   onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+        <form method="GET" style="display: flex; gap: 16px; align-items: center;">
+            <input type="text" name="search" class="filter-input" style="flex: 2;" placeholder="Search Invoice or Customer..." value="{{ search_query }}">
             
-            <select name="status" style="flex: 1; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color 0.2s;"
-                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+            <select name="status" class="filter-input">
                 <option value="">All Statuses</option>
                 <option value="unpaid" {% if status_filter == 'unpaid' %}selected{% endif %}>Unpaid</option>
                 <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
                 <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
             </select>
 
-            <button type="submit" style="background: #092c4c; color: white; padding: 12px 30px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box;" 
-                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.borderColor='#092c4c';">
-                Filter
+            <button type="submit" class="btn-filter">
+                <i class="ph ph-funnel" style="margin-right: 4px; vertical-align: middle;"></i> Filter
             </button>
 
             {% if search_query or status_filter %}
-            <a href="?" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 12px 30px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box;" 
-               title="Clear all filters"
-               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
-               onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
-                Clear
+            <a href="?" class="btn-clear" title="Clear all filters">
+                <i class="ph ph-x-circle" style="margin-right: 4px; vertical-align: middle;"></i> Clear
             </a>
             {% endif %}
         </form>
@@ -207,18 +254,18 @@
             <tbody>
                 {% for inv in invoices %}
                 <tr>
-                    <td><strong style="color: #092c4c; font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata'; ">{{ inv.invoice_no }}</strong></td>
-                    <td style="font-weight: 500; color: #334155;">{{ inv.customer.name }}</td>
-                    <td style="color: #64748b;">{{ inv.issue_date|date:"M d, Y" }}</td>
+                    <td><strong style="color: var(--french-blue); font-weight: 700; font-size: 16px; font-family: 'Inconsolata', monospace;">{{ inv.invoice_no }}</strong></td>
+                    <td style="font-weight: 600; color: var(--text-primary);">{{ inv.customer.name }}</td>
+                    <td style="color: var(--text-secondary);">{{ inv.issue_date|date:"M d, Y" }}</td>
                     
-                    <td style="color: #64748b;">
+                    <td style="color: var(--text-secondary);">
                         {{ inv.due_date|date:"M d, Y" }}
                         {% if inv.status|lower != 'paid' and inv.due_date < today %}
-                            <br><span style="color: #dc2626; font-size: 0.7rem; font-weight: 700;">(Overdue)</span>
+                            <br><span style="color: #dc2626; font-size: 11px; font-weight: 700;">(Overdue)</span>
                         {% endif %}
                     </td>
                     
-                    <td style="font-weight: 800; color: #092c4c; font-size: 1.05rem; font-family: 'Inconsolata'; ">₱{{ inv.total_amount|floatformat:"2g" }}</td>
+                    <td style="font-weight: 800; color: var(--french-blue); font-size: 16px; font-family: 'Inconsolata', monospace;">₱{{ inv.total_amount|floatformat:"2g" }}</td>
                     
                     <td>
                         {% if inv.status|lower == 'paid' %}
@@ -244,7 +291,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No invoices found.</td>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">No invoices found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -253,14 +300,14 @@
         <div class="pagination-wrapper">
             <div class="page-info">
                 Row Per Page 
-                <select onchange="changePerPage(this.value)" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;">
+                <select onchange="changePerPage(this.value)" style="padding: 6px; margin: 0 8px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.8); cursor: pointer;">
                     <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                     <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
                 </select> 
-                Entries &nbsp; Showing {{ invoices.start_index }} to {{ invoices.end_index }} of {{ invoices.paginator.count }}
+                Entries &nbsp;|&nbsp; Showing <strong style="color: var(--text-primary);">{{ invoices.start_index }}</strong> to <strong style="color: var(--text-primary);">{{ invoices.end_index }}</strong> of <strong style="color: var(--text-primary);">{{ invoices.paginator.count }}</strong>
             </div>
             
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 8px;">
                 {% for num in invoices.paginator.page_range %}
                     <a href="?search={{ search_query }}&status={{ status_filter }}&page={{ num }}&per_page={{ per_page|default:10 }}" class="page-btn {% if invoices.number == num %}active{% endif %}">
                         {{ num }}
@@ -277,38 +324,38 @@
     </div>
 </div>
 
-<div id="itemsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background:#fff; width:600px; max-width:90%; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+<div id="itemsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:5000; justify-content:center; align-items:center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);">
+    <div style="background: rgba(255, 255, 255, 0.95); width:600px; max-width:90%; border-radius:var(--border-radius, 20px); box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); overflow:hidden; font-family: var(--font-main); border: 1px solid rgba(255, 255, 255, 0.5);">
         
-        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
-            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Invoice Details</p>
-            <h3 id="modalTitle" style="margin:5px 0 0 0; color:#092c4c; font-family: 'Inconsolata'; font-size:1.4rem; font-weight:900;">Loading...</h3>
+        <div style="padding:30px 30px 20px; border-bottom:1px solid var(--border-color); text-align:center; background: rgba(248, 250, 252, 0.8);">
+            <p style="margin:0; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Invoice Details</p>
+            <h3 id="modalTitle" style="margin:8px 0 0 0; color:var(--french-blue); font-family: 'Inconsolata', monospace; font-size:24px; font-weight:800;">Loading...</h3>
         </div>
         
-        <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
+        <div style="padding:24px 30px; max-height:400px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse; text-align:left;">
                 <thead>
                     <tr>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid #f1f5f9;">Product</th>
-                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Price</th>
-                        <th style="padding:0 15px 12px 15px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:center; border-bottom:2px solid #f1f5f9;">Qty</th>
-                        <th style="padding-bottom:12px; font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; text-align:right; border-bottom:2px solid #f1f5f9;">Subtotal</th>
+                        <th style="padding-bottom:12px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--border-color);">Product</th>
+                        <th style="padding:0 15px 12px 15px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:center; border-bottom:2px solid var(--border-color);">Price</th>
+                        <th style="padding:0 15px 12px 15px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:center; border-bottom:2px solid var(--border-color);">Qty</th>
+                        <th style="padding-bottom:12px; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; text-align:right; border-bottom:2px solid var(--border-color);">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody id="modalBodyItems">
                 </tbody>
             </table>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px dashed #cbd5e1;">
-                <span style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Total Amount</span>
-                <span style="font-weight:900; font-family: 'Inconsolata'; font-size:1.8rem; color:#e07300;">₱<span style="font-family: 'Inconsolata';" id="modal_view_total_invoice">0.00</span></span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px; padding-top:24px; border-top:1px dashed var(--border-color);">
+                <span style="font-size:14px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Total Amount</span>
+                <span style="font-weight:800; font-family: 'Inconsolata', monospace; font-size:32px; color:var(--amber-flame); letter-spacing:-1px;">₱<span style="font-family: 'Inconsolata', monospace;" id="modal_view_total_invoice">0.00</span></span>
             </div>
         </div>
         
-        <div style="padding:0 25px 25px; background:#fff; text-align:center;">
-            <button onclick="closeModal()" style="width:100%; background:#092c4c; color:#fff; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.95rem; font-family: 'Inter', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" 
-                    onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(9, 44, 76, 0.3)';" 
-                    onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(9, 44, 76, 0.2)';">
+        <div style="padding:20px 30px 30px; background:transparent; text-align:center;">
+            <button onclick="closeModal()" style="width:100%; background:var(--french-blue); color:#fff; border:none; padding:16px 20px; border-radius:12px; cursor:pointer; font-weight:600; font-size:15px; font-family: var(--font-main); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);" 
+                    onmouseover="this.style.backgroundColor='#1a2858'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(47, 63, 123, 0.3)';" 
+                    onmouseout="this.style.backgroundColor='var(--french-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(47, 63, 123, 0.2)';">
                 Close Details
             </button>
         </div>
@@ -327,7 +374,7 @@ $(document).ready(function() {
         $('#modalTitle').text(invNo);
         $('#modal_view_total_invoice').text(invTotal); 
         $('#itemsModal').css('display', 'flex'); 
-        $('#modalBodyItems').html('<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-size:0.9rem; font-weight:500;">Loading items...</td></tr>');
+        $('#modalBodyItems').html('<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-secondary); font-size:14px; font-weight:500;"><i class="ph ph-spinner ph-spin" style="font-size: 24px; margin-bottom: 8px; color: var(--french-blue);"></i><br>Loading items...</td></tr>');
 
         $.ajax({
             url: '/billing/invoice/' + invId + '/items-json/',
@@ -335,19 +382,18 @@ $(document).ready(function() {
             success: function(data) {
                 let html = '';
                 data.items.forEach(item => {
-                    // Check if price exists from your backend, default to 0.00 if none
                     let price = item.unit_price || "0.00"; 
-                    html += `<tr>
-                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">${item.product_name}</td>
-                        <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:1.05rem; font-family: 'Inconsolata'; font-weight:500;">₱${item.unit_price}</td>
-                        <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; color:#475569; font-size:1.05rem; font-family: 'Inconsolata'; font-weight:500;">${item.quantity}</td>
-                        <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-weight:800; color:#092c4c; font-size:1.05rem; font-family: 'Inconsolata';">₱${item.subtotal}</td>
+                    html += `<tr style="transition: background 0.2s;" onmouseover="this.style.background='rgba(248, 250, 252, 0.8)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding:16px 0; border-bottom:1px solid var(--border-color); font-weight:600; color:var(--text-primary); font-size:14px;">${item.product_name}</td>
+                        <td style="padding:16px 15px; border-bottom:1px solid var(--border-color); text-align:center; color:var(--text-secondary); font-size:16px; font-family: 'Inconsolata', monospace; font-weight:600;">₱${item.unit_price}</td>
+                        <td style="padding:16px 15px; border-bottom:1px solid var(--border-color); text-align:center; color:var(--text-secondary); font-size:16px; font-family: 'Inconsolata', monospace; font-weight:600;">${item.quantity}</td>
+                        <td style="padding:16px 0; border-bottom:1px solid var(--border-color); text-align:right; font-weight:800; color:var(--french-blue); font-size:16px; font-family: 'Inconsolata', monospace;">₱${item.subtotal}</td>
                     </tr>`;
                 });
                 $('#modalBodyItems').html(html);
             },
             error: function() {
-                $('#modalBodyItems').html('<tr><td colspan="4" style="text-align:center; padding:20px; color:#d50a0a; font-weight:600;">Error loading items.</td></tr>');
+                $('#modalBodyItems').html('<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--status-red); font-weight:600;">Error loading items.</td></tr>');
             }
         });
     });

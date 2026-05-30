@@ -7,28 +7,27 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
+    /* GLASSMORPHISM PANELS */
+    .table-container, .filter-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+    }
+    
+    .table-container {
         overflow-x: auto; 
     }
     
     .filter-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 20px; 
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 24px 30px; 
+        margin-bottom: 24px;
     }
     
+    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -36,94 +35,131 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary);
+        font-size: 14px; 
         vertical-align: middle;
+        transition: background-color 0.2s ease;
     }
+
+    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
     .table-clean th {
         font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
+        color: var(--text-secondary); 
+        font-size: 12px; 
         text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
     
-    .badge {
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        display: inline-block;
-        letter-spacing: 0.05em;
-    }
-    .bg-sage-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-    .bg-secondary { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-    
+    /* ACTION BUTTONS */
     .action-group { display: flex; gap: 8px; align-items: center; }
     
     .table-action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background-color: #f8fafc;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid #e2e8f0;
-        color: #64748b;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 1.1rem;
-        transition: all 0.2s ease;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
+        padding: 0;
     }
     .table-action-btn:hover { 
-        transform: translateY(-2px); 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
 
-    /* --- VIEW BUTTON (NAVY BLUE) --- */
-    .btn-view {
-        color: #092c4c;
-        background-color: #f2f7fb; 
-    }
-    .btn-view:hover { 
-        background-color: #092c4c; 
-        color: white; 
-        border-color: #092c4c; 
+    .btn-view { color: var(--french-blue); }
+    .btn-view:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+
+    .btn-edit { color: var(--text-secondary); }
+    .btn-edit:hover { background-color: var(--text-secondary); color: white; border-color: var(--text-secondary); }
+
+    .btn-archive { color: var(--status-red); background-color: #fdf4f4; }
+    .btn-archive:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); }
+
+    /* FORM & FILTER STYLES */
+    .filter-form-wrapper {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin: 0;
+        flex-wrap: wrap;
+        width: 100%;
     }
 
-    /* --- EDIT BUTTON (GREY) --- */
-    .btn-edit {
-        color: #4b5563; 
-        background-color: #f9fafb; 
+    .filter-input {
+        flex: 2; 
+        min-width: 250px;
+        padding: 12px 16px; 
+        font-size: 13px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
     }
-    .btn-edit:hover { 
-        background-color: #4b5563; 
-        color: white; 
-        border-color: #4b5563; 
-    }
-
-    /* --- ARCHIVE BUTTON (RED) --- */
-    .btn-archive {
-        color: #811112; 
-        background-color: #fdf4f4; /* Light red tint */
-    }
-    .btn-archive:hover { 
-        background-color: #811112; 
-        color: white; 
-        border-color: #811112; 
+    .filter-input:focus {
+        border-color: var(--french-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 
-    .btn-restore {
-        color: #22543d; 
-        background-color: #eefff4;
-    }
-    .btn-restore:hover { 
-        background-color: #22543d; 
+    .btn-primary {
+        background: var(--french-blue); 
         color: white; 
-        border-color: #22543d; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        font-weight: 600; 
+        font-family: var(--font-main); 
+        font-size: 14px; 
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
     }
+    .btn-primary:hover {
+        background-color: #1a2858;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
+    }
+
+    .btn-clear {
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        text-decoration: none; 
+        background: rgba(248, 250, 252, 0.8); 
+        color: var(--text-secondary); 
+        padding: 12px 24px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-size: 13px; 
+        font-weight: 600; 
+        transition: all 0.3s ease;
+    }
+    .btn-clear:hover {
+        background-color: rgba(255, 255, 255, 1); 
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
+    }
+
     /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
@@ -131,89 +167,106 @@
         align-items: center;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid #edf2f7;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
     }
     .page-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 32px;
+        min-width: 36px;
+        height: 36px;
         gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        background: white;
-        border-radius: 6px;
-        color: #475569;
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 13px;
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
-    .page-btn.active { background: #092c4c; color: white; font-weight: bold; border-color: #092c4c; }
-    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+    .page-btn:hover { 
+        border-color: var(--french-blue); 
+        color: var(--french-blue); 
+        background-color: #FFFFFF; 
+        transform: translateY(-2px);
+    }
+    .page-btn.active { 
+        background: var(--mustard); 
+        color: #1E293B; 
+        font-weight: bold; 
+        border-color: var(--mustard); 
+        box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4);
+    }
+    .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 
     /* MODAL STYLES */
     .blur-modal {
-        display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+        display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; 
         background: rgba(15, 23, 42, 0.6); align-items: center; justify-content: center; 
-        backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     }
     .modal-box {
-        background: #fff; width: 600px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); 
-        overflow: hidden; font-family: 'Inter', sans-serif; max-height: 90vh; overflow-y: auto;
+        background: rgba(255, 255, 255, 0.95); 
+        width: 600px; 
+        border-radius: var(--border-radius, 20px); 
+        box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); 
+        overflow: hidden; 
+        font-family: var(--font-main); 
+        max-height: 90vh; 
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.5);
     }
-    .form-group { margin-bottom: 15px; text-align: left; }
-    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.85rem; color: #475569; }
-    .form-group input, .form-group textarea { width: 100%; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
-    .form-group input:focus, .form-group textarea:focus { border-color: #092c4c; }
-    
-    .filter-form-wrapper {
-        display: flex;
-        gap: 15px;
-        align-items: center;
-        margin: 0;
-        flex-wrap: wrap;
-        width: 100%;
+    .form-group { margin-bottom: 16px; text-align: left; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); }
+    .form-group input, .form-group textarea { 
+        width: 100%; 
+        padding: 12px 16px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        transition: all 0.3s ease; 
+        box-sizing: border-box; 
+        background: rgba(255, 255, 255, 0.8);
+    }
+    .form-group input:focus, .form-group textarea:focus { 
+        border-color: var(--french-blue); 
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Supplier Directory</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 6px 0; font-size: 28px; letter-spacing: -0.5px;">Supplier Directory</h2>
+            <p style="font-family: var(--font-main); color:#6B7280; margin: 0; font-size: 15px;">
                 Manage the companies that supply your hardware inventory.
             </p>
         </div>
-        <button onclick="document.getElementById('addSupplierModal').style.display='flex'" style="background: #092c4c; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.1);" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">
-            <i class="ph ph-plus-circle" style="font-size: 1.2rem;"></i> Add New Supplier
+        <button onclick="document.getElementById('addSupplierModal').style.display='flex'" class="btn-primary">
+            <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Add New Supplier
         </button>
     </div>
 
     <div class="filter-container">
         <form method="GET" class="filter-form-wrapper">
-            <input type="text" name="search" placeholder="Search Company, Contact, Phone, Email..." value="{{ search_query }}" 
-                   style="flex: 2; min-width: 250px; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;" 
-                   onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+            <input type="text" name="search" class="filter-input" placeholder="Search Company, Contact, Phone, Email..." value="{{ search_query }}">
             
-            <button type="submit" style="background: #092c4c; color: white; padding: 12px 30px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box;" 
-                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.borderColor='#092c4c';">
-                Filter
+            <button type="submit" class="btn-primary" style="padding: 12px 30px;">
+                <i class="ph ph-funnel" style="margin-right: 4px;"></i> Filter
             </button>
             
             {% if search_query %}
-            <a href="?" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 12px 30px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box;" 
-               title="Clear all filters"
-               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
-               onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
-                Clear
+            <a href="?" class="btn-clear" title="Clear all filters">
+                <i class="ph ph-x-circle" style="margin-right: 4px;"></i> Clear
             </a>
             {% endif %}
 
-            <a href="{% url 'inventory:archived_supplier_list' %}" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; background: #fff1f2; color: #e11d48; padding: 12px 20px; border: 1px solid #fecdd3; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#ffe4e6'" onmouseout="this.style.backgroundColor='#fff1f2'">
-                <i class="ph ph-archive" style="font-size: 1.1rem;"></i> View Archived
+            <a href="{% url 'inventory:archived_supplier_list' %}" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; background: #fff1f2; color: var(--status-red); padding: 12px 20px; border: 1px solid #fecdd3; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: var(--font-main); transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#ffe4e6'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#fff1f2'; this.style.transform='translateY(0)';">
+                <i class="ph ph-archive" style="font-size: 18px;"></i> View Archived
             </a>
         </form>
     </div>
@@ -234,12 +287,12 @@
             <tbody>
                 {% for supplier in suppliers %}
                 <tr>
-                    <td><strong style="color: #092c4c; font-weight: 600;">{{ supplier.name }}</strong></td>
-                    <td style="color: #4a5568;">{{ supplier.contact_name|default:"--" }}</td>
-                    <td style="font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b;">{{ supplier.phone|default:"--" }}</td>
-                    <td style="color: #64748b;">{{ supplier.email|default:"--" }}</td>
-                    <td style="color: #64748b; font-weight: 500;">{{ supplier.default_lead_time_days }} days</td>
-                    <td style="color: #64748b; font-weight: 500;">{{ supplier.max_lead_time_days }} days</td>
+                    <td><strong style="color: var(--french-blue); font-weight: 700; font-size: 15px;">{{ supplier.name }}</strong></td>
+                    <td style="color: var(--text-primary); font-weight: 500;">{{ supplier.contact_name|default:"--" }}</td>
+                    <td style="font-weight: 700; font-size: 15px; font-family: 'Inconsolata', monospace; color: var(--text-secondary);">{{ supplier.phone|default:"--" }}</td>
+                    <td style="color: var(--text-secondary);">{{ supplier.email|default:"--" }}</td>
+                    <td style="color: var(--text-secondary); font-weight: 600;">{{ supplier.default_lead_time_days }} days</td>
+                    <td style="color: var(--text-secondary); font-weight: 600;">{{ supplier.max_lead_time_days }} days</td>
                     <td>
                         <div class="action-group">
                             <a href="{% url 'inventory:inventory_list' %}?supplier={{ supplier.id }}" class="table-action-btn btn-view" title="View Products">
@@ -261,22 +314,23 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No active suppliers found.</td>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">No active suppliers found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-<div class="pagination-wrapper">
+        
+        <div class="pagination-wrapper">
             <div class="page-info">
                 Row Per Page 
-                <select onchange="changePerPage(this.value)" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;">
+                <select onchange="changePerPage(this.value)" style="padding: 6px; margin: 0 8px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.8); cursor: pointer;">
                     <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                     <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
                 </select> 
-                Entries &nbsp; Showing {{ suppliers.start_index|default:0 }} to {{ suppliers.end_index|default:0 }} of {{ suppliers.paginator.count|default:0 }}
+                Entries &nbsp;|&nbsp; Showing <strong style="color: var(--text-primary);">{{ suppliers.start_index|default:0 }}</strong> to <strong style="color: var(--text-primary);">{{ suppliers.end_index|default:0 }}</strong> of <strong style="color: var(--text-primary);">{{ suppliers.paginator.count|default:0 }}</strong>
             </div>
             
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 8px;">
                 {% for num in suppliers.paginator.page_range %}
                     <a href="?search={{ search_query }}&page={{ num }}&per_page={{ per_page|default:10 }}" class="page-btn {% if suppliers.number == num %}active{% endif %}">
                         {{ num }}
@@ -292,56 +346,60 @@
         </div>
     </div>
 </div>
+
 <div id="addSupplierModal" class="blur-modal">
     <div class="modal-box">
-        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
-            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">New Partner</p>
-            <h3 style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;">Register Supplier</h3>
+        <div style="padding: 24px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(248, 250, 252, 0.8);">
+            <div>
+                <p style="margin:0; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">New Partner</p>
+                <h3 style="margin:4px 0 0 0; color:var(--french-blue); font-size:20px; font-weight:800; font-family: var(--font-heading);">Register Supplier</h3>
+            </div>
+            <button type="button" onclick="document.getElementById('addSupplierModal').style.display='none'" style="background: transparent; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
         </div>
         
-        <div style="padding: 25px;">
+        <div style="padding: 30px;">
             <form method="POST" action="{% url 'inventory:supplier_list' %}">
                 {% csrf_token %}
                 <div class="form-group">
-                    <label>Company / Supplier Name <span style="color:#e07300;">*</span></label>
+                    <label>Company / Supplier Name <span style="color:var(--amber-flame);">*</span></label>
                     <input type="text" name="name" required placeholder="e.g. Boysen Paints Inc.">
                 </div>
-                <div style="display: flex; gap: 15px;">
+                <div style="display: flex; gap: 16px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Contact Person</label>
                         <input type="text" name="contact_name" placeholder="e.g. Juan Dela Cruz">
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Phone Number</label>
-                        <input type="text" name="phone" placeholder="e.g. 0917-XXX-XXXX" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';">
+                        <input type="text" name="phone" placeholder="e.g. 0917-XXX-XXXX" style="font-weight: 600; font-size: 15px; font-family: 'Inconsolata', monospace;">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" name="email" placeholder="sales@company.com">
                 </div>
-                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
-                    <label style="font-weight: 700; color: #092c4c; font-size: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
-                        <i class="ph ph-truck"></i> Standard Delivery Schedule
+                <div style="background: rgba(248, 250, 252, 0.6); padding: 20px; border-radius: 12px; border: 1px dashed rgba(203, 213, 225, 0.8); margin-bottom: 20px;">
+                    <label style="font-weight: 700; color: var(--french-blue); font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                        <i class="ph ph-truck" style="font-size: 18px;"></i> Standard Delivery Schedule
                     </label>
-                    <div style="display: flex; gap: 15px;">
+                    <div style="display: flex; gap: 16px;">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label style="font-size: 11px;">Average Wait (Days)</label>
-                            <input type="number" name="default_lead_time_days" value="7" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
+                            <label style="font-size: 12px;">Average Wait (Days)</label>
+                            <input type="number" name="default_lead_time_days" value="7" min="1" style="font-weight: 600; font-size: 15px; font-family: 'Inconsolata', monospace;" required>
                         </div>
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label style="font-size: 11px;">Max Wait (Days)</label>
-                            <input type="number" name="max_lead_time_days" value="14" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
+                            <label style="font-size: 12px;">Max Wait (Days)</label>
+                            <input type="number" name="max_lead_time_days" value="14" min="1" style="font-weight: 600; font-size: 15px; font-family: 'Inconsolata', monospace;" required>
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Business Address</label>
-                    <textarea name="address" rows="2" placeholder="Full address..."></textarea>
+                    <textarea name="address" rows="2" placeholder="Full address..." style="resize: none;"></textarea>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button type="button" onclick="document.getElementById('addSupplierModal').style.display='none'" style="flex: 1; padding: 12px; border: 1px solid #CBD5E1; background: white; color: #475569; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif; transition: 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='white'">Cancel</button>
-                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: #092c4c; color: white; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: 'Inter', sans-serif; transition: 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)';">Save Supplier</button>
+                <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border-color);">
+                    <button type="button" onclick="document.getElementById('addSupplierModal').style.display='none'" class="btn-clear" style="flex: 1;">Cancel</button>
+                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: var(--french-blue); color: white; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: var(--font-main); font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);" onmouseover="this.style.backgroundColor='#1a2858'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='var(--french-blue)'; this.style.transform='translateY(0)';">Save Supplier</button>
                 </div>
             </form>
         </div>
@@ -351,61 +409,64 @@
 {% for supplier in suppliers %}
 <div id="editSupplierModal-{{ supplier.id }}" class="blur-modal">
     <div class="modal-box">
-        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center; position: relative;">
-            <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='none'" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; transition: 0.2s;" onmouseover="this.style.color='#092c4c'" onmouseout="this.style.color='#94a3b8'">&times;</button>
-            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Update Profile</p>
-            <h3 style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;">Edit Supplier</h3>
+        <div style="padding: 24px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(248, 250, 252, 0.8);">
+            <div>
+                <p style="margin:0; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Update Profile</p>
+                <h3 style="margin:4px 0 0 0; color:var(--french-blue); font-size:20px; font-weight:800; font-family: var(--font-heading);">Edit Supplier</h3>
+            </div>
+            <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='none'" style="background: transparent; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
         </div>
         
-        <div style="padding: 25px;">
+        <div style="padding: 30px;">
             <form method="POST" action="{% url 'inventory:edit_supplier' supplier.id %}">
                 {% csrf_token %}
                 <div class="form-group">
-                    <label>Company / Supplier Name <span style="color:#e07300;">*</span></label>
+                    <label>Company / Supplier Name <span style="color:var(--amber-flame);">*</span></label>
                     <input type="text" name="name" value="{{ supplier.name }}" required>
                 </div>
-                <div style="display: flex; gap: 15px;">
+                <div style="display: flex; gap: 16px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Contact Person</label>
                         <input type="text" name="contact_name" value="{{ supplier.contact_name|default:'' }}">
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Phone Number</label>
-                        <input type="text" name="phone" value="{{ supplier.phone|default:'' }}"style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" >
+                        <input type="text" name="phone" value="{{ supplier.phone|default:'' }}" style="font-weight: 600; font-size: 15px; font-family: 'Inconsolata', monospace;">
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" name="email" value="{{ supplier.email|default:'' }}">
                 </div>
-                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
-                    <label style="font-weight: 700; color: #092c4c; font-size: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
-                        <i class="ph ph-truck"></i> Standard Delivery Schedule
+                <div style="background: rgba(248, 250, 252, 0.6); padding: 20px; border-radius: 12px; border: 1px dashed rgba(203, 213, 225, 0.8); margin-bottom: 20px;">
+                    <label style="font-weight: 700; color: var(--french-blue); font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                        <i class="ph ph-truck" style="font-size: 18px;"></i> Standard Delivery Schedule
                     </label>
-                    <div style="display: flex; gap: 15px;">
+                    <div style="display: flex; gap: 16px;">
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label style="font-size: 11px;">Average Wait (Days)</label>
-                            <input type="number" name="default_lead_time_days" value="{{ supplier.default_lead_time_days }}" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
+                            <label style="font-size: 12px;">Average Wait (Days)</label>
+                            <input type="number" name="default_lead_time_days" value="{{ supplier.default_lead_time_days }}" min="1" style="font-weight: 600; font-size: 15px; font-family: 'Inconsolata', monospace;" required>
                         </div>
                         <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label style="font-size: 11px;">Max Wait (Days)</label>
-                            <input type="number" name="max_lead_time_days" value="{{ supplier.max_lead_time_days }}" min="1" style="font-weight: 500; font-size: 1.05rem; font-family: 'Inconsolata';" required>
+                            <label style="font-size: 12px;">Max Wait (Days)</label>
+                            <input type="number" name="max_lead_time_days" value="{{ supplier.max_lead_time_days }}" min="1" style="font-weight: 600; font-size: 15px; font-family: 'Inconsolata', monospace;" required>
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Business Address</label>
-                    <textarea name="address" rows="2">{{ supplier.address|default:'' }}</textarea>
+                    <textarea name="address" rows="2" style="resize: none;">{{ supplier.address|default:'' }}</textarea>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='none'" style="flex: 1; padding: 12px; border: 1px solid #CBD5E1; background: white; color: #475569; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif; transition: 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='white'">Cancel</button>
-                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: #092c4c; color: white; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: 'Inter', sans-serif; transition: 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)';">Save Changes</button>
+                <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border-color);">
+                    <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='none'" class="btn-clear" style="flex: 1;">Cancel</button>
+                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: var(--french-blue); color: white; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: var(--font-main); font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);" onmouseover="this.style.backgroundColor='#1a2858'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='var(--french-blue)'; this.style.transform='translateY(0)';">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 {% endfor %}
+
 <script>
     window.onclick = function(event) {
         if (event.target.classList.contains('blur-modal')) {
@@ -444,7 +505,7 @@
                     icon: iconType,
                     title: titleText,
                     text: "{{ message|escapejs }}",
-                    confirmButtonColor: '#092c4c',
+                    confirmButtonColor: 'var(--french-blue)',
                     timer: 3000,
                     timerProgressBar: true
                 });
@@ -463,8 +524,8 @@
                     text: `Are you sure you want to archive ${supplierName}?`,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#dc2626',
-                    cancelButtonColor: '#94a3b8',
+                    confirmButtonColor: 'var(--status-red)',
+                    cancelButtonColor: 'var(--text-secondary)',
                     confirmButtonText: 'Yes, archive it!'
                 }).then((result) => {
                     if (result.isConfirmed) {

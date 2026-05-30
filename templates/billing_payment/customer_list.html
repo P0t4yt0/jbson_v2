@@ -7,28 +7,27 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
+    /* GLASSMORPHISM PANELS */
+    .table-container, .filter-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+    }
+    
+    .table-container {
         overflow-x: auto; 
     }
     
     .filter-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 20px; 
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 24px 30px; 
+        margin-bottom: 24px;
     }
     
+    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -36,75 +35,130 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary, #4a5568);
+        font-size: 14px; 
         vertical-align: middle;
+        transition: background-color 0.2s ease;
     }
+
+    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
     .table-clean th {
         font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
+        color: var(--text-secondary, #64748b); 
+        font-size: 12px; 
         text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
     
+    /* AESTHETIC STATUS BADGES */
     .badge {
         padding: 6px 14px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 12px;
         font-weight: 700;
         display: inline-block;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .bg-sage-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
     .bg-danger { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
+    /* ACTION BUTTONS WITH HOVER EFFECTS */
     .action-group { display: flex; gap: 8px; align-items: center; justify-content: center; }
     
     .table-action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background-color: #f8fafc;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid #e2e8f0;
-        color: #64748b;
+        color: var(--text-secondary, #64748b);
         text-decoration: none;
-        font-size: 1.1rem;
-        transition: all 0.2s ease;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
     }
     .table-action-btn:hover { 
-    transform: translateY(-2px); 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
 
-    .btn-view {
-        color: #092c4c;
-        background-color: #f2f7fb; 
+    .btn-view { color: var(--french-blue); }
+    .btn-view:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+    
+    .table-action-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+    .table-action-btn.disabled:hover { transform: none; box-shadow: none; background-color: rgba(255, 255, 255, 0.9); color: #64748b; border-color: #e2e8f0; }
+    
+    /* FORM & FILTER STYLES */
+    .filter-input {
+        flex: 2; 
+        padding: 12px 16px; 
+        font-size: 13px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+    }
+    .filter-input:focus {
+        border-color: var(--french-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 
-    .btn-view:hover { 
-        background-color: #092c4c; 
+    .btn-primary {
+        background: var(--french-blue); 
         color: white; 
-        border-color: #092c4c; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        font-weight: 600; 
+        font-family: var(--font-main); 
+        font-size: 14px; 
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
     }
-    
-    .table-action-btn.disabled { 
-        opacity: 0.5; 
-        cursor: not-allowed; 
+    .btn-primary:hover {
+        background-color: #1a2858;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
     }
 
-    .table-action-btn.disabled:hover { 
-        transform: none; 
-        background-color: #f8fafc; 
-        color: #64748b; 
-        border-color: #e2e8f0; 
+    .btn-clear {
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        text-decoration: none; 
+        background: rgba(248, 250, 252, 0.8); 
+        color: var(--text-secondary); 
+        padding: 12px 24px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-size: 13px; 
+        font-weight: 600; 
+        transition: all 0.3s ease;
     }
-    
+    .btn-clear:hover {
+        background-color: rgba(255, 255, 255, 1); 
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
+    }
+
     /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
@@ -112,70 +166,90 @@
         align-items: center;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid #edf2f7;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
     }
     .page-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 32px;
+        min-width: 36px;
+        height: 36px;
         gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        background: white;
-        border-radius: 6px;
-        color: #475569;
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 13px;
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
-    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
+    .page-btn:hover { 
+        border-color: var(--french-blue); 
+        color: var(--french-blue); 
+        background-color: #FFFFFF; 
+        transform: translateY(-2px);
+    }
+    .page-btn.active { 
+        background: var(--mustard); 
+        color: #1E293B; 
+        font-weight: bold; 
+        border-color: var(--mustard); 
+        box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4);
+    }
     .page-btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
-    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+    .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 
     /* FORM STYLES FOR MODAL */
-    .form-group { margin-bottom: 15px; text-align: left; }
-    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.85rem; color: #475569; }
-    .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
-    .form-group input:focus, .form-group select:focus { border-color: #092c4c; }
+    .form-group { margin-bottom: 16px; text-align: left; }
+    .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); }
+    .form-group input, .form-group select { 
+        width: 100%; 
+        padding: 12px 16px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        transition: all 0.3s ease; 
+        box-sizing: border-box; 
+        background: rgba(255, 255, 255, 0.8);
+    }
+    .form-group input:focus, .form-group select:focus { 
+        border-color: var(--french-blue); 
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
+    }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Trade Credit Accounts</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 6px 0; font-size: 28px; letter-spacing: -0.5px;">Trade Credit Accounts</h2>
+            <p style="font-family: var(--font-main); font-weight: 300; color:#6B7280; margin: 0; font-size: 15px;">
                 Manage contractor balances, limits, and terms.
             </p>
         </div>
-        <button onclick="document.getElementById('addCustomerModal').style.display='flex'" style="background: #092c4c; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background-color 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.1);" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">
-            <i class="ph ph-plus-circle" style="font-size: 1.2rem;"></i> Add Customer
+        <button onclick="document.getElementById('addCustomerModal').style.display='flex'" class="btn-primary">
+            <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Add Customer
         </button>
     </div>
     
     <div class="filter-container">
-    <form method="GET" style="display: flex; gap: 15px; align-items: center; margin: 0;">
-        <input type="text" name="search" placeholder="Search Customer Name or Contact Number" value="{{ search_query }}" 
-               style="flex: 2; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;" 
-               onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
-        
-        <button type="submit" style="background: #092c4c; color: white; padding: 12px 30px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s;" 
-                onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">
-            Filter
-        </button>
-        
-        {% if search_query %}
-        <a href="?" style="text-decoration: none; background: #f8fafc; color: #64748b; padding: 12px 30px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s;" 
-           onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
-           onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
-            Clear
-        </a>
-        {% endif %}
-    </form>
-</div>
+        <form method="GET" style="display: flex; gap: 16px; align-items: center; margin: 0;">
+            <input type="text" name="search" class="filter-input" placeholder="Search Customer Name or Contact Number" value="{{ search_query }}">
+            
+            <button type="submit" class="btn-primary" style="padding: 12px 30px;">
+                <i class="ph ph-funnel" style="margin-right: 4px;"></i> Filter
+            </button>
+            
+            {% if search_query %}
+            <a href="?" class="btn-clear" title="Clear all filters">
+                <i class="ph ph-x-circle" style="margin-right: 4px;"></i> Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
     
     <div class="table-container">
         <table class="table-clean">
@@ -193,13 +267,13 @@
             <tbody>
                 {% for customer in customers %}
                 <tr>
-                    <td><strong style="color: #092c4c; font-weight: 700;">{{ customer.name }}</strong></td>
-                    <td style="font-family:'Inconsolata'; font-size: 1.05rem; color: #64748b;">{{ customer.phone|default:"N/A" }}</td>
-                    <td style="color: #64748b; font-weight: 700;">Net {{ customer.payment_terms }}</td>
-                    <td style="font-weight: 800; font-size: 1.05rem; font-family:'Inconsolata'; color: #334155;">₱{{ customer.credit_limit }}</td>
+                    <td><strong style="color: var(--french-blue); font-weight: 700; font-size: 16px;">{{ customer.name }}</strong></td>
+                    <td style="font-family: 'Inconsolata', monospace; font-size: 16px; color: var(--text-secondary);">{{ customer.phone|default:"N/A" }}</td>
+                    <td style="color: var(--text-secondary); font-weight: 600;">Net {{ customer.payment_terms }}</td>
+                    <td style="font-weight: 600; font-size: 16px; font-family: 'Inconsolata', monospace; color: var(--text-primary);">₱{{ customer.credit_limit|floatformat:"2g" }}</td>
                     
-                    <td style="font-weight: 800; font-size: 1.05rem; font-family:'Inconsolata'; color: {% if customer.credit_balance > 0 %}#dc2626{% else %}#16a34a{% endif %};">
-                        ₱{{ customer.credit_balance }}
+                    <td style="font-weight: 800; font-size: 16px; font-family: 'Inconsolata', monospace; color: {% if customer.credit_balance > 0 %}var(--status-red){% else %}var(--status-green){% endif %};">
+                        ₱{{ customer.credit_balance|floatformat:"2g" }}
                     </td>
                     
                     <td>
@@ -220,7 +294,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No credit customers found based on your filter.</td>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">No credit customers found based on your filter.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -229,14 +303,14 @@
         <div class="pagination-wrapper">
             <div class="page-info">
                 Row Per Page 
-                <select onchange="changePerPage(this.value)" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;">
+                <select onchange="changePerPage(this.value)" style="padding: 6px; margin: 0 8px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.8); cursor: pointer;">
                     <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                     <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
                 </select> 
-                Entries &nbsp; Showing {{ customers.start_index|default:0 }} to {{ customers.end_index|default:0 }} of {{ customers.paginator.count|default:0 }}
+                Entries &nbsp;|&nbsp; Showing <strong style="color: var(--text-primary);">{{ customers.start_index|default:0 }}</strong> to <strong style="color: var(--text-primary);">{{ customers.end_index|default:0 }}</strong> of <strong style="color: var(--text-primary);">{{ customers.paginator.count|default:0 }}</strong>
             </div>
             
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 8px;">
                 {% for num in customers.paginator.page_range %}
                     <a href="?search={{ search_query }}&status={{ status_filter }}&page={{ num }}&per_page={{ per_page|default:10 }}" class="page-btn {% if customers.number == num %}active{% endif %}">
                         {{ num }}
@@ -253,36 +327,39 @@
     </div> 
 </div> 
 
-<div id="addCustomerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background:#fff; width:450px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+<div id="addCustomerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:5000; justify-content:center; align-items:center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);">
+    <div style="background: rgba(255, 255, 255, 0.95); width:480px; border-radius:var(--border-radius, 20px); box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); overflow:hidden; font-family: var(--font-main); border: 1px solid rgba(255, 255, 255, 0.5);">
         
-        <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
-            <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">New Account</p>
-            <h3 style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;">Add Trade Credit Customer</h3>
+        <div style="padding: 24px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(248, 250, 252, 0.8);">
+            <div>
+                <p style="margin:0; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">New Account</p>
+                <h3 style="margin:4px 0 0 0; color:var(--french-blue); font-size:20px; font-weight:800; font-family: var(--font-heading);">Add Trade Credit Customer</h3>
+            </div>
+            <button type="button" onclick="document.getElementById('addCustomerModal').style.display='none'" style="background: transparent; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
         </div>
         
-        <div style="padding:25px;">
+        <div style="padding: 30px;">
             <form method="POST" action="{% url 'billing_payment:customer_list' %}">
                 {% csrf_token %}
                 
                 <div class="form-group">
-                    <label>Company / Contractor Name <span style="color:#e07300;">*</span></label>
+                    <label>Company / Contractor Name <span style="color:var(--amber-flame);">*</span></label>
                     <input type="text" name="name" required placeholder="e.g., Alpha Builders">
                 </div>
                 
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="text" name="phone" placeholder="e.g., 0917-123-4567">
+                    <input type="text" name="phone" placeholder="e.g., 0917-123-4567" style="font-family: 'Inconsolata', monospace; font-size: 15px;">
                 </div>
                 
-                <div style="display: flex; gap: 15px;">
+                <div style="display: flex; gap: 16px;">
                     <div class="form-group" style="flex: 1;">
-                        <label>Credit Limit (₱) <span style="color:#e07300;">*</span></label>
-                        <input type="number" name="credit_limit" required step="0.01" value="50000.00">
+                        <label>Credit Limit (₱) <span style="color:var(--amber-flame);">*</span></label>
+                        <input type="number" name="credit_limit" required step="0.01" value="50000.00" style="font-family: 'Inconsolata', monospace; font-size: 15px; font-weight: 600;">
                     </div>
                     
                     <div class="form-group" style="flex: 1;">
-                        <label>Payment Terms <span style="color:#e07300;">*</span></label>
+                        <label>Payment Terms <span style="color:var(--amber-flame);">*</span></label>
                         <select name="payment_terms" required>
                             <option value="30">Net 30 Days</option>
                             <option value="60">Net 60 Days</option>
@@ -291,9 +368,9 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button type="button" onclick="document.getElementById('addCustomerModal').style.display='none'" style="flex: 1; padding: 12px; border: 1px solid #CBD5E1; background: white; color: #475569; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif; transition: 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='white'">Cancel</button>
-                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: #e07300; color: white; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: 'Inter', sans-serif; transition: 0.2s; box-shadow: 0 4px 6px rgba(224, 115, 0, 0.2);" onmouseover="this.style.backgroundColor='#cc6800'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#e07300'; this.style.transform='translateY(0)';">Save Account</button>
+                <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border-color);">
+                    <button type="button" onclick="document.getElementById('addCustomerModal').style.display='none'" class="btn-clear" style="flex: 1;">Cancel</button>
+                    <button type="submit" style="flex: 1; padding: 12px; border: none; background: var(--amber-flame); color: white; border-radius: 10px; cursor: pointer; font-weight: 700; font-family: var(--font-main); font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(255, 185, 21, 0.2);" onmouseover="this.style.backgroundColor='#e6a300'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='var(--amber-flame)'; this.style.transform='translateY(0)';">Save Account</button>
                 </div>
             </form>
         </div>
