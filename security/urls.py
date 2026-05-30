@@ -36,4 +36,6 @@ urlpatterns = [
     path('dashboard/admin/users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
     path('edit-user/', views.edit_user_view, name='edit_user_endpoint'),
     path('verify-admin-password/', views.verify_admin_password, name='verify_admin_password'),
+    path('request-reports-access/', views.request_reports_access, name='request_reports_access'),
+    path('review-reports-access/', views.review_reports_access, name='review_reports_access'),
 ]

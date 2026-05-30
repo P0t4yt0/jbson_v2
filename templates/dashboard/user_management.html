@@ -246,60 +246,111 @@
 
     <div class="layout-grid">
         
-        <div class="table-container">
-            <h2 class="section-title">System Users</h2>
-            <table class="table-clean">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Date Added</th>
-                        <th style="text-align: center;">Actions</th> 
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td><strong style="color: #092c4c; font-weight: 600;">{{ user.full_name }}</strong></td>
-                        <td style="color: #64748b; font-family: 'Inconsolata'; font-size: 1.05rem;">{{ user.username }}</td>
-                        <td>
-                            {% if user.is_superuser %}
-                                <span class="badge bg-soft-red">Admin</span>
-                            {% else %}
-                                <span class="badge bg-sage-green">Employee</span>
-                            {% endif %}
-                        </td>
-                        <td style="color: #64748b;">{{ user.date_created|date:"M d, Y" }}</td>
-                        
-                        <td>
-                            <div class="action-group">
-                                <a href="#" onclick="openEditModalFlow('{{ user.id }}', '{{ user.full_name|escapejs }}', '{{ user.username|escapejs }}', '{{ user.is_superuser|yesno:"Admin,Employee" }}'); return false;" class="table-action-btn btn-edit" title="Edit User Account">
-                                    <i class="ph ph-pencil-simple"></i>
-                                </a>
-
-                                {% if user.id != request.user.id %}
-                                <a href="{% url 'security:delete_user' user.id %}" 
-                                   onclick="event.preventDefault(); showDeleteAlert(this.href, '{{ user.username|escapejs }}');"
-                                   class="table-action-btn btn-delete" title="Delete User">
-                                    <i class="ph ph-trash"></i>
-                                </a>
+        <div style="display: flex; flex-direction: column; gap: 25px;">
+            
+            <div class="table-container">
+                <h2 class="section-title">System Users</h2>
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Date Added</th>
+                            <th style="text-align: center;">Actions</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td><strong style="color: #092c4c; font-weight: 600;">{{ user.full_name }}</strong></td>
+                            <td style="color: #64748b; font-family: 'Inconsolata'; font-size: 1.05rem;">{{ user.username }}</td>
+                            <td>
+                                {% if user.is_superuser %}
+                                    <span class="badge bg-soft-red">Admin</span>
                                 {% else %}
-                                <span style="font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-left: 5px;">(You)</span>
+                                    <span class="badge bg-sage-green">Employee</span>
                                 {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No users found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                            </td>
+                            <td style="color: #64748b;">{{ user.date_created|date:"M d, Y" }}</td>
+                            
+                            <td>
+                                <div class="action-group">
+                                    <a href="#" onclick="openEditModalFlow('{{ user.id }}', '{{ user.full_name|escapejs }}', '{{ user.username|escapejs }}', '{{ user.is_superuser|yesno:"Admin,Employee" }}'); return false;" class="table-action-btn btn-edit" title="Edit User Account">
+                                        <i class="ph ph-pencil-simple"></i>
+                                    </a>
 
-        <div class="table-container">
+                                    {% if user.id != request.user.id %}
+                                    <a href="{% url 'security:delete_user' user.id %}" 
+                                       onclick="event.preventDefault(); showDeleteAlert(this.href, '{{ user.username|escapejs }}');"
+                                       class="table-action-btn btn-delete" title="Delete User">
+                                        <i class="ph ph-trash"></i>
+                                    </a>
+                                    {% else %}
+                                    <span style="font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-left: 5px;">(You)</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No users found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-container">
+                <h2 class="section-title">
+                    Pending Report Access Requests 
+                    {% if pending_report_requests %}
+                        <span class="badge bg-soft-red" style="float: right;">{{ pending_report_requests|length }} New</span>
+                    {% endif %}
+                </h2>
+                
+                <table class="table-clean">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Status</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in pending_report_requests %}
+                        <tr>
+                            <td>
+                                <strong style="color: #092c4c;">{{ req.user.full_name }}</strong><br>
+                                <small style="color: #64748b;">@{{ req.user.username }}</small>
+                            </td>
+                            <td><span class="badge" style="background:#fff7ed; color:#c2410c; border:1px solid #ffedd5;">Pending Approval</span></td>
+                            <td>
+                                <form method="POST" action="{% url 'security:review_reports_access' %}" style="display:flex; gap:5px; justify-content:center;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="profile_id" value="{{ req.id }}">
+                                    
+                                    <button type="submit" name="action" value="approve" class="table-action-btn" style="color: #16a34a; background: #f0fdf4; border-color: #bbf7d0;" title="Approve">
+                                        <i class="ph ph-check-circle"></i>
+                                    </button>
+                                    <button type="submit" name="action" value="reject" class="table-action-btn btn-delete" title="Reject">
+                                        <i class="ph ph-x-circle"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 30px; color: #94a3b8; font-style: italic;">
+                                No pending requests at the moment.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div> <div class="table-container" style="height: fit-content;">
             <h2 class="section-title">Register New Account</h2>
             
             <form method="POST" action="{% url 'user_management' %}" id="registerForm">

@@ -42,6 +42,7 @@ from django.db.models.functions import Coalesce
 from point_of_sale.models import Transaction
 from billing_payment.models import SalesReturn
 from inventory.models import InventoryItem
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -482,7 +483,16 @@ def user_management_view(request):
 
     # 6. Fetch users for the list view
     users = User.objects.all().order_by('-date_created')
-    return render(request, 'dashboard/user_management.html', {'users': users})
+    pending_report_requests = EmployeeProfile.objects.filter(
+        reports_access_requested=True, 
+        reports_access_approved=False
+    )
+    
+    return render(request, 'dashboard/user_management.html', {
+        'users': users,
+        'pending_report_requests': pending_report_requests
+    })    
+
 
 def get_current_db_size():
     with connection.cursor() as cursor:
@@ -573,3 +583,74 @@ def edit_user_view(request):
         messages.success(request, f"User {user.username} updated successfully!")
         
     return redirect('user_management') # Siguraduhing tama ang redirect name mo
+
+from notifications.models import Notification
+
+@login_required
+@require_http_methods(["POST"])
+def request_reports_access(request):
+    """Allows an employee to request access to the reports hub."""
+    # FIX: Added .lower() to handle 'Employee' (capital E)
+    if getattr(request.user, "role", "employee").lower() == "employee":
+        profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
+        profile.reports_access_requested = True
+        profile.save()
+
+        # Notify Admins
+        admins = User.objects.filter(role='Admin', is_active=True)
+        for admin in admins:
+            Notification.objects.create(
+                user=admin,
+                notification_type='access_request',
+                priority='medium',
+                title='Reports Access Request',
+                message=f"Employee '{request.user.username}' is requesting access to the Reports Hub.",
+                action_url=reverse('user_management')  # Links to User Management page
+            )
+        
+        messages.success(request, "Request to access the Reports Hub has been sent to the Admin.")
+    return redirect('reports_analytics:reports_hub')
+
+@login_required
+@require_http_methods(["POST"])
+def review_reports_access(request):
+    """Admin function to approve or reject reports access."""
+    # FIX: Check for superuser or 'Admin' properly
+    is_admin = getattr(request.user, "role", "employee").lower() == "admin" or request.user.is_superuser
+    if not is_admin:
+        return redirect(_role_redirect_url(request.user))
+        
+    profile_id = request.POST.get("profile_id")
+    action = request.POST.get("action")
+    
+    try:
+        profile = EmployeeProfile.objects.get(id=profile_id)
+        if action == "approve":
+            profile.reports_access_approved = True
+            profile.reports_access_requested = False
+            profile.reports_access_expires_at = timezone.now() + timedelta(minutes=60)
+            profile.save()
+            messages.success(request, f"Reports access granted to {profile.user.full_name} for 1 hour.")
+            
+            # Notify the employee
+            # Notify the employee
+            Notification.objects.create(
+                user=profile.user,
+                notification_type='access_approved',
+                priority='high',
+                title='Reports Access Approved',
+                message='Your request is approved. You have 1 hour of access starting now.',
+                action_url=reverse('reports_analytics:reports_hub')
+            )
+            
+        elif action == "reject":
+            profile.reports_access_requested = False
+            profile.reports_access_approved = False
+            profile.reports_access_expires_at = None # Reset timer
+            profile.save()
+            messages.error(request, f"Reports access denied for {profile.user.full_name}.")
+            
+    except EmployeeProfile.DoesNotExist:
+        messages.error(request, "Profile not found.")
+        
+    return redirect('user_management')

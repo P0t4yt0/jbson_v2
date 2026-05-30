@@ -1,0 +1,39 @@
+{% extends 'dashboard/dashboard.html' %}
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; position: relative; z-index: 1;">
+    
+    <div style="background: var(--bg-card); width: 100%; max-width: 450px; border-radius: var(--border-radius); padding: 40px; box-shadow: var(--shadow-subtle); border: 1px solid var(--border-color); text-align: center;">
+        
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; border-radius: 50%; background: rgba(47, 63, 123, 0.08); margin-bottom: 20px;">
+            <i class="ph ph-lock-key" style="font-size: 40px; color: var(--french-blue);"></i>
+        </div>
+        
+        <h2 style="color: var(--french-blue); margin-bottom: 8px; font-size: 24px;">Access Restricted</h2>
+        
+        {% if was_expired %}
+            <div style="background: rgba(239, 68, 68, 0.1); color: var(--status-red); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 600;">
+                <i class="ph ph-clock-countdown" style="margin-right: 5px;"></i> Your 1-hour access session has expired.
+            </div>
+        {% endif %}
+
+        {% if profile.reports_access_requested %}
+            <p style="color: var(--amber-flame); font-size: 14px; margin-bottom: 24px; line-height: 1.5; font-weight: 600;">
+                Your request to access the Reports Hub has been sent. Please wait for the Administrator's approval.
+            </p>
+            <button class="btn" disabled style="width: 100%; justify-content: center; background-color: #E5E7EB; color: var(--text-secondary); cursor: not-allowed; padding: 12px;">
+                <i class="ph ph-clock"></i> Request Pending...
+            </button>
+        {% else %}
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
+                You currently do not have permission to view the Reports Hub. Please request access to continue.
+            </p>
+            <form method="POST" action="{% url 'security:request_reports_access' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px;">
+                    <i class="ph ph-paper-plane-right"></i> Request Access
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
