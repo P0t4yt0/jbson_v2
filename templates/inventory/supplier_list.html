@@ -7,27 +7,28 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    /* GLASSMORPHISM PANELS */
-    .table-container, .filter-container {
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        border-radius: var(--border-radius, 20px);
-        padding: 30px; 
-        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
-    }
-    
     .table-container {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 30px; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         overflow-x: auto; 
     }
     
     .filter-container {
-        padding: 24px 30px; 
-        margin-bottom: 24px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 20px; 
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
     
-    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -234,6 +235,19 @@
         border-color: var(--french-blue); 
         background: #FFFFFF;
         box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
+    }
+
+    .btn-primary {
+        background-color: #2F3F7B !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2) !important;
+    }
+    .btn-primary:hover {
+        background-color: #1e2a55 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(47, 63, 123, 0.3) !important;
     }
 </style>
 
