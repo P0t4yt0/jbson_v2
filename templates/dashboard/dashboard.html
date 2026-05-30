@@ -7,12 +7,16 @@
     <title>JBSON Hardware - Admin Dashboard</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* BAGO ITO: Sabay nang i-i-import ang Inter at Montserrat */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
         :root {
-            /* Color Palette */
-            --bg-main: #F8F9FA;
+            /* Strict Color Palette */
+            --french-blue: #2F3F7B;
+            --mustard: #FFD358;
+            --amber-flame: #FFB915;
+
+            /* Original Theme Variables */
+            --bg-main: #F4F6F9;
             --bg-card: #FFFFFF;
             --primary-red: #891C1C;
             --primary-navy: #0D1E2D;
@@ -24,22 +28,20 @@
             --status-red: #EF4444;
             --status-yellow: #FACC15;
             
-            /* Typography & Spacing - UPDATED ITO */
+            /* Typography & Spacing */
             --font-main: 'Inter', sans-serif; 
             --font-heading: 'Inter', sans-serif;
-            --border-radius: 10px;
-            --shadow-subtle: 0 1px 3px rgba(0,0,0,0.1);
+            --border-radius: 20px;
+            --shadow-subtle: 0 10px 30px -10px rgba(47, 63, 123, 0.1);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            /* UPDATED ITO: Inter na ang default font sa buong system */
             font-family: var(--font-main);
         }
 
-        /* BAGO ITO: Automatic na Montserrat na ang gagamitin sa lahat ng headings (h1 hanggang h6) */
         h1, h2, h3, h4, h5, h6 {
             font-family: var(--font-heading);
             font-weight: 700;
@@ -53,7 +55,7 @@
             overflow: hidden;
         }
 
-        /* --- Sidebar Navigation --- */
+        /* --- Sidebar Navigation (ORIGINAL) --- */
         .sidebar {
             width: 260px;
             background-color: var(--bg-card);
@@ -119,9 +121,10 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative; /* For background accents */
         }
 
-        /* --- Header --- */
+        /* --- Header (ORIGINAL) --- */
         .top-header {
             height: 70px;
             background-color: var(--bg-card);
@@ -131,6 +134,7 @@
             justify-content: space-between;
             padding: 0 32px;
             flex-shrink: 0;
+            z-index: 10;
         }
 
         .search-bar {
@@ -173,8 +177,8 @@
         }
 
         .btn:hover { opacity: 0.9; }
-        .btn-primary { background-color: var(--primary-red); color: #FFF; }
-        .btn-secondary { background-color: var(--primary-navy); color: #FFF; }
+        .btn-primary { background-color: var(--french-blue); color: #FFF; }
+        .btn-secondary { background-color: var(--amber-flame); color: #FFF; }
 
         .icon-btn {
             background: transparent;
@@ -209,23 +213,35 @@
         .dropdown-item { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
 
-        /* --- Scrollable Content Grid --- */
+        /* --- Scrollable Content Grid (MAY DOT MATRIX) --- */
         .content-scroll {
             flex: 1;
             overflow-y: auto;
-            padding: 32px;
+            padding: 36px 48px;
+            background-color: var(--bg-main);
+            background-image: radial-gradient(rgba(47, 63, 123, 0.08) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            position: relative;
         }
+
+        /* NEW: BACKGROUND BLOBS / CIRCLES */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .shape-1 { width: 450px; height: 450px; background: rgba(255, 211, 88, 0.4); top: -10%; left: 25%; }
+        .shape-2 { width: 600px; height: 600px; background: rgba(47, 63, 123, 0.2); bottom: -20%; right: -5%; }
+        .shape-3 { width: 350px; height: 350px; background: rgba(255, 185, 21, 0.3); top: 40%; left: -5%; }
 
         .welcome-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .welcome-header h1 {
-            font-size: 28px;
-            font-weight: 800;
+            margin-bottom: 32px;
         }
 
         .date-filter {
@@ -233,66 +249,12 @@
             align-items: center;
             gap: 8px;
             background: var(--bg-card);
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        /* Cards Layout */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 24px;
-        }
-
-        .metric-card {
-            background-color: var(--bg-card);
-            border-radius: var(--border-radius);
-            padding: 24px;
             box-shadow: var(--shadow-subtle);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            border: 1px solid var(--border-color);
-            position: relative;
-        }
-
-        .metric-card.solid-red { background-color: var(--primary-red); color: white; border: none; }
-        .metric-card.solid-navy { background-color: var(--primary-navy); color: white; border: none; }
-
-        .card-icon-wrapper {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            background: rgba(255,255,255,0.1);
-        }
-
-        .metric-card:not(.solid-red):not(.solid-navy) .card-icon-wrapper {
-            background: #F3F4F6;
-            color: var(--text-secondary);
-            position: absolute;
-            top: 24px;
-            right: 24px;
-        }
-
-        .card-label {
             font-size: 14px;
-            font-weight: 400;
-            opacity: 0.9;
-        }
-        
-        .metric-card:not(.solid-red):not(.solid-navy) .card-label { color: var(--text-secondary); }
-
-        .card-value {
-            font-size: 24px;
-            font-weight: 700;
+            color: var(--text-secondary);
         }
 
         .modal-overlay {
@@ -314,135 +276,27 @@
             padding: 30px;
         }
 
-        .trend-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            background: rgba(255,255,255,0.2);
-            width: max-content;
-        }
+        a { text-decoration: none; }
 
-        .trend-badge.positive { color: var(--status-green); background: rgba(34, 197, 94, 0.1); }
-        .trend-badge.negative { color: var(--status-red); background: rgba(239, 68, 68, 0.1); }
-
-        a {
-            text-decoration: none;
-        }
-        
-        /* Lower Grid (Charts & Tables) */
-        .lower-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-        }
-
-        .chart-card, .list-card {
-            background: var(--bg-card);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            box-shadow: var(--shadow-subtle);
-            border: 1px solid var(--border-color);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .card-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 16px;
-            color: var(--text-primary);
-        }
-
-        .logout-form {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
+        .logout-form { width: 100%; margin: 0; padding: 0; }
         .btn-logout {
-            background: transparent;
-            border: none;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: inherit;
-            color:var(--primary-red);
-        }
-
-        .view-all {
-            font-size: 13px;
-            color: var(--text-secondary);
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-        /* Low Stock List Items */
-        .stock-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .stock-item:last-child { border-bottom: none; }
-
-        .item-info { display: flex; flex-direction: column; gap: 4px; }
-        .item-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-        .item-id { font-size: 12px; color: var(--text-secondary); }
-
-        .item-stock { text-align: right; }
-        .stock-label { font-size: 12px; color: var(--text-secondary); display: block;}
-        .stock-count { font-size: 14px; font-weight: 700; color: var(--status-green); }
-        .stock-count.critical { color: var(--status-red); }
-
-        /* Chart Placeholder styling */
-        .chart-placeholder {
-            height: 300px;
-            background: repeating-linear-gradient(45deg, #f3f4f6, #f3f4f6 10px, #ffffff 10px, #ffffff 20px);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            border: 1px dashed var(--border-color);
+            background: transparent; border: none; width: 100%; text-align: left;
+            cursor: pointer; font-family: inherit; font-size: inherit; color:var(--primary-red);
         }
 
         /* TOAST NOTIFICATION STYLES */
         #toast-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;
         }
         .toast {
-            background: #fff;
-            border-left: 5px solid var(--status-green);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            padding: 15px 20px;
-            border-radius: 6px;
-            min-width: 280px;
-            transform: translateX(120%);
-            transition: transform 0.3s ease-out;
+            background: #fff; border-left: 5px solid var(--status-green); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 15px 20px; border-radius: 6px; min-width: 280px; transform: translateX(120%); transition: transform 0.3s ease-out;
         }
         .toast.show { transform: translateX(0); }
         .toast-critical { border-left-color: var(--status-red); }
-        .toast-high { border-left-color: #F97316; } /* Orange */
+        .toast-high { border-left-color: #F97316; } 
         .toast-medium { border-left-color: var(--status-yellow); }
-        .toast-low { border-left-color: #3B82F6; } /* Blue */
+        .toast-low { border-left-color: #3B82F6; } 
     </style>
 </head>
 <body>
@@ -660,7 +514,6 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    /* Scrollbar styling for dropdown */
     .search-dropdown-glass::-webkit-scrollbar { width: 6px; }
     .search-dropdown-glass::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; }
 </style>
@@ -672,7 +525,6 @@
         const spinner = document.getElementById('search-spinner');
         let debounceTimer;
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
                 searchDropdown.style.display = 'none';
@@ -692,7 +544,6 @@
             spinner.style.display = 'block';
 
             debounceTimer = setTimeout(() => {
-                // IMPORTANT: Ensure this URL matches your urls.py exactly
                 fetch(`/search/api/global-search/?q=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
@@ -756,7 +607,8 @@
                     </div>
                 `;
             });
-
+        }
+    });
 </script>
 
             <div class="header-actions">
@@ -767,7 +619,6 @@
                     <i class="ph ph-desktop"></i> POS
                 </a>
 
-                <!-- BELL with dropdown -->
                 <div style="position: relative;">
                     <button class="icon-btn" id="bell-btn">
                         <i class="ph ph-bell"></i>
@@ -784,14 +635,11 @@
                     </div>
                 </div>
 
-                <!-- Gear icon -->
                 <button class="icon-btn">
                     <a href="{% url 'settings_hub' %}" style="color:inherit; display:flex; align-items:center;">
                         <i class="ph ph-gear"></i>
                     </a>
                 </button>
-
-                <!-- User icon -->
                 <button class="icon-btn"><i class="ph ph-user"></i></button>
             </div>
 
@@ -799,178 +647,254 @@
 
         
         <div class="content-scroll">
-            {% block content %}
             
-            <style>
-                /* Executive Dashboard Specific Styles */
-                .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
-                .kpi-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
-                .kpi-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; }
-                .kpi-card.sales::after { background: #0EA5E9; }
-                .kpi-card.profit::after { background: #10B981; }
-                .kpi-card.outflow::after { background: #F43F5E; }
-                .kpi-card.due::after { background: #F59E0B; }
+            <!-- BACKGROUND ACCENT BLOBS -->
+            <div class="bg-shape shape-1"></div>
+            <div class="bg-shape shape-2"></div>
+            <div class="bg-shape shape-3"></div>
+
+            <!-- CONTAINER PARA HINDI MA-AFFECT NG BLUR YUNG CONTENT -->
+            <div style="position: relative; z-index: 1;">
+                {% block content %}
                 
-                .kpi-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-                .kpi-value { font-size: 28px; font-weight: 800; color: var(--primary-navy); font-family: monospace; letter-spacing: -1px; }
-
-                .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
-                .panel { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-                .panel-title { font-size: 16px; font-weight: 700; color: var(--primary-navy); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-
-                .action-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-                
-                .action-list { list-style: none; padding: 0; margin: 0; }
-                .action-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F1F5F9; }
-                .action-list li:last-child { border-bottom: none; }
-                
-                .item-main { font-size: 14px; font-weight: 600; color: var(--text-primary); display: block; }
-                .item-sub { font-size: 12px; color: var(--text-secondary); }
-                .item-val { font-size: 14px; font-weight: 700; font-family: monospace; }
-            </style>
-
-            <div class="welcome-header">
-                <div>
-                    <h1 style="margin: 0; font-size: 24px; color: var(--primary-navy);">JBson Hardware Main Dashboard</h1>
-                    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">Track JBson's financial health and operations.</p>
-                </div>
-                
-                <form method="GET" action="" style="margin: 0;">
-                    <div class="date-filter" style="padding: 8px 16px; background: white; cursor: pointer; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                        <i class="ph ph-calendar" style="color: var(--primary-red); font-size: 18px;"></i> 
-                        <select name="filter" onchange="this.form.submit()" style="border: none; outline: none; background: transparent; font-weight: 600; color: var(--text-primary); cursor: pointer; font-size: 14px;">
-                            <option value="today" {% if metrics.current_filter == 'today' %}selected{% endif %}>Today</option>
-                            <option value="this_week" {% if metrics.current_filter == 'this_week' %}selected{% endif %}>This Week</option>
-                            <option value="this_month" {% if metrics.current_filter == 'this_month' %}selected{% endif %}>This Month</option>
-                            <option value="this_year" {% if metrics.current_filter == 'this_year' %}selected{% endif %}>This Year</option>
-                            <option value="all_time" {% if metrics.current_filter == 'all_time' %}selected{% endif %}>All Time</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-
-            <div class="kpi-grid">
-                <div class="kpi-card sales">
-                    <div class="kpi-title"><i class="ph ph-trend-up" style="color: #0EA5E9; font-size: 16px; vertical-align: middle;"></i> Gross Sales</div>
-                    <div class="kpi-value">₱{{ metrics.total_sales|default:"0.00"|floatformat:"2g" }}</div>
-                </div>
-                <div class="kpi-card profit">
-                    <div class="kpi-title"><i class="ph ph-wallet" style="color: #10B981; font-size: 16px; vertical-align: middle;"></i> Net Profit</div>
-                    <div class="kpi-value" style="color: {% if metrics.net_profit < 0 %}#EF4444{% else %}#10B981{% endif %};">
-                        ₱{{ metrics.net_profit|default:"0.00"|floatformat:"2g" }}
-                    </div>
-                </div>
-                <div class="kpi-card outflow">
-                    <div class="kpi-title"><i class="ph ph-shopping-cart" style="color: #F43F5E; font-size: 16px; vertical-align: middle;"></i> Cash Outflow (PO + Exp)</div>
-                    <div class="kpi-value">₱{{ metrics.total_outflow|default:"0.00"|floatformat:"2g" }}</div>
-                </div>
-                <div class="kpi-card due">
-                    <div class="kpi-title"><i class="ph ph-receipt" style="color: #F59E0B; font-size: 16px; vertical-align: middle;"></i> Unpaid Receivables</div>
-                    <div class="kpi-value">₱{{ metrics.invoice_due|default:"0.00"|floatformat:"2g" }}</div>
-                </div>
-            </div>
-
-            <div class="chart-row">
-                <div class="panel">
-                    <h3 class="panel-title"><i class="ph ph-chart-bar"></i> 7-Day Financial Overview</h3>
+                <style>
+                    /* SOLID KPI CARDS DESIGN */
+                    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
                     
-                    <div style="position: relative; height: 320px; width: 100%;">
-                        <canvas id="financialChart"></canvas>
-                    </div>
-                </div>
-                <div class="panel">
-                    <h3 class="panel-title"><i class="ph ph-chart-pie-slice"></i> Top Selling Products</h3>
+                    .kpi-card { 
+                        border-radius: var(--border-radius); 
+                        padding: 28px; 
+                        border: none;
+                        box-shadow: var(--shadow-subtle); 
+                        display: flex; 
+                        flex-direction: column; 
+                        gap: 12px; 
+                        transition: transform 0.3s ease, box-shadow 0.3s ease; 
+                    }
                     
-                    <div style="position: relative; height: 300px; width: 100%;">
-                        <canvas id="productDoughnut"></canvas>
+                    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.2); }
+
+                    .kpi-card.sales { background-color:#ffc832; }
+                    .kpi-card.sales .kpi-title, .kpi-card.sales .kpi-value { color: #1E293B; }
+                    .kpi-card.sales .icon-bg { background: rgba(0,0,0,0.1); color: #1E293B; }
+                    
+                    .kpi-card.profit { background-color: var(--mustard); }
+                    .kpi-card.profit .kpi-title, .kpi-card.profit .kpi-value { color: #1E293B; }
+                    .kpi-card.profit .icon-bg { background: rgba(255,255,255,0.15); color: #1E293B; }
+
+                    .kpi-card.outflow { background-color: var(--french-blue); }
+                    .kpi-card.outflow .kpi-title, .kpi-card.outflow .kpi-value { color: #ffffff; }
+                    .kpi-card.outflow .icon-bg { background: rgba(0,0,0,0.1); color: #ffffff; }
+
+                    .kpi-card.due { background-color: #1a2858 ; }
+                    .kpi-card.due .kpi-title, .kpi-card.due .kpi-value { color: #FFFFFF; }
+                    .kpi-card.due .icon-bg { background: rgba(255,255,255,0.15); color: #FFFFFF; }
+                    
+                    .kpi-title-wrapper { display: flex; align-items: center; gap: 12px; }
+                    .icon-bg { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+                    .kpi-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+                    .kpi-value { font-size: 32px; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -1px; }
+
+                    .chart-row { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px; margin-bottom: 32px; }
+                    
+                    .panel { 
+                        background: var(--bg-card); 
+                        border-radius: var(--border-radius); 
+                        padding: 32px; 
+                        border: 1px solid rgba(255,255,255,0.8); 
+                        box-shadow: var(--shadow-subtle); 
+                    }
+                    
+                    .panel-title { font-size: 18px; font-weight: 800; color: var(--french-blue); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+
+                    .action-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+                    
+                    /* ADJUSTED FOR TOP SELLING CROWDING */
+                    .modern-list { list-style: none; padding: 0; margin: 0; }
+                    .modern-list li { 
+                        display: flex; justify-content: space-between; align-items: center; 
+                        padding: 12px 16px; /* BINABANAN ANG PADDING PARA SA 5 ITEMS */
+                        background: #F8FAFC; 
+                        border-radius: 12px; margin-bottom: 8px; border: 1px solid transparent; transition: all 0.2s ease;
+                    }
+                    .modern-list li:hover { background: #FFFFFF; border-color: var(--border-color); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.05); transform: translateX(4px); }
+                    
+                    /* PINA-LIIT ANG FONT SA LIST */
+                    .item-main { font-size: 13px; font-weight: 600; color: #1E293B; display: block; }
+                    .item-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: block; }
+                    .item-val { font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif; }
+                </style>
+
+                <div class="welcome-header">
+                    <div>
+                        <!-- WELCOME TEXT -->
+                        <h1 style="margin: 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px;">Welcome, {{ request.user.first_name|default:request.user.username|default:"Admin" }}!</h1>
+                        <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">Track JBson's financial health and operations.</p>
+                    </div>
+                    
+                    <form method="GET" action="" style="margin: 0;">
+                        <div class="date-filter">
+                            <i class="ph ph-calendar" style="font-size: 20px; color: var(--french-blue);"></i> 
+                            <select name="filter" onchange="this.form.submit()" style="border: none; outline: none; background: transparent; font-weight: 700; color: var(--french-blue); cursor: pointer; font-size: 15px;">
+                                <option value="today" {% if metrics.current_filter == 'today' %}selected{% endif %}>Today</option>
+                                <option value="this_week" {% if metrics.current_filter == 'this_week' %}selected{% endif %}>This Week</option>
+                                <option value="this_month" {% if metrics.current_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                                <option value="this_year" {% if metrics.current_filter == 'this_year' %}selected{% endif %}>This Year</option>
+                                <option value="all_time" {% if metrics.current_filter == 'all_time' %}selected{% endif %}>All Time</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- SOLID KPI GRID -->
+                <div class="kpi-grid">
+                    <div class="kpi-card sales">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-trend-up"></i></div>
+                            <div class="kpi-title">Gross Sales</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.total_sales|default:"0.00"|floatformat:"2g" }}</div>
+                    </div>
+                    <div class="kpi-card profit">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-wallet"></i></div>
+                            <div class="kpi-title">Net Profit</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.net_profit|default:"0.00"|floatformat:"2g" }}</div>
+                    </div>
+                    <div class="kpi-card outflow">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-shopping-cart"></i></div>
+                            <div class="kpi-title">Cash Outflow</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.total_outflow|default:"0.00"|floatformat:"2g" }}</div>
+                    </div>
+                    <div class="kpi-card due">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-receipt"></i></div>
+                            <div class="kpi-title">Unpaid Receivables</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.invoice_due|default:"0.00"|floatformat:"2g" }}</div>
                     </div>
                 </div>
+
+                <div class="chart-row">
+                    <!-- PANEL 1: Financial Overview -->
+                    <div class="panel">
+                        <h3 class="panel-title">
+                            <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-bar" style="color: var(--french-blue);"></i></span>
+                            7-Day Financial Overview
+                        </h3>
+                        <div style="position: relative; height: 320px; width: 100%;">
+                            <canvas id="financialChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- PANEL 2: Top Selling Products -->
+                    <div class="panel" style="display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 class="panel-title" style="margin: 0;">
+                                <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-pie-slice" style="color: var(--french-blue);"></i></span>
+                                Top Selling
+                            </h3>
+                            <a href="{% url 'reports_analytics:sales_report' %}" style="font-size: 13px; font-weight: 700; color: var(--french-blue); background: rgba(47, 63, 123, 0.1); padding: 8px 16px; border-radius: 10px; transition: background 0.2s;">View Full</a>
+                        </div>
+                        
+                        <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
+                            <div style="flex: 0.8; position: relative; height: 220px;">
+                                <canvas id="productDoughnut"></canvas>
+                            </div>
+                            
+                            <div style="flex: 1.2;">
+                                <ul class="modern-list" style="margin: 0;">
+                                    <!-- PINALITAN ANG SLICE PARA TOP 5 -->
+                                    {% for product in top_products|slice:":5" %}
+                                    <li>
+                                        <!-- ADDED ELLIPSIS STYLE PARA HINDI SUMIKSIK -->
+                                        <span class="item-main" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;" title="{{ product.inventory_item__item_name }}">
+                                            {{ product.inventory_item__item_name }}
+                                        </span>
+                                        <span class="item-val" style="color: var(--french-blue);">{{ product.total_sold }} units</span>
+                                    </li>
+                                    {% empty %}
+                                    <li style="justify-content: center; color: var(--text-secondary); font-size: 13px; background: transparent;">No sales data available.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <!-- CRITICAL STOCK PANEL -->
+                    <div class="panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 class="panel-title" style="margin: 0;">
+                                <span style="background: rgba(255, 185, 21, 0.2); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-warning" style="color: var(--amber-flame);"></i></span>
+                                Critical Stock
+                            </h3>
+                            <a href="{% url 'inventory:inventory_list' %}?low_stock=on" style="font-size: 13px; font-weight: 700; color: var(--amber-flame); background: rgba(255, 185, 21, 0.1); padding: 8px 16px; border-radius: 10px;">View All &rarr;</a>
+                        </div>
+                        <ul class="modern-list">
+                            {% for item in low_stock_items %}
+                            <li>
+                                <div>
+                                    <span class="item-main">{{ item.item_name }}</span>
+                                    <span class="item-sub">Reorder Pt: {{ item.reorder_point }}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="item-val" style="color: var(--primary-red);">{{ item.quantity }} left</span>
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li style="justify-content: center; color: var(--text-secondary); font-size: 14px; background: transparent; border: 1px dashed #E2E8F0;">Inventory levels are healthy.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- DUE INVOICES PANEL -->
+                    <div class="panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 class="panel-title" style="margin: 0;">
+                                <span style="background: rgba(255, 211, 88, 0.2); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-file-dashed" style="color: #B38F00;"></i></span>
+                                Due Invoices
+                            </h3>
+                            <a href="{% url 'billing_payment:invoice_list' %}" style="font-size: 13px; font-weight: 700; color: #B38F00; background: rgba(255, 211, 88, 0.1); padding: 8px 16px; border-radius: 10px;">Collect &rarr;</a>
+                        </div>
+                        <ul class="modern-list">
+                            {% for invoice in unpaid_invoices %}
+                            <li>
+                                <div>
+                                    <span class="item-main">{{ invoice.customer.first_name }} {{ invoice.customer.last_name }}</span>
+                                    <span class="item-sub">Due: {{ invoice.due_date|date:"M d" }}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="item-val" style="color: #B38F00;">₱{{ invoice.balance_due }}</span>
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li style="justify-content: center; color: var(--text-secondary); font-size: 13px; background: transparent; border: 1px dashed #E2E8F0;">No pending receivables.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                {% endblock %}
             </div>
-
-            <div class="action-row">
-                <div class="panel" style="border-top: 4px solid #EF4444;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 class="panel-title" style="margin: 0; color: #EF4444;"><i class="ph ph-warning"></i> Critical Stock</h3>
-                        <a href="{% url 'inventory:inventory_list' %}?low_stock=on" style="font-size: 12px; font-weight: bold; color: var(--primary-navy);">View All &rarr;</a>
-                    </div>
-                    <ul class="action-list">
-                        {% for item in low_stock_items %}
-                        <li>
-                            <div>
-                                <span class="item-main">{{ item.item_name }}</span>
-                                <span class="item-sub">Reorder Pt: {{ item.reorder_point }}</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="item-val" style="color: #EF4444;">{{ item.quantity }} left</span>
-                            </div>
-                        </li>
-                        {% empty %}
-                        <li style="justify-content: center; color: var(--text-secondary); font-size: 13px;">Inventory levels are healthy.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <div class="panel" style="border-top: 4px solid #F59E0B;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 class="panel-title" style="margin: 0; color: #F59E0B;"><i class="ph ph-file-dashed"></i> Due Invoices</h3>
-                        <a href="{% url 'billing_payment:invoice_list' %}" style="font-size: 12px; font-weight: bold; color: var(--primary-navy);">Collect &rarr;</a>
-                    </div>
-                    <ul class="action-list">
-                        {% for invoice in unpaid_invoices %}
-                        <li>
-                            <div>
-                                <span class="item-main">{{ invoice.customer.first_name }} {{ invoice.customer.last_name }}</span>
-                                <span class="item-sub">Due: {{ invoice.due_date|date:"M d" }}</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="item-val" style="color: #F59E0B;">₱{{ invoice.balance_due }}</span>
-                            </div>
-                        </li>
-                        {% empty %}
-                        <li style="justify-content: center; color: var(--text-secondary); font-size: 13px;">No pending receivables.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <div class="panel" style="border-top: 4px solid #10B981;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 class="panel-title" style="margin: 0; color: #10B981;"><i class="ph ph-medal"></i> Top Sellers</h3>
-                        <a href="{% url 'reports_analytics:sales_report' %}" style="font-size: 12px; font-weight: bold; color: var(--primary-navy);">Full Report &rarr;</a>
-                    </div>
-                    <ul class="action-list">
-                        {% for product in top_products %}
-                        <li>
-                            <div>
-                                <span class="item-main">{{ product.inventory_item__item_name }}</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="item-val" style="color: var(--primary-navy);">{{ product.total_sold }} units</span>
-                            </div>
-                        </li>
-                        {% empty %}
-                        <li style="justify-content: center; color: var(--text-secondary); font-size: 13px;">No sales data available.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            {% endblock %}
          </div>
     </main>
 
+    <!-- SCRIPTS RETAINED 100% FROM ORIGINAL -->
     <script>
-        // Notification Bell Toggle
-        // Notification Bell Toggle
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');
-        const dynamicBadge = document.getElementById('dynamic-badge'); // Grab the red dot
+        const dynamicBadge = document.getElementById('dynamic-badge');
 
         bellBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notifMenu.classList.toggle('show');
         });
 
-        // Close dropdown when clicking outside
         window.addEventListener('click', () => {
             if(notifMenu.classList.contains('show')){
                 notifMenu.classList.remove('show');
@@ -980,452 +904,432 @@
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-        // Find the sidebar element using your existing class
             const sidebar = document.querySelector('.sidebar');
         
             if (sidebar) {
-            // 1. When the page loads, check if we saved a scroll position
                 const savedScrollPosition = localStorage.getItem('sidebarScrollPos');
-            
-            // If we did, instantly scroll the sidebar to that exact pixel
                 if (savedScrollPosition !== null) {
                 sidebar.scrollTop = parseInt(savedScrollPosition, 10);
                 }
 
-            // 2. Right before the user leaves the page, save the current scroll position
                 window.addEventListener('beforeunload', function() {
                 localStorage.setItem('sidebarScrollPos', sidebar.scrollTop);
             });
         }
     });
-</script>
+    </script>
 
-<script>
-    function updateDashboardDate() {
-        const dateElement = document.getElementById('current-date-range');
-        
-        // Safety check: only run if the element exists on this page
-        if (dateElement) {
-            const now = new Date();
+    <script>
+        function updateDashboardDate() {
+            const dateElement = document.getElementById('current-date-range');
             
-            // Calculate current week (Sunday to Saturday)
-            const first = now.getDate() - now.getDay(); 
-            const last = first + 6; 
+            if (dateElement) {
+                const now = new Date();
+                const first = now.getDate() - now.getDay(); 
+                const last = first + 6; 
 
-            const firstDay = new Date(new Date().setDate(first));
-            const lastDay = new Date(new Date().setDate(last));
+                const firstDay = new Date(new Date().setDate(first));
+                const lastDay = new Date(new Date().setDate(last));
 
-            const options = { day: '2-digit', month: 'short', year: 'numeric' };
-            
-            const startString = firstDay.toLocaleDateString('en-GB', options);
-            const endString = lastDay.toLocaleDateString('en-GB', options);
+                const options = { day: '2-digit', month: 'short', year: 'numeric' };
+                
+                const startString = firstDay.toLocaleDateString('en-GB', options);
+                const endString = lastDay.toLocaleDateString('en-GB', options);
 
-            dateElement.innerText = `${startString} - ${endString}`;
+                dateElement.innerText = `${startString} - ${endString}`;
+            }
         }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            updateDashboardDate();
+        });
+    </script>
+
+    <script>
+    function openCreateProduct(e) {
+        e.preventDefault();
+
+        fetch("{% url 'product_registration:create_product' %}")
+            .then(res => res.text())
+            .then(html => {
+                const root = document.getElementById('global-modal-root');
+                root.innerHTML = html;
+                
+                const scripts = root.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            });
     }
 
-    // This ensures the script runs only after the full page is ready
-    document.addEventListener("DOMContentLoaded", function() {
-        updateDashboardDate();
-    });
-</script>
-<script>
-function openCreateProduct(e) {
-    e.preventDefault();
+    function closeGlobalModal() {
+        document.getElementById('global-modal-root').innerHTML = '';
+    }
+    </script>
+    <div id="global-modal-root"></div>
 
-    fetch("{% url 'product_registration:create_product' %}")
-        .then(res => res.text())
-        .then(html => {
-            const root = document.getElementById('global-modal-root');
-            root.innerHTML = html;
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {% if messages %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            {% for message in messages %}
+                Swal.fire({
+                    title: "{% if message.tags == 'error' %}Action Failed!{% else %}Success!{% endif %}",
+                    text: "{{ message|escapejs }}",
+                    icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
+                    confirmButtonColor: '#0D9488',
+                    confirmButtonText: 'Okay'
+                });
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+
+    <script>
+        function confirmDelete(event, formElement, itemName) {
+            event.preventDefault(); 
             
-            // BAGO: Pilitin ang browser na i-execute ang na-inject na script tags
-            const scripts = root.querySelectorAll('script');
-            scripts.forEach(oldScript => {
-                const newScript = document.createElement('script');
-                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                oldScript.parentNode.replaceChild(newScript, oldScript);
-            });
-        });
-}
-
-function closeGlobalModal() {
-    document.getElementById('global-modal-root').innerHTML = '';
-}
-</script>
-<div id="global-modal-root"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-{% if messages %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        {% for message in messages %}
             Swal.fire({
-                title: "{% if message.tags == 'error' %}Action Failed!{% else %}Success!{% endif %}",
-                text: "{{ message|escapejs }}",
-                icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
-                confirmButtonColor: '#0D9488',
-                confirmButtonText: 'Okay'
-            });
-        {% endfor %}
-    });
-</script>
-{% endif %}
-
-<script>
-    function confirmDelete(event, formElement, itemName) {
-        event.preventDefault(); // Stop the form from submitting immediately
-        
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `You are about to delete ${itemName}. This cannot be undone!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#E53E3E', // Red for delete
-            cancelButtonColor: '#CBD5E0',  // Gray for cancel
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                formElement.submit(); // Actually submit the form if they click Yes
-            }
-        });
-    }
-</script>
-<script>
-    function confirmLogout(event, formElement) {
-        event.preventDefault(); // Pipigilan nito ang agad-agad na pag-logout
-        
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You are about to log out from the admin dashboard.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#891C1C', // Tumutugma sa var(--primary-red) mo
-            cancelButtonColor: '#6B7280',  // Tumutugma sa var(--text-secondary) mo
-            confirmButtonText: 'Yes, log out',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                formElement.submit(); // Kung pinindot ang Yes, saka pa lang isu-submit ang form
-            }
-        });
-    }
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // --- 1. Financial Overview Combo Chart ---
-        const finCtx = document.getElementById('financialChart');
-        if (finCtx) {
-            new Chart(finCtx, {
-                type: 'bar',
-                data: {
-                    labels: {{ chart_labels|safe }},
-                    datasets: [
-                        {
-                            type: 'line',
-                            label: 'Net Profit',
-                            data: {{ chart_profit_data|safe }},
-                            borderColor: '#10B981', // Green
-                            backgroundColor: '#10B981',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Gross Sales',
-                            data: {{ chart_sales_data|safe }},
-                            backgroundColor: 'rgba(14, 165, 233, 0.9)', // Blue
-                            borderRadius: 4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Expenses + POs',
-                            data: {{ chart_outflow_data|safe }},
-                            backgroundColor: 'rgba(244, 63, 94, 0.9)', // Red
-                            borderRadius: 4,
-                            yAxisID: 'y'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
-                        tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ₱' + context.raw.toLocaleString(); } } }
-                    },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true, grid: { borderDash: [4, 4] }, ticks: { callback: function(value) { return '₱' + value.toLocaleString(); } } }
-                    }
+                title: 'Are you sure?',
+                text: `You are about to delete ${itemName}. This cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E', 
+                cancelButtonColor: '#CBD5E0',  
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    formElement.submit(); 
                 }
             });
         }
-
-        // --- 2. Top Products Doughnut Chart ---
-        const donutCtx = document.getElementById('productDoughnut');
-        if (donutCtx) {
-            const donutLabels = {{ donut_labels|safe }};
-            const donutData = {{ donut_data|safe }};
+    </script>
+    <script>
+        function confirmLogout(event, formElement) {
+            event.preventDefault(); 
             
-            if(donutData.length > 0) {
-                new Chart(donutCtx, {
-                    type: 'doughnut',
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to log out from the admin dashboard.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#891C1C', 
+                cancelButtonColor: '#6B7280',  
+                confirmButtonText: 'Yes, log out',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    formElement.submit(); 
+                }
+            });
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const frenchBlue = '#2F3F7B';
+            const mustard = '#FFD358';
+            const amberFlame = '#FFB915';
+
+            const finCtx = document.getElementById('financialChart');
+            if (finCtx) {
+                new Chart(finCtx, {
+                    type: 'bar',
                     data: {
-                        labels: donutLabels,
-                        datasets: [{
-                            data: donutData,
-                            backgroundColor: ['#0EA5E9', '#10B981', '#F59E0B', '#8B5CF6', '#F43F5E'],
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
+                        labels: {{ chart_labels|safe }},
+                        datasets: [
+                            {
+                                type: 'line',
+                                label: 'Net Profit',
+                                data: {{ chart_profit_data|safe }},
+                                borderColor: frenchBlue,
+                                backgroundColor: frenchBlue,
+                                borderWidth: 3,
+                                tension: 0.4,
+                                yAxisID: 'y'
+                            },
+                            {
+                                type: 'bar',
+                                label: 'Gross Sales',
+                                data: {{ chart_sales_data|safe }},
+                                backgroundColor: mustard,
+                                borderRadius: 8,
+                                yAxisID: 'y'
+                            },
+                            {
+                                type: 'bar',
+                                label: 'Expenses + POs',
+                                data: {{ chart_outflow_data|safe }},
+                                backgroundColor: amberFlame,
+                                borderRadius: 8,
+                                yAxisID: 'y'
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        cutout: '70%',
+                        interaction: { mode: 'index', intersect: false },
                         plugins: {
-                            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12, weight: '500' } } },
+                            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)', padding: 12, bodyFont: { family: 'Inter' }, callbacks: { label: function(context) { return context.dataset.label + ': ₱' + context.raw.toLocaleString(); } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { family: 'Inter', color: '#64748B' } } },
+                            y: { beginAtZero: true, grid: { color: '#F1F5F9', borderDash: [6, 4] }, ticks: { font: { family: 'Inter', color: '#64748B' }, callback: function(value) { return '₱' + value.toLocaleString(); } } }
                         }
                     }
                 });
-            } else {
-                // Fallback if no sales exist yet
-                donutCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px;">No sales data available</span>';
             }
-        }
-    });
-</script>
 
-<div id="toast-container"></div>
-<audio id="alertSound" src="{% static 'audio/notification.mp3' %}" preload="auto"></audio>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    let currentUnreadCount = 0;
-    const alertSound = document.getElementById('alertSound');
-    const badgeElement = document.getElementById('dynamic-badge');
-    const dropdownList = document.getElementById('dynamic-notif-list');
-
-    // 1. SAFELY GET CSRF TOKEN FOR DJANGO POST REQUESTS
-    function getCSRFToken() {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken' + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
-                    break;
+            const donutCtx = document.getElementById('productDoughnut');
+            if (donutCtx) {
+                const donutLabels = {{ donut_labels|safe }};
+                const donutData = {{ donut_data|safe }};
+                
+                if(donutData.length > 0) {
+                    new Chart(donutCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: donutLabels,
+                            datasets: [{
+                                data: donutData,
+                                backgroundColor: [frenchBlue, amberFlame, mustard, '#CBD5E1', '#E2E8F0'],
+                                borderWidth: 0,
+                                hoverOffset: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '75%',
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { bodyFont: { family: 'Inter' }, backgroundColor: 'rgba(30, 41, 59, 0.9)', padding: 12 }
+                            }
+                        }
+                    });
+                } else {
+                    donutCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px; font-weight:500;">No sales data available</span>';
                 }
             }
+        });
+    </script>
+
+    <div id="toast-container"></div>
+    <audio id="alertSound" src="{% static 'audio/notification.mp3' %}" preload="auto"></audio>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let currentUnreadCount = 0;
+        const alertSound = document.getElementById('alertSound');
+        const badgeElement = document.getElementById('dynamic-badge');
+        const dropdownList = document.getElementById('dynamic-notif-list');
+
+        function getCSRFToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken' + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
-        return cookieValue;
-    }
 
-    function showToast(title, message, priority) {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${priority}`;
-        toast.innerHTML = `<strong style="display:block; color:#111; font-size:14px; margin-bottom:4px;">${title}</strong>
-                           <span style="color:#666; font-size:13px; line-height:1.4;">${message}</span>`;
-        
-        container.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 6000); 
-    }
+        function showToast(title, message, priority) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${priority}`;
+            toast.innerHTML = `<strong style="display:block; color:#111; font-size:14px; margin-bottom:4px;">${title}</strong>
+                               <span style="color:#666; font-size:13px; line-height:1.4;">${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 6000); 
+        }
 
-    let lastNotifId = parseInt(localStorage.getItem('lastNotifId')) || 0;
+        let lastNotifId = parseInt(localStorage.getItem('lastNotifId')) || 0;
 
-    function fetchLiveNotifications() {
-        fetch("{% url 'notifications:live_api' %}") 
-            .then(response => response.json())
-            .then(data => {
-                if (!data.notifications) return; // Safety check
+        function fetchLiveNotifications() {
+            fetch("{% url 'notifications:live_api' %}") 
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.notifications) return; 
 
-                // Handle Sounds and Toasts
-                if (data.notifications.length > 0) {
-                    const newNotifs = data.notifications.filter(n => n.id > lastNotifId && !n.is_read);
-                    
-                    if (newNotifs.length > 0) {
-                        // Play sound once for the batch
-                        if (alertSound) alertSound.play().catch(e => console.log("Sound muted until interaction."));
+                    if (data.notifications.length > 0) {
+                        const newNotifs = data.notifications.filter(n => n.id > lastNotifId && !n.is_read);
                         
-                        // Show a toast for each new notification with a slight delay between them
-                        newNotifs.forEach((notif, index) => {
-                            setTimeout(() => {
-                                showToast(notif.title, notif.message, notif.priority);
-                            }, index * 800); // 800ms gap between each toast
+                        if (newNotifs.length > 0) {
+                            if (alertSound) alertSound.play().catch(e => console.log("Sound muted until interaction."));
+                            
+                            newNotifs.forEach((notif, index) => {
+                                setTimeout(() => {
+                                    showToast(notif.title, notif.message, notif.priority);
+                                }, index * 800); 
+                            });
+
+                            const maxId = Math.max(...newNotifs.map(n => n.id));
+                            localStorage.setItem('lastNotifId', maxId);
+                            lastNotifId = maxId;
+                        }
+                    }
+
+                    
+                    let currentUnreadCount = data.unread_count;
+                    if (currentUnreadCount > 0) {
+                        badgeElement.style.display = 'block';
+                        badgeElement.innerText = currentUnreadCount > 9 ? '9+' : currentUnreadCount;
+                    } else {
+                        badgeElement.style.display = 'none';
+                    }
+
+                    dropdownList.innerHTML = '';
+                    if (data.notifications.length === 0) {
+                        dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">No new notifications</div>';
+                    } else {
+                        
+                        data.notifications.sort((a, b) => {
+                            if (a.is_read === b.is_read) return 0;
+                            return a.is_read ? 1 : -1; 
                         });
 
-                        // Update lastNotifId to the highest id seen
-                        const maxId = Math.max(...newNotifs.map(n => n.id));
-                        localStorage.setItem('lastNotifId', maxId);
-                        lastNotifId = maxId;
+                        data.notifications.forEach(notif => {
+                            let iconColor = notif.priority === 'critical' ? 'var(--status-red)' : 
+                                            notif.priority === 'high' ? '#F97316' : 
+                                            notif.priority === 'medium' ? 'var(--status-yellow)' : '#3B82F6';
+                            
+                            dropdownList.innerHTML += `
+                                <div id="notif-${notif.id}" style="position: relative; margin-bottom: 5px;">
+                                    <a href="${notif.action_url && notif.action_url !== 'None' ? notif.action_url : '#'}" style="text-decoration: none; display: block;" onclick="markNotifRead(${notif.id}, this, event)">
+                                        <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; background: ${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#FCE8E8'" onmouseout="this.style.background='${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}'">
+
+                                            <div style="margin-right: 12px; color: ${iconColor}; margin-top: 2px;">
+                                                <i class="ph ph-warning-circle" style="font-size: 20px;"></i>
+                                            </div>
+                                            <div style="padding-right: 20px;">
+                                                <strong style="display:block; font-size:13px; color: var(--text-primary); ${notif.is_read ? 'font-weight:600;' : 'font-weight:800;'}">${notif.title}${notif.is_read ? '' : ' <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3B82F6; margin-left:5px; vertical-align:middle;"></span>'}</strong>
+                                                <span style="display:block; font-size:12px; color: var(--text-secondary); margin-top:2px;">${notif.message}</span>
+                                                <small style="display:block; font-size:10px; color: #9CA3AF; margin-top:6px;">${notif.time}</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <button onclick="dismissSingleNotification(${notif.id}, event)" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; cursor: pointer; color: var(--text-secondary); font-size: 16px; z-index: 10; padding: 4px; border-radius: 4px;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">
+                                        <i class="ph ph-x"></i>
+                                    </button>
+                                </div>
+                            `;
+                        });
                     }
-                }
+                })
+                .catch(err => console.error("Notification API Error:", err));
+        }
 
-                
-                // Update the Red Badge
-                let currentUnreadCount = data.unread_count;
-                if (currentUnreadCount > 0) {
-                    badgeElement.style.display = 'block';
-                    badgeElement.innerText = currentUnreadCount > 9 ? '9+' : currentUnreadCount;
-                } else {
-                    badgeElement.style.display = 'none';
-                }
+        window.dismissSingleNotification = function(notifId, event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
+            const deleteUrl = clearAllUrl.replace('mark-read', `delete/${notifId}`).replace('//', '/');
 
-                // Rebuild the Dropdown Menu
-                dropdownList.innerHTML = '';
-                if (data.notifications.length === 0) {
-                    dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">No new notifications</div>';
-                } else {
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCSRFToken() 
+                }
+            }).then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    const notifElement = document.getElementById(`notif-${notifId}`);
+                    if (notifElement) notifElement.remove();
                     
-                    // --- SORTING LOGIC: Unread stay on top, Read go to the bottom ---
-                    data.notifications.sort((a, b) => {
-                        if (a.is_read === b.is_read) return 0;
-                        return a.is_read ? 1 : -1; 
-                    });
-
-                    data.notifications.forEach(notif => {
-                        let iconColor = notif.priority === 'critical' ? 'var(--status-red)' : 
-                                        notif.priority === 'high' ? '#F97316' : 
-                                        notif.priority === 'medium' ? 'var(--status-yellow)' : '#3B82F6';
-                        
-                        dropdownList.innerHTML += `
-                            <div id="notif-${notif.id}" style="position: relative; margin-bottom: 5px;">
-                                <a href="${notif.action_url && notif.action_url !== 'None' ? notif.action_url : '#'}" style="text-decoration: none; display: block;" onclick="markNotifRead(${notif.id}, this, event)">
-                                    <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; background: ${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#FCE8E8'" onmouseout="this.style.background='${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}'">
-
-                                        <div style="margin-right: 12px; color: ${iconColor}; margin-top: 2px;">
-                                            <i class="ph ph-warning-circle" style="font-size: 20px;"></i>
-                                        </div>
-                                        <div style="padding-right: 20px;">
-                                            <strong style="display:block; font-size:13px; color: var(--text-primary); ${notif.is_read ? 'font-weight:600;' : 'font-weight:800;'}">${notif.title}${notif.is_read ? '' : ' <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3B82F6; margin-left:5px; vertical-align:middle;"></span>'}</strong>
-                                            <span style="display:block; font-size:12px; color: var(--text-secondary); margin-top:2px;">${notif.message}</span>
-                                            <small style="display:block; font-size:10px; color: #9CA3AF; margin-top:6px;">${notif.time}</small>
-                                        </div>
-                                    </div>
-                                </a>
-                                <button onclick="dismissSingleNotification(${notif.id}, event)" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; cursor: pointer; color: var(--text-secondary); font-size: 16px; z-index: 10; padding: 4px; border-radius: 4px;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">
-                                    <i class="ph ph-x"></i>
-                                </button>
-                            </div>
-                        `;
-                    });
-                }
-            })
-            .catch(err => console.error("Notification API Error:", err));
-    }
-
-    window.dismissSingleNotification = function(notifId, event) {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
-        const deleteUrl = clearAllUrl.replace('mark-read', `delete/${notifId}`).replace('//', '/');
-
-        fetch(deleteUrl, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCSRFToken() // Safely fetched token!
-            }
-        }).then(response => response.json())
-        .then(data => {
-            if(data.status === 'success') {
-                const notifElement = document.getElementById(`notif-${notifId}`);
-                if (notifElement) notifElement.remove();
-                
-                const newCount = data.unread_count;
-                if (newCount > 0) {
-                    badgeElement.style.display = 'block';
-                    badgeElement.innerText = newCount > 9 ? '9+' : newCount;
-                } else {
-                    badgeElement.style.display = 'none';
-                    if (dropdownList.children.length === 0) {
-                        dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center; font-size: 13px;">No new notifications</div>';
+                    const newCount = data.unread_count;
+                    if (newCount > 0) {
+                        badgeElement.style.display = 'block';
+                        badgeElement.innerText = newCount > 9 ? '9+' : newCount;
+                    } else {
+                        badgeElement.style.display = 'none';
+                        if (dropdownList.children.length === 0) {
+                            dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center; font-size: 13px;">No new notifications</div>';
+                        }
                     }
                 }
-            }
-        });
-    };
+            });
+        };
 
-    window.markAllAsRead = function() {
-        fetch("{% url 'notifications:mark_read_api' %}", {
-            method: 'POST',
-            headers: { 
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCSRFToken()
-            }
-        }).then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                document.getElementById('dynamic-badge').style.display = 'none';
-                currentUnreadCount = 0;
-                fetchLiveNotifications(); // Force a refresh to resort the list
-            }
-        });
-    };
-
-    // Auto-refresh every 10 seconds
-    setInterval(() => {
-        const notifMenu = document.getElementById('notif-menu');
-        if (notifMenu && !notifMenu.classList.contains('show')) {
-            fetchLiveNotifications();
-        }
-    }, 10000);
-    
-    fetchLiveNotifications();
-
-    window.markNotifRead = function(notifId, linkEl, event) {
-        // Allow the browser to navigate normally if it's a real link
-        const targetUrl = linkEl.getAttribute('href');
-        if (!targetUrl || targetUrl === '#' || targetUrl === 'None') {
-            event.preventDefault(); 
-        }
-
-        const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
-        const singleUrl = clearAllUrl.replace('mark-read', `mark-read-single/${notifId}`).replace('//', '/');
-
-        fetch(singleUrl, {
-            method: 'POST',
-            headers: { 
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCSRFToken()
-            }
-        }).then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Instantly update badge count
-                const newCount = data.unread_count;
-                if (newCount > 0) {
-                    badgeElement.style.display = 'block';
-                    badgeElement.innerText = newCount > 9 ? '9+' : newCount;
-                } else {
-                    badgeElement.style.display = 'none';
+        window.markAllAsRead = function() {
+            fetch("{% url 'notifications:mark_read_api' %}", {
+                method: 'POST',
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCSRFToken()
                 }
-                
-                // Force a fast resort of the list so it drops to the bottom
-                setTimeout(() => { fetchLiveNotifications(); }, 300);
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('dynamic-badge').style.display = 'none';
+                    currentUnreadCount = 0;
+                    fetchLiveNotifications(); 
+                }
+            });
+        };
+
+        setInterval(() => {
+            const notifMenu = document.getElementById('notif-menu');
+            if (notifMenu && !notifMenu.classList.contains('show')) {
+                fetchLiveNotifications();
             }
-        });
-    };
-});
-</script>
+        }, 10000);
+        
+        fetchLiveNotifications();
+
+        window.markNotifRead = function(notifId, linkEl, event) {
+            const targetUrl = linkEl.getAttribute('href');
+            if (!targetUrl || targetUrl === '#' || targetUrl === 'None') {
+                event.preventDefault(); 
+            }
+
+            const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
+            const singleUrl = clearAllUrl.replace('mark-read', `mark-read-single/${notifId}`).replace('//', '/');
+
+            fetch(singleUrl, {
+                method: 'POST',
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCSRFToken()
+                }
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const newCount = data.unread_count;
+                    if (newCount > 0) {
+                        badgeElement.style.display = 'block';
+                        badgeElement.innerText = newCount > 9 ? '9+' : newCount;
+                    } else {
+                        badgeElement.style.display = 'none';
+                    }
+                    setTimeout(() => { fetchLiveNotifications(); }, 300);
+                }
+            });
+        };
+    });
+    </script>
 
 </body>
 </html>
