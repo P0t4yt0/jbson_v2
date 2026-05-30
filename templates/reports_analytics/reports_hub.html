@@ -37,23 +37,36 @@
     }
     
     .tab-btn { 
-        padding: 6px 20px; 
+        padding: 8px 22px; 
         border-radius: 50px; 
-        border: none;
-        background: #092c4c; /* Muted blue-grey for inactive tabs */
+        border: 1px solid #cbd5e1; /* Subtle border para sa outline */
+        background: #f8fafc; /* Light gray background para sa hindi pa click */
         font-weight: 600; 
-        color: #ffffff; 
+        color: #475569; /* Gray text */
         text-decoration: none; 
-        transition: background-color 0.2s ease; 
+        /* Animation settings: Smooth transition sa lahat ng properties */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     
+    
+        /* HOVER ANIMATION (Pag tinutok ang mouse) */
     .tab-btn:hover { 
-        background: #394b5e; 
+        background: #ffffff; 
+        color: #092c4c;
+        border-color: #94a3b8;
+        transform: translateY(-3px); /* Aangat yung button ng 3 pixels pataas */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* Magkakaroon ng mas malaking shadow */
     }
     
+    /* ACTIVE STATE (Pag napindot na) */
     .tab-btn.active { 
         background: #092c4c; /* Main System Navy */
+        color: #ffffff; 
+        border-color: #092c4c;
+        transform: translateY(0); /* Babalik sa original na pwesto */
+        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.3); /* Magkukulay navy ang shadow */
     }
     
     .report-content-wrapper {
