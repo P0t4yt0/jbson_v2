@@ -1,87 +1,96 @@
-{% extends 'dashboard/dashboard.html' %}
+{% extends 'dashboard/dashboard.html' %} 
 {% load static %}
 
 {% block content %}
-<style>
-    /* Import Inter font based on the design guide */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+<style>
+    /* ── CONTAINER AND TYPOGRAPHY ── */
     .manual-container { 
-        padding: 32px 40px; 
-        font-family: 'Inter', sans-serif; 
+        padding: 0 0 30px 0; 
+        font-family: var(--font-main); 
+        max-width: 1500px;
+        margin: 0 auto;
     }
     
-    /* Header matching the Dark Navy font and heavy weight */
     .hub-title { 
         font-size: 28px; 
         font-weight: 800; 
-        color: #092c4c; /* Main System Navy */
-        margin-bottom: 4px; 
+        color: var(--french-blue); 
+        margin-bottom: 6px; 
         letter-spacing: -0.5px;
+        font-family: var(--font-heading);
     }
     
-    /* Subheader updated to Accent Color (Orange) and adjusted weight */
     .hub-subtitle { 
-        font-size: 16px; 
-        color: #e07300; /* Accent Color */
+        font-size: 15px; 
+        color: var(--amber-flame); 
         margin-bottom: 24px; 
         font-weight: 500; 
     }
 
-    /* Tabs as Links */
+    /* ── TABS (GLASSMORPHISM) ── */
     .tabs-wrapper { 
         display: flex; 
-        gap: 12px; /* Binigyan ko ng konting space para hindi magkadikit sa shadow */
+        gap: 12px; 
         margin-bottom: 24px; 
         flex-wrap: wrap; 
     }
     
     /* INACTIVE STATE */
     .tab-btn { 
-        padding: 8px 22px; 
-        border-radius: 50px; 
-        border: 1px solid #cbd5e1; /* Subtle border para sa outline */
-        background: #f8fafc; /* Light gray background para sa hindi pa click */
+        padding: 10px 24px; 
+        border-radius: 50px; /* Pill shape */
+        border: 1px solid var(--border-color); 
+        background: rgba(255, 255, 255, 0.6); 
+        backdrop-filter: blur(8px);
         font-weight: 600; 
-        color: #475569; /* Gray text */
+        color: var(--text-secondary); 
         text-decoration: none; 
-        /* Animation settings: Smooth transition sa lahat ng properties */
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        font-size: 14px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        font-size: 13px;
+        box-shadow: 0 2px 4px rgba(47, 63, 123, 0.02);
     }
     
-    /* HOVER ANIMATION (Pag tinutok ang mouse) */
+    /* HOVER ANIMATION */
     .tab-btn:hover { 
-        background: #ffffff; 
-        color: #092c4c;
-        border-color: #94a3b8;
-        transform: translateY(-3px); /* Aangat yung button ng 3 pixels pataas */
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* Magkakaroon ng mas malaking shadow */
+        background: rgba(255, 255, 255, 0.95); 
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+        transform: translateY(-3px); 
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.15); 
     }
     
-    /* ACTIVE STATE (Pag napindot na) */
+    /* ACTIVE STATE */
     .tab-btn.active { 
-        background: #092c4c; /* Main System Navy */
+        background: var(--french-blue); 
         color: #ffffff; 
-        border-color: #092c4c;
-        transform: translateY(0); /* Babalik sa original na pwesto */
-        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.3); /* Magkukulay navy ang shadow */
+        border-color: var(--french-blue);
+        transform: translateY(0); 
+        box-shadow: 0 4px 10px rgba(47, 63, 123, 0.3); 
     }
     
+    /* ── MANUAL CONTENT (GLASS PANEL) ── */
     .manual-content-wrapper {
-        background: white; 
-        border-radius: 8px; 
-        padding: 24px;
-        border: 1px solid #e2e8f0; 
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
+        padding: 30px; 
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+        min-height: 400px;
     }
 </style>
 
 <div class="manual-container">
     <div class="hub-title">User Manual</div>
-    <div class="hub-subtitle">Select a system module to view its guide.</div>
+    <div class="hub-subtitle"style="font-family: var(--font-main); color:#6B7280; font-size: 15px;">Select a system module to view its guide.</div>
 
+    
     <div class="tabs-wrapper">
         <a href="{% url 'user_manual:dashboard' %}" class="tab-btn {% if active_tab == 'dashboard' %}active{% endif %}">Dashboard</a>
         <a href="#" class="tab-btn {% if active_tab == 'inventory' %}active{% endif %}">Inventory</a>
@@ -93,7 +102,10 @@
 
     <div class="manual-content-wrapper">
         {% block manual_content %}
-            <p class="text-center py-10" style="color: #6c7a8b; font-size: 14px;">Select a module above to view the user manual.</p>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 300px; color: var(--text-secondary); gap: 16px;">
+                <i class="ph ph-book-open" style="font-size: 64px; color: rgba(203, 213, 225, 0.8);"></i>
+                <p style="font-size: 15px; font-weight: 500;">Select a module above to view the user manual.</p>
+            </div>
         {% endblock %}
     </div>
 </div>

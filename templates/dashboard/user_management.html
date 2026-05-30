@@ -12,7 +12,7 @@
     .layout-grid { 
         display: grid; 
         grid-template-columns: 2fr 1fr; 
-        gap: 25px; 
+        gap: 24px; 
         align-items: start; 
     }
     
@@ -22,26 +22,27 @@
         }
     }
 
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
+    /* GLASSMORPHISM PANELS */
+    .table-container, .form-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
         overflow-x: auto; 
     }
 
     .section-title {
-        font-size: 1.15rem;
-        color: #092c4c;
+        font-size: 18px;
+        color: var(--french-blue);
         font-weight: 800;
-        border-bottom: 2px solid #edf2f7;
-        padding-bottom: 12px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.6);
+        padding-bottom: 16px;
         margin-top: 0;
-        margin-bottom: 20px;
-        font-family: 'Inter', sans-serif;
+        margin-bottom: 24px;
+        font-family: var(--font-heading);
     }
     
     /* Table Styling */
@@ -52,32 +53,39 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary);
+        font-size: 14px; 
         vertical-align: middle;
+        transition: background-color 0.2s ease;
     }
+
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
     .table-clean th {
         font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
+        color: var(--text-secondary); 
+        font-size: 12px; 
         text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
 
     /* Badges */
     .badge {
         padding: 6px 14px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 12px;
         font-weight: 700;
         display: inline-block;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .bg-sage-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-    .bg-soft-red { background-color: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+    .bg-soft-red { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
     /* Action Buttons */
     .action-group { display: flex; gap: 8px; align-items: center; justify-content: center; }
@@ -86,144 +94,154 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background-color: #f8fafc;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid #e2e8f0;
-        color: #64748b;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 1.1rem;
-        transition: all 0.2s ease;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        padding: 0;
     }
     .table-action-btn:hover { 
-        transform: translateY(-2px); 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
     
-    .btn-edit {
-        color: #0284c7;
-        background-color: #f0f9ff;
-        border-color: #bae6fd;
-    }
-    .btn-edit:hover {
-        background-color: #0284c7;
-        color: white;
-        border-color: #0284c7;
-    }
+    .btn-edit { color: var(--french-blue); }
+    .btn-edit:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
 
-    .btn-delete {
-        color: #dc2626;
-        background-color: #fef2f2;
-        border-color: #fecdd3;
-    }
-    .btn-delete:hover {
-        background-color: #dc2626;
-        color: white;
-        border-color: #dc2626;
-    }
+    .btn-delete { color: var(--status-red); background-color: #fdf4f4; border-color: #fecaca; }
+    .btn-delete:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+
+    .btn-approve { color: var(--status-green); background-color: #f0fdf4; border-color: #bbf7d0; }
+    .btn-approve:hover { background-color: var(--status-green); color: white; border-color: var(--status-green); box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2); }
 
     /* Form Styling */
     .form-group { margin-bottom: 20px; }
     .form-group label { 
         display: block; 
-        font-size: 0.85rem; 
-        font-weight: 600; 
+        font-size: 13px; 
+        font-weight: 700; 
         margin-bottom: 8px; 
-        color: #475569; 
+        color: var(--text-secondary); 
     }
     .form-control { 
         width: 100%; 
-        padding: 12px 16px; 
-        font-size: 13px; 
-        border: 1px solid #cbd5e1; 
-        border-radius: 8px; 
-        font-family: 'Inter', sans-serif; 
+        padding: 14px 16px; 
+        font-size: 14px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 12px; 
+        font-family: var(--font-main); 
         outline: none; 
-        transition: border-color 0.2s; 
+        transition: all 0.3s ease; 
         box-sizing: border-box;
-        background-color: white;
+        background-color: rgba(255, 255, 255, 0.8);
+        color: var(--text-primary);
     }
     .form-control:focus {
-        border-color: #092c4c;
+        border-color: var(--french-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
     
     .btn-submit { 
-        background: #092c4c; 
+        background: var(--french-blue); 
         color: white; 
-        padding: 14px 30px; 
-        border: 1px solid #092c4c; 
-        border-radius: 8px; 
+        padding: 16px 30px; 
+        border: none; 
+        border-radius: 12px; 
         cursor: pointer; 
-        font-size: 14px; 
-        font-weight: 600; 
-        font-family: 'Inter', sans-serif; 
-        transition: all 0.2s; 
+        font-size: 15px; 
+        font-weight: 700; 
+        font-family: var(--font-main); 
+        transition: all 0.3s ease; 
         width: 100%;
-        margin-top: 10px;
-        box-shadow: 0 4px 6px rgba(9, 44, 76, 0.15);
+        margin-top: 12px;
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);
     }
     .btn-submit:hover { 
-        background-color: #061f38; 
-        border-color: #061f38;
+        background-color: #1a2858; 
         transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(47, 63, 123, 0.3);
     }
 
     /* Password Specific UI */
     .password-wrapper { position: relative; }
     .toggle-password { 
         position: absolute; 
-        right: 15px; 
+        right: 16px; 
         top: 50%; 
         transform: translateY(-50%); 
         cursor: pointer; 
-        color: #64748b; 
-        font-size: 1.2rem; 
+        color: var(--text-secondary); 
+        font-size: 20px; 
         transition: color 0.2s;
     }
-    .toggle-password:hover { color: #092c4c; }
+    .toggle-password:hover { color: var(--french-blue); }
     
     /* Dynamic Password Rules */
-    .password-rules { font-size: 0.8rem; color: #64748b; margin-top: 10px; padding-left: 5px; }
-    .rule { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; transition: 0.2s; color: #64748b; }
-    .rule i { font-size: 1.1rem; }
+    .password-rules { font-size: 12px; color: var(--text-secondary); margin-top: 10px; padding-left: 4px; }
+    .rule { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; transition: 0.2s; color: var(--text-secondary); font-weight: 500; }
+    .rule i { font-size: 16px; }
     
     /* Valid State Styling */
-    .rule.valid { color: #16a34a; font-weight: 600; }
-    .rule.valid i { color: #16a34a; }
+    .rule.valid { color: var(--status-green); font-weight: 600; }
+    .rule.valid i { color: var(--status-green); }
 
-/* Custom UI para sa SweetAlert Error/Validation Message - Clean Text */
+    /* Custom UI para sa SweetAlert Error/Validation Message - Clean Text */
     .custom-swal-validation {
-        background: transparent !important; /* Tinanggal ang pulang background */
-        color: #dc2626 !important; /* Solid red color text */
-        font-family: 'Inter', sans-serif !important;
-        font-size: 0.9rem !important;
-        font-weight: 500 !important;
-        border: none !important; /* Tinanggal ang border */
+        background: transparent !important; 
+        color: var(--status-red) !important; 
+        font-family: var(--font-main) !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        border: none !important; 
         padding: 0 !important;
-        margin-top: 15px !important;
+        margin-top: 16px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
 
-    /* Tinatanggal yung default na gray na bilog na may '!' ni SweetAlert */
     .custom-swal-validation::before {
         display: none !important;
     }
 
     .swal2-container.swal2-backdrop-show {
-        backdrop-filter: blur(4px) !important;
-        -webkit-backdrop-filter: blur(4px) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
         background: rgba(15, 23, 42, 0.6) !important;
+    }
+
+    /* MODAL STYLES */
+    .blur-modal {
+        display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; 
+        background: rgba(15, 23, 42, 0.6); align-items: center; justify-content: center; 
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .modal-box {
+        background: rgba(255, 255, 255, 0.95); 
+        width: 500px; max-width: 90%;
+        border-radius: var(--border-radius, 20px); 
+        box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); 
+        overflow: hidden; 
+        font-family: var(--font-main); 
+        max-height: 90vh; 
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.5);
     }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">User Management</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 6px 0; font-size: 28px; letter-spacing: -0.5px;">User Management</h2>
+            <p style="font-family: var(--font-main); color:#6B7280; margin: 0; font-size: 15px;">
                 View and manage all system users, account registrations, and roles.
             </p>
         </div>
@@ -237,7 +255,7 @@
                         icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
                         title: "{% if message.tags == 'error' %}Oops...{% else %}Success!{% endif %}",
                         text: "{{ message|escapejs }}",
-                        confirmButtonColor: "#092c4c"
+                        confirmButtonColor: "var(--french-blue)"
                     });
                 {% endfor %}
             });
@@ -246,7 +264,7 @@
 
     <div class="layout-grid">
         
-        <div style="display: flex; flex-direction: column; gap: 25px;">
+        <div style="display: flex; flex-direction: column; gap: 24px;">
             
             <div class="table-container">
                 <h2 class="section-title">System Users</h2>
@@ -263,8 +281,8 @@
                     <tbody>
                         {% for user in users %}
                         <tr>
-                            <td><strong style="color: #092c4c; font-weight: 600;">{{ user.full_name }}</strong></td>
-                            <td style="color: #64748b; font-family: 'Inconsolata'; font-size: 1.05rem;">{{ user.username }}</td>
+                            <td><strong style="color: var(--french-blue); font-weight: 700; font-size: 15px;">{{ user.full_name }}</strong></td>
+                            <td style="color: var(--text-secondary); font-family: 'Inconsolata', monospace; font-size: 15px; font-weight: 600;">{{ user.username }}</td>
                             <td>
                                 {% if user.is_superuser %}
                                     <span class="badge bg-soft-red">Admin</span>
@@ -272,7 +290,7 @@
                                     <span class="badge bg-sage-green">Employee</span>
                                 {% endif %}
                             </td>
-                            <td style="color: #64748b;">{{ user.date_created|date:"M d, Y" }}</td>
+                            <td style="color: var(--text-secondary);">{{ user.date_created|date:"M d, Y" }}</td>
                             
                             <td>
                                 <div class="action-group">
@@ -287,14 +305,14 @@
                                         <i class="ph ph-trash"></i>
                                     </a>
                                     {% else %}
-                                    <span style="font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-left: 5px;">(You)</span>
+                                    <span style="font-size: 12px; color: var(--text-secondary); font-style: italic; margin-left: 6px; font-weight: 500;">(You)</span>
                                     {% endif %}
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No users found.</td>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">No users found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -321,16 +339,16 @@
                         {% for req in pending_report_requests %}
                         <tr>
                             <td>
-                                <strong style="color: #092c4c;">{{ req.user.full_name }}</strong><br>
-                                <small style="color: #64748b;">@{{ req.user.username }}</small>
+                                <strong style="color: var(--french-blue); font-weight: 700;">{{ req.user.full_name }}</strong><br>
+                                <small style="color: var(--text-secondary); font-family: 'Inconsolata', monospace;">@{{ req.user.username }}</small>
                             </td>
-                            <td><span class="badge" style="background:#fff7ed; color:#c2410c; border:1px solid #ffedd5;">Pending Approval</span></td>
+                            <td><span class="badge" style="background:#fff7ed; color:var(--amber-flame); border:1px solid #ffedd5;">Pending Approval</span></td>
                             <td>
-                                <form method="POST" action="{% url 'security:review_reports_access' %}" style="display:flex; gap:5px; justify-content:center;">
+                                <form method="POST" action="{% url 'security:review_reports_access' %}" style="display:flex; gap:8px; justify-content:center; margin: 0;">
                                     {% csrf_token %}
                                     <input type="hidden" name="profile_id" value="{{ req.id }}">
                                     
-                                    <button type="submit" name="action" value="approve" class="table-action-btn" style="color: #16a34a; background: #f0fdf4; border-color: #bbf7d0;" title="Approve">
+                                    <button type="submit" name="action" value="approve" class="table-action-btn btn-approve" title="Approve">
                                         <i class="ph ph-check-circle"></i>
                                     </button>
                                     <button type="submit" name="action" value="reject" class="table-action-btn btn-delete" title="Reject">
@@ -341,7 +359,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" style="text-align: center; padding: 30px; color: #94a3b8; font-style: italic;">
+                            <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">
                                 No pending requests at the moment.
                             </td>
                         </tr>
@@ -350,7 +368,9 @@
                 </table>
             </div>
 
-        </div> <div class="table-container" style="height: fit-content;">
+        </div> 
+        
+        <div class="form-container" style="height: fit-content;">
             <h2 class="section-title">Register New Account</h2>
             
             <form method="POST" action="{% url 'user_management' %}" id="registerForm">
@@ -406,19 +426,19 @@
     </div>
 </div>
 
-<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-        <div style="background:#fff; width:500px; max-width:90%; border-radius:12px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+<div id="editModal" class="blur-modal">
+    <div class="modal-box">
         
-        <div style="padding:20px 25px 15px; border-bottom:1px solid #edf2f7;">
-            <h3 style="margin:0; color:#092c4c; font-size:1.2rem; font-weight:800;">Edit User Account</h3>
-            <p style="margin:5px 0 0 0; font-size:0.85rem; color:#64748b;">Updating profile for: <strong id="modalUsernameDisplay" style="color:#092c4c;"></strong></p>
+        <div style="padding:24px 30px 20px; border-bottom:1px solid var(--border-color); background: rgba(248, 250, 252, 0.8);">
+            <h3 style="margin:0; color:var(--french-blue); font-size:20px; font-weight:800; font-family: var(--font-heading);">Edit User Account</h3>
+            <p style="margin:6px 0 0 0; font-size:13px; color:var(--text-secondary); font-weight: 500;">Updating profile for: <strong id="modalUsernameDisplay" style="color:var(--french-blue); font-family: 'Inconsolata', monospace; font-size: 14px;"></strong></p>
         </div>
         
-        <form method="POST" action="{% url 'security:edit_user_endpoint' %}" style="max-height: 75vh; overflow-y: auto; padding:20px 25px;">
+        <form method="POST" action="{% url 'security:edit_user_endpoint' %}" style="padding:30px;">
             {% csrf_token %}
             <input type="hidden" name="user_id" id="modalUserId">
             
-            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 16px; margin-bottom: 20px;">
                 <div class="form-group" style="flex: 2; margin-bottom: 0;">
                     <label>Full Name</label>
                     <input type="text" name="edit_full_name" id="edit_full_name" class="form-control" required>
@@ -437,15 +457,15 @@
                 <input type="text" name="edit_username" id="edit_username" class="form-control" required>
             </div>
 
-            <div style="margin: 25px 0 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
-                <p style="margin:0 0 15px 0; font-size:0.8rem; color:#64748b; font-weight: 600; text-transform: uppercase;">Change Password <span style="font-style: italic; font-weight: 400; text-transform: none;">(Leave blank if no changes)</span></p>
+            <div style="margin: 30px 0 20px; border-top: 1px dashed var(--border-color); padding-top: 24px;">
+                <p style="margin:0 0 16px 0; font-size:12px; color:var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Change Password <span style="font-style: italic; font-weight: 500; text-transform: none; color: var(--amber-flame);">(Leave blank if no changes)</span></p>
                 
                 <div class="form-group">
                     <div class="password-wrapper">
                         <input type="password" name="new_password" id="modal_new_password" class="form-control" placeholder="Enter new password">
                         <i class="ph ph-eye toggle-password" onclick="togglePassword('modal_new_password', this)"></i>
                     </div>
-                    <div class="password-rules" style="margin-top: 8px;">
+                    <div class="password-rules" style="margin-top: 10px;">
                         <div class="rule" id="modal-rule-length"><i class="ph ph-circle"></i> Minimum 8 characters</div>
                         <div class="rule" id="modal-rule-upper"><i class="ph ph-circle"></i> 1 Uppercase letter</div>
                         <div class="rule" id="modal-rule-number"><i class="ph ph-circle"></i> 1 Number</div>
@@ -463,10 +483,10 @@
                 </div>
             </div>
 
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button type="button" onclick="closeEditModal()" style="flex:1; background:#f8fafc; color:#64748b; border:1px solid #cbd5e1; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.2s;" onmouseover="this.style.background='#edf2f7'; this.style.color='#092c4c';" onmouseout="this.style.background='#f8fafc'; this.style.color='#64748b';">Cancel</button>
+            <div style="display:flex; gap:12px; margin-top:30px;">
+                <button type="button" onclick="closeEditModal()" style="flex:1; background:rgba(248, 250, 252, 0.8); color:var(--text-secondary); border:1px solid rgba(203, 213, 225, 0.8); padding:14px; border-radius:12px; cursor:pointer; font-weight:600; font-family: var(--font-main); transition:all 0.3s ease;" onmouseover="this.style.background='#FFFFFF'; this.style.color='var(--french-blue)';" onmouseout="this.style.background='rgba(248, 250, 252, 0.8)'; this.style.color='var(--text-secondary)';">Cancel</button>
                 
-                <button type="submit" style="flex:1; background:#092c4c; color:#fff; border:1px solid #092c4c; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.15);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)';">Save Changes</button>
+                <button type="submit" style="flex:1; background:var(--french-blue); color:#fff; border:none; padding:14px; border-radius:12px; cursor:pointer; font-weight:700; font-family: var(--font-main); transition:all 0.3s ease; box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);" onmouseover="this.style.backgroundColor='#1a2858'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='var(--french-blue)'; this.style.transform='translateY(0)';">Save Changes</button>
             </div>
         </form>
     </div>
@@ -568,46 +588,46 @@
     function openEditModalFlow(userId, fullName, username, role) {
         Swal.fire({
             html: `
-                <div style="margin-bottom: 15px;">
-                    <i class="ph ph-lock-key" style="font-size: 48px; color: #092c4c;"></i>
+                <div style="margin-bottom: 20px;">
+                    <i class="ph ph-lock-key" style="font-size: 56px; color: var(--french-blue);"></i>
                 </div>
-                <h3 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 10px 0; font-size: 1.5rem;">Security Verification</h3>
-                <p style="font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #64748b; margin: 0 0 20px 0;">Please enter and confirm your current password.</p>
+                <h3 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 10px 0; font-size: 24px;">Security Verification</h3>
+                <p style="font-family: var(--font-main); font-size: 14px; color: var(--text-secondary); margin: 0 0 24px 0; font-weight: 500;">Please enter and confirm your current password.</p>
 
-                <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                <div class="form-group" style="text-align: left; margin-bottom: 16px;">
                     <div class="password-wrapper" style="position: relative;">
-                        <input type="password" id="swal_pass1" class="form-control" placeholder="Enter current password" style="padding-right: 40px;">
-                        <i class="ph ph-eye" id="toggle_swal_pass1" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; font-size: 1.2rem; transition: color 0.2s;"></i>
+                        <input type="password" id="swal_pass1" class="form-control" placeholder="Enter current password" style="padding-right: 44px; width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.8);">
+                        <i class="ph ph-eye" id="toggle_swal_pass1" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-secondary); font-size: 20px; transition: color 0.2s;"></i>
                     </div>
                 </div>
 
-                <div class="form-group" style="text-align: left; margin-bottom: 5px;">
+                <div class="form-group" style="text-align: left; margin-bottom: 8px;">
                     <div class="password-wrapper" style="position: relative;">
-                        <input type="password" id="swal_pass2" class="form-control" placeholder="Re-enter password" style="padding-right: 40px;">
-                        <i class="ph ph-eye" id="toggle_swal_pass2" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; font-size: 1.2rem; transition: color 0.2s;"></i>
+                        <input type="password" id="swal_pass2" class="form-control" placeholder="Re-enter password" style="padding-right: 44px; width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.8);">
+                        <i class="ph ph-eye" id="toggle_swal_pass2" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-secondary); font-size: 20px; transition: color 0.2s;"></i>
                     </div>
                 </div>
                 
-                <div class="password-rules" style="text-align: left; margin-top: 8px;">
-                    <div class="rule" id="swal-rule-match" style="display: flex; align-items: center; gap: 6px; color: #64748b; font-size: 0.85rem; font-weight: 500; transition: 0.2s;">
-                        <i class="ph ph-circle" style="font-size: 1.1rem;"></i> Passwords match
+                <div class="password-rules" style="text-align: left; margin-top: 10px;">
+                    <div class="rule" id="swal-rule-match" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; font-weight: 500; transition: 0.2s;">
+                        <i class="ph ph-circle" style="font-size: 16px;"></i> Passwords match
                     </div>
                 </div>
             `,
             showCancelButton: true,
             confirmButtonText: 'Verify Password',
             cancelButtonText: 'Cancel',
+            confirmButtonColor: 'var(--french-blue)',
+            cancelButtonColor: 'var(--text-secondary)',
             customClass: {
                 popup: 'custom-swal-popup',
-                confirmButton: 'custom-swal-confirm',
-                cancelButton: 'custom-swal-cancel',
                 validationMessage: 'custom-swal-validation'
             },
             backdrop: `rgba(15, 23, 42, 0.6)`,
             showLoaderOnConfirm: true,
             
             didOpen: () => {
-                const popup = Swal.getPopup(); // Target exact inputs inside popup
+                const popup = Swal.getPopup(); 
                 const pass1 = popup.querySelector('#swal_pass1');
                 const pass2 = popup.querySelector('#swal_pass2');
                 const toggle1 = popup.querySelector('#toggle_swal_pass1');
@@ -620,14 +640,14 @@
                     const type = pass1.getAttribute('type') === 'password' ? 'text' : 'password';
                     pass1.setAttribute('type', type);
                     toggle1.className = type === 'password' ? 'ph ph-eye' : 'ph ph-eye-closed';
-                    toggle1.style.color = type === 'password' ? '#64748b' : '#092c4c';
+                    toggle1.style.color = type === 'password' ? 'var(--text-secondary)' : 'var(--french-blue)';
                 });
 
                 toggle2.addEventListener('click', () => {
                     const type = pass2.getAttribute('type') === 'password' ? 'text' : 'password';
                     pass2.setAttribute('type', type);
                     toggle2.className = type === 'password' ? 'ph ph-eye' : 'ph ph-eye-closed';
-                    toggle2.style.color = type === 'password' ? '#64748b' : '#092c4c';
+                    toggle2.style.color = type === 'password' ? 'var(--text-secondary)' : 'var(--french-blue)';
                 });
 
                 // Match Logic
@@ -636,17 +656,17 @@
                     const val2 = pass2.value;
                     
                     if (val1.length === 0 || val2.length === 0) {
-                        ruleMatch.style.color = '#64748b';
+                        ruleMatch.style.color = 'var(--text-secondary)';
                         ruleIcon.className = 'ph ph-circle';
-                        ruleIcon.style.color = '#64748b';
+                        ruleIcon.style.color = 'var(--text-secondary)';
                     } else if (val1 === val2) {
-                        ruleMatch.style.color = '#16a34a';
+                        ruleMatch.style.color = 'var(--status-green)';
                         ruleIcon.className = 'ph ph-check-circle';
-                        ruleIcon.style.color = '#16a34a';
+                        ruleIcon.style.color = 'var(--status-green)';
                     } else {
-                        ruleMatch.style.color = '#dc2626';
+                        ruleMatch.style.color = 'var(--status-red)';
                         ruleIcon.className = 'ph ph-x-circle';
-                        ruleIcon.style.color = '#dc2626';
+                        ruleIcon.style.color = 'var(--status-red)';
                     }
                 };
                 
@@ -661,25 +681,25 @@
 
                 // 1. Check kung may laman
                 if (!pass1 || !pass2) {
-                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Both fields are required');
-                    return false; // Pipigilan niyang tumuloy
+                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 6px; font-size: 18px;"></i> Both fields are required');
+                    return false; 
                 }
                 
                 // 2. Check kung magkaparehas
                 if (pass1 !== pass2) {
-                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Passwords do not match');
-                    return false; // Pipigilan niyang tumuloy
+                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 6px; font-size: 18px;"></i> Passwords do not match');
+                    return false; 
                 }
                 
-                // 3. Kunin ang CSRF token para hindi ma-block ng Django (403 Error)
+                // 3. Kunin ang CSRF token
                 const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
                 if (!csrfInput) {
-                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Security token missing. Please refresh the page.');
+                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 6px; font-size: 18px;"></i> Security token missing. Please refresh.');
                     return false;
                 }
                 const csrfToken = csrfInput.value;
                 
-                // 4. Send sa backend kung pasado na lahat
+                // 4. Send sa backend
                 return fetch("{% url 'security:verify_admin_password' %}", {
                     method: 'POST',
                     headers: {
@@ -699,7 +719,7 @@
                     return data;
                 })
                 .catch(error => {
-                    Swal.showValidationMessage(`<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Connection Failed: ${error.message}`);
+                    Swal.showValidationMessage(`<i class="ph ph-warning-circle" style="margin-right: 6px; font-size: 18px;"></i> Connection Failed: ${error.message}`);
                 });
             },
             allowOutsideClick: () => !Swal.isLoading()
@@ -710,7 +730,7 @@
                         icon: 'success',
                         title: 'Verified!',
                         text: 'You can now edit the profile.',
-                        confirmButtonColor: '#092c4c',
+                        confirmButtonColor: 'var(--french-blue)',
                         timer: 1500,
                         showConfirmButton: false,
                         customClass: { popup: 'custom-swal-popup' }
@@ -722,8 +742,8 @@
                         icon: 'error',
                         title: 'Incorrect Password',
                         text: 'Verification failed. Please try again.',
-                        confirmButtonColor: '#dc2626',
-                        customClass: { popup: 'custom-swal-popup', confirmButton: 'custom-swal-confirm' }
+                        confirmButtonColor: 'var(--status-red)',
+                        customClass: { popup: 'custom-swal-popup' }
                     }).then(() => {
                         openEditModalFlow(userId, fullName, username, role);
                     });
@@ -769,8 +789,8 @@
             text: `Are you sure you want to delete '${username}'?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#64748b',
+            confirmButtonColor: 'var(--status-red)',
+            cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
