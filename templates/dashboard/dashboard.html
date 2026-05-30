@@ -381,7 +381,7 @@
 
         <div class="nav-category">Settings</div>
         <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
-        <a href="{% url 'settings_hub' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
+        <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
             <i class="ph ph-gear"></i> General Settings
         </a>
         <form action="{% url 'security:logout' %}" method="POST" class="logout-form" onsubmit="confirmLogout(event, this)">

@@ -106,11 +106,39 @@ def trigger_restore(request):
 
 def delete_all_data(request):
     if request.method == 'POST':
+        # 1. Tables na HINDI dapat mabura (Credentials & System Core)
+        protected_tables = [
+            'auth_user', 
+            'auth_group', 
+            'auth_permission', 
+            'auth_user_groups', 
+            'auth_user_user_permissions', 
+            'django_migrations',
+            'django_content_type',
+            'django_session',
+            'django_admin_log'
+        ]
+
         try:
-            call_command('flush', '--no-input')
-            messages.success(request, 'All database records have been securely deleted.')
+            with connection.cursor() as cursor:
+                # Kunin ang lahat ng tables sa database
+                cursor.execute("SHOW TABLES")
+                all_tables = [row[0] for row in cursor.fetchall()]
+
+                # I-disable ang foreign key checks para hindi mag-error
+                cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+                
+                for table in all_tables:
+                    if table not in protected_tables:
+                        # Dito natin buburahin lahat ng DATA (TRUNCATE)
+                        # Pero hindi mabubura ang structure ng table
+                        cursor.execute(f"TRUNCATE TABLE {table};")
+                
+                # I-enable ulit ang foreign key checks
+                cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+
+            messages.success(request, 'System wiped! All transactions cleared but credentials remain.')
         except Exception as e:
-            messages.error(request, f'Error deleting data: {e}')
+            messages.error(request, f'Error: {e}')
             
-    # HTTP_REFERER para bumalik sa settings page
     return redirect(request.META.get('HTTP_REFERER', '/'))
