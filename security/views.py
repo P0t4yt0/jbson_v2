@@ -43,6 +43,7 @@ from point_of_sale.models import Transaction
 from billing_payment.models import SalesReturn
 from inventory.models import InventoryItem
 from datetime import timedelta
+from activity_log.utils import log_system_activity
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -57,7 +58,7 @@ def _get_client_ip(request):
         return x_forwarded.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "unknown")
 
-
+ 
 def _log_activity(user, action: str, description: str, request=None):
     """
     Persist a record to the ActivityLog table.
@@ -478,8 +479,13 @@ def user_management_view(request):
             new_user.is_superuser = False
         
         new_user.save()
+        log_system_activity(
+            user=request.user,
+            action="CREATE USER",
+            description=f"Created a new {role} account for {full_name} ({username})."
+        )
         messages.success(request, f"Successfully created {role} account for {full_name}.")
-        return redirect('user_management') 
+        return redirect('user_management')
 
     # 6. Fetch users for the list view
     users = User.objects.all().order_by('-date_created')
@@ -531,10 +537,15 @@ def delete_user(request, user_id):
 
     # 2. Hanapin ang user
     user_to_delete = get_object_or_404(User, id=user_id)
+    username = user_to_delete.username
     user_to_delete.delete()
-    messages.success(request, f"User '{user_to_delete.username}' deleted.")
+    log_system_activity(
+        user=request.user,
+        action="DELETE USER",
+        description=f"Deleted user account: '{username}'"
+    )
+    messages.success(request, f"User '{username}' deleted.")
     
-    # KUNG ANO ANG NAME NG VIEW NA ITO SA URLS.PY MO, YON ANG ILAGAY DITO:
     return redirect('user_management')
 
 # Sa loob ng security/views.py
@@ -580,6 +591,11 @@ def edit_user_view(request):
             user.set_password(new_pass)
             
         user.save()
+        log_system_activity(
+            user=request.user,
+            action="EDIT USER",
+            description=f"Modified account details/permissions for user '{user.username}'."
+        )
         messages.success(request, f"User {user.username} updated successfully!")
         
     return redirect('user_management') # Siguraduhing tama ang redirect name mo
@@ -608,6 +624,11 @@ def request_reports_access(request):
                 action_url=reverse('user_management')  # Links to User Management page
             )
         
+        log_system_activity(
+            user=request.user,
+            action="REQUEST REPORTS ACCESS",
+            description="Employee requested access to the Reports Hub."
+        )
         messages.success(request, "Request to access the Reports Hub has been sent to the Admin.")
     return redirect('reports_analytics:reports_hub')
 
@@ -630,6 +651,11 @@ def review_reports_access(request):
             profile.reports_access_requested = False
             profile.reports_access_expires_at = timezone.now() + timedelta(minutes=60)
             profile.save()
+            log_system_activity(
+                user=request.user,
+                action="APPROVE REPORTS ACCESS",
+                description=f"Approved 1-hour reports access for '{profile.user.username}'."
+            )
             messages.success(request, f"Reports access granted to {profile.user.full_name} for 1 hour.")
             
             # Notify the employee
@@ -648,6 +674,11 @@ def review_reports_access(request):
             profile.reports_access_approved = False
             profile.reports_access_expires_at = None # Reset timer
             profile.save()
+            log_system_activity(
+                user=request.user,
+                action="REJECT REPORTS ACCESS",
+                description=f"Rejected reports access request for '{profile.user.username}'."
+            )
             messages.error(request, f"Reports access denied for {profile.user.full_name}.")
             
     except EmployeeProfile.DoesNotExist:

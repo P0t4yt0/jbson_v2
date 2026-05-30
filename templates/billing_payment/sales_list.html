@@ -60,7 +60,7 @@
         letter-spacing: 0.05em;
     }
     .bg-sage-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-    .bg-soft-lavender { background-color: #fff7ed; color: #dd6b20; border: 1px solid #feebc8; }
+    .bg-soft-lavender { background-color: #fff7ed; color: #FFB915; border: 1px solid #feebc8; }
     
     .action-group { display: flex; gap: 8px; align-items: center; }
     
@@ -83,14 +83,14 @@
     }
 
     .btn-view {
-        color: #092c4c;
+        color: #2F3F7B;
         background-color: #f2f7fb; 
     }
 
     .btn-view:hover { 
-        background-color: #092c4c; 
+        background-color: #2F3F7B; 
         color: white; 
-        border-color: #092c4c; 
+        border-color: #2F3F7B; 
     }
 
     .btn-print {
@@ -152,8 +152,8 @@
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
-    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
+    .page-btn:hover { border-color: #2F3F7B; color: #2F3F7B; background-color: #f8fafc; }
+    .page-btn.active { background: #FFD358; color: white; font-weight: bold; border-color: #FFD358; }
     .page-btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
 </style>
@@ -162,8 +162,8 @@
     
     <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Sales & Transactions</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #2F3F7B; margin: 0 0 6px 0; font-size: 28px;">Sales & Transactions</h2>
+            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #FFB915; margin: 0; font-size: 15px;">
                 View and manage all completed sales, customer invoices, and payment histories.
             </p>
         </div>
@@ -173,32 +173,32 @@
         <form method="GET" style="display: flex; gap: 15px; align-items: center;">
             <input type="text" name="search" placeholder="Search Reference, Customer, Cashier..." value="{{ search_query }}" 
                    style="flex: 2; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s;" 
-                   onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                   onfocus="this.style.borderColor='#2F3F7B'" onblur="this.style.borderColor='#cbd5e1'">
             
             <select name="status" style="flex: 1; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color 0.2s;"
-                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                    onfocus="this.style.borderColor='#2F3F7B'" onblur="this.style.borderColor='#cbd5e1'">
                 <option value="">All Statuses</option>
                 <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Paid</option>
                 <option value="credit" {% if status_filter == 'credit' %}selected{% endif %}>Invoiced</option>
             </select>
 
             <select name="method" style="flex: 1; padding: 12px 16px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; outline: none; cursor: pointer; transition: border-color 0.2s;"
-                    onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                    onfocus="this.style.borderColor='#2F3F7B'" onblur="this.style.borderColor='#cbd5e1'">
                 <option value="">All Methods</option>
                 <option value="cash" {% if method_filter == 'cash' %}selected{% endif %}>Cash</option>
                 <option value="credit" {% if method_filter == 'credit' %}selected{% endif %}>Credit</option>
                 <option value="bank" {% if method_filter == 'bank' %}selected{% endif %}>Bank</option>
             </select>
 
-            <button type="submit" style="background: #092c4c; color: white; padding: 12px 30px; border: 1px solid #092c4c; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box;" 
-                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.borderColor='#092c4c';">
+            <button type="submit" style="background: #2F3F7B; color: white; padding: 12px 30px; border: 1px solid #2F3F7B; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: background-color 0.2s; box-sizing: border-box;" 
+                    onmouseover="this.style.backgroundColor='#061f38'; this.style.borderColor='#061f38';" onmouseout="this.style.backgroundColor='#2F3F7B'; this.style.borderColor='#2F3F7B';">
                 Filter
             </button>
             
             {% if search_query or status_filter or method_filter %}
             <a href="?" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 12px 30px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box;" 
                title="Clear all filters"
-               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
+               onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#2F3F7B';" 
                onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
                 Clear
             </a>
@@ -223,7 +223,7 @@
             <tbody>
                 {% for txn in transactions %}
                 <tr>
-                    <td><strong style="color: #092c4c; font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata'; ">{{ txn.transaction_ref|default:txn.id }}</strong></td>
+                    <td><strong style="color: #2F3F7B; font-weight: 700; font-size: 1.05rem; font-family: 'Inconsolata'; ">{{ txn.transaction_ref|default:txn.id }}</strong></td>
                     <td style="color: #64748b;">{{ txn.date_completed|date:"M d, Y - h:i A" }}</td>
                     
                     <td style="font-weight: 500; color: #334155;">
@@ -235,7 +235,7 @@
                     </td>
                     
                     <td>{{ txn.processed_by.username|default:"N/A" }}</td>
-                    <td style="font-weight: 800; font-size: 1.05rem; font-family: 'Inconsolata'; color: #092c4c;">₱{{ txn.total_amount }}</td>
+                    <td style="font-weight: 800; font-size: 1.05rem; font-family: 'Inconsolata'; color: #2F3F7B;">₱{{ txn.total_amount }}</td>
                     <td style="text-transform: capitalize; color: #64748b;">{{ txn.payment_method }}</td>
                     
                     <td>
@@ -311,7 +311,7 @@
         
         <div style="padding:25px 25px 20px; border-bottom:1px solid #edf2f7; text-align:center;">
             <p style="margin:0; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Transaction Details</p>
-            <h3 id="modalRefTitle" style="margin:5px 0 0 0; color:#092c4c; font-size:1.2rem; font-weight:900;">Loading...</h3>
+            <h3 id="modalRefTitle" style="margin:5px 0 0 0; color:#2F3F7B; font-size:1.2rem; font-weight:900;">Loading...</h3>
         </div>
         
         <div style="padding:20px 25px; max-height:350px; overflow-y:auto;">
@@ -330,12 +330,12 @@
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:20px; border-top:1px dashed #cbd5e1;">
                 <span style="font-size:0.85rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Total Amount</span>
-                <span style="font-family: 'Inconsolata'; font-weight:900; font-size:1.8rem; color:#e07300;">₱<span style="font-family: 'Inconsolata';" id="modalTotalAmount">0.00</span></span>
+                <span style="font-family: 'Inconsolata'; font-weight:900; font-size:1.8rem; color:#FFB915;">₱<span style="font-family: 'Inconsolata';" id="modalTotalAmount">0.00</span></span>
             </div>
         </div>
         
         <div style="padding:0 25px 25px; background:#fff; text-align:center;">
-            <button onclick="closeModal()" style="width:100%; background:#092c4c; color:#fff; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.95rem; font-family: 'Inter', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(9, 44, 76, 0.3)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(9, 44, 76, 0.2)';">
+            <button onclick="closeModal()" style="width:100%; background:#2F3F7B; color:#fff; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.95rem; font-family: 'Inter', sans-serif; transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(9, 44, 76, 0.3)';" onmouseout="this.style.backgroundColor='#2F3F7B'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(9, 44, 76, 0.2)';">
                 Close Details
             </button>
         </div>
@@ -352,7 +352,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    document.getElementById('modalRefTitle').innerHTML = `<span style="font-family: 'Inconsolata'; font-size: 1.4rem; font-weight: 900; color: #092c4c;">${data.ref}</span>`
+                    document.getElementById('modalRefTitle').innerHTML = `<span style="font-family: 'Inconsolata'; font-size: 1.4rem; font-weight: 900; color: #2F3F7B;">${data.ref}</span>`
                     document.getElementById('modalTotalAmount').innerText = data.total_amount.toLocaleString(undefined, {minimumFractionDigits: 2});
                     
                     let itemsHtml = '';
@@ -366,7 +366,7 @@
                                 <td style="padding:14px 0; border-bottom:1px solid #f8fafc; font-weight:600; color:#1e293b; font-size:0.9rem;">${item.name}</td>
                                 <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; font-family: 'Inconsolata'; color:#475569; font-size:1.05rem; font-weight:500;">₱${formattedPrice}</td>
                                 <td style="padding:14px 15px; border-bottom:1px solid #f8fafc; text-align:center; font-family: 'Inconsolata'; color:#475569; font-size:1.05rem; font-weight:500;">${item.qty}</td>
-                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-family: 'Inconsolata'; font-weight:800; color:#092c4c; font-size:1.05rem;">₱${item.subtotal.toFixed(2)}</td>
+                                <td style="padding:14px 0; border-bottom:1px solid #f8fafc; text-align:right; font-family: 'Inconsolata'; font-weight:800; color:#2F3F7B; font-size:1.05rem;">₱${item.subtotal.toFixed(2)}</td>
                             </tr>
                         `;
                     });

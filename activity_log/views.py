@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from auditlog.models import LogEntry
 from django.db.models import Q
 import re
-
+ 
 # WAG KALIMUTANG I-IMPORT ANG ACTIVITYLOG MODEL MO!
 from security.models import ActivityLog 
 
