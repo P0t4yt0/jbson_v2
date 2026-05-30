@@ -15,7 +15,7 @@
     .hub-title { 
         font-size: 28px; 
         font-weight: 800; 
-        color: #092c4c; /* Main System Navy */
+        color: #2F3F7B; /* Main System Navy */
         margin-bottom: 4px; 
         letter-spacing: -0.5px;
     }
@@ -23,50 +23,49 @@
     /* Subheader updated to Accent Color (Orange) and adjusted weight */
     .hub-subtitle { 
         font-size: 16px; 
-        color: #e07300; /* Accent Color */
+        color: #6B7280; /* Accent Color */
         margin-bottom: 24px; 
-        font-weight: 500; /* Medium weight matching the design guide */
+        font-weight: 500; 
     }
 
     /* Tabs as Links */
     .tabs-wrapper { 
         display: flex; 
-        gap: 8px; 
+        gap: 12px; 
         margin-bottom: 24px; 
         flex-wrap: wrap; 
     }
     
-    .tab-btn { 
-        padding: 8px 22px; 
-        border-radius: 50px; 
-        border: 1px solid #cbd5e1; /* Subtle border para sa outline */
-        background: #f8fafc; /* Light gray background para sa hindi pa click */
-        font-weight: 600; 
-        color: #475569; /* Gray text */
-        text-decoration: none; 
-        /* Animation settings: Smooth transition sa lahat ng properties */
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    /* PILL-SHAPED BUTTON STYLING (Gaya sa User Manual image) */
+    .tab-btn {
+        text-decoration: none;
+        padding: 8px 22px; /* Adjusted padding para bumagay sa pill shape */
         font-size: 14px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        font-weight: 600;
+        color: #64748b;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 50px; /* Eto yung nagpapa-bilog (pill shape) sa magkabilang dulo */
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
     }
     
-    
-        /* HOVER ANIMATION (Pag tinutok ang mouse) */
-    .tab-btn:hover { 
-        background: #ffffff; 
+    /* HOVER ANIMATION */
+    .tab-btn:hover {
         color: #092c4c;
-        border-color: #94a3b8;
-        transform: translateY(-3px); /* Aangat yung button ng 3 pixels pataas */
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* Magkakaroon ng mas malaking shadow */
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.15);
     }
     
-    /* ACTIVE STATE (Pag napindot na) */
+    /* ACTIVE STATE (Nagbabago ang kulay kapag napindot/napili na) */
     .tab-btn.active { 
-        background: #092c4c; /* Main System Navy */
-        color: #ffffff; 
-        border-color: #092c4c;
-        transform: translateY(0); /* Babalik sa original na pwesto */
-        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.3); /* Magkukulay navy ang shadow */
+        background: #092c4c !important; /* Main System Navy */
+        color: #ffffff !important; 
+        border-color: #092c4c !important;
+        transform: none !important; 
+        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.3) !important; 
     }
     
     .report-content-wrapper {
@@ -82,7 +81,7 @@
     <div class="hub-title">Reports & Analytics</div>
     <div class="hub-subtitle">Select a report category to view details.</div>
 
-    <div class="tabs-wrapper">
+    <div class="tabs-wrapper" id="reportsTabs">
         <a href="{% url 'reports_analytics:sales_report' %}" class="tab-btn {% if active_tab == 'sales' %}active{% endif %}">Sales</a>
         <a href="{% url 'reports_analytics:purchase_report' %}" class="tab-btn {% if active_tab == 'purchase' %}active{% endif %}">Purchase</a>
         <a href="{% url 'reports_analytics:inventory_report' %}" class="tab-btn {% if active_tab == 'inventory' %}active{% endif %}">Inventory</a>
@@ -98,4 +97,20 @@
         {% endblock %}
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const currentUrl = window.location.pathname;
+        const tabs = document.querySelectorAll("#reportsTabs .tab-btn");
+
+        // Suriin kung aling button ang tumutugma sa kasalukuyang URL path ng browser
+        tabs.forEach(tab => {
+            const tabHref = tab.getAttribute("href");
+            // Hindi magse-select kung walang eksaktong path match
+            if (tabHref && tabHref !== '#' && currentUrl.includes(tabHref)) {
+                tab.classList.add("active");
+            }
+        });
+    });
+</script>
 {% endblock %}
