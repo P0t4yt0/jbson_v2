@@ -314,10 +314,6 @@ def forgot_password_view(request):
                 messages.error(request, "Passwords do not match. Please try again.")
                 context['step'] = 'set_new_password'
 
-    # RENDERING LOGIC: I-redirect sa magkahiwalay na HTML based sa step
-    if context.get('step') == 'set_new_password':
-        return render(request, "security/reset_password.html", context)
-    
     return render(request, "security/forgot_password.html", context)
 
 
