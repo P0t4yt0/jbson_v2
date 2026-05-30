@@ -350,27 +350,16 @@
         </a>      
 
         <div class="nav-category">Reports and Analytics</div>
-        <a href="{% url 'reports_analytics:sales_report' %}" class="nav-item {% if '/reports/sales/' in request.path %}active{% endif %}">
-            <i class="ph ph-chart-line-up"></i> Sales Report
-        </a>
-        <a href="{% url 'reports_analytics:purchase_report' %}" class="nav-item {% if '/reports/purchase/' in request.path %}active{% endif %}">
-            <i class="ph ph-clock"></i> Purchase Report
-        </a>
-        <a href="{% url 'reports_analytics:inventory_report' %}" class="nav-item {% if '/reports/inventory/' in request.path %}active{% endif %}">
-            <i class="ph ph-stack"></i> Inventory Report
-        </a>
-        <a href="{% url 'reports_analytics:invoice_report' %}" class="nav-item {% if '/reports/invoice/' in request.path %}active{% endif %}">
-            <i class="ph ph-file-text"></i> Invoice Report
-        </a>
-        <a href="{% url 'reports_analytics:procurement_report' %}" class="nav-item {% if '/procurement/' in request.path %}active{% endif %}">
-            <i class="ph ph-chart-bar"></i> Procurement & Supplier Report
-        </a>        
-        <a href="{% url 'reports_analytics:profit_loss_report' %}" class="nav-item {% if '/profit-loss/' in request.path %}active{% endif %}">
-            <i class="ph ph-scales"></i> Profit & Loss
-        </a>
-        <a href="{% url 'reports_analytics:annual_report' %}" class="nav-item {% if '/annual-report/' in request.path %}active{% endif %}">
-            <i class="ph ph-book-open"></i> Annual Report
-        </a>
+        
+        {% if request.user.is_superuser or request.user.role|lower == 'admin' or request.user.profile.has_valid_reports_access %}
+            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
+                <i class="ph ph-chart-pie-slice"></i> Reports Hub
+            </a>
+        {% else %}
+            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
+                <i class="ph ph-lock-key"></i> Reports Hub (Locked)
+            </a>
+        {% endif %}
 
         <div class="nav-category">Supplier Management</div>
         <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">

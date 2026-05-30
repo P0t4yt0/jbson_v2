@@ -24,8 +24,45 @@ from django.db.models.functions import TruncMonth, Coalesce
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from datetime import datetime
+from django.contrib.auth.decorators import login_required
+from security.models import EmployeeProfile
 import json
 
+from functools import wraps
+from django.shortcuts import render
+from security.models import EmployeeProfile
+from django.utils import timezone
+
+def reports_access_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        role = getattr(request.user, "role", "employee").lower()
+        
+        if role == "employee" and not request.user.is_superuser:
+            profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
+            
+            # ---> NEW: Check validity using our 10-minute timer property <---
+            if not profile.has_valid_reports_access:
+                
+                # Check if they *were* approved but their time just expired
+                was_expired = False
+                if profile.reports_access_approved:
+                    # Auto-revoke their permissions in the database
+                    profile.reports_access_approved = False
+                    profile.reports_access_expires_at = None
+                    profile.save()
+                    was_expired = True
+                
+                # Block them and show the request page
+                return render(request, 'reports_analytics/reports_access_request.html', {
+                    'profile': profile,
+                    'was_expired': was_expired # Pass this to the template
+                })
+                
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+@reports_access_required
 def sales_report_view(request):
     # 1. Kunin ang dates, search inputs, at tanggalin ang 'None' bug
     start_date_str = request.GET.get('start_date', '').strip()
@@ -149,6 +186,7 @@ def sales_report_view(request):
 
     return render(request, 'reports_analytics/sales_report.html', context)
 
+@reports_access_required
 def procurement_report(request):
     # 1. Grab dates and search from the form
     start_date_str = request.GET.get('start_date')
@@ -218,6 +256,7 @@ def procurement_report(request):
         'procurement_search': procurement_search, # <-- Ipinasa sa context
     })
 
+@reports_access_required
 def purchase_report_view(request):
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
@@ -302,6 +341,7 @@ def purchase_report_view(request):
         
     return render(request, 'reports_analytics/purchase_report.html', context)
 
+@reports_access_required
 def invoice_report_view(request):
     # 1. Kunin ang dates, search input, at i-strip ang 'None' or empty strings
     start_date_str = request.GET.get('start_date', '').strip()
@@ -390,6 +430,7 @@ def invoice_report_view(request):
 
     return render(request, 'reports_analytics/invoice_report.html', context)
 
+@reports_access_required
 def inventory_report_view(request):
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
@@ -479,6 +520,7 @@ def inventory_report_view(request):
             
     return render(request, 'reports_analytics/inventory_report.html', context)
 
+@reports_access_required
 def profit_loss_report_view(request):
     # --- LOGIC PARA SA PAG-SAVE NG EXPENSE (MODAL POST) ---
     if request.method == 'POST' and 'add_expense' in request.POST:
@@ -575,6 +617,7 @@ def profit_loss_report_view(request):
     }
     return render(request, 'reports_analytics/profit_loss_report.html', context)
 
+@reports_access_required
 def annual_report_view(request):
     # 1. Kunin ang filters
     start_date_str = request.GET.get('start_date', '').strip()
@@ -710,6 +753,14 @@ def annual_report_view(request):
 
     return render(request, 'reports_analytics/annual_report.html', context)
 
+
+@login_required
+@reports_access_required
 def reports_hub(request):
     """Main hub para sa lahat ng reports."""
+    
+    # Check if the user is an employee and if they have approval
+    if getattr(request.user, "role", "employee") == "employee":
+        profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
+            
     return render(request, 'reports_analytics/reports_hub.html')

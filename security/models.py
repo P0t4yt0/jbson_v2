@@ -14,6 +14,7 @@ from auditlog.registry import auditlog
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from datetime import timedelta
 from django.utils import timezone
 
 
@@ -168,27 +169,23 @@ def generate_recovery_key():
     return f"{raw_key[:4]}-{raw_key[4:8]}-{raw_key[8:12]}-{raw_key[12:]}"
 
 class EmployeeProfile(models.Model):
-    """
-    Extended profile for users, specifically handling the offline 
-    account recovery system (Recovery Key & Admin Approval).
-    """
     user = models.OneToOneField(
         User, 
         on_delete=models.CASCADE, 
         related_name="profile"
     )
-    
-    # The 16-character key (e.g. ABCD-1234-EFGH-5678)
-    # Using default=generate_recovery_key ensures a key is made automatically
     recovery_key = models.CharField(
         max_length=19, 
         default=generate_recovery_key, 
         unique=True
     )
-    
-    # State tracking for the password reset flow
     reset_requested = models.BooleanField(default=False)
     reset_approved_by_admin = models.BooleanField(default=False)
+
+    # ---> NEW: Reports Hub Access Tracking <---
+    reports_access_requested = models.BooleanField(default=False)
+    reports_access_expires_at = models.DateTimeField(null=True, blank=True)
+    reports_access_approved = models.BooleanField(default=False)
 
     class Meta:
         db_table = "security_employee_profile"
@@ -198,4 +195,19 @@ class EmployeeProfile(models.Model):
     def __str__(self):
         return f"Profile for {self.user.username}"
     
+    # ---> NEW: Helper method to check if access is active <---
+    @property
+    def has_valid_reports_access(self):
+        """Returns True only if approved AND the 10-minute timer hasn't expired."""
+        if not self.reports_access_approved:
+            return False
+        
+        # If there's an expiration time and the current time is past it, it's invalid.
+        if self.reports_access_expires_at and timezone.now() > self.reports_access_expires_at:
+            return False
+            
+        return True
+
+
+
 auditlog.register(User, exclude_fields=['password', 'last_login'])
