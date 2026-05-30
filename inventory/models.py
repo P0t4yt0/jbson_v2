@@ -222,5 +222,19 @@ class PurchaseOrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity_ordered}x {self.product.item_name} for {self.purchase_order.po_number}"
 
+# --- GENERATED BARCODE TRACKER ---
+class GeneratedBarcode(models.Model):
+    barcode_id = models.CharField(max_length=50, unique=True)
+    product_name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'generated_barcodes'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.product_name} - {self.barcode_id}"
+
 # (Optional) Track Purchase Orders in your audit log
 auditlog.register(PurchaseOrder)
+
