@@ -75,7 +75,7 @@
                 <div style="display: flex; gap: 0;">
                     <input type="text" id="main-barcode-input" name="barcode_id" value="{{ item.barcode_id }}" required 
                         style="flex: 1; padding: 10px; border: 1px solid #ddd; border-top-right-radius: 0; border-bottom-right-radius: 0; border-radius: 6px; outline: none;">
-                    <button type="button" id="trigger-scan-btn" style="background: #8B0000; color: white; border: none; padding: 0 15px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">SCAN</button>
+                    <button type="button" id="trigger-scan-btn" style="background: #2F3F7B; color: white; border: none; padding: 0 15px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;">SCAN</button>
                 </div>
             </div>
 
@@ -146,7 +146,7 @@
 
             <!-- Footer Buttons -->
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="submit" style="background: #8B0000; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                <button type="submit" style="background: #2F3F7B; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
                 {% if item %}Update Product{% else %}Confirm{% endif %}
                 </button>
                 <a href="{% url 'inventory:inventory_list' %}" style="background: white; color: #333; border: 1px solid #ddd; padding: 10px 30px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center;">Cancel</a>
@@ -170,7 +170,7 @@
             style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; margin-bottom:20px;">
         <div style="display:flex; gap:10px; justify-content:flex-end;">
             <button type="button" onclick="closeCatModal()" style="background:#eee; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Cancel</button>
-            <button type="button" onclick="submitNewCategory()" style="background:#8B0000; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">
+            <button type="button" onclick="submitNewCategory()" style="background:#2F3F7B; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">
                 Save
             </button>
         </div>
@@ -190,7 +190,7 @@
         
         <div style="display:flex; gap:10px; justify-content:flex-end;">
             <button type="button" onclick="closeSupModal()" style="background:#eee; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:600;">Cancel</button>
-            <button type="button" onclick="submitNewSupplier()" style="background:#8B0000; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:600;">Save</button>
+            <button type="button" onclick="submitNewSupplier()" style="background:#2F3F7B; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:600;">Save</button>
         </div>
     </div>
 </div>
@@ -199,13 +199,13 @@
 <div id="barcodeScannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
         
-        <i class="ph ph-barcode" style="font-size: 48px; color: #8B0000; margin-bottom: 10px;"></i>
+        <i class="ph ph-barcode" style="font-size: 48px; color: #2F3F7B; margin-bottom: 10px;"></i>
         <h2 style="margin: 0 0 10px 0; color: #333; font-size: 20px;">Ready to Scan</h2>
         <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Point your scanner at the product barcode.</p>
         
         <!-- Dedicated Modal Input -->
         <input type="text" id="modal-barcode-input" placeholder="Waiting for scanner..." autocomplete="off"
-               style="width: 100%; padding: 12px; border: 2px solid #8B0000; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
+               style="width: 100%; padding: 12px; border: 2px solid #2F3F7B; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: monospace;">
         
         <button type="button" id="close-barcode-modal" style="background: #eee; color: #333; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%;">
             Cancel

@@ -258,7 +258,7 @@ def forgot_password_view(request):
                         priority='high',
                         title='Password Reset Request',
                         message=f"Employee '{username}' requested a password reset. Review pending requests.",
-                        action_url=reverse('security:review_resets') 
+                        action_url=reverse('user_management')
                     )
 
 
@@ -368,8 +368,7 @@ def admin_review_resets_view(request):
         except EmployeeProfile.DoesNotExist:
             messages.error(request, "Employee profile not found.")
             
-        return redirect("security:review_resets")
-
+        return redirect("user_management")
     pending_requests = EmployeeProfile.objects.filter(
         reset_requested=True, 
         reset_approved_by_admin=False
@@ -489,16 +488,43 @@ def user_management_view(request):
 
     # 6. Fetch users for the list view
     users = User.objects.all().order_by('-date_created')
+
+    # Fetch both types of pending requests
     pending_report_requests = EmployeeProfile.objects.filter(
         reports_access_requested=True, 
         reports_access_approved=False
     )
     
+    pending_reset_requests = EmployeeProfile.objects.filter(
+        reset_requested=True, 
+        reset_approved_by_admin=False
+    )
+    
+    # Bundle them into one unified list for the template
+    pending_requests = []
+    
+    for req in pending_reset_requests:
+        pending_requests.append({
+            'id': req.id,
+            'user': req.user,
+            'type_label': 'Password Reset',
+            'action_url': reverse('security:review_resets'),
+            'icon': 'ph-key'
+        })
+        
+    for req in pending_report_requests:
+        pending_requests.append({
+            'id': req.id,
+            'user': req.user,
+            'type_label': 'Reports Hub Access',
+            'action_url': reverse('security:review_reports_access'),
+            'icon': 'ph-chart-pie-slice'
+        })
+
     return render(request, 'dashboard/user_management.html', {
         'users': users,
-        'pending_report_requests': pending_report_requests
-    })    
-
+        'pending_requests': pending_requests
+    })
 
 def get_current_db_size():
     with connection.cursor() as cursor:

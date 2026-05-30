@@ -321,9 +321,9 @@
 
             <div class="table-container">
                 <h2 class="section-title">
-                    Pending Report Access Requests 
-                    {% if pending_report_requests %}
-                        <span class="badge bg-soft-red" style="float: right;">{{ pending_report_requests|length }} New</span>
+                    Pending Account Requests 
+                    {% if pending_requests %}
+                        <span class="badge bg-soft-red" style="float: right;">{{ pending_requests|length }} New</span>
                     {% endif %}
                 </h2>
                 
@@ -331,24 +331,29 @@
                     <thead>
                         <tr>
                             <th>Employee</th>
-                            <th>Status</th>
+                            <th>Request Type</th>
                             <th style="text-align: center;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for req in pending_report_requests %}
+                        {% for req in pending_requests %}
                         <tr>
                             <td>
-                                <strong style="color: var(--french-blue); font-weight: 700;">{{ req.user.full_name }}</strong><br>
-                                <small style="color: var(--text-secondary); font-family: 'Inconsolata', monospace;">@{{ req.user.username }}</small>
+                                <strong style="color: #092c4c;">{{ req.user.full_name }}</strong><br>
+                                <small style="color: #64748b;">@{{ req.user.username }}</small>
                             </td>
-                            <td><span class="badge" style="background:#fff7ed; color:var(--amber-flame); border:1px solid #ffedd5;">Pending Approval</span></td>
                             <td>
-                                <form method="POST" action="{% url 'security:review_reports_access' %}" style="display:flex; gap:8px; justify-content:center; margin: 0;">
+                                <span style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: #475569; font-size: 0.85rem;">
+                                    <i class="ph {{ req.icon }}" style="font-size: 1.1rem; color: #092c4c;"></i>
+                                    {{ req.type_label }}
+                                </span>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ req.action_url }}" style="display:flex; gap:5px; justify-content:center;">
                                     {% csrf_token %}
                                     <input type="hidden" name="profile_id" value="{{ req.id }}">
                                     
-                                    <button type="submit" name="action" value="approve" class="table-action-btn btn-approve" title="Approve">
+                                    <button type="submit" name="action" value="approve" class="table-action-btn" style="color: #16a34a; background: #f0fdf4; border-color: #bbf7d0;" title="Approve">
                                         <i class="ph ph-check-circle"></i>
                                     </button>
                                     <button type="submit" name="action" value="reject" class="table-action-btn btn-delete" title="Reject">
@@ -359,7 +364,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-secondary); font-style: italic;">
+                            <td colspan="3" style="text-align: center; padding: 30px; color: #94a3b8; font-style: italic;">
                                 No pending requests at the moment.
                             </td>
                         </tr>
