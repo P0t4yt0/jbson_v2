@@ -4,7 +4,7 @@ import json
 from django.http import JsonResponse
 from django.db.models import Q, F, ProtectedError
 from django.contrib import messages # IDINAGDAG NATIN ITO PARA SA NOTIFICATIONS
-from .models import InventoryItem, Category, Supplier
+from .models import InventoryItem, Category, Supplier, GeneratedBarcode
 from decimal import Decimal
 import random
 import barcode
@@ -278,15 +278,37 @@ def barcode_module_view(request):
     context = {}
     
     if request.method == 'POST':
-        # Generate 480 prefix + 9 random digits
-        base_number = f"480{random.randint(100000000, 999999999)}"
+        # Get the product name from the form
+        product_name = request.POST.get('product_name', '').strip()
         
-        # Gagamitin lang natin 'to para kunin yung valid 13-digit code
-        EAN = barcode.get_barcode_class('ean13')
-        my_barcode = EAN(base_number) # Pansinin: Wala nang ImageWriter!
-        
-        # Ipasa diretso sa HTML yung number string (e.g., "480123456789X")
-        context['barcode_id'] = my_barcode.get_fullcode()
+        if product_name:
+            # CHECK: Prevent duplicate product names (case-insensitive)
+            if GeneratedBarcode.objects.filter(product_name__iexact=product_name).exists():
+                messages.error(request, f"A barcode for '{product_name}' has already been generated. Please check the history below.")
+            else:
+                # Generate 480 prefix + 9 random digits
+                base_number = f"480{random.randint(100000000, 999999999)}"
+                
+                # Generate valid 13-digit code
+                EAN = barcode.get_barcode_class('ean13')
+                my_barcode = EAN(base_number) 
+                full_barcode = my_barcode.get_fullcode()
+                
+                # Save to Database
+                GeneratedBarcode.objects.create(
+                    barcode_id=full_barcode,
+                    product_name=product_name
+                )
+                
+                # Pass data to template for preview
+                context['barcode_id'] = full_barcode
+                context['product_name'] = product_name
+                messages.success(request, f"Barcode generated successfully for '{product_name}'!")
+        else:
+            messages.error(request, "Product name is required to generate a barcode.")
+
+    # Fetch history of all generated barcodes to display in the list
+    context['history'] = GeneratedBarcode.objects.all().order_by('-created_at')
 
     return render(request, 'inventory/generate_barcode.html', context)
 
@@ -973,3 +995,17 @@ def print_po(request, po_id):
     """Generates a clean, printable A4 HTML view of the Purchase Order."""
     po = get_object_or_404(PurchaseOrder, id=po_id)
     return render(request, 'inventory/print_po.html', {'po': po})
+
+def delete_generated_barcode(request, pk):
+    """Deletes a generated barcode from the history list."""
+    if request.method == 'POST':
+        # Import GeneratedBarcode if you haven't globally
+        from .models import GeneratedBarcode 
+        
+        barcode_record = get_object_or_404(GeneratedBarcode, pk=pk)
+        product_name = barcode_record.product_name
+        barcode_record.delete()
+        
+        messages.success(request, f"Barcode history for '{product_name}' was successfully deleted.")
+        
+    return redirect('inventory:generate_barcode_page')

@@ -9,104 +9,198 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    body { background-color: #F0F4F8; margin: 0; overflow: hidden; /* Stops whole page from scrolling */ }
-    
-    /* Custom sleek scrollbars */
+    body { background-color: #F0F4F8; margin: 0; overflow: hidden; }
+
+    /* Sleek scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
 
-    /* 2. MAIN LAYOUT */
-    .pos-container { 
-            display: flex; 
-            height: calc(100vh - 85px); 
-            gap: 20px; 
-            padding: 20px; 
-            overflow: hidden; 
-        }
+    /* ── LAYOUT ────────────────────────────────────── */
+    .pos-container {
+        display: flex;
+        height: calc(100vh - 85px);
+        gap: 20px;
+        padding: 20px;
+        overflow: hidden;
+    }
     .swal2-container { z-index: 100000 !important; }
 
-    /* 3. LEFT SECTION: INVENTORY */
+    /* ── LEFT: INVENTORY ────────────────────────────── */
     .inventory-section { flex: 2.2; display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: hidden; }
-    
+
     .search-header { display: flex; gap: 15px; margin-bottom: 15px; flex-shrink: 0; }
     .search-input-group { position: relative; flex: 1.5; }
     .search-input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 20px; color: #092c4c; }
-    .search-input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #092c4c; border-radius: 10px; outline: none; background: white; font-size: 13px; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.05); }
-    .search-input:focus { box-shadow: 0 0 0 3px rgba(9, 44, 76, 0.2); }
-    
+    .search-input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #092c4c; border-radius: 10px; outline: none; background: white; font-size: 13px; box-shadow: 0 4px 6px rgba(9,44,76,0.05); }
+    .search-input:focus { box-shadow: 0 0 0 3px rgba(9,44,76,0.2); }
     .text-search { flex: 1; padding: 14px 15px; border: 1px solid #CBD5E0; border-radius: 10px; outline: none; font-size: 13px; background: white; }
     .text-search:focus { border-color: #092c4c; }
 
-    /* Categories */
     .category-tabs { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; flex-shrink: 0; }
-    .tab { 
-        padding: 10px 20px; border-radius: 8px; border: 1px solid #E2E8F0; 
-        font-weight: 600; font-size: 13px; cursor: pointer; background: white; color: #4A5568; flex-shrink: 0; transition: all 0.2s;
-    }
+    .tab { padding: 10px 20px; border-radius: 8px; border: 1px solid #E2E8F0; font-weight: 600; font-size: 13px; cursor: pointer; background: white; color: #4A5568; flex-shrink: 0; transition: all 0.2s; }
     .tab:hover { border-color: #CBD5E0; background: #F8FAFC; }
-    .tab.active { background: #092c4c; color: white; border-color: #092c4c; box-shadow: 0 4px 10px rgba(9, 44, 76, 0.2); }
+    .tab.active { background: #092c4c; color: white; border-color: #092c4c; box-shadow: 0 4px 10px rgba(9,44,76,0.2); }
 
-    /* Product Grid */
-    .product-grid { 
-        flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; 
-        overflow-y: auto; align-content: start; padding-right: 5px; padding-bottom: 20px;
-    }
-    .product-card { 
-        background: white; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #E2E8F0; 
-        cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        display: flex; flex-direction: column; justify-content: space-between; height: 120px;
-    }
-    .product-card:hover { border-color: #e07300; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(9, 44, 76, 0.1); }
+    .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; overflow-y: auto; align-content: start; padding-right: 5px; padding-bottom: 20px; }
+    .product-card { background: white; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #E2E8F0; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; height: 120px; }
+    .product-card:hover { border-color: #e07300; transform: translateY(-3px); box-shadow: 0 8px 15px rgba(9,44,76,0.1); }
     .product-card .pid { font-size: 12px; font-family: 'Inconsolata'; color: #A0AEC0; font-weight: 600; }
     .product-card .name { font-weight: 700; color: #2D3748; font-size: 14px; margin-top: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .product-card .price { color: #e07300; font-family: 'Inconsolata'; font-weight: 800; font-size: 16px; margin-top: auto; }
 
-    /* 4. RIGHT SECTION: ORDER SUMMARY */
-    .order-section { 
-        flex: 1.1; background: white; border-radius: 16px; display: flex; flex-direction: column; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; overflow: hidden; 
-        min-width: 400px; height: 100%; 
+    /* ── RIGHT: ORDER SECTION ───────────────────────── */
+    .order-section {
+        flex: 1.1;
+        background: white;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+        min-width: 400px;
+        height: 100%;
     }
-    .order-header { padding: 20px; border-bottom: 1px solid #EDF2F7; background: #FAFCFF; display: flex; justify-content: space-between; align-items: center; }
+
+    .order-header {
+        padding: 20px;
+        border-bottom: 1px solid #EDF2F7;
+        background: #FAFCFF;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+    }
     .order-header h3 { margin: 0; font-size: 18px; color: #092c4c; font-weight: 800; }
-    .order-header p { margin: 0; font-size: 12px; color: #718096; background: #EDF2F7; padding: 4px 10px; border-radius: 8px; font-weight: 600; }
-    
-    .cart-container { flex: 1; overflow-y: auto; padding: 20px; }
-    
-    /* Cart Items */
+
+    /* ── CART VIEW ──────────────────────────────────── */
+    #cart-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+
+    .cart-container { flex: 1; overflow-y: auto; padding: 20px; min-height: 0; }
+
     .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #E2E8F0; }
-    .cart-item-name { margin:0; font-size: 14px; color: #2D3748; font-weight: 700; margin-bottom: 4px; }
+    .cart-item-name { margin: 0; font-size: 14px; color: #2D3748; font-weight: 700; margin-bottom: 4px; }
     .cart-item-price { color: #718096; font-size: 14px; font-family: 'Inconsolata'; font-weight: 600; }
     .qty-controls { display: flex; align-items: center; gap: 5px; background: #F8FAFC; padding: 4px; border-radius: 8px; border: 1px solid #EDF2F7; }
     .qty-btn { background: white; border: 1px solid #E2E8F0; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-weight: 900; font-size: 16px; color: #4A5568; transition: 0.1s; display: flex; align-items: center; justify-content: center; }
     .qty-btn:hover { background: #EDF2F7; }
     .qty-input { width: 40px; height: 28px; text-align: center; font-family: 'Inconsolata'; font-weight: 700; font-size: 14px; border: none; background: transparent; outline: none; color: #092c4c; }
-    
     .delete-btn { background: #FFF5F5; border: 1px solid #ffaca4; color: #d50a0a; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
     .delete-btn:hover { background: #ffaca4; color: white; }
-    
     .item-subtotal { font-weight: 800; color: #092c4c; min-width: 70px; font-family: 'Inconsolata'; text-align: right; font-size: 15px; }
 
-    /* Footer / Checkout */
-    .order-summary { padding: 25px 20px; background: white; border-top: 1px solid #EDF2F7; box-shadow: 0 -4px 15px rgba(0,0,0,0.02); }
-    .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 26px; color: #092c4c; margin-bottom: 20px; }
-
+    .order-summary { padding: 25px 20px; background: white; border-top: 1px solid #EDF2F7; box-shadow: 0 -4px 15px rgba(0,0,0,0.02); flex-shrink: 0; }
+    .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 26px; color: #092c4c; margin-bottom: 20px; align-items: center; }
     .btn-action-group { display: flex; gap: 10px; width: 100%; margin-bottom: 12px; }
-    .btn-void { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ffaca4; background: #FFF5F5; color: #d50a0a; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; font-size: 13px; transition: 0.2s; }
+    .btn-void { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ffaca4; background: #FFF5F5; color: #d50a0a; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; font-size: 13px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
     .btn-void:hover { background: #ffaca4; color: white; }
-    .btn-quote { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; background: white; color: #4A5568; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: 0.2s; }
+    .btn-quote { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; background: white; color: #4A5568; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: 0.2s; width: 100%; }
     .btn-quote:hover { background: #EDF2F7; border-color: #092c4c; color: #092c4c; }
-    
-    .btn-main { width: 100%; padding: 18px; border-radius: 10px; border: none; background: #092c4c; color: white; font-weight: 800; font-size: 18px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(9, 44, 76, 0.2); }
-    .btn-main:hover { background: #061f38; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(9, 44, 76, 0.3); }
+    .btn-main { width: 100%; padding: 18px; border-radius: 10px; border: none; background: #092c4c; color: white; font-weight: 800; font-size: 18px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(9,44,76,0.2); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-main:hover { background: #061f38; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(9,44,76,0.3); }
 
-    /* Modal Fix */
-    #paymentModal > div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 30px; border-radius: 8px; width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+    /* ── PAYMENT VIEW ───────────────────────────────── */
+    #payment-view { flex: 1; display: none; flex-direction: column; overflow: hidden; min-height: 0; }
+
+    /* Tabs */
+    .pay-method-tabs {
+        display: flex;
+        border-bottom: 2px solid #EDF2F7;
+        background: #FAFCFF;
+        flex-shrink: 0;
+    }
+    .pay-tab {
+        flex: 1;
+        padding: 13px 6px;
+        border: none;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        background: transparent;
+        font-weight: 700;
+        font-size: 12px;
+        color: #718096;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+    .pay-tab i { font-size: 15px; }
+    .pay-tab:hover { background: #F0F4F8; color: #092c4c; }
+    .pay-tab.active {
+        color: #092c4c;
+        border-bottom-color: #092c4c;
+        background: white;
+        font-weight: 800;
+    }
+
+    /* Scrollable payment body */
+    .payment-body { flex: 1; overflow-y: auto; padding: 20px; min-height: 0; }
+
+    /* Total display inside payment view */
+    .pay-total-display {
+        background: linear-gradient(135deg, #EEF3FA 0%, #E5EDF7 100%);
+        border: 1px solid #D0DCEE;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Footer with back + confirm */
+    .pay-footer {
+        padding: 16px 20px;
+        border-top: 2px solid #EDF2F7;
+        background: white;
+        flex-shrink: 0;
+    }
+    .btn-back {
+        flex: 1;
+        padding: 13px;
+        border-radius: 8px;
+        border: 1.5px solid #CBD5E0;
+        background: white;
+        color: #4A5568;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: 0.2s;
+    }
+    .btn-back:hover { background: #F8FAFC; border-color: #A0AEC0; }
+
+    .btn-confirm {
+        flex: 2.5;
+        padding: 13px;
+        border-radius: 8px;
+        border: none;
+        background: #e07300;
+        color: white;
+        font-weight: 800;
+        cursor: pointer;
+        font-size: 15px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(224,115,0,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .btn-confirm:hover { background: #cc6800; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(224,115,0,0.35); }
+    .btn-confirm i { font-size: 18px; }
 </style>
 
 <div class="pos-container">
+
+    <!-- ════════════════════════════════════
+         LEFT: INVENTORY
+         ════════════════════════════════════ -->
     <div class="inventory-section">
         <div class="search-header">
             <div class="search-input-group">
@@ -138,181 +232,222 @@
         </div>
     </div>
 
+    <!-- ════════════════════════════════════
+         RIGHT: ORDER SECTION
+         ════════════════════════════════════ -->
     <div class="order-section">
+
+        <!-- Shared header (always visible) -->
         <div class="order-header">
-            <h3>Order Details</h3>
-            <p style="font-family: 'Inconsolata'; font-weight: 600; font-size: 15px;"> #{{ transaction.transaction_ref }}</p>
+            <h3 id="order-header-title">Order Details</h3>
+            <p style="font-family:'Inconsolata'; font-weight:600; font-size:15px; margin:0; color:#718096; background:#EDF2F7; padding:4px 10px; border-radius:8px;">
+                #{{ transaction.transaction_ref }}
+            </p>
         </div>
 
-        <div class="cart-container">
-            {% for item in sold_items %}
-            <div class="cart-item">
-                <div style="flex: 1; padding-right: 10px;">
-                    <h5 class="cart-item-name">{{ item.inventory_item.item_name }}</h5>
-                    <div class="cart-item-price">₱{{ item.unit_price }} each</div>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="qty-controls">
-                        <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'decrease')">-</button>
-                        <input type="number" min="1" class="qty-input" value="{{ item.quantity }}" onchange="setQty('{{ item.id }}', this.value)">
-                        <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'increase')">+</button>
+        <!-- ──────────────────────────────────────────
+             CART VIEW  (shown by default)
+             ────────────────────────────────────────── -->
+        <div id="cart-view">
+            <div class="cart-container">
+                {% for item in sold_items %}
+                <div class="cart-item">
+                    <div style="flex:1; padding-right:10px;">
+                        <h5 class="cart-item-name">{{ item.inventory_item.item_name }}</h5>
+                        <div class="cart-item-price">₱{{ item.unit_price }} each</div>
                     </div>
-                    
-                    <button type="button" class="delete-btn" onclick="confirmRemoveItem('{{ item.id }}', '{{ item.inventory_item.item_name|escapejs }}')">
-                        <i class="ph ph-trash"></i>
-                    </button>
+
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="qty-controls">
+                            <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'decrease')">-</button>
+                            <input type="number" min="1" class="qty-input" value="{{ item.quantity }}" onchange="setQty('{{ item.id }}', this.value)">
+                            <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'increase')">+</button>
+                        </div>
+                        <button type="button" class="delete-btn" onclick="confirmRemoveItem('{{ item.id }}', '{{ item.inventory_item.item_name|escapejs }}')">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="item-subtotal">₱{{ item.subtotal }}</div>
                 </div>
-
-                <div class="item-subtotal">₱{{ item.subtotal }}</div>
-            </div>
-            {% empty %}
-            <div style="text-align: center; color: #A0AEC0; margin-top: 50px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                <i class="ph ph-shopping-cart" style="font-size: 48px; color: #E2E8F0;"></i>
-                <span style="font-weight: 600;">Cart is empty</span>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="order-summary">
-            <div class="total-row">
-                <span>Total Due</span>
-                <span style="color: #092c4c; font-size: 32px; margin: 0; font-family: 'Inconsolata'; font-weight: 800;">₱<span style="font-family: 'Inconsolata'; font-weight: 900; font-size: 30px;" id="grand-total">{{ transaction.total_amount }}</span></span>
-            </div>
-
-            <div class="btn-action-group">
-                <a href="{% url 'point_of_sale:void_transaction' %}" class="btn-void" onclick="confirmVoid(event, this.href)">
-                    Void Order
-                </a>
-                
-                <form action="{% url 'pos:save_quotation' transaction.id %}" method="POST" style="flex: 1; display: flex;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-quote">
-                        Save Quotation
-                    </button>
-                </form>
-            </div>
-
-            <button class="btn-main" onclick="openPaymentModal()">PAY NOW</button>
-        </div>
-    </div>
-</div>
-
-<div id="paymentModal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">    
-    <div style="background: white; border-radius: 8px; width: 450px; max-height: 90vh; overflow-y: auto; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-
-        <h2 style="color: #092c4c; text-align: center; margin-top: 0;">Finalize Sale</h2>
-        
-        <div style="text-align: center; margin-bottom: 20px;">
-            <p style="color: #718096; font-size: 14px; margin-bottom: 5px;">Total Due</p>
-            <h2 style="color: #092c4c; font-size: 32px; margin: 0; font-family: 'Inconsolata'; font-weight: 800;">₱<span style="color: #092c4c; font-size: 32px; margin: 0; font-family: 'Inconsolata'; font-weight: 800;" id="modal-total-due">0.00</span></h2>
-        </div>
-        
-        <div style="margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: 700; font-size: 13px;">Payment Method:</label>
-            <select id="final-method" onchange="handleMethodChange(this.value)" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; margin-top: 5px;">
-                <option value="Cash">Cash</option>
-                <option value="Online Bank">Online Bank</option>
-                <option value="Trade Credit">Trade Credit (Invoice)</option>
-            </select>
-        </div>
-
-        <div id="ref-number-group" style="display: none; margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: 700; font-size: 13px; color: #092c4c;">Reference Number <span style="color: red;">*</span></label>
-            <input type="text" id="ref-number-input" placeholder="e.g. GCash / Transfer Ref #" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CBD5E0; margin-top: 5px; outline: none; box-sizing: border-box;">
-        </div>
-
-        <div id="credit-customer-group" style="display: none; margin-bottom: 20px; text-align: left; background: #FFF5F5; padding: 15px; border-radius: 8px; border: 1px solid #FED7D7;">
-            <label style="font-weight: 700; font-size: 13px; color: #d50a0a;">Select Approved Customer <span style="color: red;">*</span></label>
-            <select id="credit-customer" onchange="updateCreditSummary()" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffaca4; margin-top: 5px;">
-                <option value="">-- Choose Contractor --</option>
-                {% for customer in credit_customers %}
-                    <option value="{{ customer.id }}">{{ customer.name }} (Limit: ₱{{ customer.available_credit }})</option>
+                {% empty %}
+                <div style="text-align:center; color:#A0AEC0; margin-top:50px; display:flex; flex-direction:column; align-items:center; gap:10px;">
+                    <i class="ph ph-shopping-cart" style="font-size:48px; color:#E2E8F0;"></i>
+                    <span style="font-weight:600;">Cart is empty</span>
+                </div>
                 {% endfor %}
-            </select>
+            </div>
 
-            <!-- INTEREST & PAYMENT TERMS SUMMARY -->
-            <div id="credit-summary" style="display: none; margin-top: 14px; border-top: 1px dashed #FED7D7; padding-top: 14px;">
-                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
-                    <span style="color: #718096; font-weight: 600;">Principal Amount:</span>
-                    <span id="cs-principal" style="font-family: 'Inconsolata'; font-weight: 700; color: #2D3748;">₱0.00</span>
+            <div class="order-summary">
+                <div class="total-row">
+                    <span>Total Due</span>
+                    <span style="font-family:'Inconsolata'; font-weight:800; font-size:30px;">
+                        ₱<span id="grand-total">{{ transaction.total_amount }}</span>
+                    </span>
                 </div>
 
-                <!-- Net 60 Card -->
-                <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-weight: 700; font-size: 13px; color: #092c4c;">Net 60</span>
-                        <span style="font-size: 11px; color: #718096; background: #EDF2F7; padding: 2px 8px; border-radius: 20px;">Due in 60 days</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #718096; margin-bottom: 2px;">
-                        <span>Interest (2%):</span>
-                        <span id="cs-interest-60" style="font-family: 'Inconsolata';">+₱0.00</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 15px; color: #092c4c; border-top: 1px solid #EDF2F7; padding-top: 6px; margin-top: 6px;">
-                        <span>Total Payable:</span>
-                        <span id="cs-total-60" style="font-family: 'Inconsolata';">₱0.00</span>
-                    </div>
-                    <div style="font-size: 11px; color: #A0AEC0; margin-top: 4px; text-align: right;" id="cs-due-date-60"></div>
-                </div>
-
-                <!-- Net 90 Card -->
-                <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-weight: 700; font-size: 13px; color: #092c4c;">Net 90</span>
-                        <span style="font-size: 11px; color: #718096; background: #EDF2F7; padding: 2px 8px; border-radius: 20px;">Due in 90 days</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #718096; margin-bottom: 2px;">
-                        <span>Interest (4%):</span>
-                        <span id="cs-interest-90" style="font-family: 'Inconsolata';">+₱0.00</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 15px; color: #092c4c; border-top: 1px solid #EDF2F7; padding-top: 6px; margin-top: 6px;">
-                        <span>Total Payable:</span>
-                        <span id="cs-total-90" style="font-family: 'Inconsolata';">₱0.00</span>
-                    </div>
-                    <div style="font-size: 11px; color: #A0AEC0; margin-top: 4px; text-align: right;" id="cs-due-date-90"></div>
-                </div>
-
-                <!-- Selected Term Picker -->
-                <div style="margin-top: 12px;">
-                    <label style="font-weight: 700; font-size: 13px; color: #092c4c;">Payment Term:</label>
-                    <div style="display: flex; gap: 8px; margin-top: 6px;">
-                        <button type="button" id="term-btn-60" onclick="selectTerm(60)"
-                            style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #092c4c; background: #092c4c; color: white; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s;">
-                            Net 60
+                <div class="btn-action-group">
+                    <a href="{% url 'point_of_sale:void_transaction' %}" class="btn-void" onclick="confirmVoid(event, this.href)">
+                        <i class="ph ph-x-circle" style="margin-right:5px;"></i>Void Order
+                    </a>
+                    <form action="{% url 'pos:save_quotation' transaction.id %}" method="POST" style="flex:1; display:flex;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-quote">
+                            <i class="ph ph-file-text" style="margin-right:5px;"></i>Save Quotation
                         </button>
-                        <button type="button" id="term-btn-90" onclick="selectTerm(90)"
-                            style="flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #E2E8F0; background: white; color: #4A5568; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s;">
-                            Net 90
-                        </button>
+                    </form>
+                </div>
+
+                <button class="btn-main" onclick="showPaymentView()">
+                 PAY NOW
+                </button>
+            </div>
+        </div><!-- /#cart-view -->
+
+        <!-- ──────────────────────────────────────────
+             PAYMENT VIEW  (hidden by default)
+             ────────────────────────────────────────── -->
+        <div id="payment-view">
+
+            <!-- Payment Method Tabs -->
+            <div class="pay-method-tabs">
+                <button class="pay-tab active" data-method="Cash" onclick="switchPayTab('Cash')">
+                    <i class="ph ph-money"></i> Cash
+                </button>
+                <button class="pay-tab" data-method="Online Bank" onclick="switchPayTab('Online Bank')">
+                    <i class="ph ph-bank"></i> Online Bank
+                </button>
+                <button class="pay-tab" data-method="Trade Credit" onclick="switchPayTab('Trade Credit')">
+                    <i class="ph ph-handshake"></i> Trade Credit
+                </button>
+            </div>
+
+            <!-- Scrollable body -->
+            <div class="payment-body">
+
+                <!-- Total Due banner -->
+                <div class="pay-total-display">
+                    <p style="color:#718096; font-size:11px; margin:0 0 4px; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Total Due</p>
+                    <div style="color:#092c4c; font-size:32px; font-family:'Inconsolata'; font-weight:900; line-height:1.1;">
+                        ₱<span id="modal-total-due">0.00</span>
                     </div>
+                </div>
+
+                <!-- ── ONLINE BANK: Reference number ── -->
+                <div id="ref-number-group" style="display:none; margin-bottom:18px;">
+                    <label style="font-weight:700; font-size:13px; color:#092c4c; display:block; margin-bottom:7px;">
+                        Reference Number <span style="color:#E53E3E;">*</span>
+                    </label>
+                    <input type="text" id="ref-number-input" placeholder="e.g. GCash / Transfer Ref #"
+                        style="width:100%; padding:13px 14px; border-radius:8px; border:2px solid #CBD5E0; font-size:14px; font-family:'Inconsolata'; letter-spacing:0.5px; outline:none; box-sizing:border-box; transition:border-color 0.2s;"
+                        onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#CBD5E0'">
+                </div>
+
+                <!-- ── TRADE CREDIT: Customer + terms ── -->
+                <div id="credit-customer-group" style="display:none; margin-bottom:18px; background:#FFF8F5; padding:16px; border-radius:10px; border:1px solid #FED7D7;">
+                    <label style="font-weight:700; font-size:13px; color:#d50a0a; display:block; margin-bottom:7px;">
+                        Select Approved Customer <span style="color:#E53E3E;">*</span>
+                    </label>
+                    <select id="credit-customer" onchange="updateCreditSummary()"
+                        style="width:100%; padding:12px; border-radius:8px; border:1px solid #ffaca4; font-size:13px; outline:none; background:white; cursor:pointer; color:#2D3748;">
+                        <option value="">-- Choose Contractor --</option>
+                        {% for customer in credit_customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }} (Limit: ₱{{ customer.available_credit }})</option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Credit summary (shown after selection) -->
+                    <div id="credit-summary" style="display:none; margin-top:14px; border-top:1px dashed #FED7D7; padding-top:14px;">
+                        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px;">
+                            <span style="color:#718096; font-weight:600;">Principal Amount:</span>
+                            <span id="cs-principal" style="font-family:'Inconsolata'; font-weight:700; color:#2D3748;">₱0.00</span>
+                        </div>
+
+                        <!-- Net 60 -->
+                        <div style="background:white; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-weight:700; font-size:13px; color:#092c4c;">Net 60</span>
+                                <span style="font-size:11px; color:#718096; background:#EDF2F7; padding:2px 8px; border-radius:20px; font-weight:600;">Due in 60 days</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:#718096; margin-bottom:2px;">
+                                <span>Interest (2%):</span>
+                                <span id="cs-interest-60" style="font-family:'Inconsolata'; font-weight:600;">+₱0.00</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px; color:#092c4c; border-top:1px solid #EDF2F7; padding-top:6px; margin-top:6px;">
+                                <span>Total Payable:</span>
+                                <span id="cs-total-60" style="font-family:'Inconsolata';">₱0.00</span>
+                            </div>
+                            <div id="cs-due-date-60" style="font-size:11px; color:#A0AEC0; margin-top:4px; text-align:right;"></div>
+                        </div>
+
+                        <!-- Net 90 -->
+                        <div style="background:white; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-weight:700; font-size:13px; color:#092c4c;">Net 90</span>
+                                <span style="font-size:11px; color:#718096; background:#EDF2F7; padding:2px 8px; border-radius:20px; font-weight:600;">Due in 90 days</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:#718096; margin-bottom:2px;">
+                                <span>Interest (4%):</span>
+                                <span id="cs-interest-90" style="font-family:'Inconsolata'; font-weight:600;">+₱0.00</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:14px; color:#092c4c; border-top:1px solid #EDF2F7; padding-top:6px; margin-top:6px;">
+                                <span>Total Payable:</span>
+                                <span id="cs-total-90" style="font-family:'Inconsolata';">₱0.00</span>
+                            </div>
+                            <div id="cs-due-date-90" style="font-size:11px; color:#A0AEC0; margin-top:4px; text-align:right;"></div>
+                        </div>
+
+                        <!-- Term picker -->
+                        <div>
+                            <label style="font-weight:700; font-size:13px; color:#092c4c; display:block; margin-bottom:7px;">Payment Term:</label>
+                            <div style="display:flex; gap:8px;">
+                                <button type="button" id="term-btn-60" onclick="selectTerm(60)"
+                                    style="flex:1; padding:10px; border-radius:8px; border:2px solid #092c4c; background:#092c4c; color:white; font-weight:700; font-size:13px; cursor:pointer; transition:0.2s;">
+                                    Net 60
+                                </button>
+                                <button type="button" id="term-btn-90" onclick="selectTerm(90)"
+                                    style="flex:1; padding:10px; border-radius:8px; border:2px solid #E2E8F0; background:white; color:#4A5568; font-weight:700; font-size:13px; cursor:pointer; transition:0.2s;">
+                                    Net 90
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /#credit-customer-group -->
+
+                <!-- ── CASH + ONLINE BANK: Amount paid ── -->
+                <div id="amount-paid-group" style="margin-bottom:16px;">
+                    <label style="font-weight:700; font-size:13px; color:#4A5568; display:block; margin-bottom:7px;">Amount Paid:</label>
+                    <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00"
+                        style="width:100%; padding:15px; border-radius:8px; border:2px solid #e07300; font-family:'Inconsolata'; font-size:24px; font-weight:700; margin-bottom:12px; box-sizing:border-box; outline:none;">
+                    <div style="background:#F0FFF4; border:1px solid #C6F6D5; border-radius:8px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:700; color:#2F855A; font-size:16px;">Change:</span>
+                        <span style="font-weight:800; color:#276749; font-size:22px; font-family:'Inconsolata';">
+                            ₱<span id="sum-change">0.00</span>
+                        </span>
+                    </div>
+                </div>
+
+            </div><!-- /.payment-body -->
+
+            <!-- Footer -->
+            <div class="pay-footer">
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-back" onclick="showCartView()">
+                        <i class="ph ph-arrow-left" style="font-size:16px;"></i> Back
+                    </button>
+                    <button class="btn-confirm" onclick="finalizeAndPrint()">
+                        <i class="ph ph-check-circle"></i> Confirm Payment
+                    </button>
                 </div>
             </div>
-        </div>
 
+        </div><!-- /#payment-view -->
 
-        <div id="amount-paid-group" style="margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: 700; font-size: 13px; color: #4A5568;">Amount Paid:</label>
-            <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00" style="width: 100%; padding: 15px; border-radius: 8px; font-family: 'Inconsolata'; border: 2px solid #e07300; font-size: 24px; font-weight: 700; margin-bottom: 15px; box-sizing: border-box; outline: none;">
-            
-            <div style="background: #F0FFF4; border: 1px solid #C6F6D5; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: #2F855A; font-size: 16px;">Change:</span>
-                <span style="font-weight: 800; color: #276749; font-size: 22px; font-family: 'Inconsolata';">₱<span style="font-weight: 800; color: #276749; font-size: 22px; font-family: 'Inconsolata';" id="sum-change">0.00</span></span>
-            </div>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button onclick="document.getElementById('paymentModal').style.display='none'" style="flex: 1; padding: 15px; background: white; border: 1px solid #CBD5E0; border-radius: 8px; cursor: pointer; color: #4A5568; font-weight: 700; font-size: 15px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#F8FAFC'" onmouseout="this.style.backgroundColor='white'">
-                Cancel
-            </button>
-            <button onclick="finalizeAndPrint()" style="flex: 1; padding: 15px; background: #e07300; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 700; font-size: 15px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#cc6800'" onmouseout="this.style.backgroundColor='#e07300'">
-                Confirm Payment
-            </button>
-        </div>
-    </div>
-</div>
+    </div><!-- /.order-section -->
+</div><!-- /.pos-container -->
 
 <script>
-    // DJANGO MESSAGES CATCHER
+    // ── Django messages ──────────────────────────────
     {% if messages %}
         {% for message in messages %}
             Swal.fire({
@@ -324,312 +459,326 @@
         {% endfor %}
     {% endif %}
 
-let selectedMethod = "Cash";
+    let selectedMethod = "Cash";
+    let selectedTerm   = 60;
 
-function addToCart(productId) {
-    fetch(`/pos/add-to-cart/?product_id=${productId}`)
-        .then(response => response.json())
-        .then(data => { 
-            if (data.status === 'success') {
-                location.reload(); 
-            } else {
-                Swal.fire({
-                    title: 'Cannot Add Item',
-                    text: data.message || 'Insufficient stock or item is unavailable.',
-                    icon: 'warning',
-                    confirmButtonColor: '#e07300'
-                });
-            }
-        })
-        .catch(err => console.error("Error adding to cart: ", err));
-}
+    // ════════════════════════════════════════════════
+    // CART FUNCTIONS
+    // ════════════════════════════════════════════════
 
-function openPaymentModal() {
-    const total = document.getElementById('grand-total').innerText;
-    if (parseFloat(total) <= 0) {
-        return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: '#e07300' });
-    }
-    document.getElementById('modal-total-due').innerText = total;
-    document.getElementById('paymentModal').style.display = "flex"; 
-    setTimeout(() => document.getElementById('cash-received').focus(), 100);
-}
-
-function closePaymentModal() { document.getElementById('paymentModal').style.display = "none"; }
-
-function confirmVoid(event, targetUrl) {
-    event.preventDefault();
-    Swal.fire({
-        title: 'Void Transaction?',
-        text: 'Are you sure you want to void this transaction? This cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d50a0a',
-        cancelButtonColor: '#CBD5E0',
-        confirmButtonText: 'Yes, Void It'
-    }).then((result) => {
-        if (result.isConfirmed) window.location.href = targetUrl;
-    });
-}
-
-function calculateChange() {
-    const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
-    const total = parseFloat(totalText) || 0;
-    const paid = parseFloat(document.getElementById('cash-received').value) || 0;
-    const change = paid - total;
-    
-    const display = document.getElementById('sum-change');
-    display.innerText = (change >= 0 ? change.toLocaleString(undefined, {minimumFractionDigits: 2}) : "0.00");
-    display.style.color = change >= 0 ? "#2F855A" : "#E53E3E";
-}
-
-function handleMethodChange(method) {
-    selectedMethod = method;
-    const customerGroup = document.getElementById('credit-customer-group');
-    const amountGroup = document.getElementById('amount-paid-group');
-    const refGroup = document.getElementById('ref-number-group');
-    const cashInput = document.getElementById('cash-received');
-
-    if (method === 'Trade Credit') {
-        customerGroup.style.display = 'block';
-        amountGroup.style.display = 'none';
-        refGroup.style.display = 'none';
-        cashInput.value = 0;
-        updateCreditSummary(); // compute on open if total already loaded
-    } else {
-        customerGroup.style.display = 'none';
-        document.getElementById('credit-summary').style.display = 'none';
-        amountGroup.style.display = 'block';
-        if (method === 'Online Bank') {
-            refGroup.style.display = 'block';
-            document.getElementById('ref-number-input').focus();
-        } else {
-            refGroup.style.display = 'none';
-        }
-    }
-}
-
-function finalizeAndPrint() {
-    const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
-    const total = parseFloat(totalText) || 0;
-    const paidVal = document.getElementById('cash-received').value || 0;
-    const customerId = document.getElementById('credit-customer').value;
-    const refNum = document.getElementById('ref-number-input').value.trim(); 
-
-    if (selectedMethod !== 'Trade Credit' && parseFloat(paidVal) < total) { 
-        return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: '#e07300' });
-    }
-    if (selectedMethod === 'Trade Credit' && !customerId) {
-        return Swal.fire('Missing Customer', 'You must select an approved customer for Trade Credit.', 'warning');
-    }
-    if (selectedMethod === 'Online Bank' && refNum === "") {
-        return Swal.fire('Missing Details', 'Reference Number is required for Online Bank transactions.', 'warning');
-    }
-
-    Swal.fire({
-        title: 'Complete Transaction?',
-        text: `Finalizing sale using ${selectedMethod}.`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#092c4c',
-        cancelButtonColor: '#CBD5E0',
-        confirmButtonText: 'Yes, Confirm!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'Processing...', text: 'Validating stocks and payment...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                const principalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
-                const principal = parseFloat(principalText) || 0;
-                const interestRate = selectedTerm === 60 ? 0.02 : 0.04;
-                const creditTotal = selectedMethod === 'Trade Credit' ? (principal * (1 + interestRate)).toFixed(2) : paidVal;
-
-
-                window.location.href = `/pos/process-payment/?method=${encodeURIComponent(selectedMethod)}&received=${creditTotal}&customer_id=${customerId}&ref_num=${encodeURIComponent(refNum)}&payment_term=${selectedMethod === 'Trade Credit' ? 'Net' + selectedTerm : ''}`;
-        }
-    });
-}
-
-document.getElementById('barcode-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        const val = this.value.trim();
-        if (val) fetch(`/pos/add-by-barcode/?barcode=${encodeURIComponent(val)}`)
-            .then(r => r.json()).then(d => { 
-                if(d.status === 'success') {
-                    location.reload(); 
+    function addToCart(productId) {
+        fetch(`/pos/add-to-cart/?product_id=${productId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
                 } else {
-                    Swal.fire({ title: 'Scan Error', text: d.message, icon: 'error', confirmButtonColor: '#e07300' });
+                    Swal.fire({ title: 'Cannot Add Item', text: data.message || 'Insufficient stock or item is unavailable.', icon: 'warning', confirmButtonColor: '#e07300' });
                 }
-            });
-        this.value = '';
+            })
+            .catch(err => console.error("Error adding to cart:", err));
     }
-});
 
-// ==========================================
-// LIVE TEXT SEARCH & CATEGORY FILTER LOGIC
-// ==========================================
+    function confirmVoid(event, targetUrl) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Void Transaction?',
+            text: 'Are you sure you want to void this transaction? This cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d50a0a',
+            cancelButtonColor: '#CBD5E0',
+            confirmButtonText: 'Yes, Void It'
+        }).then(result => { if (result.isConfirmed) window.location.href = targetUrl; });
+    }
 
-// 1. Kapag nag-type ang user sa search box
-document.querySelector('.text-search').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    
-    // Hanapin kung aling tab ang active ngayon
-    const activeTab = document.querySelector('.tab.active').innerText;
-    const activeCategoryName = activeTab === 'All Categories' ? 'All' : activeTab;
-    
-    applyFilters(activeCategoryName, searchTerm);
-});
-
-// 2. Kapag kinlick ang mga Category Tabs
-function filterCategory(name) {
-    // Kunin yung current na naka-type sa search box para hindi mawala ang search
-    const searchTerm = document.querySelector('.text-search').value.toLowerCase();
-    
-    // I-update yung kulay ng active tab
-    document.querySelectorAll('.tab').forEach(t => {
-        t.classList.toggle('active', t.innerText === name || (name === 'All' && t.innerText === 'All Categories'));
-    });
-    
-    applyFilters(name, searchTerm);
-}
-
-// 3. Main function na nag-che-check pareho ng Category at Search Text
-function applyFilters(categoryName, searchTerm) {
-    document.querySelectorAll('.product-card').forEach(p => {
-        const productName = p.querySelector('.name').innerText.toLowerCase();
-        const productCategory = p.getAttribute('data-category');
-        
-        const matchesSearch = productName.includes(searchTerm);
-        const matchesCategory = (categoryName === 'All' || productCategory === categoryName);
-        
-        // Pinalitan ko ang 'block' ng 'flex' para hindi masira ang design ng card mo
-        if (matchesSearch && matchesCategory) {
-            p.style.display = 'flex'; 
-        } else {
-            p.style.display = 'none';
-        }
-    });
-}
-
-function getCSRFToken() {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken' + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
-                break;
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.slice('csrftoken='.length));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 
-function updateQty(itemId, action) {
-    const url = "{% url 'point_of_sale:update_cart_item' %}"; 
-    const csrfToken = getCSRFToken(); 
+    function updateQty(itemId, action) {
+        const url = "{% url 'point_of_sale:update_cart_item' %}";
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+            body: JSON.stringify({ item_id: itemId, action: action })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') { location.reload(); }
+            else { Swal.fire('Oops!', data.message || 'Failed to update item.', 'error'); }
+        })
+        .catch(() => Swal.fire('Error', 'Cannot connect to server.', 'error'));
+    }
 
-    fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-        body: JSON.stringify({ 'item_id': itemId, 'action': action })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            location.reload(); 
-        } else {
-            Swal.fire('Oops!', data.message || 'Failed to update item.', 'error');
-        }
-    })
-    .catch(error => { Swal.fire('Error', 'Cannot connect to server.', 'error'); });
-}
+    function confirmRemoveItem(itemId, itemName) {
+        Swal.fire({
+            title: 'Remove Item?',
+            text: `Are you sure you want to remove '${itemName}'?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d50a0a',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, remove it!'
+        }).then(result => { if (result.isConfirmed) updateQty(itemId, 'remove'); });
+    }
 
-function confirmRemoveItem(itemId, itemName) {
-    Swal.fire({
-        title: 'Remove Item?',
-        text: `Are you sure you want to remove '${itemName}'?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d50a0a',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, remove it!'
-    }).then((result) => {
-        if (result.isConfirmed) updateQty(itemId, 'remove');
+    function setQty(itemId, newQty) {
+        const url = "{% url 'point_of_sale:update_cart_item' %}";
+        if (!newQty || isNaN(newQty)) { location.reload(); return; }
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+            body: JSON.stringify({ item_id: itemId, action: 'set', quantity: newQty })
+        })
+        .then(async r => {
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.message || 'Server error: ' + r.status);
+            return data;
+        })
+        .then(data => {
+            if (data.status === 'success') { location.reload(); }
+            else { Swal.fire('Oops!', data.message, 'warning'); }
+        })
+        .catch(err => Swal.fire('System Error', err.message, 'error'));
+    }
+
+    // ════════════════════════════════════════════════
+    // SEARCH & CATEGORY FILTER
+    // ════════════════════════════════════════════════
+
+    document.querySelector('.text-search').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const activeTabText = document.querySelector('.tab.active').innerText;
+        applyFilters(activeTabText === 'All Categories' ? 'All' : activeTabText, searchTerm);
     });
-}
 
-function setQty(itemId, newQty) {
-    const url = "{% url 'point_of_sale:update_cart_item' %}"; 
-    const csrfToken = getCSRFToken(); 
-
-    if (!newQty || isNaN(newQty)) { location.reload(); return; }
-
-    fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-        body: JSON.stringify({ 'item_id': itemId, 'action': 'set', 'quantity': newQty })
-    })
-    .then(async response => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Server error: ' + response.status);
-        return data;
-    })
-    .then(data => {
-        if (data.status === 'success') {
-            location.reload(); 
-        } else {
-            Swal.fire('Oops!', data.message, 'warning');
-        }
-    })
-    .catch(error => { Swal.fire('System Error', error.message, 'error'); });
-}
-
-let selectedTerm = 60;
-
-function updateCreditSummary() {
-    const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
-    const principal = parseFloat(totalText) || 0;
-    if (!principal) return;
-
-    const interest60 = principal * 0.02;  // 2% for Net 60
-    const interest90 = principal * 0.04;  // 4% for Net 90
-
-    const total60 = principal + interest60;
-    const total90 = principal + interest90;
-
-    const fmt = (n) => n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    document.getElementById('cs-interest-60').innerText = '+₱' + fmt(interest60);
-    document.getElementById('cs-total-60').innerText    = '₱' + fmt(total60);
-    document.getElementById('cs-interest-90').innerText = '+₱' + fmt(interest90);
-    document.getElementById('cs-total-90').innerText    = '₱' + fmt(total90);
-
-
-    // Due dates
-    const today = new Date();
-    const due60 = new Date(today); due60.setDate(today.getDate() + 60);
-    const due90 = new Date(today); due90.setDate(today.getDate() + 90);
-    const fmtDate = (d) => d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
-    document.getElementById('cs-due-date-60').innerText = 'Due by: ' + fmtDate(due60);
-    document.getElementById('cs-due-date-90').innerText = 'Due by: ' + fmtDate(due90);
-
-    document.getElementById('credit-summary').style.display = 'block';
-    selectTerm(selectedTerm); // re-apply highlight
-}
-
-function selectTerm(days) {
-    selectedTerm = days;
-    const btn60 = document.getElementById('term-btn-60');
-    const btn90 = document.getElementById('term-btn-90');
-    if (days === 60) {
-        btn60.style.background = '#092c4c'; btn60.style.color = 'white'; btn60.style.borderColor = '#092c4c';
-        btn90.style.background = 'white';   btn90.style.color = '#4A5568'; btn90.style.borderColor = '#E2E8F0';
-    } else {
-        btn90.style.background = '#092c4c'; btn90.style.color = 'white'; btn90.style.borderColor = '#092c4c';
-        btn60.style.background = 'white';   btn60.style.color = '#4A5568'; btn60.style.borderColor = '#E2E8F0';
+    function filterCategory(name) {
+        const searchTerm = document.querySelector('.text-search').value.toLowerCase();
+        document.querySelectorAll('.tab').forEach(t => {
+            t.classList.toggle('active', t.innerText === name || (name === 'All' && t.innerText === 'All Categories'));
+        });
+        applyFilters(name, searchTerm);
     }
-}
 
+    function applyFilters(categoryName, searchTerm) {
+        document.querySelectorAll('.product-card').forEach(p => {
+            const name = p.querySelector('.name').innerText.toLowerCase();
+            const cat  = p.getAttribute('data-category');
+            const ok   = name.includes(searchTerm) && (categoryName === 'All' || cat === categoryName);
+            p.style.display = ok ? 'flex' : 'none';
+        });
+    }
+
+    // ════════════════════════════════════════════════
+    // BARCODE SCANNER
+    // ════════════════════════════════════════════════
+
+    document.getElementById('barcode-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            const val = this.value.trim();
+            if (val) {
+                fetch(`/pos/add-by-barcode/?barcode=${encodeURIComponent(val)}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.status === 'success') { location.reload(); }
+                        else { Swal.fire({ title: 'Scan Error', text: d.message, icon: 'error', confirmButtonColor: '#e07300' }); }
+                    });
+            }
+            this.value = '';
+        }
+    });
+
+    // ════════════════════════════════════════════════
+    // PAYMENT VIEW  –  show / hide
+    // ════════════════════════════════════════════════
+
+    function showPaymentView() {
+        const totalText = document.getElementById('grand-total').innerText.replace(/,/g, '');
+        if (parseFloat(totalText) <= 0 || isNaN(parseFloat(totalText))) {
+            return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: '#e07300' });
+        }
+        // Sync the total display
+        document.getElementById('modal-total-due').innerText = document.getElementById('grand-total').innerText;
+        // Swap views
+        document.getElementById('cart-view').style.display    = 'none';
+        document.getElementById('payment-view').style.display = 'flex';
+        document.getElementById('order-header-title').innerText = 'Payment';
+        // Default tab
+        switchPayTab('Cash');
+    }
+
+    function showCartView() {
+        document.getElementById('payment-view').style.display = 'none';
+        document.getElementById('cart-view').style.display    = 'flex';
+        document.getElementById('order-header-title').innerText = 'Order Details';
+        // Reset inputs
+        document.getElementById('cash-received').value   = '';
+        document.getElementById('ref-number-input').value = '';
+        document.getElementById('sum-change').innerText   = '0.00';
+    }
+
+    // ════════════════════════════════════════════════
+    // TAB SWITCHING
+    // ════════════════════════════════════════════════
+
+    function switchPayTab(method) {
+        selectedMethod = method;
+
+        // Highlight the active tab
+        document.querySelectorAll('.pay-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.method === method);
+        });
+
+        const refGroup    = document.getElementById('ref-number-group');
+        const creditGroup = document.getElementById('credit-customer-group');
+        const amountGroup = document.getElementById('amount-paid-group');
+        const cashInput   = document.getElementById('cash-received');
+
+        if (method === 'Trade Credit') {
+            creditGroup.style.display = 'block';
+            amountGroup.style.display = 'none';
+            refGroup.style.display    = 'none';
+            cashInput.value = '';
+            updateCreditSummary();
+
+        } else if (method === 'Online Bank') {
+            creditGroup.style.display = 'none';
+            amountGroup.style.display = 'block';
+            refGroup.style.display    = 'block';
+            setTimeout(() => document.getElementById('ref-number-input').focus(), 100);
+
+        } else { // Cash
+            creditGroup.style.display = 'none';
+            amountGroup.style.display = 'block';
+            refGroup.style.display    = 'none';
+            setTimeout(() => cashInput.focus(), 100);
+        }
+
+        calculateChange();
+    }
+
+    // ════════════════════════════════════════════════
+    // CASH CHANGE CALCULATION
+    // ════════════════════════════════════════════════
+
+    function calculateChange() {
+        const total  = parseFloat(document.getElementById('modal-total-due').innerText.replace(/,/g, '')) || 0;
+        const paid   = parseFloat(document.getElementById('cash-received').value) || 0;
+        const change = paid - total;
+
+        const el = document.getElementById('sum-change');
+        el.innerText   = change >= 0 ? change.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
+        el.style.color = change >= 0 ? '#276749' : '#E53E3E';
+    }
+
+    // ════════════════════════════════════════════════
+    // FINALIZE PAYMENT
+    // ════════════════════════════════════════════════
+
+    function finalizeAndPrint() {
+        const totalText  = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
+        const total      = parseFloat(totalText) || 0;
+        const paidVal    = document.getElementById('cash-received').value || 0;
+        const customerId = document.getElementById('credit-customer').value;
+        const refNum     = document.getElementById('ref-number-input').value.trim();
+
+        // Validation
+        if (selectedMethod !== 'Trade Credit' && parseFloat(paidVal) < total) {
+            return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: '#e07300' });
+        }
+        if (selectedMethod === 'Trade Credit' && !customerId) {
+            return Swal.fire('Missing Customer', 'You must select an approved customer for Trade Credit.', 'warning');
+        }
+        if (selectedMethod === 'Online Bank' && refNum === '') {
+            return Swal.fire('Missing Details', 'Reference Number is required for Online Bank transactions.', 'warning');
+        }
+
+        Swal.fire({
+            title: 'Complete Transaction?',
+            text: `Finalizing sale using ${selectedMethod}.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#092c4c',
+            cancelButtonColor: '#CBD5E0',
+            confirmButtonText: 'Yes, Confirm!',
+            cancelButtonText: 'Cancel'
+        }).then(result => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Processing...', text: 'Validating stocks and payment...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                const principal    = parseFloat(totalText) || 0;
+                const interestRate = selectedTerm === 60 ? 0.02 : 0.04;
+                const creditTotal  = selectedMethod === 'Trade Credit'
+                    ? (principal * (1 + interestRate)).toFixed(2)
+                    : paidVal;
+
+                const paymentTerm  = selectedMethod === 'Trade Credit' ? `Net${selectedTerm}` : '';
+
+                window.location.href =
+                    `/pos/process-payment/?method=${encodeURIComponent(selectedMethod)}` +
+                    `&received=${creditTotal}` +
+                    `&customer_id=${customerId}` +
+                    `&ref_num=${encodeURIComponent(refNum)}` +
+                    `&payment_term=${paymentTerm}`;
+            }
+        });
+    }
+
+    // ════════════════════════════════════════════════
+    // TRADE CREDIT HELPERS
+    // ════════════════════════════════════════════════
+
+    function updateCreditSummary() {
+        const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
+        const principal = parseFloat(totalText) || 0;
+        if (!principal) return;
+
+        const interest60 = principal * 0.02;
+        const interest90 = principal * 0.04;
+
+        const fmt     = n => n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmtDate = d => d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        document.getElementById('cs-principal').innerText   = '₱' + fmt(principal);
+        document.getElementById('cs-interest-60').innerText = '+₱' + fmt(interest60);
+        document.getElementById('cs-total-60').innerText    = '₱'  + fmt(principal + interest60);
+        document.getElementById('cs-interest-90').innerText = '+₱' + fmt(interest90);
+        document.getElementById('cs-total-90').innerText    = '₱'  + fmt(principal + interest90);
+
+        const today = new Date();
+        const due60 = new Date(today); due60.setDate(today.getDate() + 60);
+        const due90 = new Date(today); due90.setDate(today.getDate() + 90);
+        document.getElementById('cs-due-date-60').innerText = 'Due by: ' + fmtDate(due60);
+        document.getElementById('cs-due-date-90').innerText = 'Due by: ' + fmtDate(due90);
+
+        document.getElementById('credit-summary').style.display = 'block';
+        selectTerm(selectedTerm); // re-apply highlight
+    }
+
+    function selectTerm(days) {
+        selectedTerm = days;
+        const btn60 = document.getElementById('term-btn-60');
+        const btn90 = document.getElementById('term-btn-90');
+        if (days === 60) {
+            btn60.style.cssText += '; background:#092c4c; color:white; border-color:#092c4c;';
+            btn90.style.cssText += '; background:white; color:#4A5568; border-color:#E2E8F0;';
+        } else {
+            btn90.style.cssText += '; background:#092c4c; color:white; border-color:#092c4c;';
+            btn60.style.cssText += '; background:white; color:#4A5568; border-color:#E2E8F0;';
+        }
+    }
 </script>
 
 {% endblock %}
