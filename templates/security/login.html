@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log In - JBSON Hardware</title>
     
-    <!-- Importing Fonts -->
+    <!-- Importing Fonts (Matching Dashboard) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Pinasok ko ang Phosphor Icons para gumana yung classes na ph-eye at ph-eye-closed -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- Include SweetAlert2 -->
@@ -26,63 +26,66 @@
             font-family: 'Inter', sans-serif;
         }
 
+        :root {
+            /* Mismong color variables mula sa Dashboard mo */
+            --french-blue: #2F3F7B;
+            --mustard: #FFD358;
+            --amber-flame: #FFB915;
+            --bg-main: #F4F6F9;
+            --bg-card: #FFFFFF;
+            --primary-red: #891C1C;
+            --text-primary: #212529;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+        }
+
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(172deg, #FFFFFF 53%, #FDF0F2 53%);
+            
+            /* Dashboard Background Style: Dot Matrix */
+            background-color: var(--bg-main);
+            background-image: radial-gradient(rgba(47, 63, 123, 0.08) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            
             position: relative;
             overflow: hidden; 
-            color: #4A5568;
+            color: var(--text-primary);
         }
 
-        /* --- Background Geometric Accents --- */
-        .bg-shape-left {
-            position: absolute;
-            left: -5vw;
-            top: 55%;
-            width: 30vw;
-            height: 35px;
-            background-color: #851618;
-            transform: rotate(-8deg);
+        /* --- Background Blobs (Enhanced Opacity & Spread) --- */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
             z-index: 0;
+            pointer-events: none;
         }
-        .bg-shape-left::before {
-            content: '';
-            position: absolute;
-            top: -25px;
-            left: 10%;
-            width: 80%;
-            height: 35px;
-            background-color: #851618;
+        .shape-1 { 
+            width: 500px; height: 500px; 
+            background: rgba(255, 211, 88, 0.45); 
+            top: -10%; left: 10%; 
+            filter: blur(120px); 
         }
-        .bg-shape-left::after {
-            content: '';
-            position: absolute;
-            top: 25px;
-            left: 20%;
-            width: 90%;
-            height: 35px;
-            background-color: #851618;
+        .shape-2 { 
+            width: 700px; height: 700px; 
+            background: rgba(47, 63, 123, 0.25); 
+            bottom: -25%; right: -10%; 
+            filter: blur(140px); 
         }
-
-        .bg-shape-right {
-            position: absolute;
-            right: -5vw;
-            top: 45%;
-            width: 35vw;
-            height: 60px;
-            background-color: #0A192F;
-            transform: rotate(-8deg);
-            z-index: 0;
+        .shape-3 { 
+            width: 400px; height: 400px; 
+            background: rgba(255, 185, 21, 0.35); 
+            top: 40%; left: -10%; 
+            filter: blur(100px); 
         }
 
         /* --- Header / Logo Section --- */
         .header-logo {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px; /* Brought closer to the card */
             z-index: 10;
             display: flex;
             justify-content: center; 
@@ -91,85 +94,108 @@
         .logo-image {
             max-width: 250px; 
             height: auto;
+            /* Subtle drop shadow behind the logo to ensure it pops */
+            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.05));
         }
 
-        /* --- Login Card Container --- */
+        /* --- Login Card Container (Enhanced for Contrast) --- */
         .card {
-            background-color: #FFFFFF;
+            /* Subtle glassmorphism effect */
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            
             width: 100%;
-            max-width: 420px;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            max-width: 440px; /* Slightly wider */
+            padding: 45px 40px;
+            
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-top: 6px solid var(--french-blue); /* Strong Accent Line */
+            
+            /* Much stronger layered shadow for floating effect */
+            box-shadow: 
+                0 25px 50px -12px rgba(47, 63, 123, 0.25),
+                0 0 20px rgba(0, 0, 0, 0.03);
+            
             z-index: 10;
+            position: relative;
         }
 
         .card-header {
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
         .card-header h3 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1A202C;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--french-blue);
             margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
         .card-header p {
-            font-size: 12px;
-            color: #A0AEC0;
-            font-weight: 400;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            line-height: 1.5;
         }
 
         /* --- Form Elements --- */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
             position: relative;
         }
         .form-group label {
             display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: #4A5568;
-            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
         }
         .required-asterisk {
-            color: #DD5A43;
+            color: var(--primary-red);
         }
         .input-wrapper {
             position: relative;
         }
         .form-control {
             width: 100%;
-            padding: 12px 40px 12px 14px; 
-            font-size: 13px;
-            border: 1px solid #E2E8F0;
-            border-radius: 6px;
+            padding: 14px 40px 14px 16px; 
+            font-size: 14px;
+            border: 1px solid #D1D5DB;
+            border-radius: 10px;
             outline: none;
-            color: #1A202C;
-            transition: border-color 0.2s ease;
+            color: var(--text-primary);
+            background-color: #F8FAFC;
+            transition: all 0.25s ease;
         }
         .form-control::placeholder {
-            color: #A0AEC0;
+            color: #9CA3AF;
         }
         .form-control:focus {
-            border-color: #851618;
+            border-color: var(--french-blue);
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(47, 63, 123, 0.1);
         }
         
-        /* Updated Icon Styling for Phosphor */
+        /* Updated Icon Styling */
         .input-icon {
             position: absolute;
-            right: 14px;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
             font-size: 18px; 
-            color: #A0AEC0;
+            color: #9CA3AF;
+            transition: color 0.2s;
+        }
+        .form-control:focus + .input-icon {
+            color: var(--french-blue);
         }
         .password-toggle {
             cursor: pointer;
             pointer-events: auto;
-            transition: color 0.2s;
         }
         .password-toggle:hover {
-            color: #4A5568;
+            color: var(--french-blue);
         }
 
         /* Form Options */
@@ -177,80 +203,93 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            font-size: 12px;
+            margin-bottom: 28px;
+            font-size: 13px;
         }
         .remember-wrapper {
             display: flex;
             align-items: center;
-            color: #A0AEC0;
+            color: var(--text-secondary);
             cursor: pointer;
+            font-weight: 600;
         }
         .remember-wrapper input[type="checkbox"] {
             appearance: none;
-            width: 14px;
-            height: 14px;
-            border: 1px solid #E2E8F0;
-            border-radius: 3px;
+            width: 18px;
+            height: 18px;
+            border: 1px solid #D1D5DB;
+            border-radius: 4px;
             margin-right: 8px;
             cursor: pointer;
             position: relative;
-            background-color: #FFFFFF;
+            background-color: #F8FAFC;
+            transition: all 0.2s;
         }
         .remember-wrapper input[type="checkbox"]:checked {
-            background-color: #851618;
-            border-color: #851618;
+            background-color: var(--french-blue);
+            border-color: var(--french-blue);
         }
         .remember-wrapper input[type="checkbox"]:checked::after {
             content: '✔';
             color: white;
             position: absolute;
-            font-size: 10px;
-            left: 2px;
-            top: 0px;
+            font-size: 11px;
+            left: 3.5px;
+            top: 1px;
         }
         .forgot-link {
-            color: #DD5A43;
+            color: var(--primary-red);
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 700;
             transition: opacity 0.2s;
         }
         .forgot-link:hover {
             opacity: 0.8;
+            text-decoration: underline;
         }
 
         /* Submit Button */
         .btn-submit {
             width: 100%;
-            padding: 12px;
-            background-color: #851618;
+            padding: 14px;
+            background-color: var(--french-blue);
             color: #FFFFFF;
             border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.2s ease;
-            margin-bottom: 24px;
+            transition: all 0.2s ease;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);
         }
         .btn-submit:hover {
-            background-color: #6a1112;
+            background-color: #212C59;
+            box-shadow: 0 6px 16px rgba(47, 63, 123, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-submit:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(47, 63, 123, 0.2);
         }
 
         /* Responsive adjustments */
         @media (max-width: 480px) {
             .card {
-             margin: 0 15px; 
-             padding: 25px 15px; 
+             margin: 0 20px; 
+             padding: 35px 25px; 
             }
+            .shape-1 { width: 300px; height: 300px; }
+            .shape-2 { width: 400px; height: 400px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Background Accents -->
-    <div class="bg-shape-left"></div>
-    <div class="bg-shape-right"></div>
+    <!-- Background Accents (Matching Dashboard) -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
 
     <!-- Logo Section -->
     <div class="header-logo">
@@ -264,7 +303,7 @@
     <div class="card">
         <div class="card-header">
             <h3>Log In</h3>
-            <p>Access the JBSON Hardware panel using your email and passcode.</p>
+            <p>Access the JBSON Hardware panel using your username and password.</p>
         </div>
 
         <!-- Working Form Structure -->
@@ -274,7 +313,7 @@
             <div class="form-group">
                 <label for="username">Username <span class="required-asterisk">*</span></label>
                 <div class="input-wrapper">
-                    <input type="text" id="username" name="username" class="form-control" required autocomplete="username">
+                    <input type="text" id="username" name="username" class="form-control" required autocomplete="username" placeholder="Enter your username">
                     <i class="ph ph-envelope input-icon" style="pointer-events: none;"></i>                
                 </div>
             </div>
@@ -282,7 +321,7 @@
             <div class="form-group">
                 <label for="password">Password <span class="required-asterisk">*</span></label>
                 <div class="input-wrapper">
-                    <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                    <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password" placeholder="Enter your password">
                     <i class="ph ph-eye-closed input-icon password-toggle" onclick="togglePassword('password', this)"></i>
                 </div>
             </div>
@@ -305,11 +344,10 @@
             document.addEventListener("DOMContentLoaded", function() {
                 {% for message in messages %}
                     Swal.fire({
-                        // Kung error ang tag, magiging 'error' yung icon. Kung iba, 'success'.
                         icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
                         title: "{% if message.tags == 'error' %}Login Failed{% else %}Success!{% endif %}",
                         text: "{{ message|escapejs }}",
-                        confirmButtonColor: "#851618"
+                        confirmButtonColor: "#2F3F7B" // Updated to match dashboard French Blue
                     });
                 {% endfor %}
             });
