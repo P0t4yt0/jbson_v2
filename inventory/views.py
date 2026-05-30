@@ -96,7 +96,7 @@ def inventory_list(request):
     return render(request, 'inventory/product_list.html', context)
 
 
-
+ 
 def run_abc_analysis(request):
     items = InventoryItem.objects.all()
     
@@ -167,6 +167,11 @@ def edit_product(request, pk):
         item.max_lead_time_days = int(request.POST.get('max_lead_time_days') or item.max_lead_time_days or 0)        # ----------------------
 
         item.save()
+        log_system_activity(
+            user=request.user,
+            action="EDIT PRODUCT",
+            description=f"Updated details/ROP for product: {item.item_name}"
+        )
         return redirect('inventory:inventory_list')
 
     categories = Category.objects.all()
@@ -182,11 +187,17 @@ def delete_product(request, pk):
     try:
         item_name = item.item_name
         item.delete()
+        
+        # DITO DAPAT SA LOOB NG TRY
+        log_system_activity(
+            user=request.user,
+            action="DELETE PRODUCT",
+            description=f"Deleted inventory item: '{item_name}'"
+        )
         messages.success(request, f'Product "{item_name}" deleted successfully.')
     except ProtectedError:
-        # Kapag may transaction na yung item, sasaluhin nito yung error
         messages.error(request, f'Cannot delete "{item.item_name}" because it is already linked to existing transactions/sales.')
-        
+      
     return redirect('inventory:inventory_list')
 
 
@@ -217,27 +228,27 @@ def low_stock_view(request):
     return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
 
 def category_list(request):
-    """Displays all categories and the items under them. Also handles adding new categories."""
-    
-    # 1. I-CHECK KUNG MAY NAG-SUBMIT NG ADD CATEGORY FORM
     if request.method == 'POST':
         new_name = request.POST.get('name')
         new_prefix = request.POST.get('prefix')
         
         if new_name and new_prefix:
-            # Pwede kang magdagdag ng validation dito kung gusto mo (e.g., check kung existing na)
-            # Para iwas error, i-check kung may kapangalan na bago i-save
             if not Category.objects.filter(name=new_name).exists():
                 Category.objects.create(name=new_name, prefix=new_prefix)
+                
+                # DITO DAPAT SA LOOB NG IF NOT EXISTS
+                log_system_activity(
+                    user=request.user,
+                    action="ADD CATEGORY",
+                    description=f"Created new category: '{new_name}'"
+                )
                 messages.success(request, f'Category "{new_name}" successfully added.')
             else:
                 messages.error(request, f'Category "{new_name}" already exists.')
         else:
             messages.error(request, 'Error: Category name or prefix is missing.')
-            
-        # I-refresh ang page para lumabas yung bagong category
+        
         return redirect('inventory:category_list')
-
     # 2. NORMAL PAGE LOAD (GET REQUEST)
     # prefetch_related makes loading items much faster!
     categories = Category.objects.prefetch_related('items').all()
@@ -249,8 +260,15 @@ def edit_category(request, pk):
     if request.method == 'POST':
         new_name = request.POST.get('name')
         if new_name:
+            old_name = category.name # 🔴 KAILANGAN ITO BAGO MO I-SAVE ANG BAGO
             category.name = new_name
             category.save()
+            
+            log_system_activity(
+                user=request.user,
+                action="EDIT CATEGORY",
+                description=f"Renamed category from '{old_name}' to '{new_name}'"
+            )
             messages.success(request, f'Category successfully renamed to "{new_name}".')
     return redirect('inventory:category_list')
 
@@ -260,13 +278,18 @@ def delete_category(request, pk):
     try:
         cat_name = category.name
         category.delete()
+        
+        # DITO DAPAT SA LOOB NG TRY
+        log_system_activity(
+            user=request.user,
+            action="DELETE CATEGORY",
+            description=f"Deleted category: '{cat_name}'"
+        )
         messages.success(request, f'Category "{cat_name}" deleted successfully.')
     except ProtectedError:
-        # This catches the error automatically because of on_delete=models.PROTECT
         messages.error(request, f'Cannot delete "{category.name}" because there are products currently assigned to it.')
         
     return redirect('inventory:category_list')
-
 import os
 from django.conf import settings
 import barcode
@@ -300,6 +323,12 @@ def barcode_module_view(request):
                     product_name=product_name
                 )
                 
+                log_system_activity(
+                    user=request.user,
+                    action="GENERATE BARCODE",
+                    description=f"Generated new barcode ({full_barcode}) for '{product_name}'"
+                )
+
                 # Pass data to template for preview
                 context['barcode_id'] = full_barcode
                 context['product_name'] = product_name
@@ -485,6 +514,11 @@ def supplier_list(request):
                 default_lead_time_days=default_lt,
                 max_lead_time_days=max_lt
             )
+            log_system_activity(
+                user=request.user,
+                action="ADD SUPPLIER",
+                description=f"Added new supplier: '{name}'"
+            )
             messages.success(request, f"Supplier '{name}' added successfully!")
             
         return redirect('inventory:supplier_list')
@@ -612,15 +646,15 @@ def create_po(request):
                 
         po.total_amount = total_amount
         po.save()
-
         if po_status == 'draft':
+            log_system_activity(user=request.user, action="DRAFT PO", description=f"Drafted PO for {supplier.name}.")
             messages.success(request, f"Draft saved successfully for {supplier.name}.")
-            # Send them to the edit page so they can keep working on the draft
             return redirect('inventory:edit_po', po_id=po.id) 
         else:
+            log_system_activity(user=request.user, action="GENERATE PO", description=f"Generated PO {po.po_number} for {supplier.name}.")
             messages.success(request, f"Purchase Order {po.po_number} officially generated!")
             return redirect('inventory:create_po')
-
+ 
     # --- GET REQUEST: LOAD FORM OR AUTO-FILL DRAFT ---
     suppliers = Supplier.objects.filter(is_active=True)
     products = InventoryItem.objects.all().order_by('item_name')
@@ -774,29 +808,23 @@ def edit_supplier(request, supplier_id):
     supplier = get_object_or_404(Supplier, id=supplier_id)
     
     if request.method == 'POST':
-        supplier.name = request.POST.get('name')
-        supplier.contact_name = request.POST.get('contact_name')
-        supplier.phone = request.POST.get('phone')
-        supplier.email = request.POST.get('email')
-        supplier.address = request.POST.get('address')
-        
-        # Save the new logistics fields
-        supplier.default_lead_time_days = request.POST.get('default_lead_time_days', 7)
-        supplier.max_lead_time_days = request.POST.get('max_lead_time_days', 14)
-        
+        # ... (updating fields)
         supplier.save()
         
-        # --- NEW LOGIC: INSTANTLY UPDATE ALL LINKED PRODUCTS ---
-        # This loops through every product connected to this supplier
-        # and triggers the save() method, which forces the ROP math to recalculate immediately!
         for product in InventoryItem.objects.filter(supplier=supplier):
             product.save()
 
-        # -------------------------------------------------------
-
+        # DITO DAPAT SA LOOB NG POST, BAGO MAG-REDIRECT
+        log_system_activity(
+            user=request.user,
+            action="EDIT SUPPLIER",
+            description=f"Updated details for supplier: '{supplier.name}'"
+        )
         messages.success(request, f"Supplier '{supplier.name}' updated! All associated product reorder points have been instantly recalculated.")
-        return redirect('inventory:supplier_list')
         
+        return redirect('inventory:supplier_list')
+    
+    # Render GET Request
     return render(request, 'inventory/edit_supplier.html', {
         'supplier': supplier
     })
@@ -882,11 +910,13 @@ def edit_po(request, po_id):
             target_po.save()
 
             if target_po.status == 'pending':
+                log_system_activity(user=request.user, action="SUBMIT DRAFT PO", description=f"Submitted Draft PO {target_po.po_number} as official.")
                 messages.success(request, f"Order {target_po.po_number} has been officially submitted!")
-                return redirect('inventory:create_po') # Back to main hub
+                return redirect('inventory:create_po') 
             else:
+                log_system_activity(user=request.user, action="EDIT DRAFT PO", description=f"Updated Draft PO {target_po.po_number}.")
                 messages.success(request, f"Draft {target_po.po_number} successfully updated!")
-                return redirect('inventory:edit_po', po_id=target_po.id) # Stay on draft
+                return redirect('inventory:edit_po', po_id=target_po.id)
         else: # NEW: Add an error message if they somehow try to force a save
             messages.error(request, "This order is already being processed and cannot be edited.")
         return redirect('inventory:edit_po', po_id=target_po.id)
@@ -1006,6 +1036,10 @@ def delete_generated_barcode(request, pk):
         product_name = barcode_record.product_name
         barcode_record.delete()
         
-        messages.success(request, f"Barcode history for '{product_name}' was successfully deleted.")
-        
+        log_system_activity(
+            user=request.user,
+            action="DELETE BARCODE",
+            description=f"Deleted barcode history for '{product_name}'"
+        )
+        messages.success(request, f"Barcode history for '{product_name}' was successfully deleted.")        
     return redirect('inventory:generate_barcode_page')

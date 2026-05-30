@@ -214,7 +214,7 @@ def get_sale_details_api(request, txn_id):
                 'qty': item.quantity,
                 'subtotal': float(item.subtotal)
             })
-            
+             
         return JsonResponse({
             'status': 'success',
             'ref': transaction.transaction_ref or transaction.id,
@@ -283,7 +283,13 @@ def create_invoice_view(request):
                 invoice.balance_due = grand_total 
                 invoice.save()
                 
-            return redirect('billing_payment:invoice_list') 
+            log_system_activity(
+                    user=request.user,
+                    action="CREATE INVOICE",
+                    description=f"Manually created invoice {invoice.invoice_no} (Total: ₱{grand_total})"
+                )
+                
+            return redirect('billing_payment:invoice_list')
     else:
         form = InvoiceForm()
         formset = InvoiceItemFormSet()

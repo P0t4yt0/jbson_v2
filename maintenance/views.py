@@ -8,6 +8,9 @@ from django.core.management import call_command
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
+# 🟢 SIGURADUHING NAKA-IMPORT ITO
+from activity_log.utils import log_system_activity
+
 # ==========================================
 # HELPER FUNCTIONS
 # ==========================================
@@ -49,6 +52,13 @@ def maintenance_dashboard(request):
         if report: # I-optimize lang kung may nakitang overhead
             with connection.cursor() as cursor:
                 cursor.execute("OPTIMIZE TABLE inventory_product, pointofsale_transaction, security_activitylog")
+            
+            # 🟢 LOG ACTIVITY: SYSTEM MAINTENANCE
+            log_system_activity(
+                user=request.user,
+                action="SYSTEM MAINTENANCE",
+                description="Executed database optimization to clear overhead."
+            )
             messages.success(request, "Database successfully optimized!")
         else:
             messages.info(request, "Database is already optimized. No action needed.")
@@ -77,6 +87,13 @@ def trigger_backup(request):
             files = [os.path.join(backup_dir, f) for f in os.listdir(backup_dir)]
             latest_file = max(files, key=os.path.getctime)
             
+            # 🟢 LOG ACTIVITY: DATABASE BACKUP (nasa loob ng try block)
+            log_system_activity(
+                user=request.user,
+                action="DATABASE BACKUP",
+                description="Successfully generated and downloaded a manual database backup."
+            )
+            
             response = FileResponse(open(latest_file, 'rb'), as_attachment=True)
             return response
             
@@ -94,6 +111,14 @@ def trigger_restore(request):
         
         try:
             call_command('restore_db', filepath)
+            
+            # 🟢 LOG ACTIVITY: DATABASE RESTORE (nasa loob ng try block)
+            log_system_activity(
+                user=request.user,
+                action="DATABASE RESTORE",
+                description=f"Restored the database using backup file: '{uploaded_file.name}'."
+            )
+            
             messages.success(request, 'System successfully restored!')
         except Exception as e:
             messages.error(request, f'Restore failed: {e}')
@@ -137,8 +162,15 @@ def delete_all_data(request):
                 # I-enable ulit ang foreign key checks
                 cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
 
+            # 🟢 LOG ACTIVITY: WIPE DATA (nasa loob ng try block)
+            log_system_activity(
+                user=request.user,
+                action="SYSTEM WIPE",
+                description="Performed a full system wipe (Truncate). All transactions and configurations were cleared."
+            )
+
             messages.success(request, 'System wiped! All transactions cleared but credentials remain.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
-            
+             
     return redirect(request.META.get('HTTP_REFERER', '/'))
