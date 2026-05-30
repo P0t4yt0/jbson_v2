@@ -61,27 +61,53 @@
     .page-btn { border: 1px solid #D1D5DB; padding: 5px 10px; border-radius: 4px; color: var(--text-main); text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
     .page-btn:hover { background: #F9FAFB; }
 
-    /* PDF EXPORT CUSTOM CLASS CODES (PO FORMATTED) */
-    .pdf-export-wrapper { background: white !important; padding: 20px 30px !important; font-family: 'DM Sans', sans-serif !important; color: #1a1a2e !important; }
-    
-    /* FIX: Changed break-inside to auto so it flows continuously */
+    /* PDF EXPORT CUSTOM CLASS CODES */
+    .pdf-export-wrapper { 
+        background: white !important; 
+        padding: 40px 30px !important; 
+        font-family: 'DM Sans', sans-serif !important; 
+        color: #1a1a2e !important; 
+        width: 100% !important; 
+        max-width: 1000px !important; 
+        margin: 0 auto !important; 
+        box-sizing: border-box !important; 
+    }
     .pdf-export-wrapper .card-box { border: none !important; box-shadow: none !important; margin-bottom: 24px !important; break-inside: auto !important; width: 100% !important; flex: none !important; padding: 0 !important; background: transparent !important; }
     
-    /* Make KPIs look like the PO Info Strip */
     .pdf-export-wrapper #kpi-section { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 0 !important; background: #f5f6fa !important; border: 1px solid #e8e8f0 !important; border-radius: 8px !important; margin-bottom: 24px !important; overflow: hidden !important; flex-direction: row !important; break-inside: avoid !important; }
     .pdf-export-wrapper #kpi-section .card-box { border: none !important; border-right: 1px solid #e8e8f0 !important; background: transparent !important; padding: 14px 18px !important; border-radius: 0 !important; margin: 0 !important; }
     .pdf-export-wrapper #kpi-section .card-box:last-child { border-right: none !important; }
     .pdf-export-wrapper #kpi-section .card-box div { font-size: 10px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; color: #9a9ab0 !important; margin-bottom: 5px !important; }
     .pdf-export-wrapper #kpi-section .card-box h2 { font-family: 'DM Mono', monospace !important; font-size: 16px !important; font-weight: 500 !important; color: #1a1a2e !important; margin: 0 !important; }
 
-    /* Tables & Headers formatted like PO */
-    .pdf-export-wrapper h3 { font-family: 'DM Sans', sans-serif !important; font-size: 10px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; color: #7a7a9a !important; background: #f5f6fa !important; padding: 8px 16px !important; border: 1px solid #e8e8f0 !important; border-bottom: none !important; border-radius: 8px 8px 0 0 !important; margin: 0 !important; break-after: avoid !important; }
-    .pdf-export-wrapper table { width: 100% !important; border-collapse: collapse !important; border-left: 1px solid #e8e8f0 !important; border-right: 1px solid #e8e8f0 !important; border-bottom: 1px solid #e8e8f0 !important; }
+    .pdf-export-wrapper h3 { font-family: 'DM Sans', sans-serif !important; font-size: 11px !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; color: #ffffff !important; background: #092c4c !important; padding: 12px 16px !important; border: 1px solid #092c4c !important; border-radius: 8px 8px 0 0 !important; margin: 0 !important; break-after: avoid !important; }
+    .pdf-export-wrapper table { width: 100% !important; table-layout: auto !important; border-collapse: collapse !important; border-left: 1px solid #e8e8f0 !important; border-right: 1px solid #e8e8f0 !important; border-bottom: 1px solid #e8e8f0 !important; margin-top: 0 !important; }
     .pdf-export-wrapper thead { display: table-header-group !important; }
-    .pdf-export-wrapper thead th { background: #092c4c !important; color: #fff !important; font-size: 10px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; padding: 10px 14px !important; text-align: left !important; border: none !important; font-family: 'DM Sans', sans-serif !important; }
+    .pdf-export-wrapper table thead th, 
+    .pdf-export-wrapper table tr th { background: #092c4c !important; color: #fff !important; font-size: 10px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; padding: 10px 14px !important; text-align: left !important; border: none !important; font-family: 'DM Sans', sans-serif !important; }
     .pdf-export-wrapper tbody tr { page-break-inside: avoid !important; border-bottom: 1px solid #eef0f6 !important; }
     .pdf-export-wrapper tbody tr:nth-child(even) { background: #fafbfd !important; }
-    .pdf-export-wrapper tbody td { padding: 10px 14px !important; font-size: 12.5px !important; color: #2a2a3e !important; border: none !important; vertical-align: top !important; font-family: 'DM Sans', sans-serif !important; }
+    .pdf-export-wrapper table tbody td,
+    .pdf-export-wrapper table tr td { padding: 10px 14px !important; font-size: 12.5px !important; color: #2a2a3e !important; border: none !important; vertical-align: top !important; font-family: 'DM Sans', sans-serif !important; }
+
+    /* FIXED PDF EXPORT SPECIFIC FORMATTING FOR NUMBERS & BADGES SO THEY WON'T BREAK */
+    .pdf-export-wrapper .mono-text { 
+        font-family: 'DM Mono', monospace !important; 
+        font-weight: 700 !important; 
+        white-space: nowrap !important; /* Pumipigil sa pagputol ng number tulad ng 3,200. \n 00 */
+        word-break: keep-all !important;
+    }
+    .pdf-export-wrapper .status-badge {
+        display: inline-block !important;
+        white-space: nowrap !important; /* Pumipigil sa pagputol ng text ng badge */
+        font-size: 9px !important;
+        padding: 4px 6px !important;
+        border-radius: 4px !important;
+        margin-top: 6px !important;
+        line-height: 1 !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.05em !important;
+    }
 
     /* STRICT native print styles override */
     @media print {
@@ -137,7 +163,7 @@
         </div>
 
         <div id="kpi-section" style="display: flex; gap: 15px; margin-bottom: 25px;">
-            <div class="card-box" style="flex: 1; padding: 20px; background: var(--color-accent-orange); border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <div class="card-box" style="flex: 1; padding: 20px; background: var(--color-mustard); border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                 <div style="color: #2D1800; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em;">Total Invoiced</div>
                 <h2 style="font-family: var(--font-mono); margin: 0; font-size: 1.8rem; color: #2D1800; font-weight: 700;">₱{{ summary.total_invoiced|floatformat:"2g" }}</h2>
             </div>
@@ -185,18 +211,20 @@
                 <tbody>
                     {% for inv in invoices %}
                     <tr>
-                        <td class="table-row-cell" style="font-weight: 700; color: var(--color-main-navy); font-family: var(--font-mono); font-size: 0.95rem;">{{ inv.invoice_no }}</td>
+                        <td class="table-row-cell mono-text" style="font-weight: 700; color: var(--color-main-navy); font-family: var(--font-mono); font-size: 0.95rem;">{{ inv.invoice_no }}</td>
                         <td class="table-row-cell" style="font-weight: 600;">{{ inv.customer.name }}</td>
                         <td class="table-row-cell" style="color: var(--text-muted);">{{ inv.issue_date|date:"M d, Y" }}</td>
-                        <td class="table-row-cell" style="text-align: right; font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem;">₱{{ inv.total_amount|floatformat:"2g" }}</td>
-                        <td class="table-row-cell" style="text-align: right; color: var(--color-accent-green); font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem;">₱{{ inv.paid_amount|floatformat:"2g" }}</td>
-                        <td class="table-row-cell" style="text-align: right; font-family: var(--font-mono); font-size: 0.95rem;">
+                        
+                        <td class="table-row-cell mono-text" style="text-align: right; font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem;">₱{{ inv.total_amount|floatformat:"2g" }}</td>
+                        <td class="table-row-cell mono-text" style="text-align: right; color: var(--color-accent-green); font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem;">₱{{ inv.paid_amount|floatformat:"2g" }}</td>
+                        
+                        <td class="table-row-cell" style="text-align: right;">
                             {% if inv.balance_due > 0 %}
-                                <span style="color: var(--color-main-red); font-weight: 800;">₱{{ inv.balance_due|floatformat:"2g" }}</span>
-                                <br><span style="display: inline-block; margin-top: 4px; font-size: 0.65rem; background: var(--bg-warning); color: var(--text-warning); padding: 3px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; font-family: var(--font-body);">UNPAID</span>
+                                <span class="mono-text" style="color: #991b1b; font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem; display: block;">₱{{ inv.balance_due|floatformat:"2g" }}</span>
+                                <span class="status-badge" style="background-color: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; font-family: var(--font-body); display: inline-block; white-space: nowrap; margin-top: 4px;">UNPAID</span>
                             {% else %}
-                                <span style="color: var(--text-muted); font-weight: 700;">₱0.00</span>
-                                <br><span style="display: inline-block; margin-top: 4px; font-size: 0.65rem; background: var(--bg-success); color: var(--text-success); padding: 3px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; font-family: var(--font-body);">PAID</span>
+                                <span class="mono-text" style="color: var(--text-muted); font-weight: 700; font-family: var(--font-mono); font-size: 0.95rem; display: block;">₱0.00</span>
+                                <span class="status-badge" style="background-color: #dcfce7; color: #166534; padding: 3px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; font-family: var(--font-body); display: inline-block; white-space: nowrap; margin-top: 4px;">PAID</span>
                             {% endif %}
                         </td>
                     </tr>
