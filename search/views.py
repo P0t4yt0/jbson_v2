@@ -41,10 +41,10 @@ def global_search_api(request):
 
         # SALES & BILLING
         add_shortcut("Sales", "billing:sales_list", "Sales")
-        add_shortcut("Invoices", "billing_payment:invoice_list", "Sales")
-        add_shortcut("Sales Return", "billing_payment:sales_return_list", "Sales")
-        add_shortcut("Point Of Sales", "pos:pos_index", "Sales",)
-        add_shortcut("Trade Credit", "billing_payment:customer_list", "Sales") # O customer_list?
+        add_shortcut("Invoices", "billing:invoice_list", "Sales")
+        add_shortcut("Sales Return", "billing:sales_return_list", "Sales")
+        add_shortcut("Point Of Sales", "pos:pos_index", "Sales")
+        add_shortcut("Trade Credit", "billing:customer_list", "Sales")
         add_shortcut("Quotations", "pos:quotation_list", "Sales")
 
         # REPORTS
