@@ -7,7 +7,7 @@
     <title>JBSON Hardware - Admin Dashboard</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
         :root {
             /* Strict Color Palette */
@@ -380,7 +380,9 @@
         
 
         <div class="nav-category">Settings</div>
-        <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
+        <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
+            <i class="ph ph-book"></i> User Manual
+        </a>
         <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
             <i class="ph ph-gear"></i> General Settings
         </a>
@@ -677,7 +679,7 @@
                     .kpi-title-wrapper { display: flex; align-items: center; gap: 12px; }
                     .icon-bg { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
                     .kpi-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-                    .kpi-value { font-size: 32px; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -1px; }
+                    .kpi-value { font-size: 32px; font-weight: 800; font-family: 'Inconsolata', monospace !important; letter-spacing: -1px; }
 
                     .chart-row { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px; margin-bottom: 32px; }
                     
@@ -706,7 +708,7 @@
                     /* PINA-LIIT ANG FONT SA LIST */
                     .item-main { font-size: 13px; font-weight: 600; color: #1E293B; display: block; }
                     .item-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: block; }
-                    .item-val { font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif; }
+                    .item-val { font-size: 13px; font-weight: 700; font-family: 'Inconsolata', monospace;}
                 </style>
 
                 <div class="welcome-header">
@@ -1021,6 +1023,8 @@
             const frenchBlue = '#2F3F7B';
             const mustard = '#FFD358';
             const amberFlame = '#FFB915';
+
+            Chart.defaults.font.family = "'Inconsolata', monospace";
 
             const finCtx = document.getElementById('financialChart');
             if (finCtx) {

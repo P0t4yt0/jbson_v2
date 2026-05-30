@@ -1,0 +1,100 @@
+{% extends 'dashboard/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Import Inter font based on the design guide */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    .manual-container { 
+        padding: 32px 40px; 
+        font-family: 'Inter', sans-serif; 
+    }
+    
+    /* Header matching the Dark Navy font and heavy weight */
+    .hub-title { 
+        font-size: 28px; 
+        font-weight: 800; 
+        color: #092c4c; /* Main System Navy */
+        margin-bottom: 4px; 
+        letter-spacing: -0.5px;
+    }
+    
+    /* Subheader updated to Accent Color (Orange) and adjusted weight */
+    .hub-subtitle { 
+        font-size: 16px; 
+        color: #e07300; /* Accent Color */
+        margin-bottom: 24px; 
+        font-weight: 500; 
+    }
+
+    /* Tabs as Links */
+    .tabs-wrapper { 
+        display: flex; 
+        gap: 12px; /* Binigyan ko ng konting space para hindi magkadikit sa shadow */
+        margin-bottom: 24px; 
+        flex-wrap: wrap; 
+    }
+    
+    /* INACTIVE STATE */
+    .tab-btn { 
+        padding: 8px 22px; 
+        border-radius: 50px; 
+        border: 1px solid #cbd5e1; /* Subtle border para sa outline */
+        background: #f8fafc; /* Light gray background para sa hindi pa click */
+        font-weight: 600; 
+        color: #475569; /* Gray text */
+        text-decoration: none; 
+        /* Animation settings: Smooth transition sa lahat ng properties */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    
+    /* HOVER ANIMATION (Pag tinutok ang mouse) */
+    .tab-btn:hover { 
+        background: #ffffff; 
+        color: #092c4c;
+        border-color: #94a3b8;
+        transform: translateY(-3px); /* Aangat yung button ng 3 pixels pataas */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08); /* Magkakaroon ng mas malaking shadow */
+    }
+    
+    /* ACTIVE STATE (Pag napindot na) */
+    .tab-btn.active { 
+        background: #092c4c; /* Main System Navy */
+        color: #ffffff; 
+        border-color: #092c4c;
+        transform: translateY(0); /* Babalik sa original na pwesto */
+        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.3); /* Magkukulay navy ang shadow */
+    }
+    
+    .manual-content-wrapper {
+        background: white; 
+        border-radius: 8px; 
+        padding: 24px;
+        border: 1px solid #e2e8f0; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="manual-container">
+    <div class="hub-title">User Manual</div>
+    <div class="hub-subtitle">Select a system module to view its guide.</div>
+
+    <div class="tabs-wrapper">
+        <a href="{% url 'user_manual:dashboard' %}" class="tab-btn {% if active_tab == 'dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="#" class="tab-btn {% if active_tab == 'inventory' %}active{% endif %}">Inventory</a>
+        <a href="#" class="tab-btn {% if active_tab == 'pos' %}active{% endif %}">Point of Sale</a>
+        <a href="#" class="tab-btn {% if active_tab == 'billing' %}active{% endif %}">Billing & Payment</a>
+        <a href="#" class="tab-btn {% if active_tab == 'reports' %}active{% endif %}">Reports & Analytics</a>
+        <a href="#" class="tab-btn {% if active_tab == 'security' %}active{% endif %}">Security & Access</a>
+    </div>
+
+    <div class="manual-content-wrapper">
+        {% block manual_content %}
+            <p class="text-center py-10" style="color: #6c7a8b; font-size: 14px;">Select a module above to view the user manual.</p>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

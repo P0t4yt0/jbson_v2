@@ -1,0 +1,259 @@
+{% extends 'user_manual/manual_hub.html' %}
+{% load static %}
+
+{% block manual_content %}
+<style>
+    /* Base Styles */
+    .kb-container {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        color: #334155;
+    }
+
+    /* Full Dashboard Preview Section */
+    .dashboard-preview {
+        text-align: center;
+        margin-bottom: 60px;
+        padding-bottom: 50px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .dashboard-preview h1 {
+        color: #092c4c;
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .dashboard-preview p {
+        color: #64748b;
+        font-size: 16px;
+        max-width: 700px;
+        margin: 0 auto 30px auto;
+    }
+
+    .dashboard-preview img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        /* Magandang shadow para mag-pop yung buong image */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Sections */
+    .kb-section {
+        margin-bottom: 60px;
+    }
+
+    /* Section Headers */
+    .kb-section-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .kb-section-header h2 {
+        color: #092c4c; 
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .kb-section-header p {
+        color: #64748b;
+        font-size: 15px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Grid Layout for Cards */
+    .kb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    /* Card Design */
+    .kb-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 30px 24px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kb-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    /* Actual UI Image Wrapper */
+    .ui-snippet {
+        height: 70px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        width: 100%;
+    }
+
+    .ui-snippet img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); 
+        border-radius: 6px;
+    }
+
+    /* Card Text */
+    .kb-card h3 {
+        color: #0f172a;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .kb-card p {
+        color: #475569;
+        font-size: 14.5px;
+        line-height: 1.6;
+        margin: 0;
+    }
+</style>
+
+<div class="kb-container">
+
+    <div class="dashboard-preview">
+        <h1>Dashboard Overview</h1>
+        <p>Welcome to your control center! Here is a quick look at the entire dashboard before we break down each specific feature below.</p>
+        
+        <img src="{% static 'images/manual/full_dashboard.png' %}" alt="Full Dashboard Overview">
+    </div>
+
+    <div class="kb-section">
+        <div class="kb-section-header">
+            <h2>1. Quick Action Buttons</h2>
+            <p>Located at the top right of your screen. These shortcuts help you navigate and manage tasks quickly.</p>
+        </div>
+        
+        <div class="kb-grid">
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/btn_add_product.png' %}" alt="Add Product Button">
+                </div>
+                <h3>Add Product</h3>
+                <p>Click this button to quickly add a new item to your store inventory.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/btn_pos.png' %}" alt="POS Button">
+                </div>
+                <h3>POS (Point of Sale)</h3>
+                <p>Opens the checkout screen to process new customer sales and transactions instantly.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/icon_bell.png' %}" alt="Notification Bell">
+                </div>
+                <h3>Notifications</h3>
+                <p>Displays a red counter badge when you have active system alerts or stock reminders.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="kb-section">
+        <div class="kb-section-header">
+            <h2>2. Main Dashboard & Financial Data</h2>
+            <p>Provides a real-time overview of your store's total health and performance records.</p>
+        </div>
+        
+        <div class="kb-grid">
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/card_gross_sales.png' %}" alt="Gross Sales Card">
+                </div>
+                <h3>Gross Sales</h3>
+                <p>The total amount of money collected from all completed customer purchases.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/card_net_profit.png' %}" alt="Net Profit Card">
+                </div>
+                <h3>Net Profit</h3>
+                <p>Your clean earnings. This is calculated after deducting product costs and active expenses.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/card_cash_outflow.png' %}" alt="Cash Outflow Card">
+                </div>
+                <h3>Cash Outflow</h3>
+                <p>The total sum spent on inventory restocking payments and business expenses.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/card_unpaid.png' %}" alt="Unpaid Receivables Card">
+                </div>
+                <h3>Unpaid Receivables</h3>
+                <p>Pending credit balances or tracked money that customers still owe to your store.</p>
+            </div>
+            
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/btn_date_filter.png' %}" alt="Date Filter Dropdown">
+                </div>
+                <h3>Date Filter</h3>
+                <p>Change the date range (e.g., Today, All Time) for the displayed metrics and charts.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/visual_charts.png' %}" alt="Financial Charts">
+                </div>
+                <h3>Performance Charts</h3>
+                <p>Visual trends monitoring your 7-Day Financial overview and Top Selling products.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="kb-section">
+        <div class="kb-section-header">
+            <h2>3. Important Alerts</h2>
+            <p>Critical logs placed at the dashboard requiring your immediate business attention.</p>
+        </div>
+        
+        <div class="kb-grid">
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/alert_critical_stock.png' %}" alt="Critical Stock Alert">
+                </div>
+                <h3>Critical Stock</h3>
+                <p>Lists item names running critically low or marked out of stock. Click "View All" to manage purchase restocks.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/alert_due_invoices.png' %}" alt="Due Invoices Tracker">
+                </div>
+                <h3>Due Invoices</h3>
+                <p>Monitors delayed credit payouts. Click "Collect" to register clear customer payments.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
