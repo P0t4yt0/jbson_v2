@@ -32,8 +32,8 @@
     
     <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Barcode Generation</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h2 style="margin: 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px;">Barcode Generation</h2>
+            <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">
                 Create a new barcode for items without an existing code.
             </p>
         </div>
@@ -49,10 +49,10 @@
                     
                     <div style="margin-bottom: 20px;">
                         <label style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: #4A5568; display: block; margin-bottom: 8px;">Product Name <span style="color: red;">*</span></label>
-                        <input type="text" name="product_name" id="product_name_input" required placeholder="Enter Product Name" style="width: 100%; padding: 14px; border: 1px solid #CBD5E0; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; box-sizing: border-box; transition: 0.2s;" onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#CBD5E0'">
+                        <input type="text" name="product_name" id="product_name_input" required placeholder="Enter Product Name" style="width: 100%; padding: 14px; border: 1px solid #CBD5E0; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; box-sizing: border-box; transition: 0.2s;" onfocus="this.style.borderColor='#2F3F7B'" onblur="this.style.borderColor='#CBD5E0'">
                     </div>
 
-                    <button type="button" onclick="confirmGeneration()" style="background-color: #092c4c; color: white; border: none; padding: 16px 28px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 16px; font-family: 'Inter', sans-serif; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)';">
+                    <button type="button" onclick="confirmGeneration()" style="background-color: #2F3F7B; color: white; border: none; padding: 16px 28px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 16px; font-family: 'Inter', sans-serif; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#1e2a55'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#2F3F7B'; this.style.transform='translateY(0)';">
                         <i class="ph ph-barcode" style="font-size: 22px;"></i> Generate New Barcode
                     </button>
                 </form>
@@ -60,7 +60,7 @@
                 {% if barcode_id %}
                 <div style="margin-top: 25px; padding: 15px; background-color: #f8fafc; border-radius: 8px; border-left: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 1px solid #edf2f7; border-right: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7;">
                     <p style="margin: 0; font-size: 13.5px; color: #475569; line-height: 1.5;">
-                        <strong style="color: #092c4c;"><i class="ph ph-info"></i> Next Step:</strong> Affix the printed label to the physical item. Use the copied barcode ID in the <b style="color: #e07300;">Add Product</b> module to complete registration.
+                        <strong style="color: #2F3F7B;"><i class="ph ph-info"></i> Next Step:</strong> Affix the printed label to the physical item. Use the copied barcode ID in the <b style="color: #FFB915;">Add Product</b> module to complete registration.
                     </p>
                 </div>
                 {% endif %}
@@ -72,7 +72,7 @@
                         <p style="margin-bottom: 10px; color: #22543d; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                             <i class="ph ph-check-circle" style="font-size: 20px; color: #9ae6b4;"></i> Generation Successful!
                         </p>
-                        <p style="margin-top: 0; margin-bottom: 20px; color: #092c4c; font-weight: 800; font-size: 18px;">{{ product_name }}</p>
+                        <p style="margin-top: 0; margin-bottom: 20px; color: #2F3F7B; font-weight: 800; font-size: 18px;">{{ product_name }}</p>
                         
                         <div id="new-barcode-print-area" class="print-active" style="background: white; display: inline-block; padding: 25px 35px; border-radius: 8px; border: 1px dashed #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                             <p style="font-weight: 700; font-size: 14px; margin: 0 0 10px 0; color: #1e293b;">{{ product_name }}</p>
@@ -80,11 +80,11 @@
                         </div>
                         
                         <div style="margin-top: 25px; display: flex; justify-content: center; gap: 12px;">
-                            <button onclick="printCurrentBarcode()" style="background-color: #092c4c; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#092c4c'">
+                            <button onclick="printCurrentBarcode()" style="background-color: #2F3F7B; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#2F3F7B'">
                                 <i class="ph ph-printer" style="font-size: 18px;"></i> Print Label
                             </button>
                             
-                            <button type="button" onclick="copyBarcodeID('{{ barcode_id }}')" style="background-color: #e07300; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#cc6800'" onmouseout="this.style.backgroundColor='#e07300'">
+                            <button type="button" onclick="copyBarcodeID('{{ barcode_id }}')" style="background-color: #FFB915; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#cc6800'" onmouseout="this.style.backgroundColor='#e07300'">
                                 <i class="ph ph-copy" style="font-size: 18px;"></i> Copy Code
                             </button>
                         </div>
@@ -107,7 +107,7 @@
         </div> 
 
         <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #edf2f7;">
-            <h3 style="font-family: 'Inter'; font-weight: 800; color: #092c4c; margin-bottom: 20px; font-size: 20px;">Barcode History</h3>
+            <h3 style="font-family: 'Inter'; font-weight: 800; color: #2F3F7B; margin-bottom: 20px; font-size: 20px;">Barcode History</h3>
             
             <div style="overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -124,12 +124,12 @@
                         <tr style="border-bottom: 1px solid #e2e8f0; transition: 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
                             <td style="padding: 15px; font-size: 14px; color: #64748b; font-family: 'Inconsolata', monospace; font-weight: 600;">{{ item.created_at|date:"M d, Y - h:i A" }}</td>
                             <td style="padding: 15px; font-size: 14px; font-weight: 700; color: #1e293b;">{{ item.product_name }}</td>
-                            <td style="padding: 15px; font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 700; color: #092c4c;">{{ item.barcode_id }}</td>
+                            <td style="padding: 15px; font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 700; color: #2F3F7B;">{{ item.barcode_id }}</td>
                             <td style="padding: 15px; text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
                                 <button onclick="copyBarcodeID('{{ item.barcode_id }}')" style="background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#e07300'" onmouseout="this.style.background='white'; this.style.color='#475569'">
                                     <i class="ph ph-copy"></i> 
                                 </button>
-                                <button onclick="reprintHistoryBarcode('{{ item.barcode_id }}', '{{ item.product_name|escapejs }}')" style="background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='#092c4c'; this.style.color='white'; this.style.borderColor='#092c4c'" onmouseout="this.style.background='white'; this.style.color='#475569'; this.style.borderColor='#cbd5e1'">
+                                <button onclick="reprintHistoryBarcode('{{ item.barcode_id }}', '{{ item.product_name|escapejs }}')" style="background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='#2F3F7B'; this.style.color='white'; this.style.borderColor='#2F3F7B'" onmouseout="this.style.background='white'; this.style.color='#475569'; this.style.borderColor='#cbd5e1'">
                                     <i class="ph ph-printer"></i> 
                                 </button>
                                 
@@ -172,7 +172,7 @@
             text: `Are you sure you want to create a barcode for '${prodName}'?`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#092c4c',
+            confirmButtonColor: '#2F3F7B',
             cancelButtonColor: '#64748b',
             confirmButtonText: 'Yes, generate it!'
         }).then((result) => {

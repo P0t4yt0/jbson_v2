@@ -10,27 +10,15 @@
 
 <style>
     /* MAIN LAYOUT STYLES */
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        overflow-x: auto; 
+    .table-container, .filter-container {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid rgba(229, 231, 235, 0.5);
+        box-shadow: 0 10px 30px -10px rgba(47, 63, 123, 0.1);
     }
+    .table-container { padding: 30px; overflow-x: auto; }
+    .filter-container { padding: 20px; margin-bottom: 20px; }
     
-    .filter-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 20px; 
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
     
     .table-clean {
         width: 100%;
@@ -105,16 +93,16 @@
     .btn-red:hover { background-color: #dc2626; color: white; border-color: #dc2626; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2); }
 
     /* Blue - Scan Barcode */
-    .btn-blue { color: #092c4c; background-color: #f2f7fb; border-color: #cbd5e1; }
-    .btn-blue:hover { background-color: #092c4c; color: white; border-color: #092c4c; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2); }
+    .btn-blue { color: #2F3F7B; background-color: #f2f7fb; border-color: #cbd5e1; }
+    .btn-blue:hover { background-color: #2F3F7B; color: white; border-color: #2F3F7B; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2); }
 
     /* Green - Analyze Priority */
     .btn-green { color: #22543d; background-color: #eefff4; border-color: #9ae6b4; }
     .btn-green:hover { background-color: #22543d; color: white; border-color: #22543d; box-shadow: 0 4px 6px rgba(34, 84, 61, 0.2); }
 
     /* Orange - Auto Calibrate */
-    .btn-orange { color: #e07300; background-color: #fffaf0; border-color: #fbd38d; }
-    .btn-orange:hover { background-color: #e07300; color: white; border-color: #e07300; box-shadow: 0 4px 6px rgba(224, 115, 0, 0.2); }
+    .btn-orange { color: #FFB915; background-color: #fffaf0; border-color: #fbd38d; }
+    .btn-orange:hover { background-color: #FFB915; color: white; border-color: #FFB915; box-shadow: 0 4px 6px rgba(224, 115, 0, 0.2); }
 
     /* Grey - Delete Selected & Clear Filters */
     .btn-grey { 
@@ -154,8 +142,8 @@
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #092c4c; color: #092c4c; background-color: #f8fafc; }
-    .page-btn.active { background: #811112; color: white; font-weight: bold; border-color: #811112; }
+    .page-btn:hover { border-color: #2F3F7B; color: #2F3F7B; background-color: #f8fafc; }
+    .page-btn.active { background: #2F3F7B; color: white; font-weight: bold; border-color: #2F3F7B; }
     .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
 
     /* STOCK & PRIORITY TOOLTIPS */
@@ -184,8 +172,8 @@
 
     <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
         <div>
-            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">Product Management</h2>
-            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+            <h1 style="margin: 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px;">Product Management</h1>
+            <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">
                 View and manage your inventory products, prices, and stock levels.
             </p>
         </div>
@@ -193,8 +181,8 @@
 
     <div id="scanner-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
         <div style="background: white; padding: 30px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-            <i class="ph ph-barcode" style="font-size: 48px; color: #092c4c; margin-bottom: 10px;"></i>
-            <h2 style="margin: 0 0 10px 0; color: #092c4c; font-size: 20px; font-weight: 900;">Ready to Scan</h2>
+            <i class="ph ph-barcode" style="font-size: 48px; color: #2F3F7B; margin-bottom: 10px;"></i>
+            <h2 style="margin: 0 0 10px 0; color: #2F3F7B; font-size: 20px; font-weight: 900;">Ready to Scan</h2>
             <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Point your scanner at the barcode.</p>
             <input type="text" id="dedicated-barcode-input"
                    placeholder="Waiting for scanner..."
@@ -299,7 +287,7 @@
                             <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer; width: 16px; height: 16px;">
                         </td>
 
-                        <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 700; color: #092c4c;">{{ item.product_id }}</td>
+                        <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 700; color: #2F3F7B;">{{ item.product_id }}</td>
 
                         <td style="font-weight: 600; color: #334155;">
                             <div style="display: flex; align-items: center;">
@@ -319,7 +307,7 @@
                         <td style="color: #64748b; font-weight: 500;">{{ item.supplier.name|default:"--" }}</td>
                         <td style="color: #64748b;">{{ item.category.name }}</td>
 
-                        <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 800; color: #092c4c;">₱{{ item.price }}</td>
+                        <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 800; color: #2F3F7B;">₱{{ item.price }}</td>
                         
                         <td style="font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b;">{{ item.barcode_id }}</td>
 
@@ -431,7 +419,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 `,
                 icon: 'info',
                 showCancelButton: true,
-                confirmButtonColor: '#811112',
+                confirmButtonColor: '#2F3F7B',
                 cancelButtonColor: '#94a3b8',
                 confirmButtonText: 'Yes, calibrate',
                 preConfirm: () => {
@@ -476,11 +464,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         confirmButtonColor: '#092c4c'
                     }).then(() => { window.location.reload(); });
                 } else {
-                    Swal.fire({ title: 'Error!', text: 'Something went wrong while analyzing priority levels.', icon: 'error', confirmButtonColor: '#811112' });
+                    Swal.fire({ title: 'Error!', text: 'Something went wrong while analyzing priority levels.', icon: 'error', confirmButtonColor: '#2F3F7B' });
                 }
             })
             .catch(() => {
-                Swal.fire({ title: 'Connection Error!', text: 'Unable to connect to the server.', icon: 'error', confirmButtonColor: '#811112' });
+                Swal.fire({ title: 'Connection Error!', text: 'Unable to connect to the server.', icon: 'error', confirmButtonColor: '#2F3F7B' });
             });
     });
 
@@ -543,7 +531,7 @@ document.addEventListener("DOMContentLoaded", function () {
             text: `Delete ${checked.length} selected product(s)?`,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#811112",
+            confirmButtonColor: "#2F3F7B",
             cancelButtonColor: "#94a3b8"
         }).then(result => {
             if (result.isConfirmed) {

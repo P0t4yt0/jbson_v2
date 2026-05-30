@@ -7,27 +7,14 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    .table-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 30px; 
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        overflow-x: auto; 
+    .table-container, .filter-container {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid rgba(229, 231, 235, 0.5);
+        box-shadow: 0 10px 30px -10px rgba(47, 63, 123, 0.1);
     }
-    
-    .filter-container {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-        padding: 20px; 
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
+    .table-container { padding: 30px; overflow-x: auto; }
+    .filter-container { padding: 20px; margin-bottom: 20px; }
     
     .table-clean {
         width: 100%;
@@ -175,6 +162,19 @@
         margin: 0;
         flex-wrap: wrap;
         width: 100%;
+    }
+
+    .btn-primary {
+        background-color: #2F3F7B !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2) !important;
+    }
+    .btn-primary:hover {
+        background-color: #1e2a55 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(47, 63, 123, 0.3) !important;
     }
 </style>
 
