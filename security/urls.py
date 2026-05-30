@@ -34,4 +34,6 @@ urlpatterns = [
     # Account Management
     path("register/", views.register_view, name="register"),
     path('dashboard/admin/users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
+    path('edit-user/', views.edit_user_view, name='edit_user_endpoint'),
+    path('verify-admin-password/', views.verify_admin_password, name='verify_admin_password'),
 ]

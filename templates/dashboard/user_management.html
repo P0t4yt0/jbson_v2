@@ -1,55 +1,234 @@
 {% extends 'dashboard/dashboard.html' %} 
 
 {% block content %}
-<!-- Include SweetAlert2 for beautiful popups -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
 
 <style>
-    /* Card Layout */
-    .card-container { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
-    .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; }
+    /* Card/Container Layout with Glassmorphism */
+    .layout-grid { 
+        display: grid; 
+        grid-template-columns: 2fr 1fr; 
+        gap: 25px; 
+        align-items: start; 
+    }
+    
+    @media (max-width: 1024px) {
+        .layout-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .table-container {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 30px; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        overflow-x: auto; 
+    }
+
+    .section-title {
+        font-size: 1.15rem;
+        color: #092c4c;
+        font-weight: 800;
+        border-bottom: 2px solid #edf2f7;
+        padding-bottom: 12px;
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-family: 'Inter', sans-serif;
+    }
     
     /* Table Styling */
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th { text-align: left; padding: 12px 10px; color: #888; font-weight: 600; border-bottom: 2px solid #eee; }
-    td { padding: 12px 10px; border-bottom: 1px solid #eee; color: #444; }
-    .role-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-    .role-admin { background: #fdeaea; color: #851618; }
-    .role-employee { background: #e6f2ff; color: #0056b3; }
+    .table-clean {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-clean th, .table-clean td {
+        padding: 16px 14px; 
+        text-align: left;
+        border-bottom: 1px solid #edf2f7;
+        color: #4a5568;
+        font-size: 0.9rem; 
+        vertical-align: middle;
+    }
+    .table-clean th {
+        font-weight: 700;
+        color: #64748b; 
+        font-size: 0.8rem; 
+        text-transform: uppercase; 
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0; 
+    }
+
+    /* Badges */
+    .badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-block;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    .bg-sage-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .bg-soft-red { background-color: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+
+    /* Action Buttons */
+    .action-group { display: flex; gap: 8px; align-items: center; justify-content: center; }
+    
+    .table-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        text-decoration: none;
+        font-size: 1.1rem;
+        transition: all 0.2s ease;
+    }
+    .table-action-btn:hover { 
+        transform: translateY(-2px); 
+    }
+    
+    .btn-edit {
+        color: #0284c7;
+        background-color: #f0f9ff;
+        border-color: #bae6fd;
+    }
+    .btn-edit:hover {
+        background-color: #0284c7;
+        color: white;
+        border-color: #0284c7;
+    }
+
+    .btn-delete {
+        color: #dc2626;
+        background-color: #fef2f2;
+        border-color: #fecdd3;
+    }
+    .btn-delete:hover {
+        background-color: #dc2626;
+        color: white;
+        border-color: #dc2626;
+    }
 
     /* Form Styling */
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #555; }
-    .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
-    .btn-submit { background-color: #851618; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; margin-top: 10px; }
-    .btn-submit:hover { background-color: #6a1113; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { 
+        display: block; 
+        font-size: 0.85rem; 
+        font-weight: 600; 
+        margin-bottom: 8px; 
+        color: #475569; 
+    }
+    .form-control { 
+        width: 100%; 
+        padding: 12px 16px; 
+        font-size: 13px; 
+        border: 1px solid #cbd5e1; 
+        border-radius: 8px; 
+        font-family: 'Inter', sans-serif; 
+        outline: none; 
+        transition: border-color 0.2s; 
+        box-sizing: border-box;
+        background-color: white;
+    }
+    .form-control:focus {
+        border-color: #092c4c;
+    }
+    
+    .btn-submit { 
+        background: #092c4c; 
+        color: white; 
+        padding: 14px 30px; 
+        border: 1px solid #092c4c; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        font-weight: 600; 
+        font-family: 'Inter', sans-serif; 
+        transition: all 0.2s; 
+        width: 100%;
+        margin-top: 10px;
+        box-shadow: 0 4px 6px rgba(9, 44, 76, 0.15);
+    }
+    .btn-submit:hover { 
+        background-color: #061f38; 
+        border-color: #061f38;
+        transform: translateY(-2px);
+    }
 
     /* Password Specific UI */
     .password-wrapper { position: relative; }
-    .toggle-password { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; font-size: 1.2rem; }
-    .toggle-password:hover { color: #333; }
+    .toggle-password { 
+        position: absolute; 
+        right: 15px; 
+        top: 50%; 
+        transform: translateY(-50%); 
+        cursor: pointer; 
+        color: #64748b; 
+        font-size: 1.2rem; 
+        transition: color 0.2s;
+    }
+    .toggle-password:hover { color: #092c4c; }
     
     /* Dynamic Password Rules */
-    .password-rules { font-size: 0.8rem; color: #888; margin-top: 8px; padding-left: 5px; }
-    .rule { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; transition: 0.2s; color: #888; }
+    .password-rules { font-size: 0.8rem; color: #64748b; margin-top: 10px; padding-left: 5px; }
+    .rule { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; transition: 0.2s; color: #64748b; }
     .rule i { font-size: 1.1rem; }
     
     /* Valid State Styling */
-    .rule.valid { color: #155724; font-weight: 600; }
-    .rule.valid i { color: #155724; }
+    .rule.valid { color: #16a34a; font-weight: 600; }
+    .rule.valid i { color: #16a34a; }
+
+/* Custom UI para sa SweetAlert Error/Validation Message - Clean Text */
+    .custom-swal-validation {
+        background: transparent !important; /* Tinanggal ang pulang background */
+        color: #dc2626 !important; /* Solid red color text */
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        border: none !important; /* Tinanggal ang border */
+        padding: 0 !important;
+        margin-top: 15px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Tinatanggal yung default na gray na bilog na may '!' ni SweetAlert */
+    .custom-swal-validation::before {
+        display: none !important;
+    }
+
+    .swal2-container.swal2-backdrop-show {
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+    }
 </style>
 
-<div style="padding: 30px;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
     
-    <!-- Header & Breadcrumbs -->
-    <div style="margin-bottom: 30px;">
-        <h1 style="font-family: 'Oswald', sans-serif; font-size: 1.8rem; margin: 0; color: #111;">User Management</h1>
-        <div style="font-size: 0.85rem; color: #777; margin-top: 5px;">
-            User Management > <span style="color: #333; font-weight: 500;">Users</span>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+        <div>
+            <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 6px 0; font-size: 28px;">User Management</h2>
+            <p style="font-family: 'Inter', sans-serif; font-weight: 500; color: #e07300; margin: 0; font-size: 15px;">
+                View and manage all system users, account registrations, and roles.
+            </p>
         </div>
     </div>
 
-    <!-- SweetAlert Trigger for Django Messages -->
     {% if messages %}
         <script>
             document.addEventListener("DOMContentLoaded", function() {
@@ -58,68 +237,70 @@
                         icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
                         title: "{% if message.tags == 'error' %}Oops...{% else %}Success!{% endif %}",
                         text: "{{ message|escapejs }}",
-                        confirmButtonColor: "#851618"
+                        confirmButtonColor: "#092c4c"
                     });
                 {% endfor %}
             });
         </script>
     {% endif %}
 
-    <div class="card-container">
+    <div class="layout-grid">
         
-        <!-- LEFT CARD: List View -->
-        <div class="card">
-            <h2 style="font-size: 1.1rem; color: #0A192F; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">System Users</h2>
-            <table>
+        <div class="table-container">
+            <h2 class="section-title">System Users</h2>
+            <table class="table-clean">
                 <thead>
-                <tr>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Date Added</th>
-                <th style="text-align: center;">Actions</th> </tr>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Date Added</th>
+                        <th style="text-align: center;">Actions</th> 
+                    </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
                     <tr>
-                        <td>{{ user.full_name }}</td>
-                        <td>{{ user.username }}</td>
+                        <td><strong style="color: #092c4c; font-weight: 600;">{{ user.full_name }}</strong></td>
+                        <td style="color: #64748b; font-family: 'Inconsolata'; font-size: 1.05rem;">{{ user.username }}</td>
                         <td>
                             {% if user.is_superuser %}
-                                <span class="role-badge role-admin">Admin</span>
+                                <span class="badge bg-soft-red">Admin</span>
                             {% else %}
-                                <span class="role-badge role-employee">Employee</span>
+                                <span class="badge bg-sage-green">Employee</span>
                             {% endif %}
                         </td>
-                        <td>{{ user.date_created|date:"M d, Y" }}</td>
+                        <td style="color: #64748b;">{{ user.date_created|date:"M d, Y" }}</td>
                         
-                        <td style="text-align: center;">
-                            {% if user.id != request.user.id %}
-                            
-                            <a href="{% url 'security:delete_user' user.id %}" 
-                            onclick="event.preventDefault(); showDeleteAlert(this.href, '{{ user.username|escapejs }}');"
-                            style="color: #851618; font-size: 1.2rem; text-decoration: none; padding: 5px;">
-                                <i class="ph ph-trash"></i>
-                            </a>
+                        <td>
+                            <div class="action-group">
+                                <a href="#" onclick="openEditModalFlow('{{ user.id }}', '{{ user.full_name|escapejs }}', '{{ user.username|escapejs }}', '{{ user.is_superuser|yesno:"Admin,Employee" }}'); return false;" class="table-action-btn btn-edit" title="Edit User Account">
+                                    <i class="ph ph-pencil-simple"></i>
+                                </a>
 
-                            {% else %}
-                            <span style="font-size: 0.7rem; color: #aaa;">(You)</span>
-                            {% endif %}
+                                {% if user.id != request.user.id %}
+                                <a href="{% url 'security:delete_user' user.id %}" 
+                                   onclick="event.preventDefault(); showDeleteAlert(this.href, '{{ user.username|escapejs }}');"
+                                   class="table-action-btn btn-delete" title="Delete User">
+                                    <i class="ph ph-trash"></i>
+                                </a>
+                                {% else %}
+                                <span style="font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-left: 5px;">(You)</span>
+                                {% endif %}
+                            </div>
                         </td>
-
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align: center; color: #888;">No users found.</td>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8; font-style: italic;">No users found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <!-- RIGHT CARD: Register Form -->
-        <div class="card">
-            <h2 style="font-size: 1.1rem; color: #0A192F; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">Register New Account</h2>
+        <div class="table-container">
+            <h2 class="section-title">Register New Account</h2>
             
             <form method="POST" action="{% url 'user_management' %}" id="registerForm">
                 {% csrf_token %}
@@ -131,7 +312,7 @@
 
                 <div class="form-group">
                     <label>System Role</label>
-                    <select name="role" class="form-control" required>
+                    <select name="role" class="form-control" required style="cursor: pointer;">
                         <option value="Employee">Employee</option>
                         <option value="Admin">Admin</option>
                     </select>
@@ -139,18 +320,16 @@
 
                 <div class="form-group">
                     <label>Username</label>
-                    <input type="text" name="username" class="form-control" required>
+                    <input type="text" name="username" class="form-control" required placeholder="Create a username">
                 </div>
 
-                <!-- Password Field with rules -->
                 <div class="form-group">
                     <label>Password</label>
                     <div class="password-wrapper">
-                        <input type="password" name="password" id="main_password" class="form-control" required>
+                        <input type="password" name="password" id="main_password" class="form-control" required placeholder="Enter password">
                         <i class="ph ph-eye toggle-password" onclick="togglePassword('main_password', this)"></i>
                     </div>
                     
-                    <!-- Dynamic Rules Box -->
                     <div class="password-rules">
                         <div class="rule" id="rule-length"><i class="ph ph-x-circle"></i> Minimum 8 characters</div>
                         <div class="rule" id="rule-upper"><i class="ph ph-x-circle"></i> 1 Uppercase letter</div>
@@ -158,11 +337,10 @@
                     </div>
                 </div>
 
-                <!-- Confirm Password Field -->
                 <div class="form-group">
                     <label>Confirm Password</label>
                     <div class="password-wrapper">
-                        <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
+                        <input type="password" name="confirm_password" id="confirm_password" class="form-control" required placeholder="Re-enter password">
                         <i class="ph ph-eye toggle-password" onclick="togglePassword('confirm_password', this)"></i>
                     </div>
                     <div class="password-rules">
@@ -177,9 +355,73 @@
     </div>
 </div>
 
-<!-- JavaScript for Passwords -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+        <div style="background:#fff; width:500px; max-width:90%; border-radius:12px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; font-family: 'Inter', sans-serif;">
+        
+        <div style="padding:20px 25px 15px; border-bottom:1px solid #edf2f7;">
+            <h3 style="margin:0; color:#092c4c; font-size:1.2rem; font-weight:800;">Edit User Account</h3>
+            <p style="margin:5px 0 0 0; font-size:0.85rem; color:#64748b;">Updating profile for: <strong id="modalUsernameDisplay" style="color:#092c4c;"></strong></p>
+        </div>
+        
+        <form method="POST" action="{% url 'security:edit_user_endpoint' %}" style="max-height: 75vh; overflow-y: auto; padding:20px 25px;">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" id="modalUserId">
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                    <label>Full Name</label>
+                    <input type="text" name="edit_full_name" id="edit_full_name" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Role</label>
+                    <select name="edit_role" id="edit_role" class="form-control" required style="cursor:pointer;">
+                        <option value="Employee">Employee</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="edit_username" id="edit_username" class="form-control" required>
+            </div>
+
+            <div style="margin: 25px 0 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                <p style="margin:0 0 15px 0; font-size:0.8rem; color:#64748b; font-weight: 600; text-transform: uppercase;">Change Password <span style="font-style: italic; font-weight: 400; text-transform: none;">(Leave blank if no changes)</span></p>
+                
+                <div class="form-group">
+                    <div class="password-wrapper">
+                        <input type="password" name="new_password" id="modal_new_password" class="form-control" placeholder="Enter new password">
+                        <i class="ph ph-eye toggle-password" onclick="togglePassword('modal_new_password', this)"></i>
+                    </div>
+                    <div class="password-rules" style="margin-top: 8px;">
+                        <div class="rule" id="modal-rule-length"><i class="ph ph-circle"></i> Minimum 8 characters</div>
+                        <div class="rule" id="modal-rule-upper"><i class="ph ph-circle"></i> 1 Uppercase letter</div>
+                        <div class="rule" id="modal-rule-number"><i class="ph ph-circle"></i> 1 Number</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="password-wrapper">
+                        <input type="password" name="confirm_new_password" id="modal_confirm_password" class="form-control" placeholder="Re-enter new password">
+                        <i class="ph ph-eye toggle-password" onclick="togglePassword('modal_confirm_password', this)"></i>
+                    </div>
+                    <div class="password-rules">
+                        <div class="rule" id="modal-rule-match"><i class="ph ph-circle"></i> Passwords match</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="button" onclick="closeEditModal()" style="flex:1; background:#f8fafc; color:#64748b; border:1px solid #cbd5e1; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.2s;" onmouseover="this.style.background='#edf2f7'; this.style.color='#092c4c';" onmouseout="this.style.background='#f8fafc'; this.style.color='#64748b';">Cancel</button>
+                
+                <button type="submit" style="flex:1; background:#092c4c; color:#fff; border:1px solid #092c4c; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.2s; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.15);" onmouseover="this.style.backgroundColor='#061f38'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#092c4c'; this.style.transform='translateY(0)';">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    // 1. Function to toggle Hide/Show Password
     function togglePassword(inputId, iconElement) {
         const input = document.getElementById(inputId);
         if (input.type === "password") {
@@ -193,73 +435,298 @@
         }
     }
 
-    // 2. Real-time Password Rules Checker
-    const passInput = document.getElementById('main_password');
-    const confirmInput = document.getElementById('confirm_password');
-
-    // Helper function para magpalit ng class at icon
-    function updateRuleState(ruleId, isValid) {
+    // -- HELPER FOR REAL-TIME VALIDATION --
+    function updateRuleState(ruleId, isValid, isNeutral = false) {
         const ruleElement = document.getElementById(ruleId);
         const iconElement = ruleElement.querySelector('i');
 
-        if (isValid) {
+        if (isNeutral) {
+            ruleElement.className = 'rule';
+            iconElement.className = 'ph ph-circle';
+        } else if (isValid) {
             ruleElement.className = 'rule valid';
-            iconElement.className = 'ph ph-check-circle'; // Magiging Check mark
+            iconElement.className = 'ph ph-check-circle';
         } else {
             ruleElement.className = 'rule';
-            iconElement.className = 'ph ph-x-circle'; // Babalik sa X mark
+            iconElement.className = 'ph ph-x-circle';
         }
     }
 
+    // -- REGISTER FORM CHECKER --
+    const passInput = document.getElementById('main_password');
+    const confirmInput = document.getElementById('confirm_password');
 
     function checkRules() {
         const val = passInput.value;
         const confirmVal = confirmInput.value;
+        
+        if(val.length === 0 && confirmVal.length === 0) {
+            updateRuleState('rule-length', false, true);
+            updateRuleState('rule-upper', false, true);
+            updateRuleState('rule-number', false, true);
+            updateRuleState('rule-match', false, true);
+            return;
+        }
 
-        // I-check ang bawat rule
         updateRuleState('rule-length', val.length >= 8);
         updateRuleState('rule-upper', /[A-Z]/.test(val));
         updateRuleState('rule-number', /\d/.test(val));
         updateRuleState('rule-match', (val === confirmVal && val.length > 0));
     }
 
-    // Run the checker every time the user types in either box
     passInput.addEventListener('input', checkRules);
     confirmInput.addEventListener('input', checkRules);
 
-    function confirmDelete(deleteUrl, username) {
-    Swal.fire({
-        title: 'Delete User?',
-        text: `Are you sure you want to delete '${username}'? This action cannot be undone.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#851618',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Dahil pinasa na natin ang kumpletong URL mula sa taas, 
-            // idederetso na lang natin ang browser doon.
-            window.location.href = deleteUrl;
-        }
-    });
-}
+    // Initial neutral state for register rules
+    updateRuleState('rule-length', false, true);
+    updateRuleState('rule-upper', false, true);
+    updateRuleState('rule-number', false, true);
+    updateRuleState('rule-match', false, true);
 
-function showDeleteAlert(deleteUrl, username) {
-    Swal.fire({
-        title: 'Delete User?',
-        text: `Are you sure you want to delete ${username}?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#851618',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = deleteUrl;
+
+    // -- MODAL FORM CHECKER (Optional Password) --
+    const modalPassInput = document.getElementById('modal_new_password');
+    const modalConfirmInput = document.getElementById('modal_confirm_password');
+
+    function checkModalRules() {
+        const val = modalPassInput.value;
+        const confirmVal = modalConfirmInput.value;
+
+        // Since it's optional, if empty, set to neutral UI (circle instead of x-circle)
+        if (val.length === 0 && confirmVal.length === 0) {
+            updateRuleState('modal-rule-length', false, true);
+            updateRuleState('modal-rule-upper', false, true);
+            updateRuleState('modal-rule-number', false, true);
+            updateRuleState('modal-rule-match', false, true);
+            return;
         }
-    });
-}
+
+        updateRuleState('modal-rule-length', val.length >= 8);
+        updateRuleState('modal-rule-upper', /[A-Z]/.test(val));
+        updateRuleState('modal-rule-number', /\d/.test(val));
+        updateRuleState('modal-rule-match', (val === confirmVal && val.length > 0));
+    }
+
+    modalPassInput.addEventListener('input', checkModalRules);
+    modalConfirmInput.addEventListener('input', checkModalRules);
+
+
+    // -- MODAL CONTROLS & NEW FLOW --
+    
+    // -- MULTI-STEP EDIT FLOW STARTING WITH POPUP VERIFICATION --
+    function openEditModalFlow(userId, fullName, username, role) {
+        Swal.fire({
+            html: `
+                <div style="margin-bottom: 15px;">
+                    <i class="ph ph-lock-key" style="font-size: 48px; color: #092c4c;"></i>
+                </div>
+                <h3 style="font-family: 'Inter', sans-serif; font-weight: 800; color: #092c4c; margin: 0 0 10px 0; font-size: 1.5rem;">Security Verification</h3>
+                <p style="font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #64748b; margin: 0 0 20px 0;">Please enter and confirm your current password.</p>
+
+                <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                    <div class="password-wrapper" style="position: relative;">
+                        <input type="password" id="swal_pass1" class="form-control" placeholder="Enter current password" style="padding-right: 40px;">
+                        <i class="ph ph-eye" id="toggle_swal_pass1" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; font-size: 1.2rem; transition: color 0.2s;"></i>
+                    </div>
+                </div>
+
+                <div class="form-group" style="text-align: left; margin-bottom: 5px;">
+                    <div class="password-wrapper" style="position: relative;">
+                        <input type="password" id="swal_pass2" class="form-control" placeholder="Re-enter password" style="padding-right: 40px;">
+                        <i class="ph ph-eye" id="toggle_swal_pass2" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; font-size: 1.2rem; transition: color 0.2s;"></i>
+                    </div>
+                </div>
+                
+                <div class="password-rules" style="text-align: left; margin-top: 8px;">
+                    <div class="rule" id="swal-rule-match" style="display: flex; align-items: center; gap: 6px; color: #64748b; font-size: 0.85rem; font-weight: 500; transition: 0.2s;">
+                        <i class="ph ph-circle" style="font-size: 1.1rem;"></i> Passwords match
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Verify Password',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                popup: 'custom-swal-popup',
+                confirmButton: 'custom-swal-confirm',
+                cancelButton: 'custom-swal-cancel',
+                validationMessage: 'custom-swal-validation'
+            },
+            backdrop: `rgba(15, 23, 42, 0.6)`,
+            showLoaderOnConfirm: true,
+            
+            didOpen: () => {
+                const popup = Swal.getPopup(); // Target exact inputs inside popup
+                const pass1 = popup.querySelector('#swal_pass1');
+                const pass2 = popup.querySelector('#swal_pass2');
+                const toggle1 = popup.querySelector('#toggle_swal_pass1');
+                const toggle2 = popup.querySelector('#toggle_swal_pass2');
+                const ruleMatch = popup.querySelector('#swal-rule-match');
+                const ruleIcon = ruleMatch.querySelector('i');
+
+                // Eye Icon Logic
+                toggle1.addEventListener('click', () => {
+                    const type = pass1.getAttribute('type') === 'password' ? 'text' : 'password';
+                    pass1.setAttribute('type', type);
+                    toggle1.className = type === 'password' ? 'ph ph-eye' : 'ph ph-eye-closed';
+                    toggle1.style.color = type === 'password' ? '#64748b' : '#092c4c';
+                });
+
+                toggle2.addEventListener('click', () => {
+                    const type = pass2.getAttribute('type') === 'password' ? 'text' : 'password';
+                    pass2.setAttribute('type', type);
+                    toggle2.className = type === 'password' ? 'ph ph-eye' : 'ph ph-eye-closed';
+                    toggle2.style.color = type === 'password' ? '#64748b' : '#092c4c';
+                });
+
+                // Match Logic
+                const checkMatch = () => {
+                    const val1 = pass1.value;
+                    const val2 = pass2.value;
+                    
+                    if (val1.length === 0 || val2.length === 0) {
+                        ruleMatch.style.color = '#64748b';
+                        ruleIcon.className = 'ph ph-circle';
+                        ruleIcon.style.color = '#64748b';
+                    } else if (val1 === val2) {
+                        ruleMatch.style.color = '#16a34a';
+                        ruleIcon.className = 'ph ph-check-circle';
+                        ruleIcon.style.color = '#16a34a';
+                    } else {
+                        ruleMatch.style.color = '#dc2626';
+                        ruleIcon.className = 'ph ph-x-circle';
+                        ruleIcon.style.color = '#dc2626';
+                    }
+                };
+                
+                pass1.addEventListener('input', checkMatch);
+                pass2.addEventListener('input', checkMatch);
+            },
+            
+            preConfirm: () => {
+                const popup = Swal.getPopup();
+                const pass1 = popup.querySelector('#swal_pass1').value;
+                const pass2 = popup.querySelector('#swal_pass2').value;
+
+                // 1. Check kung may laman
+                if (!pass1 || !pass2) {
+                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Both fields are required');
+                    return false; // Pipigilan niyang tumuloy
+                }
+                
+                // 2. Check kung magkaparehas
+                if (pass1 !== pass2) {
+                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Passwords do not match');
+                    return false; // Pipigilan niyang tumuloy
+                }
+                
+                // 3. Kunin ang CSRF token para hindi ma-block ng Django (403 Error)
+                const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (!csrfInput) {
+                    Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Security token missing. Please refresh the page.');
+                    return false;
+                }
+                const csrfToken = csrfInput.value;
+                
+                // 4. Send sa backend kung pasado na lahat
+                return fetch("{% url 'security:verify_admin_password' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ password: pass1 })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server Error (${response.status})`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    return data;
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(`<i class="ph ph-warning-circle" style="margin-right: 5px;"></i> Connection Failed: ${error.message}`);
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value && result.value.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Verified!',
+                        text: 'You can now edit the profile.',
+                        confirmButtonColor: '#092c4c',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        customClass: { popup: 'custom-swal-popup' }
+                    }).then(() => {
+                        showEditModal(userId, fullName, username, role);
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Incorrect Password',
+                        text: 'Verification failed. Please try again.',
+                        confirmButtonColor: '#dc2626',
+                        customClass: { popup: 'custom-swal-popup', confirmButton: 'custom-swal-confirm' }
+                    }).then(() => {
+                        openEditModalFlow(userId, fullName, username, role);
+                    });
+                }
+            }
+        });
+    }
+
+    function showEditModal(userId, fullName, username, role) {
+        document.getElementById('modalUserId').value = userId;
+        document.getElementById('modalUsernameDisplay').innerText = username;
+        
+        // Auto-fill current profile data
+        document.getElementById('edit_full_name').value = fullName;
+        document.getElementById('edit_username').value = username;
+        
+        // Set the correct option for Role dropdown
+        const roleDropdown = document.getElementById('edit_role');
+        for(let i=0; i < roleDropdown.options.length; i++) {
+            if(roleDropdown.options[i].value === role) {
+                roleDropdown.selectedIndex = i;
+                break;
+            }
+        }
+
+        // Clear password fields
+        document.getElementById('modal_new_password').value = '';
+        document.getElementById('modal_confirm_password').value = '';
+        checkModalRules(); 
+        
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+
+    // -- SWEETALERT DELETE CONFIRMATION --
+    function showDeleteAlert(deleteUrl, username) {
+        Swal.fire({
+            title: 'Delete User?',
+            text: `Are you sure you want to delete '${username}'?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = deleteUrl;
+            }
+        });
+    }
 </script>
 
 {% endblock content %}

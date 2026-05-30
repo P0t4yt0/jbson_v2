@@ -13,6 +13,7 @@ Handles:
 ─────────────────────────────────────────────────────────────────────────────
 """
 
+import json  # <--- IDAGDAG ITO SA PINAKATAAS
 import logging
 import os
 import re # We need this to check password rules
@@ -525,3 +526,50 @@ def delete_user(request, user_id):
     
     # KUNG ANO ANG NAME NG VIEW NA ITO SA URLS.PY MO, YON ANG ILAGAY DITO:
     return redirect('user_management')
+
+# Sa loob ng security/views.py
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth import get_user_model
+from django.contrib import messages
+from django.contrib.auth.hashers import check_password
+from django.http import JsonResponse
+
+User = get_user_model()
+
+# Idagdag mo itong bagong view para sa AJAX password verification
+def verify_admin_password(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        password = data.get('password')
+        
+        if request.user.check_password(password):
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False})
+            
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+# I-update mo rin yung existing edit_user_view mo.
+# Tinanggal na natin yung current_pass check dito kasi ginawa na natin sa SweetAlert.
+def edit_user_view(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        user = get_object_or_404(User, id=user_id)
+        
+        # Update basic info
+        user.full_name = request.POST.get('edit_full_name')
+        user.username = request.POST.get('edit_username')
+        
+        role = request.POST.get('edit_role')
+        user.is_superuser = (role == 'Admin')
+        
+        # New password if provided
+        new_pass = request.POST.get('new_password')
+        if new_pass:
+            user.set_password(new_pass)
+            
+        user.save()
+        messages.success(request, f"User {user.username} updated successfully!")
+        
+    return redirect('user_management') # Siguraduhing tama ang redirect name mo
