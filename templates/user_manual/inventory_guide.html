@@ -1,0 +1,596 @@
+{% extends 'user_manual/manual_hub.html' %}
+{% load static %}
+
+{% block manual_content %}
+<style>
+    /* Base Styles */
+    .kb-container {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        color: #334155;
+    }
+
+    /* Main Header Section */
+    .inventory-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .inventory-header h1 {
+        color: #092c4c;
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .inventory-header p {
+        color: #64748b;
+        font-size: 16px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Dropdown / Accordion Styles */
+    details.kb-dropdown {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+    }
+
+    details.kb-dropdown:hover {
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    details.kb-dropdown summary {
+        padding: 24px 30px;
+        cursor: pointer;
+        font-weight: 700;
+        color: #092c4c;
+        font-size: 18px;
+        background: #ffffff;
+        border-radius: 12px;
+        list-style: none;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    details.kb-dropdown summary::-webkit-details-marker {
+        display: none;
+    }
+
+    details.kb-dropdown summary::after {
+        content: "▼";
+        font-size: 14px;
+        color: #64748b;
+        transition: transform 0.3s ease;
+    }
+
+    details.kb-dropdown[open] summary::after {
+        transform: rotate(180deg);
+    }
+
+    details.kb-dropdown[open] summary {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    /* Content Area inside Dropdown */
+    .kb-dropdown-content {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .overview-text {
+        color: #475569;
+        font-size: 15.5px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Main Module Image Display */
+    .module-preview-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        margin: 0 auto 40px auto;
+        display: block;
+    }
+
+    /* Form and Modal Preview specific styling */
+    .form-preview-img {
+        max-width: 700px;
+    }
+
+    /* Grid Layout for Cards inside Dropdown */
+    .kb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 10px;
+        margin-bottom: 30px;
+    }
+
+    /* Specific Grid for Text-only Data Explanations */
+    .kb-grid-text {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    /* Card Design (White & Animated) */
+    .kb-card, .kb-card-simple {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 30px 24px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kb-card:hover, .kb-card-simple:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    /* Adjust simple card alignment */
+    .kb-card-simple {
+        padding: 24px;
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .kb-card-simple h3 {
+        color: #092c4c;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        margin-top: 0;
+    }
+
+    .kb-card-simple p {
+        color: #475569;
+        font-size: 13.5px;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Picture Container per Card */
+    .ui-snippet {
+        height: 50px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .ui-snippet img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); 
+        border-radius: 6px;
+    }
+
+    /* Card Text */
+    .kb-card h3 {
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .kb-card p {
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Section Dividers */
+    .section-divider {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .section-divider h2 {
+        color: #092c4c;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        padding-bottom: 10px;
+        border-bottom: 2px dashed #e2e8f0;
+        display: inline-block;
+    }
+</style>
+
+<div class="kb-container">
+
+    <div class="inventory-header">
+        <h1>Inventory Management</h1>
+        <p>Select a submodule from the dropdown list below to view its specific features, guidelines, and user interface details.</p>
+    </div>
+
+    <!-- Submodule 1: Products and Registration -->
+    <details class="kb-dropdown">
+        <summary>Products & Registration</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Product Management:</strong> View and manage your inventory products, prices, and stock levels.</p>
+            <img src="{% static 'images/manual/inventory/product_management.png' %}" alt="Product Management Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Product Table Information</h2>
+            </div>
+            <p class="overview-text">The main table displays your current inventory data. Here is what each column means:</p>
+            
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>ID & Product Name</h3>
+                    <p>The special code and the exact name of your item.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Supplier & Category</h3>
+                    <p>Shows who supplied the item and its group (like Power Tools).</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Price & Barcode</h3>
+                    <p>The selling price and its scannable barcode number.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>QTY & Actions</h3>
+                    <p>Shows how many pieces are left. Green means good, red means low stock. Click the pencil icon to edit.</p>
+                </div>
+            </div>
+
+            <!-- New Section: Priority Indicators -->
+            <div class="section-divider">
+                <h2>Product Priority Indicators</h2>
+            </div>
+            <p class="overview-text">Beside the product names, you will see small colored dots. These tell you how important it is to restock the item.</p>
+
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/dot_green.png' %}" alt="Green Dot">
+                    </div>
+                    <h3>Green (Always Instock - A)</h3>
+                    <p>These are top priority items. You must make sure they are always available in your store.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/dot_yellow.png' %}" alt="Yellow Dot">
+                    </div>
+                    <h3>Yellow (Regular Check - B)</h3>
+                    <p>These are medium priority items. You just need to check and monitor their stock levels regularly.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/dot_grey.png' %}" alt="Grey Dot">
+                    </div>
+                    <h3>Grey (Bulk Order - C)</h3>
+                    <p>These are low priority items. They are usually restocked by ordering in large bulk quantities.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Product Overview Buttons</h2>
+            </div>
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_view_low_stock.png' %}" alt="View Low Stock">
+                    </div>
+                    <h3>View Low Stock</h3>
+                    <p>Click this to easily see the items that are running out of stock.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_analyze_priority.png' %}" alt="Analyze Priority">
+                    </div>
+                    <h3>Analyze Priority</h3>
+                    <p>Shows you which items you need to restock immediately based on what sells fast.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_auto_calibrate.png' %}" alt="Auto-Calibrate ROP">
+                    </div>
+                    <h3>Auto-Calibrate ROP</h3>
+                    <p>Automatically computes when you should reorder items so you don't run out of supplies.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_scan_barcode.png' %}" alt="Scan Barcode Search">
+                    </div>
+                    <h3>Scan Barcode (Search)</h3>
+                    <p>Click the "Scan Barcode" button beside the search bar to quickly find a product using your barcode scanner.</p>
+                </div>
+            </div>
+
+            <!-- Add Product Form Details -->
+            <div class="section-divider">
+                <h2>Parts of "Add Product"</h2>
+            </div>
+            <p class="overview-text">When adding a new product, you need to fill up the form step-by-step.</p>
+            <img src="{% static 'images/manual/inventory/create_product_form.png' %}" alt="Create Product Form" class="module-preview-img form-preview-img">
+
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/form_basic_info.png' %}" alt="Basic Information Section">
+                    </div>
+                    <h3>1. Basic Information</h3>
+                    <p>Here you will type the required details like the Product Name, Category, Supplier, and Price.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/form_safety_stock.png' %}" alt="Safety Stock Section">
+                    </div>
+                    <h3>2. Safety Stock (Optional)</h3>
+                    <p>Input the Unit Cost and Estimated Daily/Yearly Sales to help track your business performance.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/form_lead_time.png' %}" alt="Delivery Lead Time Section">
+                    </div>
+                    <h3>3. Delivery Lead Time</h3>
+                    <p>Put the Lead Time in days. This tells the system how long it takes for the supplier to deliver the item.</p>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="section-divider">
+                <h2>Form Action Buttons</h2>
+            </div>
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_scan_form.png' %}" alt="Scan Barcode Form Button">
+                    </div>
+                    <h3>Scan Barcode (Input)</h3>
+                    <p>Click this beside the Barcode ID field to use your scanner and automatically type the item's code.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_confirm_cancel.png' %}" alt="Confirm and Cancel Buttons">
+                    </div>
+                    <h3>Confirm & Cancel</h3>
+                    <p>Click "Confirm" to save the new inventory item, or "Cancel" to remove your draft.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 2: Category Management -->
+    <details class="kb-dropdown">
+        <summary>Category Management</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Category Management:</strong> Organize your items into groups (like Hardware, Wood, or Paint).</p>
+            <img src="{% static 'images/manual/inventory/category_management.png' %}" alt="Category Management Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Category List Details</h2>
+            </div>
+            <p class="overview-text">Each row represents a saved category. Here is the information displayed:</p>
+
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Category Name</h3>
+                    <p>The name of the group, like "Hardware" or "Paint".</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Prefix Code</h3>
+                    <p>A short code (like "HW") so the system can easily tag items in this group.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Items Count</h3>
+                    <p>Shows how many items are currently saved inside this category.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Category Action Buttons</h2>
+            </div>
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_view_products.png' %}" alt="View Products Button">
+                    </div>
+                    <h3>View Products</h3>
+                    <p>Click the "View Products" dropdown button to see a quick list of all the hardware items saved under this category.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/icon_edit.png' %}" alt="Edit Pencil Icon">
+                    </div>
+                    <h3>Edit (Pencil Icon)</h3>
+                    <p>Click the pencil icon if you want to change the name or the prefix code of the category.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/icon_delete.png' %}" alt="Delete Trash Icon">
+                    </div>
+                    <h3>Delete (Trash Icon)</h3>
+                    <p>Click the red trash can icon to completely remove this category from your system.</p>
+                </div>
+            </div>
+
+            <!-- Add Category Modal -->
+            <div class="section-divider">
+                <h2>Adding a New Category</h2>
+            </div>
+            <p class="overview-text">Click "Add Category" at the top right to open this popup window.</p>
+            <img src="{% static 'images/manual/inventory/add_category_modal.png' %}" alt="Add Category Modal" class="module-preview-img form-preview-img">
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_save_cancel_modal.png' %}" alt="Save and Cancel Buttons">
+                    </div>
+                    <h3>Save & Cancel</h3>
+                    <p>Type the new category name, then click "Save" to apply it to your system, or "Cancel" to close the window.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 3: Purchase Order Hub -->
+    <details class="kb-dropdown">
+        <summary>Purchase Order Hub</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Purchase Order Hub:</strong> Draft and manage orders that you want to buy from your suppliers.</p>
+            <img src="{% static 'images/manual/inventory/purchase_orders.png' %}" alt="Purchase Order Hub Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Parts of the Purchase Order Page</h2>
+            </div>
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/po_history.png' %}" alt="Order History Panel">
+                    </div>
+                    <h3>1. Order History</h3>
+                    <p>Check the left panel to see your past orders. It will show "PENDING" if items haven't arrived, or "RECEIVED" if completed.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/po_supplier.png' %}" alt="Select Supplier and Date">
+                    </div>
+                    <h3>2. Select Supplier & Date</h3>
+                    <p>Choose which supplier you are ordering from, and click the calendar to pick your Expected Delivery Date.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/po_items.png' %}" alt="Order Items Section">
+                    </div>
+                    <h3>3. Order Items</h3>
+                    <p>Select the product you want to buy, type the quantity, and check the unit cost. The Total will automatically compute below.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Purchase Order Action Buttons</h2>
+            </div>
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_draft_manual.png' %}" alt="Smart Draft and Manual Buttons">
+                    </div>
+                    <h3>Smart Draft / Manual</h3>
+                    <p>Click "Smart Draft" to let the system suggest what to order based on low stocks. Click "+ Manual" to start a blank order.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_add_another.png' %}" alt="Add Another Item Button">
+                    </div>
+                    <h3>Add Another Item</h3>
+                    <p>Click this to insert a new row so you can include more items in the same supplier purchase order.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_save_generate.png' %}" alt="Save Draft and Generate Buttons">
+                    </div>
+                    <h3>Save or Generate</h3>
+                    <p>Click "Save as Draft" if you want to finish the order later. Click "Generate" to finalize and send it.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 4: Barcode Generation -->
+    <details class="kb-dropdown">
+        <summary>Barcode Generation</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Barcode Generation:</strong> Create a new barcode for items without an existing code.</p>
+            <img src="{% static 'images/manual/inventory/generate_barcode.png' %}" alt="Barcode Generation Utility" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Generation Process</h2>
+            </div>
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/btn_generate_new.png' %}" alt="Generate New Barcode Button">
+                    </div>
+                    <h3>Generate New Barcode</h3>
+                    <p>Type the product name first, then click this button to instantly create a scannable barcode pattern.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Generation Successful</h2>
+            </div>
+            <p class="overview-text">Once done, a success message will pop up showing the new barcode and its generated number.</p>
+            <img src="{% static 'images/manual/inventory/barcode_success.png' %}" alt="Generation Successful Result" class="module-preview-img form-preview-img">
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <h3>Print Label</h3>
+                    <p>Click the "Print Label" button below the barcode to directly print the sticker.</p>
+                </div>
+                <div class="kb-card">
+                    <h3>Copy Code</h3>
+                    <p>Click the yellow "Copy Code" button so you can easily paste the number to the Add Product form.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Barcode History List</h2>
+            </div>
+            <p class="overview-text">At the bottom of the page, you will see the Barcode History table. It records the Date Generated, Product Name, and the Barcode ID.</p>
+            <img src="{% static 'images/manual/inventory/barcode_history_table.png' %}" alt="Barcode History Table" class="module-preview-img">
+
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/icon_copy.png' %}" alt="Copy Icon">
+                    </div>
+                    <h3>Copy Icon</h3>
+                    <p>Click the copy icon under the Action column to quickly copy the barcode number.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/icon_print.png' %}" alt="Print Icon">
+                    </div>
+                    <h3>Print Icon</h3>
+                    <p>Click the printer icon under the Action column to easily reprint old barcode stickers.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/inventory/icon_delete_history.png' %}" alt="Delete Icon">
+                    </div>
+                    <h3>Delete Icon</h3>
+                    <p>Click the red trash can icon to remove old or incorrect barcodes from your history list.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+</div>
+{% endblock %}
