@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.contrib import messages # 1. IMPORT MESSAGES
 from django.http import JsonResponse
 from inventory.models import InventoryItem, Category, Supplier
 
 def create_product(request, pk=None):
-    # 1. If 'pk' is provided, we are EDITING. If not, we are CREATING.
     item = None
     if pk:
         item = get_object_or_404(InventoryItem, pk=pk)
@@ -14,7 +14,6 @@ def create_product(request, pk=None):
     suppliers = Supplier.objects.all()
 
     if request.method == 'POST':
-        # Get common data
         item_name = request.POST.get('item_name')
         category_id = request.POST.get('category')
         supplier_id = request.POST.get('supplier')
@@ -24,7 +23,6 @@ def create_product(request, pk=None):
         unit_cost = request.POST.get('unit_cost', 0)
         annual_demand = request.POST.get('annual_demand', 0)
         
-        # --- NEW ROP FIELDS ---
         average_daily_sales = float(request.POST.get('average_daily_sales') or 0)
         max_daily_sales = float(request.POST.get('max_daily_sales') or 0)
         average_lead_time_days = int(request.POST.get('average_lead_time_days') or 0)
@@ -33,7 +31,13 @@ def create_product(request, pk=None):
         category = get_object_or_404(Category, id=category_id)
         supplier = Supplier.objects.filter(id=supplier_id).first()
 
+        # 2. ADD THE DUPLICATE BARCODE CHECKS HERE
         if item:
+            # If editing, ensure the barcode doesn't belong to a DIFFERENT item
+            if InventoryItem.objects.filter(barcode_id=barcode_id).exclude(pk=item.pk).exists():
+                messages.error(request, f"Update failed: Barcode '{barcode_id}' is already used by another product.")
+                return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
+            
             # --- UPDATE LOGIC ---
             item.item_name = item_name
             item.category = category
@@ -43,15 +47,20 @@ def create_product(request, pk=None):
             item.price = price
             item.unit_cost = unit_cost
             item.annual_demand = annual_demand
-            
-            # --- UPDATE ROP FIELDS ---
             item.average_daily_sales = average_daily_sales
             item.max_daily_sales = max_daily_sales
             item.average_lead_time_days = average_lead_time_days
             item.max_lead_time_days = max_lead_time_days
             
-            item.save() # This updates the existing row (and auto-calculates ROP in models.py!)
+            item.save() 
+            messages.success(request, f"Product '{item.item_name}' updated successfully.")
+            
         else:
+            # If creating, ensure the barcode doesn't exist AT ALL
+            if InventoryItem.objects.filter(barcode_id=barcode_id).exists():
+                messages.error(request, f"Cannot add product: Barcode '{barcode_id}' is already registered to an existing item.")
+                return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
+
             # --- CREATE LOGIC ---
             InventoryItem.objects.create(
                 item_name=item_name,
@@ -62,18 +71,17 @@ def create_product(request, pk=None):
                 price=price,
                 unit_cost=unit_cost,
                 annual_demand=annual_demand,
-                
-                # --- CREATE ROP FIELDS ---
                 average_daily_sales=average_daily_sales,
                 max_daily_sales=max_daily_sales,
                 average_lead_time_days=average_lead_time_days,
                 max_lead_time_days=max_lead_time_days
-            ) # Auto-calculates ROP upon creation!
+            ) 
+            messages.success(request, f"Product '{item_name}' added successfully.")
         
         return redirect('inventory:inventory_list')
 
     return render(request, 'product_registration/create_product.html', {
-        'item': item, # Passes existing item to the form
+        'item': item,
         'categories': categories,
         'suppliers': suppliers
     })
