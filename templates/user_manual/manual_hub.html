@@ -94,9 +94,8 @@
     <div class="tabs-wrapper">
         <a href="{% url 'user_manual:dashboard' %}" class="tab-btn {% if active_tab == 'dashboard' %}active{% endif %}">Dashboard</a>
         <a href="{% url 'user_manual:inventory' %}" class="tab-btn {% if active_tab == 'inventory' %}active{% endif %}">Inventory</a>
-        <a href="#" class="tab-btn {% if active_tab == 'pos' %}active{% endif %}">Point of Sale</a>
-        <a href="#" class="tab-btn {% if active_tab == 'billing' %}active{% endif %}">Billing & Payment</a>
-        <a href="#" class="tab-btn {% if active_tab == 'reports' %}active{% endif %}">Reports & Analytics</a>
+        <a href="{% url 'user_manual:pos' %}" class="tab-btn {% if active_tab == 'pos' %}active{% endif %}">Point of Sale</a>
+        <a href="{% url 'user_manual:billing' %}" class="tab-btn {% if active_tab == 'billing' %}active{% endif %}">Billing & Payment</a>        <a href="#" class="tab-btn {% if active_tab == 'reports' %}active{% endif %}">Reports & Analytics</a>
         <a href="#" class="tab-btn {% if active_tab == 'security' %}active{% endif %}">Security & Access</a>
     </div>
 
