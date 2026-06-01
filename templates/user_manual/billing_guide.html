@@ -3,11 +3,13 @@
 
 {% block manual_content %}
 <style>
-    /* Base Styles (Copied from Inventory Guide) */
+    /* Base Styles */
     .kb-container { font-family: 'Inter', system-ui, -apple-system, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; color: #334155; }
     .inventory-header { text-align: center; margin-bottom: 50px; padding-bottom: 40px; border-bottom: 1px solid #e2e8f0; }
     .inventory-header h1 { color: #092c4c; font-size: 32px; font-weight: 800; margin-bottom: 12px; margin-top: 0; }
     .inventory-header p { color: #64748b; font-size: 16px; max-width: 700px; margin: 0 auto; }
+    
+    /* Dropdown Styles */
     details.kb-dropdown { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s ease; }
     details.kb-dropdown:hover { box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1); border-color: #092c4c; }
     details.kb-dropdown summary { padding: 24px 30px; cursor: pointer; font-weight: 700; color: #092c4c; font-size: 18px; background: #ffffff; border-radius: 12px; list-style: none; position: relative; display: flex; align-items: center; justify-content: space-between; }
@@ -15,21 +17,30 @@
     details.kb-dropdown summary::after { content: "▼"; font-size: 14px; color: #64748b; transition: transform 0.3s ease; }
     details.kb-dropdown[open] summary::after { transform: rotate(180deg); }
     details.kb-dropdown[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+    
+    /* Content Area */
     .kb-dropdown-content { padding: 30px; display: flex; flex-direction: column; background: #ffffff; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
     .overview-text { color: #475569; font-size: 15.5px; line-height: 1.6; margin-bottom: 20px; text-align: center; }
     .module-preview-img { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; margin: 0 auto 40px auto; display: block; }
-    .form-preview-img { max-width: 700px; }
+    
+    /* Grids & Cards */
     .kb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 10px; margin-bottom: 30px; }
     .kb-grid-text { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
     .kb-card, .kb-card-simple { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px 24px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; }
     .kb-card:hover, .kb-card-simple:hover { transform: translateY(-5px); box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1); border-color: #092c4c; }
     .kb-card-simple { padding: 24px; text-align: left; align-items: flex-start; }
+    
+    /* Typography within Cards */
     .kb-card-simple h3 { color: #092c4c; font-size: 15px; font-weight: 700; margin-bottom: 8px; margin-top: 0; }
     .kb-card-simple p { color: #475569; font-size: 13.5px; line-height: 1.5; margin: 0; }
-    .ui-snippet { height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; width: 100%; }
-    .ui-snippet img { max-height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); border-radius: 6px; }
     .kb-card h3 { color: #0f172a; font-size: 16px; font-weight: 700; margin-bottom: 12px; margin-top: 0; }
     .kb-card p { color: #475569; font-size: 14px; line-height: 1.6; margin: 0; }
+    
+    /* Image Snippets */
+    .ui-snippet { height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; width: 100%; }
+    .ui-snippet img { max-height: 100%; max-width: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); border-radius: 6px; }
+    
+    /* Section Dividers */
     .section-divider { margin: 20px 0; text-align: center; }
     .section-divider h2 { color: #092c4c; font-size: 22px; font-weight: 700; margin: 0; padding-bottom: 10px; border-bottom: 2px dashed #e2e8f0; display: inline-block; }
 </style>
@@ -37,11 +48,12 @@
 <div class="kb-container">
     <div class="inventory-header">
         <h1>Billing & Payment</h1>
-        <p>Learn how to manage customer accounts, track unpaid invoices, and process refunds or sales returns.</p>
+        <p>Learn how to manage trade credit accounts, track invoices, process payments, and handle sales returns.</p>
     </div>
 
+    <!-- Submodule 1: Invoice Management -->
     <details class="kb-dropdown">
-        <summary>Invoice & Sales Management</summary>
+        <summary>Invoice Management</summary>
         <div class="kb-dropdown-content">
             <p class="overview-text"><strong>Invoice List:</strong> View all generated invoices from POS sales, track their payment statuses, and record incoming payments.</p>
             <img src="{% static 'images/manual/billing/invoice_list.png' %}" alt="Invoice List Interface" class="module-preview-img">
@@ -53,36 +65,32 @@
             <div class="kb-grid">
                 <div class="kb-card">
                     <div class="ui-snippet"><img src="{% static 'images/manual/billing/badge_paid.png' %}" alt="Paid Status"></div>
-                    <h3>Fully Paid (Green)</h3>
-                    <p>The total amount has been settled. No further action is required.</p>
+                    <h3>Fully Paid</h3>
+                    <p>The total amount has been settled. No further collection action is required.</p>
                 </div>
                 <div class="kb-card">
                     <div class="ui-snippet"><img src="{% static 'images/manual/billing/badge_unpaid.png' %}" alt="Unpaid Status"></div>
-                    <h3>Unpaid (Red)</h3>
-                    <p>The invoice is pending payment. Click the invoice to add a payment entry when the customer pays.</p>
-                </div>
-                <div class="kb-card">
-                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/badge_partial.png' %}" alt="Partial Status"></div>
-                    <h3>Partial (Orange)</h3>
-                    <p>The customer has paid a portion, but a balance remains to be settled.</p>
+                    <h3>Unpaid</h3>
+                    <p>The invoice is pending payment. Access the invoice to add a payment entry when the customer pays.</p>
                 </div>
             </div>
         </div>
     </details>
 
+    <!-- Submodule 2: Trade Credit Accounts -->
     <details class="kb-dropdown">
-        <summary>Customer Ledger</summary>
+        <summary>Trade Credit Accounts</summary>
         <div class="kb-dropdown-content">
-            <p class="overview-text"><strong>Account Tracking:</strong> Keep track of regular clients, their credit limits, and their overall balance.</p>
-            <img src="{% static 'images/manual/billing/customer_ledger.png' %}" alt="Customer Ledger Interface" class="module-preview-img">
+            <p class="overview-text"><strong>Account Tracking:</strong> Keep track of regular clients, their trade credit accounts, and their overall outstanding balance.</p>
+            <img src="{% static 'images/manual/billing/trade_credit_ledger.png' %}" alt="Trade Credit Ledger Interface" class="module-preview-img">
             
             <div class="section-divider">
-                <h2>Ledger Table Information</h2>
+                <h2>Account Table Information</h2>
             </div>
             <div class="kb-grid-text">
                 <div class="kb-card-simple">
                     <h3>Customer Profile</h3>
-                    <p>Name and contact details of your registered clients.</p>
+                    <p>Name and contact details of your registered clients who utilize trade credit.</p>
                 </div>
                 <div class="kb-card-simple">
                     <h3>Total Outstanding</h3>
@@ -90,35 +98,48 @@
                 </div>
                 <div class="kb-card-simple">
                     <h3>View History</h3>
-                    <p>Click the "View Ledger" button to see a chronological breakdown of their purchases and payments.</p>
+                    <p>Click the action button to see a chronological breakdown of their purchases and payments.</p>
                 </div>
             </div>
         </div>
     </details>
-
+    <!-- Submodule 3: Sales Returns -->
     <details class="kb-dropdown">
         <summary>Sales Returns</summary>
         <div class="kb-dropdown-content">
-            <p class="overview-text"><strong>Handling Returns:</strong> Process items returned by customers due to damage or wrong variations.</p>
+            <p class="overview-text"><strong>Handling Returns:</strong> Process items returned by customers by pulling up their original transaction, selecting the items, and recording the refunded amount.</p>
             
             <div class="section-divider">
                 <h2>Return Process</h2>
             </div>
+            
             <div class="kb-grid">
                 <div class="kb-card">
-                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/btn_initiate_return.png' %}" alt="Initiate Return"></div>
+                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/btn_process_return.png' %}" alt="Process New Return"></div>
                     <h3>1. Initiate Return</h3>
-                    <p>Search for the specific Invoice number and select the item the customer is returning.</p>
+                    <p>Click the <strong>Process New Return</strong> button and input the customer's original <strong>Transaction ID</strong> to pull up their purchase record.</p>
                 </div>
                 <div class="kb-card">
-                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/btn_restock.png' %}" alt="Restock Option"></div>
-                    <h3>2. Condition Check</h3>
-                    <p>Choose whether the returned item should go back into inventory (good condition) or be marked as waste (damaged).</p>
+                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/form_select_products.png' %}" alt="Select Products"></div>
+                    <h3>2. Select Products</h3>
+                    <p>Once the transaction loads on your screen, select the specific products that the customer is returning.</p>
                 </div>
                 <div class="kb-card">
-                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/btn_refund.png' %}" alt="Refund Option"></div>
-                    <h3>3. Refund Method</h3>
-                    <p>Select if the customer will receive a Cash Refund or if it will be applied as Store Credit.</p>
+                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/btn_confirm_return.png' %}" alt="Confirm Return"></div>
+                    <h3>3. Confirm & Refund</h3>
+                    <p>Click <strong>Confirm</strong> to finalize the return. The system will automatically calculate the total and record the refunded amount.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Return History</h2>
+            </div>
+            
+            <div class="kb-grid">
+                <div class="kb-card" style="grid-column: 1 / -1; max-width: 600px; margin: 0 auto;">
+                    <div class="ui-snippet"><img src="{% static 'images/manual/billing/table_return_history.png' %}" alt="Return History Table"></div>
+                    <h3>View Return Details</h3>
+                    <p>All completed returns are saved in the Return History table. You can check this list anytime to review past refunded amounts and the specific items returned.</p>
                 </div>
             </div>
         </div>
