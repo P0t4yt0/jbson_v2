@@ -20,3 +20,9 @@ def pos_manual(request):
 
 def billing_manual(request):
     return render(request, 'user_manual/billing_guide.html', {'active_tab': 'billing'})
+
+def reports_guide(request):
+    return render(request, 'user_manual/reports_guide.html', {'active_tab': 'reports'})
+
+def management_guide(request):
+    return render(request, 'user_manual/management_guide.html', {'active_tab': 'management'})

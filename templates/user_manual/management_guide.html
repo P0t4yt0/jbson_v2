@@ -1,0 +1,346 @@
+{% extends 'user_manual/manual_hub.html' %}
+{% load static %}
+
+{% block manual_content %}
+<style>
+    /* Base Styles */
+    .kb-container {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        color: #334155;
+    }
+
+    /* Main Header Section */
+    .user-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .user-header h1 {
+        color: #092c4c;
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .user-header p {
+        color: #64748b;
+        font-size: 16px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Dropdown / Accordion Styles */
+    details.kb-dropdown {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+    }
+
+    details.kb-dropdown:hover {
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    details.kb-dropdown summary {
+        padding: 24px 30px;
+        cursor: pointer;
+        font-weight: 700;
+        color: #092c4c;
+        font-size: 18px;
+        background: #ffffff;
+        border-radius: 12px;
+        list-style: none;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    details.kb-dropdown summary::-webkit-details-marker {
+        display: none;
+    }
+
+    details.kb-dropdown summary::after {
+        content: "▼";
+        font-size: 14px;
+        color: #64748b;
+        transition: transform 0.3s ease;
+    }
+
+    details.kb-dropdown[open] summary::after {
+        transform: rotate(180deg);
+    }
+
+    details.kb-dropdown[open] summary {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    /* Content Area inside Dropdown */
+    .kb-dropdown-content {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .overview-text {
+        color: #475569;
+        font-size: 15.5px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Main Module Image Display */
+    .module-preview-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        margin: 0 auto 40px auto;
+        display: block;
+    }
+
+    /* Form and Modal Preview specific styling */
+    .form-preview-img {
+        max-width: 700px;
+    }
+
+    /* Grid Layout for Cards inside Dropdown */
+    .kb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 10px;
+        margin-bottom: 30px;
+    }
+
+    /* Card Design (White & Animated) */
+    .kb-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 30px 24px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kb-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    /* Picture Container per Card */
+    .ui-snippet {
+        height: 50px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .ui-snippet img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); 
+        border-radius: 6px;
+    }
+
+    /* Card Text */
+    .kb-card h3 {
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .kb-card p {
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Section Dividers */
+    .section-divider {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .section-divider h2 {
+        color: #092c4c;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        padding-bottom: 10px;
+        border-bottom: 2px dashed #e2e8f0;
+        display: inline-block;
+    }
+</style>
+
+<div class="kb-container">
+
+    <div class="user-header">
+        <h1>User Management</h1>
+        <p>Control who has access to your system, create new accounts for your employees, and monitor every action taken inside the software.</p>
+    </div>
+
+    <!-- Submodule 1: Users (Registration and Management) -->
+    <details class="kb-dropdown">
+        <summary>System Users & Accounts</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>User Accounts:</strong> View all registered users, manage their access levels, and approve new account requests.</p>
+            <img src="{% static 'images/manual/user_management/users_main.png' %}" alt="Users Management Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Account Lists</h2>
+            </div>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/users_table.png' %}" alt="System Users Table">
+                    </div>
+                    <h3>System Users Table</h3>
+                    <p>Shows everyone who currently has access to the system. You can see their Full Name, Username, Role (e.g., ADMIN or EMPLOYEE), and the date their account was created.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/btn_edit_delete.png' %}" alt="Action Buttons">
+                    </div>
+                    <h3>Action Buttons</h3>
+                    <p>Use the pencil icon to edit a user's details, or the red trash can icon to delete their account and remove their access. <em>Note: You cannot delete your own account, marked as "(You)".</em></p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/pending_requests.png' %}" alt="Pending Account Requests">
+                    </div>
+                    <h3>Pending Account Requests</h3>
+                    <p>If employees can request accounts, their requests will appear in this bottom table waiting for an Admin's approval before they can log in.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Register New Account Form</h2>
+            </div>
+            <p class="overview-text">Use the form on the right side of the screen to manually add a new worker to the system.</p>
+            <img src="{% static 'images/manual/user_management/register_form.png' %}" alt="Register New Account Form" class="module-preview-img form-preview-img">
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/form_basic_details.png' %}" alt="Basic Details Input">
+                    </div>
+                    <h3>1. Basic Details</h3>
+                    <p>Type the user's Full Name and let them choose a unique Username for logging in.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/form_system_role.png' %}" alt="System Role Dropdown">
+                    </div>
+                    <h3>2. System Role</h3>
+                    <p>Select their access level. Choose "Employee" for normal staff, or "Admin" if they need full access to reports and settings.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/form_password.png' %}" alt="Secure Password Checklist">
+                    </div>
+                    <h3>3. Secure Password</h3>
+                    <p>Create a strong password. The system requires it to have at least 8 characters, 1 uppercase letter, and 1 number. A checklist will turn green as you meet these rules.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 2: Activity Logs -->
+    <details class="kb-dropdown">
+        <summary>Activity Logs & Audit Trail</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>System Monitoring:</strong> Track every single action done by your users so you always know who did what and when it happened.</p>
+            <img src="{% static 'images/manual/user_management/activity_logs_main.png' %}" alt="Activity Logs Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Log Filters</h2>
+            </div>
+            <p class="overview-text">If you are looking for a specific event, use the search tools at the top of the page.</p>
+
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/filter_search.png' %}" alt="Search Bar">
+                    </div>
+                    <h3>Search Bar</h3>
+                    <p>Type a username (like "JBSON") or an action (like "logged in") to instantly find matching records.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/filter_date.png' %}" alt="Date Filter">
+                    </div>
+                    <h3>Date Filter</h3>
+                    <p>Select a start and end date to only view actions that happened during that specific time period.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/filter_dropdowns.png' %}" alt="Role and Action Dropdowns">
+                    </div>
+                    <h3>Role & Action Filters</h3>
+                    <p>Use the dropdowns to only show actions done by Admins, or specifically look for "Edits" or "Deletions". Click the <strong>Filter</strong> button to apply.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Reading the Activity Logs</h2>
+            </div>
+            <p class="overview-text">The main table records the exact history of your system. Here is how to understand the data:</p>
+
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/log_basic.png' %}" alt="Basic Log Example">
+                    </div>
+                    <h3>Basic Logs (#AUTH / #ACT)</h3>
+                    <p>These show general actions like a user logging in successfully, generating a new barcode, or creating a new Purchase Order. It shows the exact Date and Time it occurred.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/log_system.png' %}" alt="System Audit Example">
+                    </div>
+                    <h3>System Audits (#AUD)</h3>
+                    <p>When the "User" is labeled as <em>System</em>, it means it is a detailed background record of an action that just happened.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/user_management/log_before_after.png' %}" alt="Before and After Values">
+                    </div>
+                    <h3>Before and After Values</h3>
+                    <p>If someone changes data (labeled with a yellow <strong>EDIT</strong> tag), the log will show exactly what was changed. For example, it will display the old stock number in red, an arrow, and the new stock number in green (e.g., <code>SafetyStock: 0 ➔ 7</code>).</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+</div>
+{% endblock %}

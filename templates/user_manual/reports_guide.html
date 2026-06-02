@@ -1,0 +1,636 @@
+{% extends 'user_manual/manual_hub.html' %}
+{% load static %}
+
+{% block manual_content %}
+<style>
+    /* Base Styles */
+    .kb-container {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        color: #334155;
+    }
+
+    /* Main Header Section */
+    .reports-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .reports-header h1 {
+        color: #092c4c;
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .reports-header p {
+        color: #64748b;
+        font-size: 16px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Dropdown / Accordion Styles */
+    details.kb-dropdown {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+    }
+
+    details.kb-dropdown:hover {
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    details.kb-dropdown summary {
+        padding: 24px 30px;
+        cursor: pointer;
+        font-weight: 700;
+        color: #092c4c;
+        font-size: 18px;
+        background: #ffffff;
+        border-radius: 12px;
+        list-style: none;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    details.kb-dropdown summary::-webkit-details-marker {
+        display: none;
+    }
+
+    details.kb-dropdown summary::after {
+        content: "▼";
+        font-size: 14px;
+        color: #64748b;
+        transition: transform 0.3s ease;
+    }
+
+    details.kb-dropdown[open] summary::after {
+        transform: rotate(180deg);
+    }
+
+    details.kb-dropdown[open] summary {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    /* Content Area inside Dropdown */
+    .kb-dropdown-content {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .overview-text {
+        color: #475569;
+        font-size: 15.5px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* Main Module Image Display */
+    .module-preview-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        margin: 0 auto 40px auto;
+        display: block;
+    }
+
+    /* Grid Layout for Cards inside Dropdown */
+    .kb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 10px;
+        margin-bottom: 30px;
+    }
+
+    /* Specific Grid for Text-only Data Explanations */
+    .kb-grid-text {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    /* Card Design (White & Animated) */
+    .kb-card, .kb-card-simple {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 30px 24px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kb-card:hover, .kb-card-simple:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    /* Adjust simple card alignment */
+    .kb-card-simple {
+        padding: 24px;
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .kb-card-simple h3 {
+        color: #092c4c;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        margin-top: 0;
+    }
+
+    .kb-card-simple p {
+        color: #475569;
+        font-size: 13.5px;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Picture Container per Card */
+    .ui-snippet {
+        height: 50px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .ui-snippet img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); 
+        border-radius: 6px;
+    }
+
+    /* Card Text */
+    .kb-card h3 {
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .kb-card p {
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Section Dividers */
+    .section-divider {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .section-divider h2 {
+        color: #092c4c;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        padding-bottom: 10px;
+        border-bottom: 2px dashed #e2e8f0;
+        display: inline-block;
+    }
+</style>
+
+<div class="kb-container">
+
+    <div class="reports-header">
+        <h1>Reports & Analytics</h1>
+        <p>Monitor your business performance, track daily sales, check supplier expenses, and generate overall records with ease. Select a category below to learn more.</p>
+    </div>
+
+    <!-- Common Report Features -->
+    <details class="kb-dropdown">
+        <summary>Common Report Tools (Filters & Exports)</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Standard Controls:</strong> Most reports share these simple tools to help you find and save the exact data you need.</p>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tool_date_filter.png' %}" alt="Date Filter">
+                    </div>
+                    <h3>Filter by Date</h3>
+                    <p>Select a start and end date, then click "Generate" to only show data for a specific day, week, or month. Click "Clear" to reset.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tool_export_pdf.png' %}" alt="Export to PDF">
+                    </div>
+                    <h3>Export PDF</h3>
+                    <p>Click the red "Export PDF" button to download a printable, clean document of your current report.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tool_export_csv.png' %}" alt="Export to CSV">
+                    </div>
+                    <h3>Export CSV</h3>
+                    <p>Click the green "Export CSV" button to download the data for Excel or Google Sheets so you can edit it later.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 1: Sales & Returns Report -->
+    <details class="kb-dropdown">
+        <summary>Sales & Returns Report</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Sales Activity:</strong> View all the money coming in, the total number of customer purchases, and any returned items.</p>
+            <img src="{% static 'images/manual/reports/sales_returns_main.png' %}" alt="Sales and Returns Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Key Sales Numbers</h2>
+            </div>
+            <p class="overview-text">The top colored boxes give you an instant summary of your business sales.</p>
+            
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Total Gross Sales</h3>
+                    <p>The overall total amount collected from all customer purchases before any deductions.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Net Sales</h3>
+                    <p>The true income after subtracting the refunded money from returned items.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Total Returns</h3>
+                    <p>The total value of items that customers brought back for a refund (shown as a negative number).</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Transactions</h3>
+                    <p>The total number of receipts or individual sales completed during the selected dates.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Breakdowns & Logs</h2>
+            </div>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/table_payment_methods.png' %}" alt="Payment Breakdown">
+                    </div>
+                    <h3>Payment Breakdown</h3>
+                    <p>Shows how customers paid you—whether by Cash, Online Wallet, Credit, or Bank Transfer.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/table_top_products.png' %}" alt="Top Revenue Products">
+                    </div>
+                    <h3>Top Revenue Products</h3>
+                    <p>A leaderboard showing which items are making the most money for the store.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/table_transaction_logs.png' %}" alt="Transaction Logs">
+                    </div>
+                    <h3>Transaction Breakdown</h3>
+                    <p>A complete list of every receipt generated. Use the search bar to find a specific receipt number.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/table_sales_returns.png' %}" alt="Sales Returns">
+                    </div>
+                    <h3>Sales Return Logs</h3>
+                    <p>A record of every refunded item, showing the original receipt and how much was returned to the customer.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 2: Purchase & Expenses Report -->
+    <details class="kb-dropdown">
+        <summary>Purchase & Expenses Report</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Business Spending:</strong> Monitor how much money goes out of the store to buy supplies and inventory.</p>
+            <img src="{% static 'images/manual/reports/purchase_expenses_main.png' %}" alt="Purchase Expenses Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Expense Tracking Features</h2>
+            </div>
+
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Total Purchase (Expenses)</h3>
+                    <p>The total amount of money you spent paying suppliers for inventory.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Total Orders</h3>
+                    <p>The overall count of Purchase Orders you sent to your suppliers.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Supplier Expense Breakdown</h3>
+                    <p>Shows exactly how much money went to each specific supplier (e.g., Jewelle, Denden).</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Most Purchased Products</h3>
+                    <p>A leaderboard of items you order the most frequently for restocking.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Purchase Order Logs</h2>
+            </div>
+            <p class="overview-text">The bottom table tracks all your individual purchase orders and their delivery statuses.</p>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_pending.png' %}" alt="Pending Status Tag">
+                    </div>
+                    <h3>PENDING (Yellow)</h3>
+                    <p>The order has been created but the supplier hasn't delivered the items yet.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_received.png' %}" alt="Received Status Tag">
+                    </div>
+                    <h3>RECEIVED (Green)</h3>
+                    <p>The items have arrived, and the inventory stock has been updated.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 3: Inventory & Product Report -->
+    <details class="kb-dropdown">
+        <summary>Inventory & Product Report</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Stock Valuation:</strong> Check the total worth of the items currently inside your store and get alerts for low supplies.</p>
+            <img src="{% static 'images/manual/reports/inventory_report_main.png' %}" alt="Inventory Report Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Inventory Metrics</h2>
+            </div>
+            
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Total Inventory Value</h3>
+                    <p>The total potential selling price of every single item currently available in your store.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Total Product Types</h3>
+                    <p>The total count of unique items registered in your system.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Low Stock Warning</h3>
+                    <p>Instantly shows how many items are running out so you can plan your next bulk order.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Detailed Stock Valuation Table</h2>
+            </div>
+            <p class="overview-text">This list shows every item in your system, categorized properly. Watch out for items with the Low Stock warning.</p>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_low_stock.png' %}" alt="Low Stock Badge">
+                    </div>
+                    <h3>Low Stock Badge</h3>
+                    <p>Items that have reached zero or critical levels are tagged with a red <strong>LOW STOCK</strong> badge under their name.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 4: Invoice Report -->
+    <details class="kb-dropdown">
+        <summary>Invoice Report</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Customer Billing:</strong> Keep track of customer invoices, identify who has paid, and see who still owes you money.</p>
+            <img src="{% static 'images/manual/reports/invoice_report_main.png' %}" alt="Invoice Report Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Invoice Summaries</h2>
+            </div>
+            
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Total Invoiced</h3>
+                    <p>The total amount billed to customers, combining both paid and unpaid invoices.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Total Paid</h3>
+                    <p>The actual cash already collected from finished invoices.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Total Balance Due</h3>
+                    <p>The total remaining amount that customers still need to pay to the store.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Detailed Invoice Logs</h2>
+            </div>
+            <p class="overview-text">Use this table to check the status of specific customers.</p>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_paid.png' %}" alt="Paid Status Tag">
+                    </div>
+                    <h3>PAID Status</h3>
+                    <p>A green <strong>PAID</strong> tag means the customer has fully settled their bill and has zero balance.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_unpaid.png' %}" alt="Unpaid Status Tag">
+                    </div>
+                    <h3>UNPAID Status</h3>
+                    <p>A red <strong>UNPAID</strong> tag means you still need to collect the remaining balance from the customer.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 5: Procurement & Supplier Report -->
+    <details class="kb-dropdown">
+        <summary>Procurement & Supplier Report</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Supplier Management:</strong> Analyze your relationships with suppliers, track bulk orders, and see pending deliveries.</p>
+            <img src="{% static 'images/manual/reports/procurement_report_main.png' %}" alt="Procurement Report Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Procurement Highlights</h2>
+            </div>
+            
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Total Procurement Spend</h3>
+                    <p>Your overall spending limit or total amount used for all bulk supplier orders.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Pending Deliveries (Value)</h3>
+                    <p>The cash value of inventory items that you have already ordered but are still waiting to be delivered.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Total POs Issued</h3>
+                    <p>The number of formal Purchase Order requests generated by the system.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Supplier Tables</h2>
+            </div>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/table_leaderboard.png' %}" alt="Supplier Leaderboard">
+                    </div>
+                    <h3>Supplier Spend Leaderboard</h3>
+                    <p>A quick view ranking your top suppliers based on how many orders you placed and how much you paid them.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/table_master_history.png' %}" alt="Master Purchase History">
+                    </div>
+                    <h3>Master Purchase History</h3>
+                    <p>A consolidated record of all past and ongoing requests. Use the search bar to find an old PO number instantly.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 6: Profit & Loss Report -->
+    <details class="kb-dropdown">
+        <summary>Profit & Loss Report</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Business Earnings:</strong> Understand your true earnings by subtracting all costs and expenses from your overall sales.</p>
+            <img src="{% static 'images/manual/reports/profit_loss_main.png' %}" alt="Profit and Loss Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Profit Computation</h2>
+            </div>
+            
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Gross Sales</h3>
+                    <p>The total money coming in from customer purchases.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Inventory Cost</h3>
+                    <p>The amount deducted for buying stocks and supplies from your suppliers.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Operating Expenses</h3>
+                    <p>The amount deducted for everyday business bills like payroll, electricity, and rent.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Net Profit</h3>
+                    <p>Your actual take-home money after all costs and expenses are subtracted from your sales.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Expense and Purchase Logs</h2>
+            </div>
+            <p class="overview-text">Use the tables below the summary boxes to track exactly where your money is going.</p>
+
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/btn_new_po.png' %}" alt="New PO Button">
+                    </div>
+                    <h3>Purchase Cost Logs</h3>
+                    <p>A list of all payments made to suppliers for inventory. Click <strong>+ New PO</strong> to draft a new purchase order directly.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/btn_add_expense.png' %}" alt="Add Expense Button">
+                    </div>
+                    <h3>Operating Expense Logs</h3>
+                    <p>A list of regular business bills (like payroll or utilities). Click <strong>+ Add Expense</strong> to manually log a new store expense.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Submodule 7: Annual Business Report -->
+    <details class="kb-dropdown">
+        <summary>Annual Business Report</summary>
+        <div class="kb-dropdown-content">
+            <p class="overview-text"><strong>Yearly Overview:</strong> A big-picture view of your business performance over the entire year, complete with visual charts and health indicators.</p>
+            <img src="{% static 'images/manual/reports/annual_report_main.png' %}" alt="Annual Business Report Interface" class="module-preview-img">
+            
+            <div class="section-divider">
+                <h2>Annual Highlights & Trends</h2>
+            </div>
+            
+            <div class="kb-grid">
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/chart_financial_trend.png' %}" alt="Financial Trend Chart">
+                    </div>
+                    <h3>Financial Performance Trend</h3>
+                    <p>A visual chart that makes it easy to compare your sales (blue bar) against your expenses (red bar) and profit trend line month-by-month.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_profitable.png' %}" alt="System Status Tag">
+                    </div>
+                    <h3>System Status</h3>
+                    <p>A quick tag (e.g., green <strong>PROFITABLE</strong>) that tells you if your business is currently making or losing money overall.</p>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <h2>Master Logs & Business Health</h2>
+            </div>
+            
+            <div class="kb-grid-text">
+                <div class="kb-card-simple">
+                    <h3>Monthly Breakdown Logs</h3>
+                    <p>A clean table showing a summary of your earnings and spending for each specific month.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Total Gross & Outflow</h3>
+                    <p>Located at the bottom, this compares all money that entered the business versus all money that left the business.</p>
+                </div>
+                <div class="kb-card-simple">
+                    <h3>Profit Margin & Expense Ratio</h3>
+                    <p>Shows the percentage of return or cost per every peso earned, helping you gauge if your pricing is effective.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+</div>
+{% endblock %}
