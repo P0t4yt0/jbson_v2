@@ -127,55 +127,54 @@
         <div class="settings-panel" style="text-align: center;">
             <div id="scan-init" style="display: block;">
                 <div class="icon-circle icon-blue" style="width: 64px; height: 64px; font-size: 32px;"><i class="ph ph-shield-check"></i></div>
-                <p style="color: var(--text-primary); font-size: 1.1rem; margin-bottom: 24px; font-weight: 500;">No recent diagnostics run. Would you like to scan the system now?</p>
+                <p style="color: var(--text-primary); font-size: 1.1rem; margin-bottom: 24px; font-weight: 500;">No recent system checks run. Would you like to check the system now?</p>
                 <button onclick="runProScan()" class="settings-btn btn-french" style="max-width: 250px;">
-                    <i class="ph ph-magnifying-glass"></i> Start System Scan
+                    <i class="ph ph-magnifying-glass"></i> Start System Check
                 </button>
             </div>
 
             <div id="pro-loader" style="display: none; padding: 20px;">
                 <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--french-blue); border-radius: 50%; animation: spin 1s linear infinite; margin: auto; margin-bottom: 20px;"></div>
-                <p style="color: var(--french-blue); font-weight: 700; font-size: 1.1rem;">Scanning database tables...</p>
-                <p style="color: var(--text-secondary); font-size: 0.9rem;">Checking for database clutter and wasted space.</p>
+                <p style="color: var(--french-blue); font-weight: 700; font-size: 1.1rem;">Checking system...</p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Looking for unused storage and ways to free up space.</p>
             </div>
 
             <div id="pro-results" style="display: none; text-align: left;">
                 <div style="background: rgba(34, 197, 94, 0.05); border-left: 4px solid var(--status-green); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
                     <h4 style="color: var(--primary-navy); margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
                         <i class="ph ph-check-circle" style="color: var(--status-green); font-size: 1.2rem;"></i>
-                        Diagnostic Complete
+                        System Check Complete
                     </h4>
                     <div style="color: var(--text-secondary); font-size: 0.95rem;">
-                        <p style="margin: 6px 0;">✓ All tables are accessible.</p>
-                        <p style="margin: 6px 0;">✓ Current Database Size: <strong style="color: var(--french-blue);">{{ db_size }} MB</strong></p>
+                        <p style="margin: 6px 0;">Everything is working properly.</p>
+                        <p style="margin: 6px 0;">Storage Used: <strong style="color: var(--french-blue);">{{ db_size }} MB</strong></p>
                         
                         {% if report %}
-                            <p style="margin: 12px 0 6px 0; color: var(--status-red); font-weight: 600;">⚠️ Database Clutter Detected:</p>
+                            <p style="margin: 12px 0 6px 0; color: var(--status-red); font-weight: 600;">⚠️ Unused storage Found:</p>
                             <ul style="margin: 0 0 0 20px; padding: 0; color: var(--status-red); font-size: 0.85rem;">
                                 {% for item in report %}
-                                    <li>{{ item }}</li>
-                                {% endfor %}
+                                    <li>{{ item }}</li> {% endfor %}
                             </ul>
                         {% else %}
-                            <p style="margin: 6px 0; color: var(--status-green);">✓ All systems are clean. No wasted space found.</p>
+                            <p style="margin: 6px 0; color: var(--status-green);">Everything is clean. No unused storage taking up extra space.</p>
                         {% endif %}
                     </div>
                 </div>
 
                 {% if report %}
                     <div style="background: rgba(255, 185, 21, 0.1); border-left: 4px solid var(--amber-flame); padding: 16px; border-radius: 12px; margin-bottom: 24px;">
-                        <p style="margin: 0; color: #92400e; font-size: 0.9rem;"><strong>Recommendation:</strong> May mga bakanteng espasyo sa database na hindi na nagagamit. Ang paglilinis nito ay makakatulong para mas bumilis ang response ng system.</p>
+                        <p style="margin: 0; color: #92400e; font-size: 0.9rem;"><strong>Recommendation:</strong> Some saved information is no longer needed. Removing it can help the system run faster.</p>
                     </div>
                     <form method="POST" action="{% url 'maintenance:maintenance_dashboard' %}">
                         {% csrf_token %}
                         <button type="submit" class="settings-btn btn-french">
-                            <i class="ph ph-broom"></i> Clean & Optimize Database
+                            <i class="ph ph-broom"></i> Clean Up Storage
                         </button>
                     </form>
                 {% else %}
                     <div style="background: rgba(34, 197, 94, 0.1); padding: 16px; border-radius: 12px; text-align: center;">
                         <p style="margin: 0; color: #166534; font-size: 0.95rem; font-weight: 600;">
-                            <i class="ph ph-rocket" style="margin-right: 5px;"></i> System is running at peak performance. No optimization required.
+                            <i class="ph ph-rocket" style="margin-right: 5px;"></i> System is running fast and smooth. No cleanup needed.
                         </p>
                     </div>
                 {% endif %}

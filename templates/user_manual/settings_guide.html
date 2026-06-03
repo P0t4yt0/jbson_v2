@@ -1,0 +1,238 @@
+{% extends 'user_manual/manual_hub.html' %}
+{% load static %}
+
+{% block manual_content %}
+<style>
+    /* Base Styles */
+    .kb-container {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        color: #334155;
+    }
+
+    /* Full Dashboard Preview Section */
+    .dashboard-preview {
+        text-align: center;
+        margin-bottom: 60px;
+        padding-bottom: 50px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .dashboard-preview h1 {
+        color: #092c4c;
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .dashboard-preview p {
+        color: #64748b;
+        font-size: 16px;
+        max-width: 700px;
+        margin: 0 auto 30px auto;
+    }
+
+    .dashboard-preview img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        /* Magandang shadow para mag-pop yung buong image */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Sections */
+    .kb-section {
+        margin-bottom: 60px;
+    }
+
+    /* Section Headers */
+    .kb-section-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .kb-section-header h2 {
+        color: #092c4c; 
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .kb-section-header p {
+        color: #64748b;
+        font-size: 15px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Grid Layout for Cards */
+    .kb-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    /* Card Design */
+    .kb-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 30px 24px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kb-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #092c4c;
+    }
+
+    /* Danger Card Design (For Wipe Data) */
+    .kb-card-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 30px 24px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kb-card-danger:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+        border-color: #ef4444;
+    }
+
+    /* Actual UI Image Wrapper */
+    .ui-snippet {
+        height: 70px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        width: 100%;
+    }
+
+    .ui-snippet img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); 
+        border-radius: 6px;
+    }
+
+    /* Card Text */
+    .kb-card h3 {
+        color: #0f172a;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .kb-card p {
+        color: #475569;
+        font-size: 14.5px;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .kb-card-danger h3 {
+        color: #ef4444;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .kb-card-danger p {
+        color: #7f1d1d;
+        font-size: 14.5px;
+        line-height: 1.6;
+        margin: 0;
+    }
+</style>
+
+<div class="kb-container">
+
+    <div class="dashboard-preview">
+        <h1>General Settings</h1>
+        <p>Manage your system maintenance, backup your important files, and secure your data easily. Here is a full look at the settings page.</p>
+        
+        <img src="{% static 'images/manual/settings/settings_full_preview.png' %}" alt="Full Settings Overview">
+    </div>
+
+    <div class="kb-section">
+        <div class="kb-section-header">
+            <h2>1. System Maintenance</h2>
+            <p>Keep your system running smoothly by checking for any internal errors.</p>
+        </div>
+        
+        <div class="kb-grid">
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/settings/btn_start_scan.png' %}" alt="Start System Scan Button">
+                </div>
+                <h3>Start System Scan</h3>
+                <p>Click this button to run a quick check. The system will review its performance and make sure everything is working properly without any hidden problems.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="kb-section">
+        <div class="kb-section-header">
+            <h2>2. Backup & Recovery</h2>
+            <p>Always ensure your business records are safe. You can download a copy of your current data or upload an old one to fix mistakes.</p>
+        </div>
+        
+        <div class="kb-grid">
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/settings/btn_download_backup.png' %}" alt="Download Latest Backup Button">
+                </div>
+                <h3>System Backup</h3>
+                <p>Click <strong>Download Latest Backup</strong> to save a complete file of your store's data to your computer. It is highly recommended to do this regularly to prevent data loss.</p>
+            </div>
+
+            <div class="kb-card">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/settings/btn_restore_database.png' %}" alt="Restore Database Button">
+                </div>
+                <h3>System Recovery</h3>
+                <p>If something goes wrong, click <strong>Choose File</strong> to select your saved backup, then click the yellow <strong>Restore Database</strong> button to return the system to its previous state.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="kb-section">
+        <div class="kb-section-header">
+            <h2>3. Danger Zone</h2>
+            <p>Strict warnings apply here. Only use this area if you are completely resetting the store.</p>
+        </div>
+        
+        <div class="kb-grid">
+            <div class="kb-card-danger">
+                <div class="ui-snippet">
+                    <img src="{% static 'images/manual/settings/btn_wipe_data.png' %}" alt="Wipe All Data Button">
+                </div>
+                <h3>Wipe All Data</h3>
+                <p>Clicking this red button will <strong>permanently delete</strong> all your inventory stocks and transaction records. This action cannot be undone, so use it with extreme caution.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
