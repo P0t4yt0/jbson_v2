@@ -333,6 +333,10 @@
         </div>
         
         <div style="padding:24px 30px; max-height:400px; overflow-y:auto;">
+            <div id="modal_term_info" style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary); background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0;">
+                <i class="ph ph-spinner ph-spin"></i> Loading schedule...
+            </div>
+            
             <table style="width:100%; border-collapse:collapse; text-align:left;">
                 <thead>
                     <tr>
@@ -346,9 +350,19 @@
                 </tbody>
             </table>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px; padding-top:24px; border-top:1px dashed var(--border-color);">
-                <span style="font-size:14px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Total Amount</span>
-                <span style="font-weight:800; font-family: 'Inconsolata', monospace; font-size:32px; color:var(--amber-flame); letter-spacing:-1px;">₱<span style="font-family: 'Inconsolata', monospace;" id="modal_view_total_invoice">0.00</span></span>
+            <div style="margin-top:24px; padding-top:16px; border-top:1px dashed var(--border-color);">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                    <span style="font-size:14px; color:var(--text-secondary);">Items Subtotal</span>
+                    <span style="font-weight:600;">₱<span id="modal_view_subtotal">0.00</span></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom: 16px;">
+                    <span style="font-size:14px; color:var(--text-secondary);">Interest Charge</span>
+                    <span style="font-weight:600; color: #dc2626;">+ ₱<span id="modal_view_interest">0.00</span></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:16px; border-top:1px solid #e2e8f0;">
+                    <span style="font-size:14px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Grand Total</span>
+                    <span style="font-weight:800; font-family: 'Inconsolata', monospace; font-size:32px; color:var(--amber-flame); letter-spacing:-1px;">₱<span id="modal_view_total_invoice">0.00</span></span>
+                </div>
             </div>
         </div>
         
@@ -391,6 +405,13 @@ $(document).ready(function() {
                     </tr>`;
                 });
                 $('#modalBodyItems').html(html);
+                
+                // BAGONG LINES PARA SA BREAKDOWN & DATES:
+                let termHtml = `<strong style="color:var(--french-blue)">Terms:</strong> ${data.term} &nbsp;|&nbsp; <strong style="color:var(--french-blue)">Exact Due Date:</strong> ${data.due_date}`;
+                $('#modal_term_info').html(termHtml);
+                $('#modal_view_subtotal').text(data.items_subtotal);
+                $('#modal_view_interest').text(data.interest_amount);
+                $('#modal_view_total_invoice').text(data.grand_total);
             },
             error: function() {
                 $('#modalBodyItems').html('<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--status-red); font-weight:600;">Error loading items.</td></tr>');

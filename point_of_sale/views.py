@@ -241,6 +241,7 @@ def process_payment(request):
             invoice = None
 
             # ===== 2. TRADE CREDIT LOGIC =====
+            # ===== 2. TRADE CREDIT LOGIC =====
             if method == 'Trade Credit':
                 if not customer_id:
                     messages.error(request, "Select a customer for Trade Credit.")
@@ -256,26 +257,39 @@ def process_payment(request):
                     messages.error(request, "Customer account is on HOLD.")
                     return redirect('point_of_sale:pos_index')
 
-                # --- NEW: CALCULATE 2% INTEREST ---
-                interest_amount = transaction.subtotal * Decimal('0.02')
+                # --- TAMA AT LIGTAS NA COMPUTATION NG INTEREST (AUTO-READ SA PROFILE) ---
+                interest_rate = Decimal('0.00')
+                try:
+                    terms = int(customer.payment_terms) # Kinonvert sa integer para mabasa ng tama
+                except (ValueError, TypeError):
+                    terms = 30 # Default to Net 30 kung may error
+                
+                if terms == 60:
+                    interest_rate = Decimal('0.02') # 2% for Net 60
+                elif terms == 90:
+                    interest_rate = Decimal('0.04') # 4% for Net 90
+
+                interest_amount = transaction.subtotal * interest_rate
                 new_total = transaction.subtotal + interest_amount
 
                 if customer.credit_balance + new_total > customer.credit_limit:
-                    messages.error(request, "Credit limit exceeded including 2% interest.")
+                    messages.error(request, "Credit limit exceeded including interest.")
                     return redirect('point_of_sale:pos_index')
 
                 transaction.payment_method = 'credit'
                 transaction.customer = customer
                 transaction.status = 'credit'
-                transaction.total_amount = new_total # Override the total with interest!
+                transaction.total_amount = new_total 
                 transaction.date_completed = timezone.now()
                 transaction.save()
 
+                # I-SAVE ANG INTEREST AMOUNT SA DATABASE
                 invoice = Invoice.objects.create(
                     transaction=transaction,
                     customer=customer,
                     total_amount=transaction.total_amount,
                     balance_due=transaction.total_amount,
+                    interest_amount=interest_amount, 
                     status='unpaid' 
                 )
 
@@ -284,7 +298,6 @@ def process_payment(request):
 
             # ===== 3. CASH / ONLINE BANK LOGIC =====
             else:
-                # --- FIX 2: ALISIN ANG HTTP RESPONSE DITO ---
                 if method == 'Online Wallet' and not ref_num:
                     messages.error(request, "Reference number required for Online Bank/Wallet.")
                     return redirect('point_of_sale:pos_index')
@@ -313,6 +326,7 @@ def process_payment(request):
                     customer=customer_obj, 
                     total_amount=transaction.total_amount,
                     balance_due=0, 
+                    interest_amount=0, # Cash has 0 interest
                     status='paid'
                 )
 
@@ -327,16 +341,15 @@ def process_payment(request):
                         subtotal=item.subtotal
                     )
                 
-                # --- NEW: RECORD THE INTEREST ON THE INVOICE ---
-                if method == 'Trade Credit':
-                    # Calculate difference so it matches exactly
-                    applied_interest = transaction.total_amount - transaction.subtotal
+                # --- TAMANG DISPLAY NG INTEREST ITEM SA INVOICE ---
+                if method == 'Trade Credit' and invoice.interest_amount > 0:
+                    interest_percentage = "2%" if int(customer.payment_terms) == 60 else "4%"
                     InvoiceItem.objects.create(
                         invoice=invoice,
-                        product_name="Trade Credit Interest (2%)",
+                        product_name=f"Trade Credit Interest ({interest_percentage})",
                         quantity=1,
-                        unit_price=applied_interest,
-                        subtotal=applied_interest
+                        unit_price=invoice.interest_amount,
+                        subtotal=invoice.interest_amount
                     )
 
             payment_type = "Trade Credit" if method == 'Trade Credit' else method

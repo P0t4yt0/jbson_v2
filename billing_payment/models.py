@@ -57,6 +57,7 @@ class Invoice(models.Model):
     
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     balance_due = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    interest_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
     issue_date = models.DateField(default=timezone.now)
     due_date = models.DateField(null=True, blank=True)
