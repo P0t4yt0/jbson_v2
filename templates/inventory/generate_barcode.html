@@ -3,10 +3,12 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <style>
+    /* PRINT STYLES (Keep intact) */
     @media print {
         body * { visibility: hidden; }
         .no-print { display: none !important; }
@@ -26,20 +28,183 @@
             text-align: center;
         }
     }
+
+    /* GLASSMORPHISM PANELS */
+    .glass-panel, .table-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+    }
+
+    .table-container {
+        padding: 30px; 
+        overflow-x: auto; 
+    }
+
+    /* GLASS INPUTS */
+    .glass-input {
+        width: 100%; 
+        padding: 14px 16px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 12px; 
+        font-family: var(--font-main); 
+        font-size: 14px;
+        color: var(--text-primary);
+        outline: none; 
+        background: rgba(255, 255, 255, 0.8);
+        box-sizing: border-box; 
+        transition: all 0.3s ease;
+    }
+    .glass-input:focus {
+        border-color: var(--french-blue); 
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
+    }
+
+    /* PRIMARY BUTTON */
+    .page-btn-primary {
+        background-color: var(--french-blue); 
+        color: white; 
+        border: none; 
+        padding: 16px 28px; 
+        border-radius: 12px; 
+        cursor: pointer; 
+        font-weight: 700; 
+        font-size: 15px; 
+        font-family: var(--font-main); 
+        transition: all 0.3s ease; 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 10px; 
+        width: 100%; 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);
+    }
+    .page-btn-primary:hover {
+        background-color: #1a2858; 
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(47, 63, 123, 0.3);
+    }
+
+    /* ACTION BUTTONS */
+    .page-btn-secondary {
+        background-color: var(--amber-flame); 
+        color: white; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        font-weight: 700; 
+        font-family: var(--font-main); 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center;
+        gap: 8px; 
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(255, 185, 21, 0.2);
+    }
+    .page-btn-secondary:hover {
+        background-color: #e6a300;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(255, 185, 21, 0.3);
+    }
+
+    .btn-print {
+        background-color: rgba(248, 250, 252, 0.8); 
+        color: var(--french-blue); 
+        border: 1px solid var(--border-color); 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-size: 14px; 
+        font-weight: 700; 
+        font-family: var(--font-main); 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center;
+        gap: 8px; 
+        transition: all 0.3s ease;
+    }
+    .btn-print:hover {
+        background-color: #FFFFFF;
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1);
+    }
+
+    /* CLEAN TABLE STYLING */
+    .table-clean {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-clean th, .table-clean td {
+        padding: 16px 14px; 
+        text-align: left;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary);
+        font-size: 14px; 
+        vertical-align: middle;
+        transition: background-color 0.2s ease;
+    }
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+    .table-clean th {
+        font-weight: 700;
+        color: var(--text-secondary); 
+        font-size: 12px; 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
+    }
+
+    /* TABLE ACTION BUTTONS */
+    .table-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        padding: 0;
+    }
+    .table-action-btn:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
+    }
+    .btn-copy { color: var(--amber-flame); }
+    .btn-copy:hover { background-color: var(--amber-flame); color: white; border-color: var(--amber-flame); }
+
+    .btn-reprint { color: var(--french-blue); }
+    .btn-reprint:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+
+    .btn-delete { color: var(--status-red); background-color: #fdf4f4; border-color: #fecaca; }
+    .btn-delete:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
 </style>
 
-<div id="main-ui" style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div id="main-ui" style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0; font-family: var(--font-main);">
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h2 style="margin: 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px;">Barcode Generation</h2>
-            <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">
+            <h2 style="margin: 0 0 6px 0; font-size: 28px; color: var(--french-blue); font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.5px;">Barcode Generation</h2>
+            <p style="font-family: var(--font-main); font-weight: 300; color:#6B7280; margin: 0; font-size: 15px;">
                 Create a new barcode for items without an existing code.
             </p>
         </div>
     </div>
     
-    <div style="background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #edf2f7; width: 100%; box-sizing: border-box;">
+    <div class="glass-panel" style="padding: 40px; margin-bottom: 30px;">
         
         <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
 
@@ -47,20 +212,20 @@
                 <form id="barcodeForm" method="POST" style="text-align: left; width: 100%;">
                     {% csrf_token %}
                     
-                    <div style="margin-bottom: 20px;">
-                        <label style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; color: #4A5568; display: block; margin-bottom: 8px;">Product Name <span style="color: red;">*</span></label>
-                        <input type="text" name="product_name" id="product_name_input" required placeholder="Enter Product Name" style="width: 100%; padding: 14px; border: 1px solid #CBD5E0; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; box-sizing: border-box; transition: 0.2s;" onfocus="this.style.borderColor='#2F3F7B'" onblur="this.style.borderColor='#CBD5E0'">
+                    <div style="margin-bottom: 24px;">
+                        <label style="font-weight: 700; font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 8px;">Product Name <span style="color: var(--amber-flame);">*</span></label>
+                        <input type="text" name="product_name" id="product_name_input" required placeholder="Enter Product Name" class="glass-input">
                     </div>
 
-                    <button type="button" onclick="confirmGeneration()" style="background-color: #2F3F7B; color: white; border: none; padding: 16px 28px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 16px; font-family: 'Inter', sans-serif; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2);" onmouseover="this.style.backgroundColor='#1e2a55'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#2F3F7B'; this.style.transform='translateY(0)';">
+                    <button type="button" onclick="confirmGeneration()" class="page-btn-primary">
                         <i class="ph ph-barcode" style="font-size: 22px;"></i> Generate New Barcode
                     </button>
                 </form>
 
                 {% if barcode_id %}
-                <div style="margin-top: 25px; padding: 15px; background-color: #f8fafc; border-radius: 8px; border-left: 1px solid #edf2f7; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 1px solid #edf2f7; border-right: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7;">
-                    <p style="margin: 0; font-size: 13.5px; color: #475569; line-height: 1.5;">
-                        <strong style="color: #2F3F7B;"><i class="ph ph-info"></i> Next Step:</strong> Affix the printed label to the physical item. Use the copied barcode ID in the <b style="color: #FFB915;">Add Product</b> module to complete registration.
+                <div style="margin-top: 24px; padding: 20px; background: rgba(47, 63, 123, 0.05); border-radius: 12px; border: 1px dashed rgba(47, 63, 123, 0.2);">
+                    <p style="margin: 0; font-size: 14px; color: var(--text-secondary); line-height: 1.6; font-weight: 500;">
+                        <strong style="color: var(--french-blue); font-size: 15px;"><i class="ph ph-info" style="vertical-align: middle; margin-right: 4px;"></i> Next Step:</strong> Affix the printed label to the physical item. Use the copied barcode ID in the <b style="color: var(--amber-flame);">Add Product</b> module to complete registration.
                     </p>
                 </div>
                 {% endif %}
@@ -68,24 +233,24 @@
 
             <div style="flex: 1.2; min-width: 380px;">
                 {% if barcode_id %}
-                    <div style="text-align: center; background-color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                        <p style="margin-bottom: 10px; color: #22543d; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            <i class="ph ph-check-circle" style="font-size: 20px; color: #9ae6b4;"></i> Generation Successful!
+                    <div style="text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.05);">
+                        <p style="margin-bottom: 12px; color: var(--status-green); font-weight: 700; font-size: 15px; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="ph ph-check-circle" style="font-size: 22px;"></i> Generation Successful!
                         </p>
-                        <p style="margin-top: 0; margin-bottom: 20px; color: #2F3F7B; font-weight: 800; font-size: 18px;">{{ product_name }}</p>
+                        <p style="margin: 0 0 24px 0; color: var(--french-blue); font-weight: 800; font-size: 20px; font-family: var(--font-heading);">{{ product_name }}</p>
                         
-                        <div id="new-barcode-print-area" class="print-active" style="background: white; display: inline-block; padding: 25px 35px; border-radius: 8px; border: 1px dashed #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                            <p style="font-weight: 700; font-size: 14px; margin: 0 0 10px 0; color: #1e293b;">{{ product_name }}</p>
+                        <div id="new-barcode-print-area" class="print-active" style="background: white; display: inline-block; padding: 25px 35px; border-radius: 12px; border: 1px dashed var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                            <p style="font-weight: 700; font-size: 14px; margin: 0 0 10px 0; color: var(--text-primary);">{{ product_name }}</p>
                             <svg id="barcode-canvas"></svg>
                         </div>
                         
-                        <div style="margin-top: 25px; display: flex; justify-content: center; gap: 12px;">
-                            <button onclick="printCurrentBarcode()" style="background-color: #2F3F7B; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#061f38'" onmouseout="this.style.backgroundColor='#2F3F7B'">
-                                <i class="ph ph-printer" style="font-size: 18px;"></i> Print Label
+                        <div style="margin-top: 30px; display: flex; justify-content: center; gap: 16px;">
+                            <button onclick="printCurrentBarcode()" class="btn-print">
+                                <i class="ph ph-printer" style="font-size: 20px;"></i> Print Label
                             </button>
                             
-                            <button type="button" onclick="copyBarcodeID('{{ barcode_id }}')" style="background-color: #FFB915; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;" onmouseover="this.style.backgroundColor='#cc6800'" onmouseout="this.style.backgroundColor='#e07300'">
-                                <i class="ph ph-copy" style="font-size: 18px;"></i> Copy Code
+                            <button type="button" onclick="copyBarcodeID('{{ barcode_id }}')" class="page-btn-secondary">
+                                <i class="ph ph-copy" style="font-size: 20px;"></i> Copy Code
                             </button>
                         </div>
                     </div>
@@ -98,59 +263,61 @@
                         });
                     </script>
                 {% else %}
-                    <div style="text-align: center; background-color: #f8fafc; padding: 30px; border-radius: 12px; border: 2px dashed #cbd5e1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 250px;">
-                        <i class="ph ph-barcode" style="font-size: 54px; color: #94a3b8; margin-bottom: 15px;"></i>
-                        <p style="color: #64748b; margin: 0; font-size: 15px; font-weight: 500;">Generated barcode preview will appear here.</p>
+                    <div style="text-align: center; background: rgba(248, 250, 252, 0.6); padding: 30px; border-radius: 16px; border: 2px dashed rgba(203, 213, 225, 0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 250px;">
+                        <i class="ph ph-barcode" style="font-size: 56px; color: var(--text-secondary); margin-bottom: 16px; opacity: 0.5;"></i>
+                        <p style="color: var(--text-secondary); margin: 0; font-size: 14px; font-weight: 600;">Generated barcode preview will appear here.</p>
                     </div>
                 {% endif %}
             </div>
         </div> 
+    </div>
 
-        <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #edf2f7;">
-            <h3 style="font-family: 'Inter'; font-weight: 800; color: #2F3F7B; margin-bottom: 20px; font-size: 20px;">Barcode History</h3>
-            
-            <div style="overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                            <th style="padding: 15px; color: #475569; font-weight: 700; font-size: 13px;">Date Generated</th>
-                            <th style="padding: 15px; color: #475569; font-weight: 700; font-size: 13px;">Product Name</th>
-                            <th style="padding: 15px; color: #475569; font-weight: 700; font-size: 13px;">Barcode ID</th>
-                            <th style="padding: 15px; color: #475569; font-weight: 700; font-size: 13px; text-align: right;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in history %}
-                        <tr style="border-bottom: 1px solid #e2e8f0; transition: 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                            <td style="padding: 15px; font-size: 14px; color: #64748b; font-family: 'Inconsolata', monospace; font-weight: 600;">{{ item.created_at|date:"M d, Y - h:i A" }}</td>
-                            <td style="padding: 15px; font-size: 14px; font-weight: 700; color: #1e293b;">{{ item.product_name }}</td>
-                            <td style="padding: 15px; font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 700; color: #2F3F7B;">{{ item.barcode_id }}</td>
-                            <td style="padding: 15px; text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
-                                <button onclick="copyBarcodeID('{{ item.barcode_id }}')" style="background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#e07300'" onmouseout="this.style.background='white'; this.style.color='#475569'">
+    <div style="padding-top: 10px;">
+        <h3 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 20px 0; font-size: 22px;">Barcode History</h3>
+        
+        <div class="table-container">
+            <table class="table-clean">
+                <thead>
+                    <tr>
+                        <th>Date Generated</th>
+                        <th>Product Name</th>
+                        <th>Barcode ID</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr>
+                        <td style="color: var(--text-secondary); font-family: 'Inconsolata', monospace; font-weight: 600; font-size: 14px;">{{ item.created_at|date:"M d, Y - h:i A" }}</td>
+                        <td style="font-weight: 700; color: var(--text-primary); font-size: 15px;">{{ item.product_name }}</td>
+                        <td style="font-family: 'Inconsolata', monospace; font-weight: 800; color: var(--french-blue); font-size: 16px;">{{ item.barcode_id }}</td>
+                        <td style="text-align: right;">
+                            <div class="action-group" style="justify-content: flex-end;">
+                                <button onclick="copyBarcodeID('{{ item.barcode_id }}')" class="table-action-btn btn-copy" title="Copy Barcode">
                                     <i class="ph ph-copy"></i> 
                                 </button>
-                                <button onclick="reprintHistoryBarcode('{{ item.barcode_id }}', '{{ item.product_name|escapejs }}')" style="background: white; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='#2F3F7B'; this.style.color='white'; this.style.borderColor='#2F3F7B'" onmouseout="this.style.background='white'; this.style.color='#475569'; this.style.borderColor='#cbd5e1'">
+                                
+                                <button onclick="reprintHistoryBarcode('{{ item.barcode_id }}', '{{ item.product_name|escapejs }}')" class="table-action-btn btn-reprint" title="Print Barcode">
                                     <i class="ph ph-printer"></i> 
                                 </button>
                                 
                                 <form method="POST" action="{% url 'inventory:delete_generated_barcode' item.id %}" style="margin: 0; display: inline;">
                                     {% csrf_token %}
-                                    <button type="button" onclick="confirmDeleteHistory(this.parentElement, '{{ item.product_name|escapejs }}')" style="background: #FFF5F5; border: 1px solid #ffaca4; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #d50a0a; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='#ffaca4'; this.style.color='white'" onmouseout="this.style.background='#FFF5F5'; this.style.color='#d50a0a'">
+                                    <button type="button" onclick="confirmDeleteHistory(this.parentElement, '{{ item.product_name|escapejs }}')" class="table-action-btn btn-delete" title="Delete History">
                                         <i class="ph ph-trash"></i>
                                     </button>
                                 </form>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" style="padding: 30px; text-align: center; color: #94a3b8; font-size: 14px;">No barcodes have been generated yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 40px; text-align: center; color: var(--text-secondary); font-style: italic; font-size: 14px;">No barcodes have been generated yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
     </div>
 </div>
 
@@ -163,7 +330,7 @@
     function confirmGeneration() {
         const prodName = document.getElementById('product_name_input').value.trim();
         if(!prodName) {
-            Swal.fire({ title: 'Missing Information', text: "Please enter a Product Name first.", icon: 'warning', confirmButtonColor: '#e07300' });
+            Swal.fire({ title: 'Missing Information', text: "Please enter a Product Name first.", icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
             return;
         }
 
@@ -172,8 +339,8 @@
             text: `Are you sure you want to create a barcode for '${prodName}'?`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#2F3F7B',
-            cancelButtonColor: '#64748b',
+            confirmButtonColor: 'var(--french-blue)',
+            cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, generate it!'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -184,7 +351,7 @@
 
     function copyBarcodeID(code) {
         navigator.clipboard.writeText(code).then(() => {
-            Swal.fire({ title: 'Copied!', text: 'Barcode ID successfully copied to clipboard.', icon: 'success', confirmButtonColor: '#e07300', timer: 1500, showConfirmButton: false });
+            Swal.fire({ title: 'Copied!', text: 'Barcode ID successfully copied to clipboard.', icon: 'success', confirmButtonColor: 'var(--french-blue)', timer: 1500, showConfirmButton: false });
         }).catch(err => console.error('Failed to copy: ', err));
     }
 
@@ -199,8 +366,8 @@
             text: `Are you sure you want to remove the generated barcode for '${productName}'?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d50a0a',
-            cancelButtonColor: '#64748b',
+            confirmButtonColor: 'var(--status-red)',
+            cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {

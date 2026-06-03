@@ -9,17 +9,27 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    /* MAIN LAYOUT STYLES */
+    /* GLASSMORPHISM PANELS */
     .table-container, .filter-container {
-        background: #FFFFFF;
-        border-radius: 20px;
-        border: 1px solid rgba(229, 231, 235, 0.5);
-        box-shadow: 0 10px 30px -10px rgba(47, 63, 123, 0.1);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
+        padding: 30px; 
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
     }
-    .table-container { padding: 30px; overflow-x: auto; }
-    .filter-container { padding: 20px; margin-bottom: 20px; }
     
+    .table-container {
+        overflow-x: auto; 
+    }
     
+    .filter-container {
+        padding: 24px 30px; 
+        margin-bottom: 24px;
+    }
+    
+    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -28,18 +38,24 @@
     .table-clean th, .table-clean td {
         padding: 16px 14px; 
         text-align: left;
-        border-bottom: 1px solid #edf2f7;
-        color: #4a5568;
-        font-size: 0.9rem; 
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        color: var(--text-primary);
+        font-size: 14px; 
         vertical-align: middle;
+        transition: background-color 0.2s ease;
     }
+
+    .table-clean tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.6);
+    }
+
     .table-clean th {
         font-weight: 700;
-        color: #64748b; 
-        font-size: 0.8rem; 
+        color: var(--text-secondary); 
+        font-size: 12px; 
         text-transform: uppercase; 
-        letter-spacing: 0.05em;
-        border-bottom: 2px solid #e2e8f0; 
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
 
     /* TABLE ACTION BUTTONS (Pencil) */
@@ -47,75 +63,65 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background-color: #f8fafc;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
         border: 1px solid #e2e8f0;
-        color: #64748b;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 1.1rem;
-        transition: all 0.2s ease;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
+        padding: 0;
     }
-    .table-action-btn:hover { transform: translateY(-2px); }
-    .btn-edit {
-        color: #4b5563; 
-        background-color: #f9fafb; 
+    .table-action-btn:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
-    .btn-edit:hover { 
-        background-color: #4b5563; 
-        color: white; 
-        border-color: #4b5563; 
-    }
+    .btn-edit { color: var(--text-secondary); }
+    .btn-edit:hover { background-color: var(--text-secondary); color: white; border-color: var(--text-secondary); }
 
-    /* CUSTOM TOP ACTION BUTTONS (Mula sa Filter Section) */
+    /* CUSTOM TOP ACTION BUTTONS */
     .action-btn-custom {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        padding: 10px 16px;
-        border-radius: 8px;
+        padding: 12px 20px;
+        border-radius: 10px;
         font-weight: 600;
+        font-family: var(--font-main);
         font-size: 13px;
         text-decoration: none;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         border: 1px solid;
         cursor: pointer;
+        white-space: nowrap;
     }
     .action-btn-custom:hover {
         transform: translateY(-2px);
     }
 
-    /* Red - Low Stock */
-    .btn-red { color: #dc2626; background-color: #fef2f2; border-color: #fca5a5; }
-    .btn-red:hover { background-color: #dc2626; color: white; border-color: #dc2626; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2); }
+    /* Red - Low Stock / Delete */
+    .btn-red { color: var(--status-red); background-color: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
+    .btn-red:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
 
     /* Blue - Scan Barcode */
-    .btn-blue { color: #2F3F7B; background-color: #f2f7fb; border-color: #cbd5e1; }
-    .btn-blue:hover { background-color: #2F3F7B; color: white; border-color: #2F3F7B; box-shadow: 0 4px 6px rgba(9, 44, 76, 0.2); }
+    .btn-blue { color: var(--french-blue); background-color: rgba(47, 63, 123, 0.1); border-color: rgba(47, 63, 123, 0.2); }
+    .btn-blue:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.2); }
 
     /* Green - Analyze Priority */
-    .btn-green { color: #22543d; background-color: #eefff4; border-color: #9ae6b4; }
-    .btn-green:hover { background-color: #22543d; color: white; border-color: #22543d; box-shadow: 0 4px 6px rgba(34, 84, 61, 0.2); }
+    .btn-green { color: var(--status-green); background-color: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2); }
+    .btn-green:hover { background-color: var(--status-green); color: white; border-color: var(--status-green); box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2); }
 
     /* Orange - Auto Calibrate */
-    .btn-orange { color: #FFB915; background-color: #fffaf0; border-color: #fbd38d; }
-    .btn-orange:hover { background-color: #FFB915; color: white; border-color: #FFB915; box-shadow: 0 4px 6px rgba(224, 115, 0, 0.2); }
+    .btn-orange { color: var(--amber-flame); background-color: rgba(255, 185, 21, 0.1); border-color: rgba(255, 185, 21, 0.2); }
+    .btn-orange:hover { background-color: var(--amber-flame); color: white; border-color: var(--amber-flame); box-shadow: 0 4px 10px rgba(255, 185, 21, 0.2); }
 
-    /* Grey - Delete Selected & Clear Filters */
-    .btn-grey { 
-        color: #f9fafb; 
-        background-color: #4b5563; 
-        border-color: #4b5563; 
-    }
-    
-    /* Hover effect: Aangat lang, pero hindi magbabago ang kulay */
-    .btn-grey:hover { 
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(75, 85, 99, 0.2);
-    }
+    /* Grey - Clear Filters */
+    .btn-grey { color: var(--text-secondary); background-color: rgba(248, 250, 252, 0.8); border-color: rgba(203, 213, 225, 0.8); }
+    .btn-grey:hover { background-color: #FFFFFF; color: var(--french-blue); border-color: var(--french-blue); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1); }
     
     /* PAGINATION STYLES */
     .pagination-wrapper {
@@ -124,72 +130,121 @@
         align-items: center;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid #edf2f7;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
     }
     .page-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 32px;
+        min-width: 36px;
+        height: 36px;
         gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        background: white;
-        border-radius: 6px;
-        color: #475569;
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 13px;
         font-weight: 600;
         transition: all 0.2s ease;
     }
-    .page-btn:hover { border-color: #2F3F7B; color: #2F3F7B; background-color: #f8fafc; }
-    .page-btn.active { background: #2F3F7B; color: white; font-weight: bold; border-color: #2F3F7B; }
-    .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+    .page-btn:hover { 
+        border-color: var(--french-blue); 
+        color: var(--french-blue); 
+        background-color: #FFFFFF; 
+        transform: translateY(-2px);
+    }
+    .page-btn.active { 
+        background: var(--mustard); 
+        color: #1E293B; 
+        font-weight: bold; 
+        border-color: var(--mustard); 
+        box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4);
+    }
+    .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 
     /* STOCK & PRIORITY TOOLTIPS */
-    .stock-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; }
-    .stock-low { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }   
-    .stock-good { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }  
+    .stock-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .stock-low { background: #fef2f2; color: var(--status-red); border: 1px solid #fecaca; }   
+    .stock-good { background: #f0fdf4; color: var(--status-green); border: 1px solid #bbf7d0; }  
     
     .vertical-stock-wrapper { position: relative; cursor: help; }
-    .stock-tooltip { visibility: hidden; width: 170px; background-color: #1E293B; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 9999; top: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 11px; font-weight: 500; line-height: 1.4; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .stock-tooltip::after { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: transparent transparent #1E293B transparent; }
+    .stock-tooltip { visibility: hidden; width: 170px; background-color: rgba(30, 41, 59, 0.95); backdrop-filter: blur(4px); color: #fff; text-align: left; border-radius: 8px; padding: 12px; position: absolute; z-index: 9999; top: 135%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 12px; font-weight: 500; line-height: 1.4; box-shadow: 0 8px 16px rgba(0,0,0,0.2); font-family: var(--font-main); }
+    .stock-tooltip::after { content: ""; position: absolute; bottom: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: transparent transparent rgba(30, 41, 59, 0.95) transparent; }
     .vertical-stock-wrapper:hover .stock-tooltip { visibility: visible; opacity: 1; }
 
     .priority-container { position: relative; display: inline-flex; align-items: center; cursor: help; margin-left: 8px; }
-    .priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .dot-A { background-color: #10B981; } 
-    .dot-B { background-color: #F59E0B; } 
-    .dot-C { background-color: #94A3B8; } 
-    .priority-tooltip { visibility: hidden; width: 130px; background-color: #1E293B; color: #fff; text-align: center; border-radius: 6px; padding: 6px; position: absolute; z-index: 100; bottom: 130%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 11px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .priority-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1E293B transparent transparent transparent; }
+    .priority-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot-A { background-color: var(--status-green); box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); } 
+    .dot-B { background-color: var(--amber-flame); box-shadow: 0 0 8px rgba(255, 185, 21, 0.4); } 
+    .dot-C { background-color: var(--text-secondary); } 
+    
+    .priority-tooltip { visibility: hidden; width: 140px; background-color: rgba(30, 41, 59, 0.95); backdrop-filter: blur(4px); color: #fff; text-align: center; border-radius: 8px; padding: 8px; position: absolute; z-index: 100; bottom: 140%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 12px; font-weight: 600; box-shadow: 0 8px 16px rgba(0,0,0,0.2); font-family: var(--font-main); }
+    .priority-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: rgba(30, 41, 59, 0.95) transparent transparent transparent; }
     .priority-container:hover .priority-tooltip { visibility: visible; opacity: 1; }
 
-    .row-selected { background: #fff8e6 !important; }
+    .row-selected { background: rgba(255, 211, 88, 0.1) !important; }
+
+    /* MODAL STYLES */
+    .blur-modal {
+        display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; 
+        align-items: center; justify-content: center; 
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .modal-box {
+        background: rgba(255, 255, 255, 0.95); 
+        width: 450px; 
+        border-radius: var(--border-radius, 20px); 
+        box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); 
+        overflow: hidden; 
+        font-family: var(--font-main); 
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .filter-input {
+        width: 100%; 
+        padding: 12px 16px 12px 40px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        outline: none; 
+        font-size: 13px; 
+        font-family: var(--font-main); 
+        color: var(--text-primary); 
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease; 
+        box-sizing: border-box;
+    }
+    .filter-input:focus {
+        border-color: var(--french-blue);
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
+    }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px; font-family: 'Inter', sans-serif;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
 
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid #edf2f7;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <h1 style="margin: 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px;">Product Management</h1>
-            <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">
+            <h1 style="margin: 0 0 6px 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px; font-family: var(--font-heading); font-weight: 800;">Product Management</h1>
+            <p style="font-family: var(--font-main); font-weight: 300; color:#6B7280; margin: 0; font-size: 15px;">
                 View and manage your inventory products, prices, and stock levels.
             </p>
         </div>
     </div>
 
-    <div id="scanner-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-        <div style="background: white; padding: 30px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-            <i class="ph ph-barcode" style="font-size: 48px; color: #2F3F7B; margin-bottom: 10px;"></i>
-            <h2 style="margin: 0 0 10px 0; color: #2F3F7B; font-size: 20px; font-weight: 900;">Ready to Scan</h2>
-            <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Point your scanner at the barcode.</p>
+    <div id="scanner-modal" class="blur-modal">
+        <div class="modal-box" style="padding: 40px 30px; text-align: center;">
+            <i class="ph ph-barcode" style="font-size: 56px; color: var(--french-blue); margin-bottom: 16px;"></i>
+            <h2 style="margin: 0 0 8px 0; color: var(--french-blue); font-size: 24px; font-weight: 800; font-family: var(--font-heading);">Ready to Scan</h2>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; font-weight: 500;">Point your scanner at the barcode.</p>
+            
             <input type="text" id="dedicated-barcode-input"
                    placeholder="Waiting for scanner..."
                    autocomplete="off"
-                   style="width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 18px; text-align: center; outline: none; margin-bottom: 20px; font-family: 'Inconsolata', monospace; box-sizing: border-box;"
-                   onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
-            <button type="button" id="close-scanner-modal" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s;" onmouseover="this.style.backgroundColor='#edf2f7'" onmouseout="this.style.backgroundColor='#f8fafc'">
+                   style="width: 100%; padding: 16px; border: 2px solid rgba(203, 213, 225, 0.8); border-radius: 12px; font-size: 18px; text-align: center; outline: none; margin-bottom: 24px; font-family: 'Inconsolata', monospace; font-weight: 600; color: var(--french-blue); box-sizing: border-box; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.8);"
+                   onfocus="this.style.borderColor='var(--amber-flame)'; this.style.boxShadow='0 0 0 3px rgba(255, 185, 21, 0.1)';" onblur="this.style.borderColor='rgba(203, 213, 225, 0.8)'; this.style.boxShadow='none';">
+            
+            <button type="button" id="close-scanner-modal" class="btn-clear" style="width: 100%;">
                 Cancel
             </button>
         </div>
@@ -202,21 +257,18 @@
         
         <button type="submit" style="display: none;"></button>
 
-        <div class="filter-container" style="display: flex; flex-direction: column; gap: 15px;">
+        <div class="filter-container" style="display: flex; flex-direction: column; gap: 20px;">
             
             <div style="position: relative; width: 100%;">
-                <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Search name, supplier, product ID, or barcode..."
-                       style="width: 100%; padding: 12px 14px 12px 35px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 13px; font-family: 'Inter', sans-serif; color: #334155; transition: border-color 0.2s; box-sizing: border-box;"
-                       onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 18px;"></i>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search name, supplier, product ID, or barcode..." class="filter-input">
             </div>
 
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
                 
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                     
-                    <button type="button" id="bulk-delete-btn" class="action-btn-custom btn-grey" 
-                            style="display: none; border: 1px solid #d1d5db;">
+                    <button type="button" id="bulk-delete-btn" class="action-btn-custom btn-grey" style="display: none;">
                         <i class="ph ph-trash"></i> Delete Selected (<span id="delete-count">0</span>)
                     </button>
 
@@ -241,9 +293,7 @@
 
                 <div>
                     {% if search_query or selected_category or selected_priority or selected_supplier or low_stock %}
-                        <a href="{% url 'inventory:inventory_list' %}" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #f8fafc; color: #64748b; padding: 12px 30px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; box-sizing: border-box;"
-                            onmouseover="this.style.backgroundColor='#edf2f7'; this.style.color='#092c4c';" 
-                            onmouseout="this.style.backgroundColor='#f8fafc'; this.style.color='#64748b';">
+                        <a href="{% url 'inventory:inventory_list' %}" class="action-btn-custom btn-grey">
                             Clear
                         </a>
 
@@ -258,15 +308,15 @@
                 <thead>
                     <tr>
                         <th style="width: 45px; text-align: center;">
-                            <input type="checkbox" id="selectAll" style="cursor: pointer; width: 16px; height: 16px;">
+                            <input type="checkbox" id="selectAll" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--french-blue);">
                         </th>
                         <th style="width: 10%;">ID</th>
                         <th style="width: 22%;">Product Name</th>
                         <th style="width: 18%;">Supplier</th>
 
                         <th style="width: 15%;">
-                            <select name="category" onchange="this.form.submit()" style="width: 100%; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; border: none; background: transparent; outline: none; cursor: pointer; font-family: inherit;">
-                                <option value="">Category</option>
+                            <select name="category" onchange="this.form.submit()" style="width: 100%; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border: none; background: transparent; outline: none; cursor: pointer; font-family: var(--font-main);">
+                                <option value="">Category ▼</option>
                                 {% for cat in categories %}
                                     <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
                                 {% endfor %}
@@ -284,12 +334,12 @@
                     {% for item in items %}
                     <tr>
                         <td style="text-align: center;">
-                            <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer; width: 16px; height: 16px;">
+                            <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--french-blue);">
                         </td>
 
-                        <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 700; color: #2F3F7B;">{{ item.product_id }}</td>
+                        <td style="font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 700; color: var(--french-blue);">{{ item.product_id }}</td>
 
-                        <td style="font-weight: 600; color: #334155;">
+                        <td style="font-weight: 600; color: var(--text-primary);">
                             <div style="display: flex; align-items: center;">
                                 {{ item.item_name }}
                                 <div class="priority-container">
@@ -304,12 +354,12 @@
                             </div>
                         </td>
 
-                        <td style="color: #64748b; font-weight: 500;">{{ item.supplier.name|default:"--" }}</td>
-                        <td style="color: #64748b;">{{ item.category.name }}</td>
+                        <td style="color: var(--text-secondary); font-weight: 500;">{{ item.supplier.name|default:"--" }}</td>
+                        <td style="color: var(--text-secondary);">{{ item.category.name }}</td>
 
-                        <td style="font-size: 1.05rem; font-family: 'Inconsolata'; font-weight: 800; color: #2F3F7B;">₱{{ item.price }}</td>
+                        <td style="font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 800; color: var(--french-blue);">₱{{ item.price }}</td>
                         
-                        <td style="font-size: 1.05rem; font-family: 'Inconsolata'; color: #64748b;">{{ item.barcode_id }}</td>
+                        <td style="font-size: 15px; font-family: 'Inconsolata', monospace; color: var(--text-secondary);">{{ item.barcode_id }}</td>
 
                         <td style="text-align: center;">
                             <div class="vertical-stock-wrapper" style="display: inline-flex; justify-content: center;">
@@ -318,10 +368,10 @@
                                     <span style="color: #34D399;">Green:</span> Safe levels.<br>
                                     <span style="color: #FBBF24;">Yellow:</span> Getting close.<br>
                                     <span style="color: #F87171;">Red:</span> Reached restock trigger!<br>
-                                    <hr style="border-color: #475569; margin: 6px 0;">
-                                    <span style="font-size: 10px; color: #94A3B8; font-weight: bold;">Restock threshold: {{ item.reorder_point }}</span>
+                                    <hr style="border-color: rgba(255,255,255,0.2); margin: 8px 0;">
+                                    <span style="font-size: 11px; color: #94A3B8; font-weight: bold;">Restock threshold: {{ item.reorder_point }}</span>
                                 </div>
-                                <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="font-family: 'Inconsolata'; font-size: 1.05rem;">
+                                <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="font-family: 'Inconsolata', monospace; font-size: 15px;">
                                     {{ item.quantity }}
                                 </span>
                             </div>
@@ -330,7 +380,7 @@
                         <td style="text-align: center;">
                             <div class="action-group" style="justify-content: center;">
                                 <a href="#" class="edit-product-btn table-action-btn btn-edit" data-url="{% url 'inventory:edit_product' item.pk %}" title="Edit Product">
-                                    <i class="ph ph-pencil"></i>
+                                    <i class="ph ph-pencil-simple"></i>
                                 </a>
                             </div>
                         </td>
@@ -338,7 +388,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" style="padding: 40px; text-align: center; color: #94a3b8; font-style: italic;">No products match your current filters.</td>
+                        <td colspan="9" style="padding: 40px; text-align: center; color: var(--text-secondary); font-style: italic;">No products match your current filters.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -347,15 +397,15 @@
             <div class="pagination-wrapper">
                 <div class="page-info">
                     Row Per Page 
-                    <select name="per_page" onchange="this.form.submit()" style="padding: 5px; margin: 0 5px; border: 1px solid #cbd5e1; border-radius: 4px; outline: none;">
+                    <select name="per_page" onchange="this.form.submit()" style="padding: 6px; margin: 0 8px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.8); cursor: pointer;">
                         <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                         <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
                         <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
                     </select> 
-                    Entries &nbsp; Showing {{ items.start_index|default:0 }} to {{ items.end_index|default:0 }} of {{ items.paginator.count|default:0 }}
+                    Entries &nbsp;|&nbsp; Showing <strong style="color: var(--text-primary);">{{ items.start_index|default:0 }}</strong> to <strong style="color: var(--text-primary);">{{ items.end_index|default:0 }}</strong> of <strong style="color: var(--text-primary);">{{ items.paginator.count|default:0 }}</strong>
                 </div>
                 
-                <div style="display: flex; gap: 5px;">
+                <div style="display: flex; gap: 8px;">
                     {% if items.has_previous %}
                         <a href="javascript:void(0);" onclick="goToPage({{ items.previous_page_number }})" class="page-btn">
                             <i class="ph ph-caret-left"></i>
@@ -387,15 +437,15 @@
     <input type="hidden" name="product_ids" id="hidden-delete-ids">
 </form>
 
-<div id="edit-product-modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
-    <div style="background: white; width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 16px; padding: 0; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-        <button id="close-edit-modal" style="position: absolute; top: 18px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8; transition: 0.2s; z-index: 10;" onmouseover="this.style.color='#092c4c'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+<div id="edit-product-modal" class="blur-modal">
+    <div class="modal-box" style="width: 650px; padding: 0; position: relative;">
+        <button id="close-edit-modal" style="position: absolute; top: 20px; right: 24px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); transition: 0.2s; z-index: 10;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
         <div id="edit-product-modal-content"></div>
     </div>
 </div>
 
 <script>
-/* FUNCTION PARA SA PAGINATION (Para kasama ang filters pag lumipat ng page) */
+/* FUNCTION PARA SA PAGINATION */
 function goToPage(pageNumber) {
     document.getElementById('pageInput').value = pageNumber;
     document.getElementById('inventory-filter-form').submit();
@@ -410,17 +460,18 @@ document.addEventListener("DOMContentLoaded", function () {
             Swal.fire({
                 title: 'Auto-Calibrate ROP',
                 html: `
-                    <p style="font-size: 14px; color: #4a5568; margin-bottom: 15px; font-family: 'Inter', sans-serif;">
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; font-family: var(--font-main); font-weight: 500;">
                         How many days of sales history should the system analyze?
                     </p>
                     <input type="number" id="swal-days" value="7" min="7" max="365"
-                        style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; text-align: center; outline: none;" onfocus="this.style.borderColor='#092c4c'" onblur="this.style.borderColor='#cbd5e1'">
-                    <p style="font-size: 12px; color: #94a3b8; margin-top: 8px; font-family: 'Inter', sans-serif;">Recommended: 7 days. Blank days are excluded from the average.</p>
+                        style="width: 100%; padding: 14px; border: 2px solid rgba(203, 213, 225, 0.8); border-radius: 10px; font-size: 18px; font-weight: 700; font-family: 'Inconsolata', monospace; text-align: center; outline: none; color: var(--french-blue); box-sizing: border-box; transition: all 0.3s ease;" 
+                        onfocus="this.style.borderColor='var(--amber-flame)'; this.style.boxShadow='0 0 0 3px rgba(255, 185, 21, 0.1)';" onblur="this.style.borderColor='rgba(203, 213, 225, 0.8)'; this.style.boxShadow='none';">
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 10px; font-family: var(--font-main); font-style: italic;">Recommended: 7 days. Blank days are excluded from the average.</p>
                 `,
                 icon: 'info',
                 showCancelButton: true,
-                confirmButtonColor: '#2F3F7B',
-                cancelButtonColor: '#94a3b8',
+                confirmButtonColor: 'var(--french-blue)',
+                cancelButtonColor: 'var(--text-secondary)',
                 confirmButtonText: 'Yes, calibrate',
                 preConfirm: () => {
                     const days = document.getElementById('swal-days').value;
@@ -461,14 +512,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         title: 'Analysis Complete!',
                         text: 'Priority levels have been successfully updated.',
                         icon: 'success',
-                        confirmButtonColor: '#092c4c'
+                        confirmButtonColor: 'var(--french-blue)'
                     }).then(() => { window.location.reload(); });
                 } else {
-                    Swal.fire({ title: 'Error!', text: 'Something went wrong while analyzing priority levels.', icon: 'error', confirmButtonColor: '#2F3F7B' });
+                    Swal.fire({ title: 'Error!', text: 'Something went wrong while analyzing priority levels.', icon: 'error', confirmButtonColor: 'var(--status-red)' });
                 }
             })
             .catch(() => {
-                Swal.fire({ title: 'Connection Error!', text: 'Unable to connect to the server.', icon: 'error', confirmButtonColor: '#2F3F7B' });
+                Swal.fire({ title: 'Connection Error!', text: 'Unable to connect to the server.', icon: 'error', confirmButtonColor: 'var(--status-red)' });
             });
     });
 
@@ -510,7 +561,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function toggleBulkDeleteBtn() {
         const checkedCount = document.querySelectorAll(".rowCheckbox:checked").length;
-        bulkDeleteBtn.style.display = checkedCount > 0 ? "flex" : "none";
+        bulkDeleteBtn.style.display = checkedCount > 0 ? "inline-flex" : "none";
         deleteCountSpan.innerText = checkedCount;
         rowCheckboxes.forEach(cb => {
             cb.closest("tr").classList.toggle("row-selected", cb.checked);
@@ -531,8 +582,9 @@ document.addEventListener("DOMContentLoaded", function () {
             text: `Delete ${checked.length} selected product(s)?`,
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#2F3F7B",
-            cancelButtonColor: "#94a3b8"
+            confirmButtonColor: "var(--status-red)",
+            cancelButtonColor: "var(--text-secondary)",
+            confirmButtonText: "Yes, delete"
         }).then(result => {
             if (result.isConfirmed) {
                 hiddenIdsInput.value = [...checked].map(cb => cb.value).join(",");

@@ -108,7 +108,7 @@
         width: 100%;
     }
 
-    .btn-primary {
+    .page-btn-primary {
         background: var(--french-blue); 
         color: white; 
         border: none; 
@@ -127,7 +127,7 @@
         white-space: nowrap;
         flex: 0 1 auto;
     }
-    .btn-primary:hover {
+    .page-btn-primary:hover {
         background-color: #1a2858;
         transform: translateY(-2px);
         box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
@@ -248,7 +248,7 @@
                 <option value="ABC ANALYSIS" {% if action_filter == 'ABC ANALYSIS' %}selected{% endif %}>ABC Analysis</option>
             </select>
 
-            <button type="submit" class="btn-primary">
+            <button type="submit" class="page-btn-primary">
                 <i class="ph ph-funnel" style="margin-right: 4px;"></i> Filter
             </button>
             
@@ -276,7 +276,7 @@
                 {% for log in logs %}
                 <tr>
                     <td style="font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 700; color: var(--french-blue); white-space: nowrap; padding-right: 24px;">
-                        #{{ log.id }}
+                        {{ log.id }}
                     </td>
                     
                     <td style="font-weight: 600; color: var(--text-primary); white-space: nowrap;">

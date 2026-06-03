@@ -104,7 +104,7 @@
         box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 
-    .btn-primary {
+    .page-btn-primary {
         background: var(--french-blue); 
         color: white; 
         border: none; 
@@ -120,7 +120,7 @@
         transition: all 0.3s ease; 
         box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
     }
-    .btn-primary:hover {
+    .page-btn-primary:hover {
         background-color: #1a2858;
         transform: translateY(-2px);
         box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
@@ -197,7 +197,7 @@
                 View and manage all returned hardware items and customer refunds.
             </p>
         </div>
-        <button onclick="openReturnModal()" class="btn-primary">
+        <button onclick="openReturnModal()" class="page-btn-primary">
             <i class="ph ph-arrow-counter-clockwise" style="font-size: 20px;"></i> Process New Return
         </button>
     </div>
@@ -206,7 +206,7 @@
         <form method="GET" style="display: flex; gap: 16px; align-items: center; margin: 0;">
             <input type="text" name="q" class="filter-input" placeholder="Search Reference, Customer, Cashier..." value="{{ query|default:'' }}">
             
-            <button type="submit" class="btn-primary" style="padding: 12px 30px;">
+            <button type="submit" class="page-btn-primary" style="padding: 12px 30px;">
                 <i class="ph ph-funnel" style="margin-right: 4px;"></i> Filter
             </button>
 
@@ -356,7 +356,7 @@
                     <label style="display: block; font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px;">Original Transaction ID <span style="color:var(--amber-flame);">*</span></label>
                     <div style="display: flex; gap: 12px;">
                         <input type="text" name="transaction_ref" id="txn_input" placeholder="e.g. TXN-20260511-XXXX" required style="flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); border-radius: 10px; outline: none; font-weight: 600; font-size: 16px; font-family: 'Inconsolata', monospace; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--french-blue)'; this.style.boxShadow='0 0 0 3px rgba(47, 63, 123, 0.1)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
-                        <button type="button" onclick="verifyTxn()" class="btn-primary" style="padding: 0 24px;">Verify</button>
+                        <button type="button" onclick="verifyTxn()" class="page-btn-primary" style="padding: 0 24px;">Verify</button>
                     </div>
                     <p id="verify_msg" style="font-size: 13px; font-weight: 500; margin-top: 8px;"></p>
                 </div>

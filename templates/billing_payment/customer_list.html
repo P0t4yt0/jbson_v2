@@ -116,7 +116,7 @@
         box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 
-    .btn-primary {
+    .page-btn-primary {
         background: var(--french-blue); 
         color: white; 
         border: none; 
@@ -132,7 +132,7 @@
         transition: all 0.3s ease; 
         box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
     }
-    .btn-primary:hover {
+    .page-btn-primary:hover {
         background-color: #1a2858;
         transform: translateY(-2px);
         box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
@@ -230,7 +230,7 @@
                 Manage contractor balances, limits, and terms.
             </p>
         </div>
-        <button onclick="document.getElementById('addCustomerModal').style.display='flex'" class="btn-primary">
+        <button onclick="document.getElementById('addCustomerModal').style.display='flex'" class="page-btn-primary">
             <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Add Customer
         </button>
     </div>
@@ -239,7 +239,7 @@
         <form method="GET" style="display: flex; gap: 16px; align-items: center; margin: 0;">
             <input type="text" name="search" class="filter-input" placeholder="Search Customer Name or Contact Number" value="{{ search_query }}">
             
-            <button type="submit" class="btn-primary" style="padding: 12px 30px;">
+            <button type="submit" class="page-btn-primary" style="padding: 12px 30px;">
                 <i class="ph ph-funnel" style="margin-right: 4px;"></i> Filter
             </button>
             

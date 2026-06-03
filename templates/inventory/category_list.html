@@ -1,92 +1,260 @@
 {% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
-    .btn-action:hover { opacity: 0.85; }
-    .btn-view:hover { background: #f8fafc !important; }
-    .modal-input:focus { border-color: #092c4c !important; outline: none; box-shadow: 0 0 0 3px rgba(9, 44, 76, 0.1); }
-    
-    .btn-primary {
-        background-color: #2F3F7B !important;
-        color: white !important;
-        border: none !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2) !important;
+    /* GLASSMORPHISM CATEGORY CARDS */
+    .category-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.05);
+        overflow: hidden;
+        transition: all 0.3s ease;
     }
-    .btn-primary:hover {
-        background-color: #1e2a55 !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(47, 63, 123, 0.3) !important;
+    .category-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(47, 63, 123, 0.12);
+        border-color: rgba(47, 63, 123, 0.2);
+    }
+
+    .category-header {
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 20px 24px; 
+        background: transparent;
+    }
+
+    .products-panel {
+        background: rgba(248, 250, 252, 0.6);
+        border-top: 1px dashed var(--border-color);
+        padding: 20px 24px;
+    }
+
+    .product-tag {
+        background: rgba(255, 255, 255, 0.9); 
+        border: 1px solid var(--border-color); 
+        padding: 12px 16px; 
+        border-radius: 12px; 
+        display: flex; 
+        flex-direction: column;
+        transition: all 0.2s ease;
+    }
+    .product-tag:hover {
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1);
+    }
+
+    /* BUTTONS */
+    .page-btn-primary {
+        background: var(--french-blue); 
+        color: white; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 10px; 
+        font-weight: 600; 
+        font-family: var(--font-main); 
+        font-size: 14px; 
+        cursor: pointer; 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center;
+        gap: 8px; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);
+        white-space: nowrap;
+    }
+    .page-btn-primary:hover {
+        background-color: #1a2858;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3);
+    }
+
+    .btn-view-products {
+        background: rgba(255, 255, 255, 0.8); 
+        border: 1px solid var(--border-color); 
+        color: var(--text-secondary); 
+        padding: 10px 16px; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        display: flex; 
+        align-items: center; 
+        gap: 6px; 
+        font-family: var(--font-main); 
+        font-size: 13px; 
+        font-weight: 600; 
+        transition: all 0.3s ease;
+    }
+    .btn-view-products:hover {
+        background: #FFFFFF;
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+    }
+
+    /* ACTION BUTTONS */
+    .action-group { display: flex; gap: 8px; align-items: center; justify-content: center; }
+    
+    .table-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 18px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        padding: 0;
+    }
+    .table-action-btn:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
+    }
+
+    .btn-edit { color: var(--text-secondary); }
+    .btn-edit:hover { background-color: var(--text-secondary); color: white; border-color: var(--text-secondary); }
+
+    .btn-delete { color: var(--status-red); background-color: #fdf4f4; border-color: #fecaca; }
+    .btn-delete:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+
+    /* MODAL INPUTS */
+    .modal-input { 
+        width: 100%; 
+        padding: 14px 16px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-family: var(--font-main); 
+        outline: none; 
+        transition: all 0.3s ease; 
+        box-sizing: border-box; 
+        background: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+    .modal-input:focus { 
+        border-color: var(--french-blue); 
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
+    }
+
+    /* GLASS MODAL STYLES */
+    .blur-modal {
+        display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; 
+        background: rgba(15, 23, 42, 0.6); align-items: center; justify-content: center; 
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .modal-box {
+        background: rgba(255, 255, 255, 0.95); 
+        width: 480px; max-width: 90%;
+        border-radius: var(--border-radius, 20px); 
+        box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25); 
+        overflow: hidden; 
+        font-family: var(--font-main); 
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-clear {
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        text-decoration: none; 
+        background: rgba(248, 250, 252, 0.8); 
+        color: var(--text-secondary); 
+        padding: 12px 24px; 
+        border: 1px solid rgba(203, 213, 225, 0.8); 
+        border-radius: 10px; 
+        font-size: 14px; 
+        font-weight: 600; 
+        transition: all 0.3s ease;
+    }
+    .btn-clear:hover {
+        background-color: #FFFFFF; 
+        color: var(--french-blue);
+        border-color: var(--french-blue);
+        transform: translateY(-2px);
     }
 </style>
 
-<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 25px 25px;">
+<div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
 
-    <!-- HEADER SECTION -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 15px; margin-bottom: 30px; border-bottom: 1px solid var(--border-color);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
         <div>
-            <!-- Inter font at 900 weight (Black) -->
-            <h2 style="margin: 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px;">Category Management</h2>
-            <!-- Subheading gamit ang Inter at Accent Color -->
-            <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">
+            <h2 style="margin: 0 0 6px 0; font-size: 28px; font-family: var(--font-heading); color: var(--french-blue); font-weight: 800; letter-spacing: -0.5px;">Category Management</h2>
+            <p style="font-family: var(--font-main); font-weight: 300; color:#6B7280; margin: 0; font-size: 15px;">
                 Organize and manage your product categories, view associated items, and update details.
             </p>
         </div>
         
-        <!-- ADD CATEGORY BUTTON -->
-        <button onclick="openAddModal()" class="btn-primary" style=" color: white; border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
-            <i class="ph ph-plus-circle" style="font-size: 18px;"></i> Add Category
+        <button onclick="openAddModal()" class="page-btn-primary">
+            <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Add Category
         </button>
     </div>
 
-    <!-- CATEGORY LIST -->
-    <div style="display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-direction: column; gap: 16px;">
         {% for category in categories %}
-        <div style="background: white; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden;">
+        <div class="category-card">
             
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: white;">
+            <div class="category-header">
                 
                 <div style="display: flex; align-items: center; gap: 24px;">
-                    <!-- Inter font at 900 weight para sa Category Name -->
-                    <h3 style="margin: 0; color: #2F3F7B; font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 700; width: 220px;">{{ category.name }}</h3>
-                    <span style="background: #F8FAFC; color: #4A5568; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; font-family: 'Inter', sans-serif; border: 1px solid #EDF2F7;">Prefix: {{ category.prefix }}</span>
-                    <span style="color: #718096; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                        <i class="ph ph-package" style="font-size: 16px;"></i> {{ category.items.count }} Items
+                    <h3 style="margin: 0; color: var(--french-blue); font-family: var(--font-heading); font-size: 18px; font-weight: 800; width: 220px;">{{ category.name }}</h3>
+                    
+                    <span style="background: rgba(248, 250, 252, 0.8); color: var(--text-secondary); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid var(--border-color);">
+                        Prefix: <span style="color: var(--text-primary);">{{ category.prefix }}</span>
+                    </span>
+                    
+                    <span style="color: var(--text-secondary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <i class="ph ph-package" style="font-size: 18px; color: var(--french-blue);"></i> {{ category.items.count }} Items
                     </span>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
                     
                     {% if category.items.all %}
-                    <button class="btn-view" onclick="toggleProducts('cat-{{ category.id }}')" style="background: transparent; border: 1px solid #CBD5E0; color: #4A5568; padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; transition: background 0.2s;">
-                        View Products <i id="icon-cat-{{ category.id }}" class="ph ph-caret-down" style="transition: transform 0.3s ease;"></i>
+                    <button class="btn-view-products" onclick="toggleProducts('cat-{{ category.id }}')">
+                        View Products <i id="icon-cat-{{ category.id }}" class="ph ph-caret-down" style="transition: transform 0.3s ease; font-size: 16px;"></i>
                     </button>
                     {% else %}
-                    <span style="color: #A0AEC0; font-size: 13px; font-style: italic; font-family: 'Inter', sans-serif; margin-right: 15px;">Empty Category</span>
+                    <span style="color: var(--text-secondary); font-size: 13px; font-style: italic; margin-right: 15px; font-weight: 500;">Empty Category</span>
                     {% endif %}
 
-                    <div style="height: 24px; width: 1px; background: #E2E8F0; margin: 0 8px;"></div>
+                    <div style="height: 24px; width: 1px; background: var(--border-color); margin: 0 8px;"></div>
 
-                    <button class="btn-action" onclick="openEditModal('{{ category.id }}', '{{ category.name|escapejs }}')" style="background: #edf2f7; color: #2F3F7B; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;" title="Edit Category">
-                        <i class="ph ph-pencil-simple" style="font-size: 16px;"></i>
-                    </button>
-
-                    <form action="{% url 'inventory:delete_category' category.id %}" method="POST" onsubmit="confirmDelete(event, this, '{{ category.name|escapejs }}');" style="margin: 0;">                    
-                        {% csrf_token %}
-                        <button type="submit" class="btn-action" style="background: #FFF5F5; color: #811112; border: 1px solid #ffaca4; padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s;" title="Delete Category">
-                            <i class="ph ph-trash" style="font-size: 16px;"></i>
+                    <div class="action-group">
+                        <button class="table-action-btn btn-edit" onclick="openEditModal('{{ category.id }}', '{{ category.name|escapejs }}')" title="Edit Category">
+                            <i class="ph ph-pencil-simple"></i>
                         </button>
-                    </form>
+
+                        <form action="{% url 'inventory:delete_category' category.id %}" method="POST" onsubmit="confirmDelete(event, this, '{{ category.name|escapejs }}');" style="margin: 0;">                    
+                            {% csrf_token %}
+                            <button type="submit" class="table-action-btn btn-delete" title="Delete Category">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
-            <div id="cat-{{ category.id }}" style="display: none; background: #F8FAFC; border-top: 1px solid #EDF2F7; padding: 16px 24px;">
+            <div id="cat-{{ category.id }}" class="products-panel" style="display: none;">
                 {% if category.items.all %}
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
                     {% for item in category.items.all %}
-                        <div style="background: white; border: 1px solid #E2E8F0; padding: 12px 16px; border-radius: 8px; display: flex; flex-direction: column;">
-                            <span style="color: #2F3F7B; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 4px;">{{ item.item_name }}</span>
-                            <span style="color: #718096; font-size: 12px; font-family: monospace;">{{ item.product_id }}</span>
+                        <div class="product-tag">
+                            <span style="color: var(--text-primary); font-size: 14px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ item.item_name }}">{{ item.item_name }}</span>
+                            <span style="color: var(--text-secondary); font-size: 13px; font-family: 'Inconsolata', monospace; font-weight: 600;">{{ item.product_id }}</span>
                         </div>
                     {% endfor %}
                     </div>
@@ -97,51 +265,81 @@
         {% endfor %}
     </div>
 
-</div> <!-- DITO NAG-EEND YUNG BAGONG WRAPPER -->
+</div>
 
-<!-- ADD CATEGORY MODAL -->
-<div id="addCategoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; padding: 32px; border-radius: 16px; width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+<div id="addCategoryModal" class="blur-modal">
+    <div class="modal-box">
         
-        <h3 style="margin: 0 0 4px 0; color: #2F3F7B; font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 900;">Add Category</h3>
-        <p style="margin: 0 0 24px 0; color: #4A5568; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;">New Category Name:</p>
+        <div style="padding: 24px 30px; border-bottom: 1px solid var(--border-color); background: rgba(248, 250, 252, 0.8); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin:0; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">New Record</p>
+                <h3 style="margin:4px 0 0 0; color:var(--french-blue); font-size:20px; font-weight:800; font-family: var(--font-heading);">Add Category</h3>
+            </div>
+            <button type="button" onclick="closeAddModal()" style="background: transparent; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
+        </div>
         
-        <form id="addCategoryForm" method="POST" action="{% url 'inventory:category_list' %}">
+        <form id="addCategoryForm" method="POST" action="{% url 'inventory:category_list' %}" style="padding: 30px;">
             {% csrf_token %}
             
-            <input type="text" id="categoryNameInput" name="name" class="modal-input" required placeholder="e.g. Construction" style="width: 100%; padding: 12px 16px; border: 1px solid #CBD5E0; border-radius: 8px; margin-bottom: 24px; font-family: 'Inter', sans-serif; font-size: 14px; transition: all 0.2s;">
+            <label style="display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary);">Category Name <span style="color:var(--amber-flame);">*</span></label>
+            <input type="text" id="categoryNameInput" name="name" class="modal-input" required placeholder="e.g. Construction" style="margin-bottom: 24px;">
             
             <input type="hidden" id="categoryPrefixInput" name="prefix">
             
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button type="button" onclick="closeAddModal()" style="padding: 10px 24px; background: white; border: 1px solid #CBD5E0; border-radius: 8px; cursor: pointer; color: #4A5568; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; transition: background 0.2s;">Cancel</button>
-                <button type="submit" class="btn-action" style="padding: 10px 24px; background: #092c4c; border: none; border-radius: 8px; cursor: pointer; color: white; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;">Save</button>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="closeAddModal()" class="btn-clear" style="flex: 1;">Cancel</button>
+                <button type="submit" class="page-btn-primary" style="flex: 1; box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);">Save Category</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- EDIT CATEGORY MODAL -->
-<div id="editCategoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; padding: 32px; border-radius: 16px; width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+<div id="editCategoryModal" class="blur-modal">
+    <div class="modal-box">
         
-        <h3 style="margin: 0 0 4px 0; color: #2F3F7B; font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 900;">Edit Category Name</h3>
-        <p style="margin: 0 0 24px 0; color: #4A5568; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;">New Category Name:</p>
+        <div style="padding: 24px 30px; border-bottom: 1px solid var(--border-color); background: rgba(248, 250, 252, 0.8); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin:0; font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Update Record</p>
+                <h3 style="margin:4px 0 0 0; color:var(--french-blue); font-size:20px; font-weight:800; font-family: var(--font-heading);">Edit Category Name</h3>
+            </div>
+            <button type="button" onclick="closeEditModal()" style="background: transparent; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
+        </div>
         
-        <form id="editCategoryForm" method="POST" action="">
+        <form id="editCategoryForm" method="POST" action="" style="padding: 30px;">
             {% csrf_token %}
             
-            <input type="text" id="editCategoryName" name="name" class="modal-input" required style="width: 100%; padding: 12px 16px; border: 1px solid #CBD5E0; border-radius: 8px; margin-bottom: 24px; font-family: 'Inter', sans-serif; font-size: 14px; transition: all 0.2s;">
+            <label style="display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary);">Category Name <span style="color:var(--amber-flame);">*</span></label>
+            <input type="text" id="editCategoryName" name="name" class="modal-input" required style="margin-bottom: 24px;">
             
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button type="button" onclick="closeEditModal()" style="padding: 10px 24px; background: white; border: 1px solid #CBD5E0; border-radius: 8px; cursor: pointer; color: #4A5568; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; transition: background 0.2s;">Cancel</button>
-                <button type="submit" class="btn-action" style="padding: 10px 24px; background: #092c4c; border: none; border-radius: 8px; cursor: pointer; color: white; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;">Save</button>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" onclick="closeEditModal()" class="btn-clear" style="flex: 1;">Cancel</button>
+                <button type="submit" class="page-btn-primary" style="flex: 1; box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2);">Save Changes</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    // MESSAGES LOGIC
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if messages %}
+            {% for message in messages %}
+                let swalIcon = 'info';
+                {% if message.tags == 'error' %} swalIcon = 'error'; {% endif %}
+                {% if message.tags == 'success' %} swalIcon = 'success'; {% endif %}
+                
+                Swal.fire({
+                    icon: swalIcon,
+                    title: swalIcon === 'error' ? 'Oops!' : 'Success!',
+                    text: "{{ message|escapejs }}",
+                    confirmButtonColor: 'var(--french-blue)',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            {% endfor %}
+        {% endif %}
+    });
+
     // 1. AUTOMATIC PREFIX GENERATOR (UPDATED LOGIC)
     document.addEventListener("DOMContentLoaded", function() {
         const nameInput = document.getElementById('categoryNameInput');
@@ -205,8 +403,6 @@
             modal.style.display = 'flex';
             document.getElementById('editCategoryName').value = currentName;
             document.getElementById('editCategoryForm').action = `/inventory/category/edit/${categoryId}/`;
-        } else {
-            console.error("Hindi mahanap yung Edit Modal.");
         }
     };
 
@@ -221,8 +417,6 @@
             modal.style.display = 'flex';
             document.getElementById('categoryNameInput').value = '';
             document.getElementById('categoryPrefixInput').value = '';
-        } else {
-            console.error("Hindi mahanap yung Add Modal.");
         }
     };
 
@@ -230,17 +424,24 @@
         document.getElementById('addCategoryModal').style.display = 'none';
     };
 
+    // CLOSE MODALS ON OUTSIDE CLICK
+    window.onclick = function(event) {
+        if (event.target.classList.contains('blur-modal')) {
+            event.target.style.display = "none";
+        }
+    };
+
     // 5. DELETE CONFIRMATION
     window.confirmDelete = function(event, form, categoryName) {
         event.preventDefault(); 
         
         Swal.fire({
-            title: 'Are you sure?',
-            text: `Do you want to delete the category "${categoryName}"?`,
+            title: 'Delete Category?',
+            text: `Do you want to delete the category "${categoryName}"? This may affect associated items.`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#811112',
-            cancelButtonColor: '#A0AEC0',
+            confirmButtonColor: 'var(--status-red)',
+            cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
