@@ -316,7 +316,7 @@
 
                         <th style="width: 15%;">
                             <select name="category" onchange="this.form.submit()" style="width: 100%; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border: none; background: transparent; outline: none; cursor: pointer; font-family: var(--font-main);">
-                                <option value="">Category ▼</option>
+                                <option value="">Category</option>
                                 {% for cat in categories %}
                                     <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
                                 {% endfor %}

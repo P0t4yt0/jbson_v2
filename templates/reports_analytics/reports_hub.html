@@ -2,33 +2,37 @@
 {% load static %}
 
 {% block content %}
-<style>
-    /* Import Inter font based on the design guide */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+<style>
+    /* ── TYPOGRAPHY & LAYOUT ── */
     .reports-container { 
-        padding: 32px 40px; 
-        font-family: 'Inter', sans-serif; 
+        padding: 0 0 30px 0; 
+        font-family: var(--font-main); 
+        max-width: 1500px;
+        margin: 0 auto;
     }
     
-    /* Header matching the Dark Navy font and heavy weight */
     .hub-title { 
         font-size: 28px; 
         font-weight: 800; 
-        color: #2F3F7B; /* Main System Navy */
-        margin-bottom: 4px; 
+        color: var(--french-blue); 
+        margin-bottom: 6px; 
         letter-spacing: -0.5px;
+        font-family: var(--font-heading);
     }
     
-    /* Subheader updated to Accent Color (Orange) and adjusted weight */
     .hub-subtitle { 
-        font-size: 16px; 
-        color: #6B7280; /* Accent Color */
-        margin-bottom: 24px; 
-        font-weight: 500; 
+        font-size: 15px; 
+        color:#6B7280; 
+        margin: 0;
+        font-weight: 300;
     }
 
-    /* Tabs as Links */
+    /* ── TABS (GLASSMORPHISM) ── */
     .tabs-wrapper { 
         display: flex; 
         gap: 12px; 
@@ -36,50 +40,61 @@
         flex-wrap: wrap; 
     }
     
-    /* PILL-SHAPED BUTTON STYLING (Gaya sa User Manual image) */
+    /* INACTIVE STATE */
     .tab-btn {
         text-decoration: none;
-        padding: 8px 22px; /* Adjusted padding para bumagay sa pill shape */
-        font-size: 14px;
+        padding: 10px 24px; 
+        font-size: 13px;
         font-weight: 600;
-        color: #64748b;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 50px; /* Eto yung nagpapa-bilog (pill shape) sa magkabilang dulo */
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+        font-family: var(--font-main);
+        color: var(--text-secondary);
+        background: rgba(255, 255, 255, 0.6); 
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid var(--border-color);
+        border-radius: 50px; /* Pill shape */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(47, 63, 123, 0.02); 
     }
     
     /* HOVER ANIMATION */
     .tab-btn:hover {
-        color: #092c4c;
-        background: #f8fafc;
-        border-color: #cbd5e1;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.15);
+        color: var(--french-blue);
+        background: rgba(255, 255, 255, 0.95);
+        border-color: var(--french-blue);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(47, 63, 123, 0.15);
     }
     
-    /* ACTIVE STATE (Nagbabago ang kulay kapag napindot/napili na) */
+    /* ACTIVE STATE */
     .tab-btn.active { 
-        background: #092c4c !important; /* Main System Navy */
+        background: var(--french-blue) !important; 
         color: #ffffff !important; 
-        border-color: #092c4c !important;
-        transform: none !important; 
-        box-shadow: 0 4px 10px rgba(9, 44, 76, 0.3) !important; 
+        border-color: var(--french-blue) !important;
+        transform: translateY(0) !important; 
+        box-shadow: 0 4px 10px rgba(47, 63, 123, 0.3) !important; 
     }
     
+    /* ── REPORT CONTENT (GLASS PANEL) ── */
     .report-content-wrapper {
-        background: white; 
-        border-radius: 8px; 
-        padding: 24px;
-        border: 1px solid #e2e8f0; 
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
+        padding: 30px; 
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
+        min-height: 400px;
     }
 </style>
 
 <div class="reports-container">
-    <div class="hub-title">Reports & Analytics</div>
-    <div class="hub-subtitle">Select a report category to view details.</div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+        <div>
+            <div class="hub-title">Reports & Analytics</div>
+            <div class="hub-subtitle">Select a report category to view details.</div>
+        </div>
+    </div>
 
     <div class="tabs-wrapper" id="reportsTabs">
         <a href="{% url 'reports_analytics:sales_report' %}" class="tab-btn {% if active_tab == 'sales' %}active{% endif %}">Sales</a>
@@ -93,7 +108,10 @@
 
     <div class="report-content-wrapper">
         {% block report_content %}
-            <p class="text-center py-10" style="color: #6c7a8b; font-size: 14px;">Select a report above to view the data.</p>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 300px; color: var(--text-secondary); gap: 16px;">
+                <i class="ph ph-chart-line-up" style="font-size: 64px; color: rgba(203, 213, 225, 0.8);"></i>
+                <p style="font-size: 15px; font-weight: 500; margin: 0;">Select a report above to view the data.</p>
+            </div>
         {% endblock %}
     </div>
 </div>

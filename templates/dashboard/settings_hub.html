@@ -1,16 +1,26 @@
 {% extends 'dashboard/dashboard.html' %}
 
 {% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     /* ==========================================
        SETTINGS UI MATCHING DASHBOARD
        ========================================== */
+    
+    /* GLASSMORPHISM PANELS */
     .settings-panel {
-        background: var(--bg-card);
-        border-radius: var(--border-radius);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: var(--border-radius, 20px);
         padding: 32px;
-        border: 1px solid rgba(255,255,255,0.8);
-        box-shadow: var(--shadow-subtle);
+        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         display: flex;
         flex-direction: column;
@@ -19,6 +29,16 @@
     .settings-panel:hover {
         transform: translateY(-2px);
         box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.15);
+        border-color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* DANGER ZONE PANEL (Tinted Red Glass) */
+    .panel-danger {
+        background: rgba(254, 242, 242, 0.75);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .panel-danger:hover {
+        border-color: rgba(239, 68, 68, 0.5);
     }
 
     .settings-header {
@@ -27,15 +47,16 @@
         font-weight: 800;
     }
 
+    /* BUTTONS */
     .settings-btn {
         padding: 14px 24px;
         border-radius: 12px;
         font-family: var(--font-main);
-        font-weight: 600;
+        font-weight: 700;
         font-size: 14px;
         cursor: pointer;
         border: none;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         width: 100%;
         display: inline-flex;
         justify-content: center;
@@ -49,9 +70,9 @@
         box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);
     }
     .btn-french:hover {
-        background-color: #233060;
+        background-color: #1a2858;
         transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(47, 63, 123, 0.35);
+        box-shadow: 0 6px 16px rgba(47, 63, 123, 0.3);
     }
 
     .btn-amber {
@@ -60,9 +81,9 @@
         box-shadow: 0 4px 12px rgba(255, 185, 21, 0.2);
     }
     .btn-amber:hover {
-        background-color: #E5A610;
+        background-color: #e6a300;
         transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(255, 185, 21, 0.35);
+        box-shadow: 0 6px 16px rgba(255, 185, 21, 0.3);
     }
 
     .btn-danger {
@@ -71,30 +92,31 @@
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
     }
     .btn-danger:hover {
-        background-color: #DC2626;
+        background-color: #b91c1c;
         transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
     }
 
+    /* FILE UPLOAD INPUT */
     .file-upload-wrapper input[type="file"] {
         width: 100%;
         font-size: 13px;
         padding: 12px;
-        border: 2px dashed var(--border-color);
+        border: 2px dashed rgba(203, 213, 225, 0.8);
         border-radius: 12px;
         color: var(--text-secondary);
         cursor: pointer;
-        background: #F8FAFC;
-        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
         font-family: var(--font-main);
+        box-sizing: border-box;
     }
-    
     .file-upload-wrapper input[type="file"]:hover {
         border-color: var(--amber-flame);
-        background: #FFF;
+        background: rgba(255, 255, 255, 0.9);
     }
 
-    /* Icon Backgrounds */
+    /* ICON BACKGROUNDS */
     .icon-circle {
         width: 48px;
         height: 48px;
@@ -109,91 +131,100 @@
     .icon-amber { background: rgba(255, 185, 21, 0.1); color: var(--amber-flame); }
     .icon-red { background: rgba(239, 68, 68, 0.1); color: var(--status-red); }
     
-    /* Password Input Styling */
+    /* PASSWORD INPUT STYLING */
     .encryption-input {
         width: 100%;
-        font-size: 13px;
-        padding: 12px 16px;
-        border: 2px solid #E2E8F0; /* Matches your subtle borders */
+        font-size: 14px;
+        padding: 14px 16px;
+        border: 1px solid rgba(203, 213, 225, 0.8);
         border-radius: 12px;
-        color: #333;
-        background: #F8FAFC;
-        transition: all 0.2s ease;
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
         font-family: var(--font-main);
         box-sizing: border-box;
     }
-    
     .encryption-input:focus {
         outline: none;
         border-color: var(--french-blue);
-        background: #FFF;
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
+    
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* SWEETALERT BACKDROP SYNC */
+    .swal2-container.swal2-backdrop-show {
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+    }
 </style>
 
-<div style="padding: 10px 0; max-width: 1000px; margin: 0 auto;">
+<div style="padding: 0 0 30px 0; max-width: 1500px; margin: 0 auto; font-family: var(--font-main);">
 
     <div style="margin-bottom: 32px;">
         <h1 class="settings-header" style="font-size: 28px; letter-spacing: -0.5px; margin: 0;">General Settings</h1>
-        <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">Manage your system maintenance, backups, and data security.</p>
+        <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px; font-weight: 300;">Manage your system maintenance, backups, and data security.</p>
     </div>
 
     <div style="margin-bottom: 40px;">
-        <h3 style="font-family: var(--font-heading); color: var(--text-primary); font-size: 18px; margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;">
-            <i class="ph ph-wrench" style="color: var(--text-secondary);"></i> System Maintenance
+        <h3 style="font-family: var(--font-heading); color: var(--french-blue); font-size: 18px; font-weight: 800; margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;">
+            <i class="ph ph-wrench" style="color: var(--french-blue);"></i> System Maintenance
         </h3>
         
         <div class="settings-panel" style="text-align: center;">
             <div id="scan-init" style="display: block;">
                 <div class="icon-circle icon-blue" style="width: 64px; height: 64px; font-size: 32px;"><i class="ph ph-shield-check"></i></div>
-                <p style="color: var(--text-primary); font-size: 1.1rem; margin-bottom: 24px; font-weight: 500;">No recent system checks run. Would you like to check the system now?</p>
+                <p style="color: var(--text-primary); font-size: 16px; margin-bottom: 24px; font-weight: 600;">No recent system checks run. Would you like to check the system now?</p>
                 <button onclick="runProScan()" class="settings-btn btn-french" style="max-width: 250px;">
-                    <i class="ph ph-magnifying-glass"></i> Start System Check
+                    <i class="ph ph-magnifying-glass" style="font-size: 20px;"></i> Start System Check
                 </button>
             </div>
 
             <div id="pro-loader" style="display: none; padding: 20px;">
                 <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--french-blue); border-radius: 50%; animation: spin 1s linear infinite; margin: auto; margin-bottom: 20px;"></div>
-                <p style="color: var(--french-blue); font-weight: 700; font-size: 1.1rem;">Checking system...</p>
-                <p style="color: var(--text-secondary); font-size: 0.9rem;">Looking for unused storage and ways to free up space.</p>
+                <p style="color: var(--french-blue); font-weight: 800; font-size: 18px; font-family: var(--font-heading);">Checking system...</p>
+                <p style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Looking for unused storage and ways to free up space.</p>
             </div>
 
             <div id="pro-results" style="display: none; text-align: left;">
-                <div style="background: rgba(34, 197, 94, 0.05); border-left: 4px solid var(--status-green); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
-                    <h4 style="color: var(--primary-navy); margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="ph ph-check-circle" style="color: var(--status-green); font-size: 1.2rem;"></i>
+                <div style="background: rgba(34, 197, 94, 0.05); border-left: 4px solid var(--status-green); padding: 20px; border-radius: 12px; margin-bottom: 24px; border-top: 1px solid rgba(34, 197, 94, 0.1); border-right: 1px solid rgba(34, 197, 94, 0.1); border-bottom: 1px solid rgba(34, 197, 94, 0.1);">
+                    <h4 style="color: var(--french-blue); margin: 0 0 12px 0; font-family: var(--font-heading); font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-check-circle" style="color: var(--status-green); font-size: 22px;"></i>
                         System Check Complete
                     </h4>
-                    <div style="color: var(--text-secondary); font-size: 0.95rem;">
+                    <div style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">
                         <p style="margin: 6px 0;">Everything is working properly.</p>
-                        <p style="margin: 6px 0;">Storage Used: <strong style="color: var(--french-blue);">{{ db_size }} MB</strong></p>
+                        <p style="margin: 6px 0;">Storage Used: <strong style="color: var(--french-blue); font-family: 'Inconsolata', monospace; font-size: 16px;">{{ db_size }} MB</strong></p>
                         
                         {% if report %}
-                            <p style="margin: 12px 0 6px 0; color: var(--status-red); font-weight: 600;">⚠️ Unused storage Found:</p>
-                            <ul style="margin: 0 0 0 20px; padding: 0; color: var(--status-red); font-size: 0.85rem;">
+                            <p style="margin: 16px 0 8px 0; color: var(--status-red); font-weight: 700;">⚠️ Unused storage Found:</p>
+                            <ul style="margin: 0 0 0 20px; padding: 0; color: var(--status-red); font-size: 13px;">
                                 {% for item in report %}
-                                    <li>{{ item }}</li> {% endfor %}
+                                    <li style="margin-bottom: 4px;">{{ item }}</li> 
+                                {% endfor %}
                             </ul>
                         {% else %}
-                            <p style="margin: 6px 0; color: var(--status-green);">Everything is clean. No unused storage taking up extra space.</p>
+                            <p style="margin: 12px 0 0 0; color: var(--status-green); font-weight: 600;">Everything is clean. No unused storage taking up extra space.</p>
                         {% endif %}
                     </div>
                 </div>
 
                 {% if report %}
-                    <div style="background: rgba(255, 185, 21, 0.1); border-left: 4px solid var(--amber-flame); padding: 16px; border-radius: 12px; margin-bottom: 24px;">
-                        <p style="margin: 0; color: #92400e; font-size: 0.9rem;"><strong>Recommendation:</strong> Some saved information is no longer needed. Removing it can help the system run faster.</p>
+                    <div style="background: rgba(255, 185, 21, 0.05); border-left: 4px solid var(--amber-flame); padding: 16px; border-radius: 12px; margin-bottom: 24px; border-top: 1px solid rgba(255, 185, 21, 0.1); border-right: 1px solid rgba(255, 185, 21, 0.1); border-bottom: 1px solid rgba(255, 185, 21, 0.1);">
+                        <p style="margin: 0; color: #92400e; font-size: 14px; font-weight: 500;"><strong>Recommendation:</strong> Some saved information is no longer needed. Removing it can help the system run faster.</p>
                     </div>
                     <form method="POST" action="{% url 'maintenance:maintenance_dashboard' %}">
                         {% csrf_token %}
                         <button type="submit" class="settings-btn btn-french">
-                            <i class="ph ph-broom"></i> Clean Up Storage
+                            <i class="ph ph-broom" style="font-size: 18px;"></i> Clean Up Storage
                         </button>
                     </form>
                 {% else %}
-                    <div style="background: rgba(34, 197, 94, 0.1); padding: 16px; border-radius: 12px; text-align: center;">
-                        <p style="margin: 0; color: #166534; font-size: 0.95rem; font-weight: 600;">
-                            <i class="ph ph-rocket" style="margin-right: 5px;"></i> System is running fast and smooth. No cleanup needed.
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px dashed rgba(34, 197, 94, 0.3);">
+                        <p style="margin: 0; color: #166534; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="ph ph-rocket" style="font-size: 20px;"></i> System is running fast and smooth. No cleanup needed.
                         </p>
                     </div>
                 {% endif %}
@@ -202,20 +233,20 @@
     </div>
 
     <div style="margin-bottom: 40px;">
-        <h3 style="font-family: var(--font-heading); color: var(--text-primary); font-size: 18px; margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;">
-            <i class="ph ph-database" style="color: var(--text-secondary);"></i> Backup & Recovery
+        <h3 style="font-family: var(--font-heading); color: var(--french-blue); font-size: 18px; font-weight: 800; margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;">
+            <i class="ph ph-database" style="color: var(--french-blue);"></i> Backup & Recovery
         </h3>
         
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; align-items: stretch;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: stretch;">
             
             <div class="settings-panel">
                 <div style="flex-grow: 1;">
                     <div class="icon-circle icon-blue"><i class="ph ph-download-simple"></i></div>
-                    <h3 class="settings-header" style="font-size: 18px; margin-bottom: 8px;">System Backup</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">Generate and download a highly-secured, encrypted SQL dump of the current database.</p>
+                    <h3 class="settings-header" style="font-size: 20px; margin: 0 0 8px 0;">System Backup</h3>
+                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; font-weight: 500;">Generate and download a highly-secured, encrypted SQL dump of the current database.</p>
 
-                    <p style="font-size: 13px; font-weight: 600; color: var(--primary-navy); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="ph ph-clock-counter-clockwise" style="font-size: 1.2rem; color: var(--amber-flame);"></i>
+                    <p style="font-size: 13px; font-weight: 700; color: var(--french-blue); margin: 0 0 20px 0; display: flex; align-items: center; gap: 6px; background: rgba(255, 185, 21, 0.1); padding: 8px 12px; border-radius: 8px; width: fit-content; border: 1px solid rgba(255, 185, 21, 0.2);">
+                        <i class="ph ph-clock-counter-clockwise" style="font-size: 18px; color: var(--amber-flame);"></i>
                         Last Backup: {{ last_backup_time }}
                     </p>
                 </div>
@@ -224,10 +255,10 @@
                     {% csrf_token %}
                     <div style="margin-bottom: 16px;">
                         <input type="password" name="encryption_key" class="encryption-input" placeholder="Set an encryption password" required>
-                        <small style="color: var(--text-secondary); font-size: 11px; margin-top: 4px; display: block;">* Don't forget this password. You will need it to restore data.</small>
+                        <small style="color: var(--text-secondary); font-size: 12px; font-weight: 500; margin-top: 8px; display: block;">* Don't forget this password. You will need it to restore data.</small>
                     </div>
                     <button type="submit" class="settings-btn btn-french">
-                        <i class="ph ph-lock-key"></i> Encrypt & Download
+                        <i class="ph ph-lock-key" style="font-size: 18px;"></i> Encrypt & Download
                     </button>
                 </form>
             </div>
@@ -235,8 +266,8 @@
             <div class="settings-panel">
                 <div style="flex-grow: 1;">
                     <div class="icon-circle icon-amber"><i class="ph ph-upload-simple"></i></div>
-                    <h3 class="settings-header" style="font-size: 18px; margin-bottom: 8px; color: var(--amber-flame);">System Recovery</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">Upload an encrypted backup file to restore the system state.</p>
+                    <h3 class="settings-header" style="font-size: 20px; margin: 0 0 8px 0; color: var(--amber-flame);">System Recovery</h3>
+                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px; font-weight: 500;">Upload an encrypted backup file to restore the system state.</p>
                     
                     <form action="{% url 'maintenance:trigger_restore' %}" method="POST" enctype="multipart/form-data" id="restoreForm">
                         {% csrf_token %}
@@ -250,28 +281,29 @@
                 </div>
 
                     <button type="submit" class="settings-btn btn-amber">
-                        <i class="ph ph-lock-key-open"></i> Decrypt & Restore
+                        <i class="ph ph-lock-key-open" style="font-size: 18px;"></i> Decrypt & Restore
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <div class="settings-panel" style="border-color: rgba(239, 68, 68, 0.3); background: #FEF2F2; display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 20px;">
+    <div class="settings-panel panel-danger" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
         <div>
-            <h3 style="color: var(--status-red); margin: 0 0 4px 0; font-size: 1.2rem; font-family: var(--font-heading); font-weight: 800;">Danger Zone</h3>
-            <p style="font-size: 13px; color: #991b1b; margin: 0;">Permanently delete all inventory and transaction records. This action cannot be undone.</p>
+            <h3 style="color: var(--status-red); margin: 0 0 6px 0; font-size: 20px; font-family: var(--font-heading); font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <i class="ph ph-warning" style="font-size: 24px;"></i> Danger Zone
+            </h3>
+            <p style="font-size: 14px; color: #991b1b; font-weight: 500; margin: 0;">Permanently delete all inventory and transaction records. This action cannot be undone.</p>
         </div>
-        <form action="{% url 'maintenance:delete_all_data' %}" method="POST" onsubmit="confirmWipeData(event);" style="margin: 0; min-width: 180px;">
+        <form action="{% url 'maintenance:delete_all_data' %}" method="POST" onsubmit="confirmWipeData(event);" style="margin: 0; min-width: 200px;">
             {% csrf_token %}
             <button type="submit" class="settings-btn btn-danger">
-                <i class="ph ph-trash"></i> Wipe All Data
+                <i class="ph ph-trash" style="font-size: 18px;"></i> Wipe All Data
             </button>
         </form>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Handle Django Messages (Alerts)
     document.addEventListener("DOMContentLoaded", function() {
@@ -337,6 +369,7 @@
             if (result.isConfirmed) { event.target.submit(); } 
         });
     }
+
     // ==========================================
     // BACKUP PASSWORD VALIDATION
     // ==========================================

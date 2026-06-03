@@ -5,6 +5,7 @@ from django.db.models import Q
 from inventory.models import InventoryItem, Category, PurchaseOrder, Supplier
 from billing_payment.models import Invoice, SalesReturn, Customer
 from point_of_sale.models import Transaction
+from user_manual.models import ManualArticle
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -59,6 +60,16 @@ def global_search_api(request):
         add_shortcut("Users", "user_management", "User Management")
         add_shortcut("Activity Logs", "activity_logs", "User Management")
         add_shortcut("Suppliers", "inventory:supplier_list", "User Management") 
+
+        # USER MANUAL & GUIDES
+        add_shortcut("User Manual Hub", "user_manual:hub", "Help & Guides")
+        add_shortcut("Dashboard Guide", "user_manual:dashboard", "Help & Guides")
+        add_shortcut("Inventory Guide", "user_manual:inventory", "Help & Guides")
+        add_shortcut("POS Guide", "user_manual:pos", "Help & Guides")
+        add_shortcut("Billing Guide", "user_manual:billing", "Help & Guides")
+        add_shortcut("Reports Guide", "user_manual:reports", "Help & Guides")
+        add_shortcut("Management Guide", "user_manual:management", "Help & Guides")
+        add_shortcut("Settings Guide", "user_manual:settings", "Help & Guides")
         
         for item in shortcuts:
             if query.lower() in item['title'].lower() or query.lower() in item['module'].lower():
@@ -191,4 +202,43 @@ def global_search_api(request):
                 "url": f"/security/users/"
             })
 
+        # K. USER MANUAL ARTICLES
+        articles = ManualArticle.objects.filter(
+            Q(title__icontains=query) | Q(content__icontains=query),
+            is_active=True
+        )[:3]
+        
+        for article in articles:
+            # Hulaan ang tamang view/URL base sa section title
+            section_name = article.section.title.lower()
+            
+            try:
+                if 'inventory' in section_name:
+                    target_url = reverse('user_manual:inventory') 
+                elif 'pos' in section_name:
+                    target_url = reverse('user_manual:pos')
+                elif 'billing' in section_name:
+                    target_url = reverse('user_manual:billing')
+                elif 'report' in section_name:
+                    target_url = reverse('user_manual:reports')
+                elif 'manage' in section_name or 'user' in section_name:
+                    target_url = reverse('user_manual:management')
+                elif 'setting' in section_name:
+                    target_url = reverse('user_manual:settings')
+                elif 'dashboard' in section_name:
+                    target_url = reverse('user_manual:dashboard')
+                else:
+                    target_url = reverse('user_manual:hub')
+            except NoReverseMatch:
+                target_url = "#"
+
+            results.append({
+                "type": "record", 
+                "id": str(article.id), 
+                "title": f"Help Article: {article.title}",
+                "detail1": f"Section: {article.section.title}", 
+                "detail2": f"Type: {article.section.get_section_type_display()}", 
+                "status": "Guide",
+                "url": target_url 
+            })
     return JsonResponse(results, safe=False)

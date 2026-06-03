@@ -1,4 +1,4 @@
-{% extends 'dashboard/dashboard.html' %} 
+{% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,7 +10,7 @@
 <style>
     .num-font { font-family: 'Inconsolata', monospace; letter-spacing: 0.5px; }
 
-    /* Dropdown Styles for Smart Draft */
+    /* DROPDOWN STYLES (GLASSMORPHISM) */
     .dropdown-container { position: relative; display: inline-block; }
     .dropdown-menu {
         display: none; position: absolute; background-color: rgba(255, 255, 255, 0.95);
@@ -30,11 +30,11 @@
     .dropdown-item:hover { background-color: rgba(47, 63, 123, 0.05); color: var(--french-blue); padding-left: 20px; }
     .item-count-badge { background: rgba(239, 68, 68, 0.1); color: var(--status-red); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 800; border: 1px solid rgba(239, 68, 68, 0.2); }
 
-    /* Main Hub Styles */
+    /* MAIN HUB STYLES */
     .po-container { max-width: 1500px; margin: 0 auto; padding: 0 0 30px 0; font-family: var(--font-main); color: var(--text-primary); }
-    .header-section { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+    .header-section { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
     .header-section h2 { font-size: 28px; font-weight: 800; margin: 0; color: var(--french-blue); letter-spacing: -0.5px; font-family: var(--font-heading); }
-    .header-section p { color: var(--text-secondary); font-size: 15px; margin: 5px 0 0 0; font-weight: 500;}
+    .header-section p { color: var(--amber-flame); font-size: 15px; margin: 5px 0 0 0; font-weight: 500; }
     .split-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
     
     /* GLASS PANELS */
@@ -49,7 +49,7 @@
 
     .po-list-section { padding: 24px; max-height: 85vh; overflow-y: auto; }
     
-    /* PO Cards */
+    /* PO CARDS */
     .po-card { display: block; text-decoration: none; border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.8); transition: all 0.3s ease; position: relative; overflow: hidden; }
     .po-card:hover { border-color: var(--french-blue); background: #FFFFFF; transform: translateY(-2px); box-shadow: 0 8px 16px -4px rgba(47, 63, 123, 0.15); }
     .po-card.active { border-color: var(--french-blue); background: #FFFFFF; box-shadow: 0 8px 16px -4px rgba(47, 63, 123, 0.15); }
@@ -63,11 +63,13 @@
     .form-row { display: flex; gap: 24px; margin-bottom: 20px; }
     .form-group { flex: 1; }
     .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* INPUTS & SELECTS */
     .form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 12px; font-size: 14px; color: var(--text-primary); transition: all 0.3s; background: rgba(255, 255, 255, 0.8); box-sizing: border-box; font-family: var(--font-main); }
     .form-group input:focus, .form-group select:focus { border-color: var(--french-blue); background: #FFFFFF; box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1); outline: none; }
     .form-group input:disabled, .form-group select:disabled { background: rgba(248, 250, 252, 0.6); color: var(--text-primary); cursor: not-allowed; border-color: rgba(203, 213, 225, 0.5); font-weight: 600; opacity: 1; -webkit-text-fill-color: var(--text-primary); }
     
-    /* Table & Numbers */
+    /* TABLE & NUMBERS */
     table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; }
     th { text-align: left; padding: 12px 14px; color: var(--text-secondary); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid rgba(226, 232, 240, 0.8); }
     td { padding: 16px 14px; border-bottom: 1px solid rgba(226, 232, 240, 0.6); vertical-align: middle; }
@@ -83,27 +85,34 @@
     
     .subtotal-text { font-weight: 800; color: var(--french-blue); font-size: 16px; font-family: 'Inconsolata', monospace; }
     
+    /* ADD/REMOVE ROW BUTTONS */
     .btn-add { background: rgba(255, 255, 255, 0.8); color: var(--french-blue); padding: 14px 20px; border-radius: 12px; border: 1px dashed var(--french-blue); font-weight: 600; font-family: var(--font-main); font-size: 14px; cursor: pointer; transition: all 0.3s ease; width: 100%; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-add:hover { background: var(--french-blue); color: white; box-shadow: 0 4px 10px rgba(47, 63, 123, 0.15); }
+    
     .btn-remove { background: #FFF5F5; color: var(--status-red); border: 1px solid #FCA5A5; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 18px; }
     .btn-remove:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
     
+    /* GRAND TOTAL */
     .grand-total-box { background: rgba(47, 63, 123, 0.05); padding: 24px 30px; border-radius: 16px; border: 1px solid rgba(47, 63, 123, 0.1); display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
     .grand-total-text { font-size: 32px; font-weight: 800; color: var(--amber-flame); margin: 0; font-family: 'Inconsolata', monospace; letter-spacing: -1px; }
     
-    /* Action Buttons */
+    /* SAFE ACTION BUTTONS (Renamed to avoid conflicts) */
     .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid rgba(226, 232, 240, 0.6); padding-top: 24px; }
     .action-group-right { display: flex; gap: 12px; align-items: center; }
-    .page-btn-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease; border: none; text-decoration: none; font-family: var(--font-main); box-sizing: border-box; white-space: nowrap; }
+    
+    .page-btn-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease; border: none; text-decoration: none; font-family: var(--font-main); box-sizing: border-box; white-space: nowrap; height: 48px; }
     
     .page-btn-primary { background: var(--french-blue); color: white; box-shadow: 0 4px 6px rgba(47, 63, 123, 0.2); }
     .page-btn-primary:hover { background: #1a2858; color: white; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(47, 63, 123, 0.3); }
-    .btn-green { background: var(--status-green); color: white; box-shadow: 0 4px 6px rgba(34, 197, 94, 0.2); }
-    .btn-green:hover { background: #15803d; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(34, 197, 94, 0.3);}
-    .btn-outline-red { background: rgba(255, 255, 255, 0.8); color: var(--status-red); border: 1px solid rgba(239, 68, 68, 0.4); }
-    .btn-outline-red:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
-    .btn-outline-secondary { background: rgba(255, 255, 255, 0.8); color: var(--text-secondary); border: 1px solid var(--border-color); }
-    .btn-outline-secondary:hover { background: #FFFFFF; color: var(--french-blue); border-color: var(--french-blue); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1); }
+    
+    .page-btn-green { background: var(--status-green); color: white; box-shadow: 0 4px 6px rgba(34, 197, 94, 0.2); }
+    .page-btn-green:hover { background: #15803d; color: white; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(34, 197, 94, 0.3); }
+    
+    .page-btn-outline-red { background: rgba(255, 255, 255, 0.8); color: var(--status-red); border: 1px solid rgba(239, 68, 68, 0.4); }
+    .page-btn-outline-red:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+    
+    .page-btn-secondary { background: rgba(255, 255, 255, 0.8); color: var(--text-secondary); border: 1px solid var(--border-color); }
+    .page-btn-secondary:hover { background: #FFFFFF; color: var(--french-blue); border-color: var(--french-blue); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1); }
 </style>
 
 <div class="po-container">
@@ -322,11 +331,11 @@
                 <div class="form-actions">
                     <div>
                         {% if edit_mode and target_po.status == 'draft' %}
-                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="triggerSweetAlert(event, this.href, 'Delete Draft?', 'Are you sure you want to permanently delete this drafted order?');" class="page-btn-action btn-outline-red">
+                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="triggerSweetAlert(event, this.href, 'Delete Draft?', 'Are you sure you want to permanently delete this drafted order?');" class="page-btn-action page-btn-outline-red">
                                 <i class="ph ph-trash" style="font-size: 18px;"></i> Delete Draft
                             </a>
                         {% elif edit_mode and target_po.status == 'pending' %}
-                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="triggerSweetAlert(event, this.href, 'Cancel Order?', 'Are you sure you want to cancel this pending delivery?');" class="page-btn-action btn-outline-red">
+                            <a href="{% url 'inventory:delete_po' target_po.id %}" onclick="triggerSweetAlert(event, this.href, 'Cancel Order?', 'Are you sure you want to cancel this pending delivery?');" class="page-btn-action page-btn-outline-red">
                                 <i class="ph ph-x-circle" style="font-size: 18px;"></i> Cancel Order
                             </a>
                         {% endif %}
@@ -337,24 +346,24 @@
                             
                             {% if target_po.status != 'draft' %}
                                 <div style="display: flex; gap: 10px; margin-right: 12px;">
-                                    <a href="{% url 'inventory:print_po' target_po.id %}?mode=print" target="_blank" class="page-btn-action btn-outline-secondary" style="padding: 14px; width: 48px;" title="Print Order">
+                                    <a href="{% url 'inventory:print_po' target_po.id %}?mode=print" target="_blank" class="page-btn-action page-btn-secondary" style="padding: 14px; width: 48px;" title="Print Order">
                                         <i class="ph ph-printer" style="font-size: 20px;"></i>
                                     </a>
-                                    <a href="{% url 'inventory:print_po' target_po.id %}?mode=pdf" target="_blank" class="page-btn-action btn-outline-red" style="padding: 14px; width: 48px;" title="Download PDF">
+                                    <a href="{% url 'inventory:print_po' target_po.id %}?mode=pdf" target="_blank" class="page-btn-action page-btn-outline-red" style="padding: 14px; width: 48px;" title="Download PDF">
                                         <i class="ph ph-file-pdf" style="font-size: 20px;"></i>
                                     </a>
                                 </div>
                             {% endif %}
 
                             {% if target_po.status == 'draft' %}
-                                <button type="submit" name="action" value="save_draft" class="page-btn-action btn-outline-secondary">
+                                <button type="submit" name="action" value="save_draft" class="page-btn-action page-btn-secondary">
                                     <i class="ph ph-floppy-disk" style="font-size: 18px;"></i> Save Draft
                                 </button>
                                 <button type="submit" name="action" value="submit_po" class="page-btn-action page-btn-primary">
                                     <i class="ph ph-paper-plane-tilt" style="font-size: 18px;"></i> Submit Order
                                 </button>
                             {% elif target_po.status == 'pending' %}
-                                <a href="{% url 'inventory:receive_po' target_po.id %}" class="page-btn-action btn-green">
+                                <a href="{% url 'inventory:receive_po' target_po.id %}" class="page-btn-action page-btn-green">
                                     <i class="ph ph-check-circle" style="font-size: 18px;"></i> Mark as Received
                                 </a>
                                 <a href="{% url 'inventory:create_po' %}" class="page-btn-action page-btn-primary">
@@ -366,7 +375,7 @@
                                 </a>
                             {% endif %}
                         {% else %}
-                            <button type="submit" name="action" value="save_draft" class="page-btn-action btn-outline-secondary">
+                            <button type="submit" name="action" value="save_draft" class="page-btn-action page-btn-secondary">
                                 <i class="ph ph-floppy-disk" style="font-size: 18px;"></i> Save as Draft
                             </button>
                             <button type="submit" name="action" value="submit_po" class="page-btn-action page-btn-primary">
