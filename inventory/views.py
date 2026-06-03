@@ -28,7 +28,7 @@ from billing_payment.models import SalesReturn, Invoice
 from security.models import EmployeeProfile
 from reports_analytics.models import Expense # Assuming you have this based on your migrations!
 from django.db.models import F
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 
 @login_required         
@@ -352,8 +352,14 @@ def barcode_module_view(request):
 
     return render(request, 'inventory/generate_barcode.html', context)
 
+def is_admin_check(user):
+    return user.is_authenticated and getattr(user, "role", "employee") == "admin"
+
 @login_required
 def admin_dashboard_view(request):
+    # SILIPIN ANG ROLE: Kung hindi siya admin, itapon siya agad sa employee dashboard nang MALINIS
+    if getattr(request.user, "role", "employee") != "admin":
+        return redirect('employee_dashboard')
     today = timezone.now().date()
     
     # --- 1. GLOBAL DATE FILTER LOGIC ---
@@ -1065,3 +1071,125 @@ def delete_generated_barcode(request, pk):
         )
         messages.success(request, f"Barcode history for '{product_name}' was successfully deleted.")        
     return redirect('inventory:generate_barcode_page')
+
+@login_required
+def employee_dashboard_view(request):
+    # 1. SECURITY REDIRECT: Kung Admin ang nakalog-in, itapon pabalik sa admin dashboard
+    if getattr(request.user, "role", "employee") == "admin":
+        return redirect('admin_dashboard')
+
+    today = timezone.now().date()
+    
+    # --- 2. GLOBAL DATE FILTER LOGIC ---
+    date_filter = request.GET.get('filter', 'all_time')
+    if date_filter == 'today': start_date = today
+    elif date_filter == 'this_week': start_date = today - timedelta(days=today.weekday())
+    elif date_filter == 'this_month': start_date = today.replace(day=1)
+    elif date_filter == 'this_year': start_date = today.replace(month=1, day=1)
+    else: start_date = None 
+
+    # --- 3. BASE QUERIES ---
+    tx_base = Transaction.objects.filter(status__in=['completed', 'paid'])
+    po_base = PurchaseOrder.objects.filter(status='received')
+    invoice_base = Invoice.objects.all()
+    expense_base = None
+
+    try:
+        from reports_analytics.models import Expense
+        expense_base = Expense.objects.all()
+    except ImportError:
+        pass
+
+    if start_date:
+        tx_base = tx_base.filter(date_created__date__gte=start_date)
+        po_base = po_base.filter(order_date__gte=start_date)
+        if expense_base is not None: expense_base = expense_base.filter(expense_date__gte=start_date)
+
+    # --- 4. CORE METRICS CALCULATION ---
+    total_sales = tx_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    total_purchase = po_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    sales_return = SalesReturn.objects.aggregate(t=Coalesce(Sum('total_refund'), Decimal('0.00'), output_field=DecimalField()))['t']
+    invoice_due = Invoice.objects.filter(status='unpaid').aggregate(t=Coalesce(Sum('balance_due'), Decimal('0.00'), output_field=DecimalField()))['t']
+    
+    expenses = Decimal('0.00')
+    if expense_base is not None:
+        expenses = expense_base.aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+
+    total_outflow = total_purchase + expenses
+    net_profit = total_sales - total_outflow - sales_return
+
+    # --- 5. ADVANCED CHART DATA (7-Day Financials) ---
+    chart_labels = []
+    chart_sales_data = []
+    chart_outflow_data = []
+    chart_profit_data = []
+
+    for i in range(6, -1, -1):
+        current_day = today - timedelta(days=i)
+        next_day = current_day + timedelta(days=1) 
+        
+        chart_labels.append(current_day.strftime('%b %d'))
+        
+        d_sales = Transaction.objects.filter(
+            date_created__gte=current_day,
+            date_created__lt=next_day,
+            status__in=['completed', 'credit']
+        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+        
+        d_purchases = PurchaseOrder.objects.filter(
+            status='received', 
+            order_date__gte=current_day,
+            order_date__lt=next_day
+        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+        
+        d_expenses = Decimal('0.00')
+        if expense_base is not None:
+            d_expenses = expense_base.filter(
+                expense_date__gte=current_day,
+                expense_date__lt=next_day
+            ).aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+            
+        d_outflow = d_purchases + d_expenses
+        d_profit = d_sales - d_outflow
+
+        chart_sales_data.append(float(d_sales))
+        chart_outflow_data.append(float(d_outflow))
+        chart_profit_data.append(float(d_profit))
+
+    # --- 6. TOP PRODUCTS DOUGHNUT CHART ---
+    top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'credit'])
+    if start_date:
+        top_items_base = top_items_base.filter(transaction__date_created__gte=start_date)
+
+    top_products_qs = top_items_base.values('inventory_item__item_name').annotate(total_sold=Sum('quantity')).order_by('-total_sold')[:5]
+    
+    donut_labels = [p['inventory_item__item_name'] for p in top_products_qs]
+    donut_data = [float(p['total_sold']) for p in top_products_qs]
+
+    # --- 7. ACTIONABLE LISTS ---
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
+    unpaid_invoices = Invoice.objects.filter(status='unpaid').order_by('due_date')[:5]
+
+    metrics = {
+        'total_sales': total_sales,
+        'total_outflow': total_outflow,
+        'net_profit': net_profit,
+        'invoice_due': invoice_due,
+        'current_filter': date_filter,
+    }
+
+    # --- 8. IPASA ANG CONTEXT SA EMPLOYEE TEMPLATE ---
+    context = {
+        'metrics': metrics,
+        'low_stock_items': low_stock_items,
+        'top_products': top_products_qs,
+        'unpaid_invoices': unpaid_invoices,
+        'chart_labels': json.dumps(chart_labels),
+        'chart_sales_data': json.dumps(chart_sales_data),
+        'chart_outflow_data': json.dumps(chart_outflow_data),
+        'chart_profit_data': json.dumps(chart_profit_data),
+        'donut_labels': json.dumps(donut_labels),
+        'donut_data': json.dumps(donut_data),
+    }
+
+    return render(request, 'dashboard/employee_dashboard.html', context)

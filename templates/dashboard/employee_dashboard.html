@@ -8,15 +8,20 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
         :root {
-            /* Color Palette */
-            --bg-main: #F8F9FA;
+            /* Strict Color Palette */
+            --french-blue: #2F3F7B;
+            --mustard: #FFD358;
+            --amber-flame: #FFB915;
+
+            /* Original Theme Variables */
+            --bg-main: #F4F6F9;
             --bg-card: #FFFFFF;
             --primary-red: #891C1C;
             --primary-navy: #0D1E2D;
-            --sidebar-active: #FCE8E8;
+            --sidebar-active: #c1def7;
             --text-primary: #212529;
             --text-secondary: #6B7280;
             --border-color: #E5E7EB;
@@ -27,8 +32,8 @@
             /* Typography & Spacing */
             --font-main: 'Inter', sans-serif; 
             --font-heading: 'Inter', sans-serif;
-            --border-radius: 10px;
-            --shadow-subtle: 0 1px 3px rgba(0,0,0,0.1);
+            --border-radius: 20px;
+            --shadow-subtle: 0 10px 30px -10px rgba(47, 63, 123, 0.1);
         }
 
         * {
@@ -89,26 +94,45 @@
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 12px 24px;
+            padding: 12px 16px;
+            margin: 4px 16px; 
             color: var(--text-secondary);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            transition: all 0.2s;
+            border-radius: 12px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
+            background: transparent;
         }
 
         .nav-item i {
             margin-right: 12px;
             font-size: 20px;
+            transition: transform 0.3s ease;
         }
 
-        .nav-item:hover { background-color: #f3f4f6; }
+        .nav-item:hover { 
+            background-color: rgba(230, 230, 250, 0.5); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--french-blue);
+            transform: translateX(4px); 
+        }
+
+        .nav-item:hover i {
+            transform: scale(1.1); 
+        }
 
         .nav-item.active {
-            background-color: var(--sidebar-active);
-            color: var(--primary-red);
-            border-right: 4px solid var(--primary-red);
+            background: linear-gradient(135deg, var(--french-blue), #3d5096);
+            color: #FFFFFF;
+            box-shadow: 0 4px 15px rgba(47, 63, 123, 0.25); 
+        }
+
+        .nav-item.active i {
+            color: #FFFFFF;
         }
 
         /* --- Main Content Area --- */
@@ -117,6 +141,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
 
         /* --- Header --- */
@@ -151,8 +176,8 @@
         }
 
         .btn:hover { opacity: 0.9; }
-        .btn-primary { background-color: var(--primary-red); color: #FFF; }
-        .btn-secondary { background-color: var(--primary-navy); color: #FFF; }
+        .btn-primary { background-color: var(--french-blue); color: #FFF; }
+        .btn-secondary { background-color: var(--amber-flame); color: #FFF; }
 
         .icon-btn {
             background: transparent;
@@ -186,118 +211,75 @@
         .dropdown-item { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
 
+        /* --- Scrollable Content Grid --- */
         .content-scroll {
             flex: 1;
             overflow-y: auto;
-            padding: 32px;
-        }
-
-        .global-search-container {
+            padding: 36px 48px;
+            background-color: var(--bg-main);
+            background-image: radial-gradient(rgba(47, 63, 123, 0.08) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
             position: relative;
-            width: 450px; 
-            font-family: 'Inter', sans-serif;
         }
 
-        .search-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        #main-search-input {
-            width: 100%;
-            padding: 10px 35px;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            outline: none;
-            background: #fafafa;
-            transition: all 0.3s ease;
-        }
-
-        #main-search-input:focus {
-            border-color: #8aaf97;
-            box-shadow: 0 0 0 3px rgba(138, 175, 151, 0.2);
-        }
-
-        .search-dropdown-glass {
-            position: absolute;
-            top: 115%;
-            left: 0;
-            width: 100%;
-            max-height: 450px;
-            overflow-y: auto;
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(12px); 
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-            z-index: 9999;
-            padding: 8px;
-        }
-
-        .search-item-shortcut {
-            display: flex;
-            align-items: center;
-            padding: 10px 12px;
-            text-decoration: none;
-            color: #333;
-            border-radius: 8px;
-            transition: background 0.2s ease;
-        }
-
-        .search-item-shortcut:hover { background: rgba(138, 175, 151, 0.15); }
-        .shortcut-text h4 { margin: 0; font-size: 14px; font-weight: 600; color: #2c3e50; }
-        .shortcut-text p { margin: 0; font-size: 11px; color: #7f8c8d; }
-
-        .search-item-record {
-            display: block;
-            padding: 12px;
-            text-decoration: none;
-            color: #333;
-            border-radius: 8px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s ease;
-        }
-
-        .search-item-record:hover { background: rgba(138, 175, 151, 0.1); }
-        .record-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .record-title { font-weight: 600; color: #008080; font-size: 14px;}
-        
-        .record-status {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            background: #e6f4ea;
-            color: #1e8e3e;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .record-details { display: flex; justify-content: space-between; font-size: 12px; color: #555; }
-
-        .spinner {
-            position: absolute;
-            right: 12px;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #e0e0e0;
-            border-top-color: #8aaf97;
+        .bg-shape {
+            position: fixed;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            filter: blur(100px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .shape-1 { width: 450px; height: 450px; background: rgba(255, 211, 88, 0.4); top: -10%; left: 25%; }
+        .shape-2 { width: 600px; height: 600px; background: rgba(47, 63, 123, 0.2); bottom: -20%; right: -5%; }
+        .shape-3 { width: 350px; height: 350px; background: rgba(255, 185, 21, 0.3); top: 40%; left: -5%; }
+
+        .welcome-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .logout-form { width: 100%; margin: 0; padding: 0; }
-        .btn-logout { background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; font-family: inherit; font-size: inherit; color: var(--primary-red); }
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
 
-        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #fff; border-left: 5px solid var(--status-green); box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px 20px; border-radius: 6px; min-width: 280px; transform: translateX(120%); transition: transform 0.3s ease-out; }
+        a { text-decoration: none; }
+
+        .logout-form { width: 100%; margin: 0; padding: 0; margin-top: 40px; padding-bottom: 20px;}
+        .btn-logout {
+            background: transparent; 
+            border: none; 
+            width: 100%; 
+            text-align: left;
+            cursor: pointer; 
+            font-family: inherit; 
+            font-size: inherit; 
+            color: var(--french-blue); 
+        }
+
+        #toast-container {
+            position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            background: #fff; border-left: 5px solid var(--status-green); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 15px 20px; border-radius: 6px; min-width: 280px; transform: translateX(120%); transition: transform 0.3s ease-out;
+        }
         .toast.show { transform: translateX(0); }
         .toast-critical { border-left-color: var(--status-red); }
-        .toast-high { border-left-color: #F97316; }
+        .toast-high { border-left-color: #F97316; } 
         .toast-medium { border-left-color: var(--status-yellow); }
-        .toast-low { border-left-color: #3B82F6; }
+        .toast-low { border-left-color: #3B82F6; } 
     </style>
 </head>
 <body>
@@ -309,8 +291,8 @@
             </a>
         </div>
         
-        <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
-            <i class="ph ph-desktop"></i> Point Of Sales
+        <a href="{% url 'employee_dashboard' %}" class="nav-item {% if request.path == '/dashboard/employee/' %}active{% endif %}">
+            <i class="ph ph-squares-four"></i> Dashboard
         </a>
 
         <div class="nav-category">Inventory</div>
@@ -343,32 +325,37 @@
             <i class="ph ph-arrow-counter-clockwise"></i> <span>Sales Return</span>
         </a>
 
+        <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
+            <i class="ph ph-desktop"></i> Point Of Sales
+        </a>
+
         <a href="{% url 'billing_payment:customer_list' %}" class="nav-item {% if '/customers/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Trade Credit
         </a>
+        
         <a href="{% url 'pos:quotation_list' %}" class="nav-item {% if '/pos/quotations/' in request.path %}active{% endif %}">
             <i class="ph ph-files"></i> Quotations
         </a>      
+        
+        <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
+            <i class="ph ph-truck"></i> Suppliers
+        </a>
 
         <div class="nav-category">Reports and Analytics</div>
-        
         {% if request.user.is_superuser or request.user.role|lower == 'admin' or request.user.profile.has_valid_reports_access %}
             <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
                 <i class="ph ph-chart-pie-slice"></i> Reports Hub
             </a>
         {% else %}
-            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
-                <i class="ph ph-lock-key"></i> Reports Hub (Locked)
+            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}" style="opacity: 0.7;">
+                <i class="ph ph-chart-pie-slice"></i> Reports Hub (Locked)
             </a>
         {% endif %}
 
-        <div class="nav-category">Supplier Management</div>
-        <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
-            <i class="ph ph-truck"></i> Suppliers
-        </a>
-        <a href="#" class="nav-item"><i class="ph ph-book"></i> User Manual</a>
-
         <div class="nav-category">Settings</div>
+        <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
+            <i class="ph ph-book"></i> User Manual
+        </a>
         <a href="{% url 'settings_hub' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
             <i class="ph ph-gear"></i> General Settings
         </a>
@@ -384,167 +371,687 @@
         <header class="top-header">
             <div class="global-search-container">
                 <div class="search-input-wrapper">
-                    <i class="fas fa-search search-icon" style="position: absolute; left: 10px; color: #888;"></i>
-                    <input type="text" id="main-search-input" placeholder="Search invoices, products, or pages..." autocomplete="off">
+                    <i class="ph ph-magnifying-glass" style="position: absolute; left: 12px; color: #9CA3AF; font-size: 18px;"></i>
+                    <input type="text" id="main-search-input" placeholder="Search invoices, products, users, or pages..." autocomplete="off">
                     <div id="search-spinner" class="spinner" style="display: none;"></div>
                 </div>
                 <div id="search-dropdown" class="search-dropdown-glass" style="display: none;"></div>
             </div>
+
+            <style>
+                .global-search-container { position: relative; width: 450px; font-family: 'Inter', sans-serif; }
+                .search-input-wrapper { position: relative; display: flex; align-items: center; }
+                #main-search-input { width: 100%; padding: 10px 35px; border-radius: 8px; border: 1px solid #e0e0e0; outline: none; background: #fafafa; transition: all 0.3s ease; }
+                #main-search-input:focus { border-color: #8aaf97; box-shadow: 0 0 0 3px rgba(138, 175, 151, 0.2); }
+                .search-dropdown-glass { position: absolute; top: 115%; left: 0; width: 100%; max-height: 450px; overflow-y: auto; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); z-index: 9999; padding: 8px; }
+                .search-item-shortcut { display: flex; align-items: center; padding: 10px 12px; text-decoration: none; color: #333; border-radius: 8px; transition: background 0.2s ease; }
+                .search-item-shortcut:hover { background: rgba(138, 175, 151, 0.15); }
+                .shortcut-text h4 { margin: 0; font-size: 14px; font-weight: 600; color: #2c3e50; }
+                .shortcut-text p { margin: 0; font-size: 11px; color: #7f8c8d; }
+                .search-item-record { display: block; padding: 12px; text-decoration: none; color: #333; border-radius: 8px; border-bottom: 1px solid #f0f0f0; transition: background 0.2s ease; }
+                .search-item-record:hover { background: rgba(138, 175, 151, 0.1); }
+                .record-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+                .record-title { font-weight: 600; color: #008080; font-size: 14px;}
+                .record-status { font-size: 10px; padding: 3px 8px; border-radius: 12px; background: #e6f4ea; color: #1e8e3e; font-weight: 600; letter-spacing: 0.5px; }
+                .record-details { display: flex; justify-content: space-between; font-size: 12px; color: #555; }
+                .spinner { position: absolute; right: 12px; width: 16px; height: 16px; border: 2px solid #e0e0e0; border-top-color: #8aaf97; border-radius: 50%; animation: spin 0.8s linear infinite; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+                .search-dropdown-glass::-webkit-scrollbar { width: 6px; }
+                .search-dropdown-glass::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; }
+            </style>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const searchInput = document.getElementById('main-search-input');
+                    const searchDropdown = document.getElementById('search-dropdown');
+                    const spinner = document.getElementById('search-spinner');
+                    let debounceTimer;
+
+                    document.addEventListener('click', function(e) {
+                        if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                            searchDropdown.style.display = 'none';
+                        }
+                    });
+
+                    searchInput.addEventListener('input', function() {
+                        const query = this.value.trim();
+                        clearTimeout(debounceTimer);
+                        if (query.length === 0) { searchDropdown.style.display = 'none'; spinner.style.display = 'none'; return; }
+                        spinner.style.display = 'block';
+                        debounceTimer = setTimeout(() => {
+                            fetch(`/search/api/global-search/?q=${encodeURIComponent(query)}`)
+                                .then(response => response.json())
+                                .then(data => { spinner.style.display = 'none'; renderResults(data); })
+                                .catch(error => { console.error('Error:', error); spinner.style.display = 'none'; });
+                        }, 350); 
+                    });
+
+                    function renderResults(data) {
+                        const searchDropdown = document.getElementById('search-dropdown');
+                        searchDropdown.innerHTML = ''; 
+                        searchDropdown.style.display = 'block';
+                        if (data.length === 0) {
+                            searchDropdown.innerHTML = '<div style="padding: 15px; text-align: center; color: #7f8c8d; font-size: 13px;">No matching results found</div>';
+                            return;
+                        }
+                        data.forEach(item => {
+                            if (item.type === 'shortcut') {
+                                searchDropdown.innerHTML += `
+                                    <a href="${item.url}" class="search-item-shortcut">
+                                        <div class="shortcut-text"><h4>${item.title}</h4><p>${item.breadcrumb}</p></div>
+                                    </a>`;
+                            } else if (item.type === 'record') {
+                                searchDropdown.innerHTML += `
+                                    <a href="${item.url}" class="search-item-record">
+                                        <div class="record-header"><span class="record-title">${item.title}</span><span class="record-status">${item.status}</span></div>
+                                        <div class="record-details"><span>${item.detail1}</span><span>${item.detail2}</span></div>
+                                    </a>`;
+                            }
+                        });
+                    }
+                });
+            </script>
 
             <div class="header-actions">
                 <a href="#" class="btn btn-primary" onclick="openCreateProduct(event)">
                     <i class="ph ph-plus-circle"></i> Add Product
                 </a>
                 
+                <a href="{% url 'pos:pos_index' %}" class="btn btn-secondary" style="text-decoration: none;">
+                    <i class="ph ph-desktop"></i> POS
+                </a>
+
                 <div style="position: relative;">
                     <button class="icon-btn" id="bell-btn">
                         <i class="ph ph-bell"></i>
-                        <span id="dynamic-badge" class="notification-badge" style="display: none; background: var(--status-red); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -5px;">0</span>
+                        <span id="dynamic-badge" style="display:none; background:var(--status-red); color:white; border-radius:50%; padding:2px 6px; font-size:10px; position:absolute; top:-5px; right:-5px;">0</span>
                     </button>
-                    
                     <div class="dropdown-menu" id="notif-menu">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); background: #F8FAFC; border-radius: 8px 8px 0 0;">
-                            <strong style="font-size: 13px; color: var(--text-primary);">Notifications</strong>
-                            <button onclick="markAllAsRead()" style="background: none; border: none; color: var(--text-secondary); font-size: 12px; cursor: pointer; font-weight: 600;">Clear All</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; border-bottom:1px solid var(--border-color); background:#F8FAFC; border-radius:8px 8px 0 0;">
+                            <strong style="font-size:13px; color:var(--text-primary);">Notifications</strong>
+                            <button onclick="markAllAsRead()" style="background:none; border:none; color:var(--text-secondary); font-size:12px; cursor:pointer; font-weight:600;">Clear All</button>
                         </div>
-                        <div id="dynamic-notif-list" style="max-height: 350px; overflow-y: auto;">
-                            <div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">Loading alerts...</div>
+                        <div id="dynamic-notif-list" style="max-height:350px; overflow-y:auto;">
+                            <div class="dropdown-item" style="padding:15px; text-align:center;">Loading alerts...</div>
                         </div>
                     </div>
                 </div>
-            
+
                 <button class="icon-btn">
-                    <a href="{% url 'settings_hub' %}" style="color: inherit; display:flex; align-items:center;">
+                    <a href="{% url 'settings_hub' %}" style="color:inherit; display:flex; align-items:center;">
                         <i class="ph ph-gear"></i>
                     </a>
                 </button>
-                <button class="icon-btn"><i class="ph ph-user"></i></button>
+                <div style="position: relative;">
+                    <button class="icon-btn" id="user-profile-btn" style="transition: all 0.2s ease;" onmouseover="this.style.background='rgba(47, 63, 123, 0.1)'; this.style.color='var(--french-blue)';" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)';">
+                        <i class="ph ph-user"></i>
+                    </button>
+                    
+                    <div class="dropdown-menu" id="user-menu" style="width: 250px; right: 0; top: 50px; padding: 0; border-radius: 12px; overflow: hidden;">
+                        <div style="padding: 20px; display: flex; align-items: center; gap: 16px; background: #ffffff;">
+                            <div style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; background: var(--french-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; box-shadow: 0 4px 10px rgba(47, 63, 123, 0.2);">
+                                {{ request.user.get_full_name|first|default:request.user.username|first|upper }}
+                            </div>
+                            
+                            <div style="overflow: hidden;">
+                                <strong style="display: block; font-size: 15px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    {{ request.user.get_full_name|default:request.user.username }}
+                                </strong>
+                                
+                                <span style="display: block; font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                                    @{{ request.user.username }}
+                                </span>
+                                
+                                <span style="font-size: 11px; color: var(--amber-flame); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 185, 21, 0.15); padding: 3px 8px; border-radius: 12px; display: inline-block; margin-top: 8px; border: 1px solid rgba(255, 185, 21, 0.3);">
+                                    {{ request.user.role|default:"Employee" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
         <div class="content-scroll">
-            {% block content %}
-            {% endblock %}
-        </div>
+            <div class="bg-shape shape-1"></div>
+            <div class="bg-shape shape-2"></div>
+            <div class="bg-shape shape-3"></div>
+
+            <div style="position: relative; z-index: 1;">
+                {% block content %}
+                
+                <style>
+                    /* SOLID KPI CARDS DESIGN */
+                    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
+                    
+                    .kpi-card { border-radius: var(--border-radius); padding: 28px; border: none; box-shadow: var(--shadow-subtle); display: flex; flex-direction: column; gap: 12px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+                    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.2); }
+
+                    .kpi-card.sales { background-color:#ffc832; }
+                    .kpi-card.sales .kpi-title, .kpi-card.sales .kpi-value { color: #1E293B; }
+                    .kpi-card.sales .icon-bg { background: rgba(0,0,0,0.1); color: #1E293B; }
+                    
+                    .kpi-card.profit { background-color: var(--mustard); }
+                    .kpi-card.profit .kpi-title, .kpi-card.profit .kpi-value { color: #1E293B; }
+                    .kpi-card.profit .icon-bg { background: rgba(255,255,255,0.15); color: #1E293B; }
+
+                    .kpi-card.outflow { background-color: var(--french-blue); }
+                    .kpi-card.outflow .kpi-title, .kpi-card.outflow .kpi-value { color: #ffffff; }
+                    .kpi-card.outflow .icon-bg { background: rgba(0,0,0,0.1); color: #ffffff; }
+
+                    .kpi-card.due { background-color: #1a2858 ; }
+                    .kpi-card.due .kpi-title, .kpi-card.due .kpi-value { color: #FFFFFF; }
+                    .kpi-card.due .icon-bg { background: rgba(255,255,255,0.15); color: #FFFFFF; }
+                    
+                    .kpi-title-wrapper { display: flex; align-items: center; gap: 12px; }
+                    .icon-bg { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+                    .kpi-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+                    .kpi-value { font-size: 32px; font-weight: 800; font-family: 'Inconsolata', monospace !important; letter-spacing: -1px; }
+
+                    .chart-row { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px; margin-bottom: 32px; }
+                    .panel { background: var(--bg-card); border-radius: var(--border-radius); padding: 32px; border: 1px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-subtle); }
+                    .panel-title { font-size: 18px; font-weight: 800; color: var(--french-blue); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+
+                    .action-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+                    .modern-list { list-style: none; padding: 0; margin: 0; }
+                    .modern-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8FAFC; border-radius: 12px; margin-bottom: 8px; border: 1px solid transparent; transition: all 0.2s ease; }
+                    .modern-list li:hover { background: #FFFFFF; border-color: var(--border-color); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.05); transform: translateX(4px); }
+                    .item-main { font-size: 13px; font-weight: 600; color: #1E293B; display: block; }
+                    .item-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: block; }
+                    .item-val { font-size: 13px; font-weight: 700; font-family: 'Inconsolata', monospace;}
+                </style>
+
+                <div class="welcome-header">
+                    <div>
+                        <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: var(--french-blue); letter-spacing: -0.5px;">Welcome, {{ request.user.first_name|default:request.user.username|default:"Employee" }}!</h1>
+                        <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">Track JBson's operations and sales.</p>
+                    </div>
+                    
+                    <form method="GET" action="" style="margin: 0;">
+                        <div class="date-filter">
+                            <i class="ph ph-calendar" style="font-size: 20px; color: var(--french-blue);"></i> 
+                            <select name="filter" onchange="this.form.submit()" style="border: none; outline: none; background: transparent; font-weight: 700; color: var(--french-blue); cursor: pointer; font-size: 15px;">
+                                <option value="today" {% if metrics.current_filter == 'today' %}selected{% endif %}>Today</option>
+                                <option value="this_week" {% if metrics.current_filter == 'this_week' %}selected{% endif %}>This Week</option>
+                                <option value="this_month" {% if metrics.current_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                                <option value="this_year" {% if metrics.current_filter == 'this_year' %}selected{% endif %}>This Year</option>
+                                <option value="all_time" {% if metrics.current_filter == 'all_time' %}selected{% endif %}>All Time</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card sales">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-trend-up"></i></div>
+                            <div class="kpi-title">Gross Sales</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.total_sales|default:"0.00"|floatformat:"2g" }}</div>
+                    </div>
+                    <div class="kpi-card profit">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-wallet"></i></div>
+                            <div class="kpi-title">Net Profit</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.net_profit|default:"0.00"|floatformat:"2g" }}</div>
+                    </div>
+                    <div class="kpi-card outflow">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-shopping-cart"></i></div>
+                            <div class="kpi-title">Cash Outflow</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.total_outflow|default:"0.00"|floatformat:"2g" }}</div>
+                    </div>
+                    <div class="kpi-card due">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-receipt"></i></div>
+                            <div class="kpi-title">Unpaid Receivables</div>
+                        </div>
+                        <div class="kpi-value">₱{{ metrics.invoice_due|default:"0.00"|floatformat:"2g" }}</div>
+                    </div>
+                </div>
+
+                <div class="chart-row">
+                    <div class="panel">
+                        <h3 class="panel-title">
+                            <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-bar" style="color: var(--french-blue);"></i></span>
+                            7-Day Financial Overview
+                        </h3>
+                        <div style="position: relative; height: 320px; width: 100%;">
+                            <canvas id="financialChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="panel" style="display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 class="panel-title" style="margin: 0;">
+                                <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-pie-slice" style="color: var(--french-blue);"></i></span>
+                                Top Selling
+                            </h3>
+                            {% if request.user.is_superuser or request.user.role|lower == 'admin' or request.user.profile.has_valid_reports_access %}
+                                <a href="{% url 'reports_analytics:sales_report' %}" style="font-size: 13px; font-weight: 700; color: var(--french-blue); background: rgba(47, 63, 123, 0.1); padding: 8px 16px; border-radius: 10px; transition: background 0.2s;">View Full</a>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
+                            <div style="flex: 0.8; position: relative; height: 220px;">
+                                <canvas id="productDoughnut"></canvas>
+                            </div>
+                            
+                            <div style="flex: 1.2;">
+                                <ul class="modern-list" style="margin: 0;">
+                                    {% for product in top_products|slice:":5" %}
+                                    <li>
+                                        <span class="item-main" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;" title="{{ product.inventory_item__item_name }}">
+                                            {{ product.inventory_item__item_name }}
+                                        </span>
+                                        <span class="item-val" style="color: var(--french-blue);">{{ product.total_sold }} units</span>
+                                    </li>
+                                    {% empty %}
+                                    <li style="justify-content: center; color: var(--text-secondary); font-size: 13px; background: transparent;">No sales data available.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <div class="panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 class="panel-title" style="margin: 0;">
+                                <span style="background: rgba(255, 185, 21, 0.2); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-warning" style="color: var(--amber-flame);"></i></span>
+                                Critical Stock
+                            </h3>
+                            <a href="{% url 'inventory:inventory_list' %}?low_stock=on" style="font-size: 13px; font-weight: 700; color: var(--amber-flame); background: rgba(255, 185, 21, 0.1); padding: 8px 16px; border-radius: 10px;">View All &rarr;</a>
+                        </div>
+                        <ul class="modern-list">
+                            {% for item in low_stock_items %}
+                            <li>
+                                <div>
+                                    <span class="item-main">{{ item.item_name }}</span>
+                                    <span class="item-sub">Reorder Pt: {{ item.reorder_point }}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="item-val" style="color: var(--primary-red);">{{ item.quantity }} left</span>
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li style="justify-content: center; color: var(--text-secondary); font-size: 14px; background: transparent; border: 1px dashed #E2E8F0;">Inventory levels are healthy.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 class="panel-title" style="margin: 0;">
+                                <span style="background: rgba(255, 211, 88, 0.2); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-file-dashed" style="color: #B38F00;"></i></span>
+                                Due Invoices
+                            </h3>
+                            <a href="{% url 'billing_payment:invoice_list' %}" style="font-size: 13px; font-weight: 700; color: #B38F00; background: rgba(255, 211, 88, 0.1); padding: 8px 16px; border-radius: 10px;">Collect &rarr;</a>
+                        </div>
+                        <ul class="modern-list">
+                            {% for invoice in unpaid_invoices %}
+                            <li>
+                                <div>
+                                    <span class="item-main">{% if invoice.customer.first_name %}{{ invoice.customer.first_name }} {{ invoice.customer.last_name }}{% elif invoice.customer.name %}{{ invoice.customer.name }}{% else %}{{ invoice.customer }}{% endif %}</span>
+                                    <span class="item-sub">Due: {{ invoice.due_date|date:"M d" }}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="item-val" style="color: #B38F00;">₱{{ invoice.balance_due }}</span>
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li style="justify-content: center; color: var(--text-secondary); font-size: 13px; background: transparent; border: 1px dashed #E2E8F0;">No pending receivables.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                {% endblock %}
+            </div>
+         </div>
     </main>
 
-    <div id="global-modal-root"></div>
-    <div id="toast-container"></div>
-    <audio id="alertSound" src="{% static 'audio/notification.mp3' %}" preload="auto"></audio>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');
-        const searchInput = document.getElementById('main-search-input');
-        const searchDropdown = document.getElementById('search-dropdown');
-        const spinner = document.getElementById('search-spinner');
-        let debounceTimer;
+        const dynamicBadge = document.getElementById('dynamic-badge');
+        const userBtn = document.getElementById('user-profile-btn');
+        const userMenu = document.getElementById('user-menu');
 
-        bellBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notifMenu.classList.toggle('show');
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
-                searchDropdown.style.display = 'none';
-            }
-            if (!bellBtn.contains(e.target) && !notifMenu.contains(e.target)) {
-                notifMenu.classList.remove('show');
-            }
-        });
-
-        searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-            clearTimeout(debounceTimer);
-            if (query.length === 0) {
-                searchDropdown.style.display = 'none';
-                spinner.style.display = 'none';
-                return;
-            }
-            spinner.style.display = 'block';
-            debounceTimer = setTimeout(() => {
-                fetch(`/search/api/global-search/?q=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        spinner.style.display = 'none';
-                        renderResults(data);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        spinner.style.display = 'none';
-                    });
-            }, 350); 
-        });
-
-        function renderResults(data) {
-            searchDropdown.innerHTML = ''; 
-            if (data.length === 0) {
-                searchDropdown.innerHTML = '<div style="padding: 15px; text-align: center; color: #7f8c8d; font-size: 13px;">No matching results found</div>';
-                searchDropdown.style.display = 'block';
-                return;
-            }
-            data.forEach(item => {
-                let htmlElement = '';
-                if (item.type === 'shortcut') {
-                    htmlElement = `
-                        <a href="${item.url}" class="search-item-shortcut">
-                            <div class="shortcut-text">
-                                <h4>${item.title}</h4>
-                                <p>${item.breadcrumb} &rarr; ${item.title}</p>
-                            </div>
-                        </a>`;
-                } else if (item.type === 'record') {
-                    htmlElement = `
-                        <a href="${item.url}" class="search-item-record">
-                            <div class="record-header">
-                                <span class="record-title">${item.title}</span>
-                                <span class="record-status">${item.status}</span>
-                            </div>
-                            <div class="record-details">
-                                <span>${item.detail1}</span>
-                                <span><strong>${item.detail2}</strong></span>
-                            </div>
-                        </a>`;
-                }
-                searchDropdown.insertAdjacentHTML('beforeend', htmlElement);
+        if (bellBtn) {
+            bellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notifMenu.classList.toggle('show');
+                if (userMenu) userMenu.classList.remove('show'); 
             });
-            searchDropdown.style.display = 'block'; 
         }
 
-        function confirmLogout(event, formElement) {
-            event.preventDefault();
+        if (userBtn) {
+            userBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('show');
+                if (notifMenu) notifMenu.classList.remove('show'); 
+            });
+        }
+
+        window.addEventListener('click', () => {
+            if(notifMenu && notifMenu.classList.contains('show')){ notifMenu.classList.remove('show'); }
+            if(userMenu && userMenu.classList.contains('show')){ userMenu.classList.remove('show'); }
+        });
+    </script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                const savedScrollPosition = localStorage.getItem('sidebarScrollPos');
+                if (savedScrollPosition !== null) { sidebar.scrollTop = parseInt(savedScrollPosition, 10); }
+                window.addEventListener('beforeunload', function() { localStorage.setItem('sidebarScrollPos', sidebar.scrollTop); });
+            }
+        });
+    </script>
+
+    <script>
+        function updateDashboardDate() {
+            const dateElement = document.getElementById('current-date-range');
+            if (dateElement) {
+                const now = new Date();
+                const first = now.getDate() - now.getDay(); 
+                const last = first + 6; 
+                const firstDay = new Date(new Date().setDate(first));
+                const lastDay = new Date(new Date().setDate(last));
+                const options = { day: '2-digit', month: 'short', year: 'numeric' };
+                dateElement.innerText = `${firstDay.toLocaleDateString('en-GB', options)} - ${lastDay.toLocaleDateString('en-GB', options)}`;
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function() { updateDashboardDate(); });
+    </script>
+
+    <script>
+    function openCreateProduct(e) {
+        e.preventDefault();
+        fetch("{% url 'product_registration:create_product' %}")
+            .then(res => res.text())
+            .then(html => {
+                const root = document.getElementById('global-modal-root');
+                root.innerHTML = html;
+                const scripts = root.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            });
+    }
+    function closeGlobalModal() { document.getElementById('global-modal-root').innerHTML = ''; }
+    </script>
+    <div id="global-modal-root"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {% if messages %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            {% for message in messages %}
+                Swal.fire({
+                    title: "{% if message.tags == 'error' %}Action Failed!{% else %}Success!{% endif %}",
+                    text: "{{ message|escapejs }}",
+                    icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
+                    confirmButtonColor: '#0D9488',
+                    confirmButtonText: 'Okay'
+                });
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+
+    <script>
+        function confirmDelete(event, formElement, itemName) {
+            event.preventDefault(); 
             Swal.fire({
                 title: 'Are you sure?',
-                text: "You are about to log out from the employee dashboard.",
+                text: `You are about to delete ${itemName}. This cannot be undone!`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#891C1C',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, log out',
+                confirmButtonColor: '#E53E3E', 
+                cancelButtonColor: '#CBD5E0',  
+                confirmButtonText: 'Yes, delete it!',
                 cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) { formElement.submit(); }
-            });
-        }
-
-        function openCreateProduct(e) {
-            e.preventDefault();
-            fetch("{% url 'product_registration:create_product' %}")
-                .then(res => res.text())
-                .then(html => {
-                    const root = document.getElementById('global-modal-root');
-                    root.innerHTML = html;
-                    const scripts = root.querySelectorAll('script');
-                    scripts.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
-                });
+            }).then((result) => { if (result.isConfirmed) { formElement.submit(); } });
         }
     </script>
+    <script>
+        function confirmLogout(event, formElement) {
+            event.preventDefault(); 
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to log out from the JBSON portal.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#2F3F7B', 
+                cancelButtonColor: '#6B7280',  
+                confirmButtonText: 'Yes, log out',
+                cancelButtonText: 'Cancel'
+            }).then((result) => { if (result.isConfirmed) { formElement.submit(); } });
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const frenchBlue = '#2F3F7B';
+            const mustard = '#FFD358';
+            const amberFlame = '#FFB915';
+
+            Chart.defaults.font.family = "'Inconsolata', monospace";
+
+            const finCtx = document.getElementById('financialChart');
+            if (finCtx) {
+                new Chart(finCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ chart_labels|safe|default:"[]" }},
+                        datasets: [
+                            { type: 'line', label: 'Net Profit', data: {{ chart_profit_data|safe|default:"[]" }}, borderColor: frenchBlue, backgroundColor: frenchBlue, borderWidth: 3, tension: 0.4, yAxisID: 'y' },
+                            { type: 'bar', label: 'Gross Sales', data: {{ chart_sales_data|safe|default:"[]" }}, backgroundColor: mustard, borderRadius: 8, yAxisID: 'y' },
+                            { type: 'bar', label: 'Expenses + POs', data: {{ chart_outflow_data|safe|default:"[]" }}, backgroundColor: amberFlame, borderRadius: 8, yAxisID: 'y' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12, weight: '500' } } },
+                            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)', padding: 12, bodyFont: { family: 'Inter' }, callbacks: { label: function(context) { return context.dataset.label + ': ₱' + context.raw.toLocaleString(); } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { family: 'Inter', color: '#64748B' } } },
+                            y: { beginAtZero: true, grid: { color: '#F1F5F9', borderDash: [6, 4] }, ticks: { font: { family: 'Inter', color: '#64748B' }, callback: function(value) { return '₱' + value.toLocaleString(); } } }
+                        }
+                    }
+                });
+            }
+
+            const donutCtx = document.getElementById('productDoughnut');
+            if (donutCtx) {
+                const donutLabels = {{ donut_labels|safe|default:"[]" }};
+                const donutData = {{ donut_data|safe|default:"[]" }};
+                if(donutData.length > 0) {
+                    new Chart(donutCtx, {
+                        type: 'doughnut',
+                        data: { labels: donutLabels, datasets: [{ data: donutData, backgroundColor: [frenchBlue, amberFlame, mustard, '#CBD5E1', '#E2E8F0'], borderWidth: 0, hoverOffset: 6 }] },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false }, tooltip: { bodyFont: { family: 'Inter' }, backgroundColor: 'rgba(30, 41, 59, 0.9)', padding: 12 } } }
+                    });
+                } else {
+                    donutCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px; font-weight:500;">No sales data available</span>';
+                }
+            }
+        });
+    </script>
+
+    <div id="toast-container"></div>
+    <audio id="alertSound" src="{% static 'audio/notification.mp3' %}" preload="auto"></audio>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let currentUnreadCount = 0;
+        const alertSound = document.getElementById('alertSound');
+        const badgeElement = document.getElementById('dynamic-badge');
+        const dropdownList = document.getElementById('dynamic-notif-list');
+
+        function getCSRFToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken' + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1)); break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showToast(title, message, priority) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${priority}`;
+            toast.innerHTML = `<strong style="display:block; color:#111; font-size:14px; margin-bottom:4px;">${title}</strong><span style="color:#666; font-size:13px; line-height:1.4;">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 6000); 
+        }
+
+        let lastNotifId = parseInt(localStorage.getItem('lastNotifId')) || 0;
+
+        function fetchLiveNotifications() {
+            fetch("{% url 'notifications:live_api' %}") 
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.notifications) return; 
+                    if (data.notifications.length > 0) {
+                        const newNotifs = data.notifications.filter(n => n.id > lastNotifId && !n.is_read);
+                        if (newNotifs.length > 0) {
+                            if (alertSound) alertSound.play().catch();
+                            newNotifs.forEach((notif, index) => { setTimeout(() => { showToast(notif.title, notif.message, notif.priority); }, index * 800); });
+                            const maxId = Math.max(...newNotifs.map(n => n.id));
+                            localStorage.setItem('lastNotifId', maxId);
+                            lastNotifId = maxId;
+                        }
+                    }
+                    
+                    let currentUnreadCount = data.unread_count;
+                    if (currentUnreadCount > 0) {
+                        badgeElement.style.display = 'block';
+                        badgeElement.innerText = currentUnreadCount > 9 ? '9+' : currentUnreadCount;
+                    } else { badgeElement.style.display = 'none'; }
+
+                    dropdownList.innerHTML = '';
+                    if (data.notifications.length === 0) {
+                        dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center;">No new notifications</div>';
+                    } else {
+                        data.notifications.sort((a, b) => { if (a.is_read === b.is_read) return 0; return a.is_read ? 1 : -1; });
+                        data.notifications.forEach(notif => {
+                            let iconColor = notif.priority === 'critical' ? 'var(--status-red)' : notif.priority === 'high' ? '#F97316' : notif.priority === 'medium' ? 'var(--status-yellow)' : '#3B82F6';
+                            dropdownList.innerHTML += `
+                                <div id="notif-${notif.id}" style="position: relative; margin-bottom: 5px;">
+                                    <a href="${notif.action_url && notif.action_url !== 'None' ? notif.action_url : '#'}" style="text-decoration: none; display: block;" onclick="markNotifRead(${notif.id}, this, event)">
+                                        <div class="dropdown-item" style="display: flex; padding: 12px; border-left: 3px solid ${iconColor}; background: ${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='#FCE8E8'" onmouseout="this.style.background='${notif.is_read ? 'var(--bg-main)' : '#EFF6FF'}'">
+                                            <div style="margin-right: 12px; color: ${iconColor}; margin-top: 2px;"><i class="ph ph-warning-circle" style="font-size: 20px;"></i></div>
+                                            <div style="padding-right: 20px;">
+                                                <strong style="display:block; font-size:13px; color: var(--text-primary); ${notif.is_read ? 'font-weight:600;' : 'font-weight:800;'}">${notif.title}${notif.is_read ? '' : ' <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3B82F6; margin-left:5px; vertical-align:middle;"></span>'}</strong>
+                                                <span style="display:block; font-size:12px; color: var(--text-secondary); margin-top:2px;">${notif.message}</span>
+                                                <small style="display:block; font-size:10px; color: #9CA3AF; margin-top:6px;">${notif.time}</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <button onclick="dismissSingleNotification(${notif.id}, event)" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; cursor: pointer; color: var(--text-secondary); font-size: 16px; z-index: 10; padding: 4px; border-radius: 4px;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'"><i class="ph ph-x"></i></button>
+                                </div>
+                            `;
+                        });
+                    }
+                })
+                .catch(err => console.error("Notification API Error:", err));
+        }
+
+        window.dismissSingleNotification = function(notifId, event) {
+            event.preventDefault(); event.stopPropagation();
+            const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
+            const deleteUrl = clearAllUrl.replace('mark-read', `delete/${notifId}`).replace('//', '/');
+
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken() }
+            }).then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    const notifElement = document.getElementById(`notif-${notifId}`);
+                    if (notifElement) notifElement.remove();
+                    const newCount = data.unread_count;
+                    if (newCount > 0) {
+                        badgeElement.style.display = 'block';
+                        badgeElement.innerText = newCount > 9 ? '9+' : newCount;
+                    } else {
+                        badgeElement.style.display = 'none';
+                        if (dropdownList.children.length === 0) { dropdownList.innerHTML = '<div class="dropdown-item text-secondary" style="padding: 15px; text-align: center; font-size: 13px;">No new notifications</div>'; }
+                    }
+                }
+            });
+        };
+
+        window.markAllAsRead = function() {
+            fetch("{% url 'notifications:mark_read_api' %}", {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken() }
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('dynamic-badge').style.display = 'none';
+                    currentUnreadCount = 0;
+                    fetchLiveNotifications(); 
+                }
+            });
+        };
+
+        setInterval(() => {
+            const notifMenu = document.getElementById('notif-menu');
+            if (notifMenu && !notifMenu.classList.contains('show')) { fetchLiveNotifications(); }
+        }, 10000);
+        
+        fetchLiveNotifications();
+
+        window.markNotifRead = function(notifId, linkEl, event) {
+            event.preventDefault(); 
+            const targetUrl = linkEl.getAttribute('href');
+            const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
+            const singleUrl = clearAllUrl.replace('mark-read', `mark-read-single/${notifId}`).replace('//', '/');
+
+            fetch(singleUrl, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCSRFToken() }
+            }).then(response => response.json())
+            .then(data => {
+                if (targetUrl && targetUrl !== '#' && targetUrl !== 'None') {
+                    window.location.href = targetUrl;
+                } else {
+                    if (data.status === 'success') {
+                        const newCount = data.unread_count;
+                        if (newCount > 0) {
+                            badgeElement.style.display = 'block'; badgeElement.innerText = newCount > 9 ? '9+' : newCount;
+                        } else { badgeElement.style.display = 'none'; }
+                        setTimeout(() => { fetchLiveNotifications(); }, 300);
+                    }
+                }
+            });
+        };
+    });
+    </script>
+
 </body>
 </html>

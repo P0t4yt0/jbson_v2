@@ -108,29 +108,38 @@ def login_view(request):
         messages.error(request, "Please enter both username and password.")
         return render(request, "security/login.html", status=400)
 
+    # 1. I-check kung tama ang username at password
     user = authenticate(request, username=username, password=password)
-
+    
     if user is None:
         logger.warning("Failed login attempt for username=%r ip=%s", username, _get_client_ip(request))
         messages.error(request, "Invalid username or password. Please try again.")
         return render(request, "security/login.html", status=401)
 
+    # 2. I-check kung active pa ang account
     if not user.is_active:
         messages.error(request, "Your account has been deactivated. Contact the administrator.")
         return render(request, "security/login.html", status=403)
 
+    # 3. I-log in ang user sa system
     login(request, user)
 
+    # 4. I-save sa Activity Log
     _log_activity(
         user=user,
         action="LOGIN",
         description=f"User '{user.username}' logged in successfully.",
         request=request,
     )
-
     logger.info("Successful login: username=%r role=%r", user.username, getattr(user, "role", "N/A"))
-    return redirect(_role_redirect_url(user))
 
+    # 5. Dito na ang Dynamic Redirect natin
+    if user.role == 'admin':
+        return redirect('admin_dashboard') 
+    elif user.role == 'employee':
+        return redirect('employee_dashboard') 
+        
+    return redirect(_role_redirect_url(user))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logout View
