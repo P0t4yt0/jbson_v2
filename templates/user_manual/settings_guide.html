@@ -192,27 +192,28 @@
         </div>
     </div>
 
+    <!-- UPDATE: Encrypted Backup & Recovery Section -->
     <div class="kb-section">
         <div class="kb-section-header">
             <h2>2. Backup & Recovery</h2>
-            <p>Always ensure your business records are safe. You can download a copy of your current data or upload an old one to fix mistakes.</p>
+            <p>Always ensure your business records are safe. Generate highly-secured backups or upload encrypted files to restore the system state.</p>
         </div>
         
         <div class="kb-grid">
             <div class="kb-card">
                 <div class="ui-snippet">
-                    <img src="{% static 'images/manual/settings/btn_download_backup.png' %}" alt="Download Latest Backup Button">
+                    <img src="{% static 'images/manual/settings/btn_encrypt_download.png' %}" alt="Encrypt and Download Backup Button">
                 </div>
-                <h3>System Backup</h3>
-                <p>Click <strong>Download Latest Backup</strong> to save a complete file of your store's data to your computer. It is highly recommended to do this regularly to prevent data loss.</p>
+                <h3>Encrypted System Backup</h3>
+                <p>To safely backup your database, enter an encryption password of your choice in the field provided, then click <strong>Encrypt & Download</strong>. 
             </div>
 
             <div class="kb-card">
                 <div class="ui-snippet">
-                    <img src="{% static 'images/manual/settings/btn_restore_database.png' %}" alt="Restore Database Button">
+                    <img src="{% static 'images/manual/settings/btn_decrypt_restore.png' %}" alt="Decrypt and Restore Database Button">
                 </div>
                 <h3>System Recovery</h3>
-                <p>If something goes wrong, click <strong>Choose File</strong> to select your saved backup, then click the yellow <strong>Restore Database</strong> button to return the system to its previous state.</p>
+                <p>If you need to revert or restore data, click <strong>Choose File</strong> to upload your `.enc` backup file. Enter the exact decryption password you used during backup, then click <strong>Decrypt & Restore</strong>.</p>
             </div>
         </div>
     </div>

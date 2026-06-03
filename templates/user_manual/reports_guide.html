@@ -249,6 +249,13 @@
                 </div>
                 <div class="kb-card">
                     <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tool_target_filter.png' %}" alt="Export Target">
+                    </div>
+                    <h3>Export Target</h3>
+                    <p>Select the specific report data you want to export, such as the full report, payment records, transaction details, top revenue products, or sales return logs.</p>
+                </div>
+                <div class="kb-card">
+                    <div class="ui-snippet">
                         <img src="{% static 'images/manual/reports/tool_export_pdf.png' %}" alt="Export to PDF">
                     </div>
                     <h3>Export PDF</h3>
@@ -302,32 +309,28 @@
             
             <div class="kb-grid">
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/table_payment_methods.png' %}" alt="Payment Breakdown">
-                    </div>
                     <h3>Payment Breakdown</h3>
-                    <p>Shows how customers paid you—whether by Cash, Online Wallet, Credit, or Bank Transfer.</p>
+                    <p>Shows how customers paid you whether by Cash, Online Wallet, or Credit.</p>
                 </div>
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/table_top_products.png' %}" alt="Top Revenue Products">
-                    </div>
                     <h3>Top Revenue Products</h3>
                     <p>A leaderboard showing which items are making the most money for the store.</p>
                 </div>
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/table_transaction_logs.png' %}" alt="Transaction Logs">
-                    </div>
                     <h3>Transaction Breakdown</h3>
                     <p>A complete list of every receipt generated. Use the search bar to find a specific receipt number.</p>
                 </div>
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/table_sales_returns.png' %}" alt="Sales Returns">
-                    </div>
                     <h3>Sales Return Logs</h3>
                     <p>A record of every refunded item, showing the original receipt and how much was returned to the customer.</p>
+                </div>
+
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/refunded.png' %}" alt="Refunded">
+                    </div>
+                    <h3>Refunded</h3>
+                    <p>Indicates that the transaction has been refunded to the customer.</p>
                 </div>
             </div>
         </div>
@@ -355,7 +358,7 @@
                 </div>
                 <div class="kb-card-simple">
                     <h3>Supplier Expense Breakdown</h3>
-                    <p>Shows exactly how much money went to each specific supplier (e.g., Jewelle, Denden).</p>
+                    <p>Shows exactly how much money went to each specific supplier.</p>
                 </div>
                 <div class="kb-card-simple">
                     <h3>Most Purchased Products</h3>
@@ -395,7 +398,7 @@
             <img src="{% static 'images/manual/reports/inventory_report_main.png' %}" alt="Inventory Report Interface" class="module-preview-img">
             
             <div class="section-divider">
-                <h2>Inventory Metrics</h2>
+                <h2>Inventory Analytics</h2>
             </div>
             
             <div class="kb-grid-text">
@@ -417,7 +420,7 @@
                 <h2>Detailed Stock Valuation Table</h2>
             </div>
             <p class="overview-text">This list shows every item in your system, categorized properly. Watch out for items with the Low Stock warning.</p>
-            
+
             <div class="kb-grid">
                 <div class="kb-card">
                     <div class="ui-snippet">
@@ -512,20 +515,36 @@
             
             <div class="kb-grid">
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/table_leaderboard.png' %}" alt="Supplier Leaderboard">
-                    </div>
                     <h3>Supplier Spend Leaderboard</h3>
                     <p>A quick view ranking your top suppliers based on how many orders you placed and how much you paid them.</p>
                 </div>
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/table_master_history.png' %}" alt="Master Purchase History">
-                    </div>
                     <h3>Master Purchase History</h3>
                     <p>A consolidated record of all past and ongoing requests. Use the search bar to find an old PO number instantly.</p>
                 </div>
             </div>
+
+            <div class="section-divider">
+                <h2>Status</h2>
+            </div>
+
+            <div class="kb-grid">
+             <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_received.png' %}" alt="Received Status Tag">
+                    </div>
+                    <h3>RECEIVED (Green)</h3>
+                    <p>The items have arrived, and the inventory stock has been updated.</p>
+                </div>
+
+                <div class="kb-card">
+                    <div class="ui-snippet">
+                        <img src="{% static 'images/manual/reports/tag_pending.png' %}" alt="Pending Status Tag">
+                    </div>
+                    <h3>PENDING (Yellow)</h3>
+                    <p>The order has been created but the supplier hasn't delivered the items yet.</p>
+                </div>
+                </div>
         </div>
     </details>
 
@@ -580,6 +599,14 @@
                     <p>A list of regular business bills (like payroll or utilities). Click <strong>+ Add Expense</strong> to manually log a new store expense.</p>
                 </div>
             </div>
+
+            <div class="section-divider">
+                <h2>Add Operating Expense Form</h2>
+            </div>
+            <p class="overview-text">Allows users to record business expenses by entering the date, category, description, and amount. This helps track operating costs and maintain accurate financial records.</p>
+                        <img src="{% static 'images/manual/reports/addope.png' %}" alt="Add OP Form" class="module-preview-img">
+                    
+            </div>
         </div>
     </details>
 
@@ -596,18 +623,12 @@
             
             <div class="kb-grid">
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/chart_financial_trend.png' %}" alt="Financial Trend Chart">
-                    </div>
                     <h3>Financial Performance Trend</h3>
                     <p>A visual chart that makes it easy to compare your sales (blue bar) against your expenses (red bar) and profit trend line month-by-month.</p>
                 </div>
                 <div class="kb-card">
-                    <div class="ui-snippet">
-                        <img src="{% static 'images/manual/reports/tag_profitable.png' %}" alt="System Status Tag">
-                    </div>
                     <h3>System Status</h3>
-                    <p>A quick tag (e.g., green <strong>PROFITABLE</strong>) that tells you if your business is currently making or losing money overall.</p>
+                    <p>A quick tag (e.g., green <strong>PROFITABLE</strong>, red <strong>WARNING</strong>, and yellow <strong>BREAK-EVEN</strong>) that tells you if your business is currently making or losing money overall.</p>
                 </div>
             </div>
 
