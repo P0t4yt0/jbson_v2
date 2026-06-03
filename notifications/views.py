@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 
 from .models import Notification
 from inventory.models import PurchaseOrder
+from django.views.decorators.http import require_POST
 
 def live_notifications_api(request):
     """Returns unread notifications as JSON for the background polling."""
@@ -84,7 +85,7 @@ def live_notifications_api(request):
 
 
 
-@csrf_exempt
+@require_POST
 def mark_all_read_api(request):
     """Marks all notifications as read when 'Clear All' is clicked."""
     if request.method == 'POST' and request.user.is_authenticated:
@@ -96,7 +97,7 @@ def mark_all_read_api(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-@csrf_exempt
+@require_POST
 def mark_single_read_api(request, notif_id):
     """Marks a single notification as read via AJAX without redirecting."""
     if request.method == 'POST' and request.user.is_authenticated:

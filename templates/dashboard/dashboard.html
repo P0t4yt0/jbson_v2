@@ -651,7 +651,33 @@
                         <i class="ph ph-gear"></i>
                     </a>
                 </button>
-                <button class="icon-btn"><i class="ph ph-user"></i></button>
+                <div style="position: relative;">
+                    <button class="icon-btn" id="user-profile-btn" style="transition: all 0.2s ease;" onmouseover="this.style.background='rgba(47, 63, 123, 0.1)'; this.style.color='var(--french-blue)';" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)';">
+                        <i class="ph ph-user"></i>
+                    </button>
+                    
+                    <div class="dropdown-menu" id="user-menu" style="width: 250px; right: 0; top: 50px; padding: 0; border-radius: 12px; overflow: hidden;">
+                        <div style="padding: 20px; display: flex; align-items: center; gap: 16px; background: #ffffff;">
+                            <div style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; background: var(--french-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; box-shadow: 0 4px 10px rgba(47, 63, 123, 0.2);">
+                                {{ request.user.get_full_name|first|default:request.user.username|first|upper }}
+                            </div>
+                            
+                            <div style="overflow: hidden;">
+                                <strong style="display: block; font-size: 15px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
+                                    {{ request.user.get_full_name|default:request.user.username }}
+                                </strong>
+                                
+                                <span style="display: block; font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                                    @{{ request.user.username }}
+                                </span>
+                                
+                                <span style="font-size: 11px; color: var(--amber-flame); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 185, 21, 0.15); padding: 3px 8px; border-radius: 12px; display: inline-block; margin-top: 8px; border: 1px solid rgba(255, 185, 21, 0.3);">
+                                    {{ request.user.role|default:"Administrator" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </header>
@@ -889,15 +915,33 @@
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');
         const dynamicBadge = document.getElementById('dynamic-badge');
+        const userBtn = document.getElementById('user-profile-btn');
+        const userMenu = document.getElementById('user-menu');
 
-        bellBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notifMenu.classList.toggle('show');
-        });
+        if (bellBtn) {
+            bellBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notifMenu.classList.toggle('show');
+                if (userMenu) userMenu.classList.remove('show'); // Isara ang isa kung bukas
+            });
+        }
 
+        // Toggle User Menu
+        if (userBtn) {
+            userBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('show');
+                if (notifMenu) notifMenu.classList.remove('show'); // Isara ang notif kung bukas
+            });
+        }
+
+        // Isara pareho kapag kinlik kahit saan sa screen
         window.addEventListener('click', () => {
-            if(notifMenu.classList.contains('show')){
+            if(notifMenu && notifMenu.classList.contains('show')){
                 notifMenu.classList.remove('show');
+            }
+            if(userMenu && userMenu.classList.contains('show')){
+                userMenu.classList.remove('show');
             }
         });
     </script>

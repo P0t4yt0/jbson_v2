@@ -28,7 +28,10 @@ from billing_payment.models import SalesReturn, Invoice
 from security.models import EmployeeProfile
 from reports_analytics.models import Expense # Assuming you have this based on your migrations!
 from django.db.models import F
+from django.contrib.auth.decorators import login_required
 
+
+@login_required         
 def inventory_list(request):
     """Displays all items in the inventory with their ABC status and filters."""
     
@@ -96,7 +99,7 @@ def inventory_list(request):
     return render(request, 'inventory/product_list.html', context)
 
 
- 
+@login_required
 def run_abc_analysis(request):
     items = InventoryItem.objects.all()
     
@@ -143,6 +146,7 @@ def run_abc_analysis(request):
     
     return redirect('inventory:inventory_list')
 
+@login_required
 def edit_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     
@@ -182,6 +186,7 @@ def edit_product(request, pk):
         'suppliers': suppliers
     })
 # SINGLE DELETE VIEW
+@login_required
 def delete_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     try:
@@ -202,6 +207,7 @@ def delete_product(request, pk):
 
 
 # BULK DELETE VIEW
+@login_required
 def bulk_delete_products(request):
     if request.method == 'POST':
         ids_string = request.POST.get('product_ids', '')
@@ -222,11 +228,13 @@ def bulk_delete_products(request):
                 
     return redirect('inventory:inventory_list')
 
+@login_required
 def low_stock_view(request):
     """Specifically filters items that are at or below min_stock."""
     low_stock_items = [item for item in InventoryItem.objects.all() if item.is_low_stock]
     return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
 
+@login_required
 def category_list(request):
     if request.method == 'POST':
         new_name = request.POST.get('name')
@@ -254,6 +262,7 @@ def category_list(request):
     categories = Category.objects.prefetch_related('items').all()
     return render(request, 'inventory/category_list.html', {'categories': categories})
 
+@login_required
 def edit_category(request, pk):
     """Allows editing the category name only."""
     category = get_object_or_404(Category, pk=pk)
@@ -272,6 +281,7 @@ def edit_category(request, pk):
             messages.success(request, f'Category successfully renamed to "{new_name}".')
     return redirect('inventory:category_list')
 
+@login_required
 def delete_category(request, pk):
     """Deletes a category ONLY if it has no products."""
     category = get_object_or_404(Category, pk=pk)
@@ -297,6 +307,7 @@ from barcode.writer import ImageWriter
 import random
 from django.shortcuts import render
 
+@login_required
 def barcode_module_view(request):
     context = {}
     
@@ -341,6 +352,7 @@ def barcode_module_view(request):
 
     return render(request, 'inventory/generate_barcode.html', context)
 
+@login_required
 def admin_dashboard_view(request):
     today = timezone.now().date()
     
@@ -465,7 +477,7 @@ def admin_dashboard_view(request):
 
     return render(request, 'dashboard/dashboard.html', context)
 
-
+@login_required
 def delete_user(request, user_id):
     if not request.user.is_superuser:
         messages.error(request, "Access denied.")
@@ -491,6 +503,7 @@ def delete_user(request, user_id):
     # Redirect pabalik sa User Management page
     return redirect('security:register')
 
+@login_required
 def supplier_list(request):
     # Handle Adding a New Supplier (POST)
     if request.method == 'POST':
@@ -556,6 +569,7 @@ def supplier_list(request):
     })
 
 # BAGONG VIEW PARA SA ARCHIVED SUPPLIERS
+@login_required
 def archived_supplier_list(request):
     search_query = request.GET.get('search', '').strip()
     per_page = request.GET.get('per_page', 10)
@@ -587,6 +601,7 @@ def archived_supplier_list(request):
     })
 
 # I-update ang redirection ng unarchive
+@login_required
 def unarchive_supplier(request, supplier_id):
     if request.method == 'POST':
         supplier = get_object_or_404(Supplier, id=supplier_id)
@@ -606,6 +621,7 @@ def unarchive_supplier(request, supplier_id):
     return redirect('inventory:archived_supplier_list')
 
 
+@login_required
 def create_po(request):
     if request.method == 'POST':
         supplier_id = request.POST.get('supplier')
@@ -750,6 +766,7 @@ def create_po(request):
         'suppliers_needing_restock': suppliers_needing_restock # Passed to template
     })
 
+@login_required
 def po_list(request):
     # Fetch all Purchase Orders, ordered by newest first
     purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
@@ -803,7 +820,7 @@ def receive_po(request, po_id):
     messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been safely updated.")
     return redirect('inventory:create_po')
 
-
+@login_required
 def edit_supplier(request, supplier_id):
     supplier = get_object_or_404(Supplier, id=supplier_id)
     
@@ -829,7 +846,7 @@ def edit_supplier(request, supplier_id):
         'supplier': supplier
     })
 
-
+@login_required
 def delete_supplier(request, supplier_id):
     if request.method == 'POST':
         supplier = get_object_or_404(Supplier, id=supplier_id)
@@ -847,6 +864,7 @@ def delete_supplier(request, supplier_id):
             
     return redirect('inventory:supplier_list')
 
+@login_required
 def unarchive_supplier(request, supplier_id):
     if request.method == 'POST':
         supplier = get_object_or_404(Supplier, id=supplier_id)
@@ -864,6 +882,7 @@ def unarchive_supplier(request, supplier_id):
             
     return redirect('inventory:supplier_list')
 
+@login_required
 def edit_po(request, po_id):
     """Loads a specific Purchase Order into the Hub for Editing/Viewing."""
     target_po = get_object_or_404(PurchaseOrder, id=po_id)
@@ -962,6 +981,7 @@ def edit_po(request, po_id):
         'suppliers_needing_restock': suppliers_needing_restock # <--- Updated context variable
     })
 
+@login_required
 def delete_po(request, po_id):
     """Cancels a drafted or pending Purchase Order instead of deleting it."""
     po = get_object_or_404(PurchaseOrder, id=po_id)
@@ -982,7 +1002,7 @@ def delete_po(request, po_id):
         
     return redirect('inventory:create_po')
 
-
+@login_required
 def auto_calibrate_rop(request):
     days = int(request.GET.get('days', 7))
     days = max(7, min(days, 365))
@@ -1021,11 +1041,13 @@ def auto_calibrate_rop(request):
     messages.success(request, f"Done! ROP updated for {updated_count} items. Blank days were excluded from the average so your numbers stay accurate.")
     return redirect('inventory:inventory_list')
 
+@login_required
 def print_po(request, po_id):
     """Generates a clean, printable A4 HTML view of the Purchase Order."""
     po = get_object_or_404(PurchaseOrder, id=po_id)
     return render(request, 'inventory/print_po.html', {'po': po})
 
+@login_required
 def delete_generated_barcode(request, pk):
     """Deletes a generated barcode from the history list."""
     if request.method == 'POST':
