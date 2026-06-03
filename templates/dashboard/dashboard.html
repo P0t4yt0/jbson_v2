@@ -577,7 +577,6 @@
                     .then(response => response.json())
                     .then(data => {
                         spinner.style.display = 'none';
-                        console.log("DATA RECEIVED FROM API:", data); // <--- TIGNAN MO ITO SA CONSOLE (F12)
                         renderResults(data);
                     })
                     .catch(error => {
@@ -1224,7 +1223,7 @@
                         const newNotifs = data.notifications.filter(n => n.id > lastNotifId && !n.is_read);
                         
                         if (newNotifs.length > 0) {
-                            if (alertSound) alertSound.play().catch(e => console.log("Sound muted until interaction."));
+                            if (alertSound) alertSound.play().catch();
                             
                             newNotifs.forEach((notif, index) => {
                                 setTimeout(() => {
