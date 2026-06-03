@@ -55,7 +55,7 @@
             overflow: hidden;
         }
 
-        /* --- Sidebar Navigation (ORIGINAL) --- */
+/* --- Sidebar Navigation (ORIGINAL) --- */
         .sidebar {
             width: 260px;
             background-color: var(--bg-card);
@@ -90,29 +90,49 @@
             letter-spacing: 0.5px;
         }
 
+        /* --- BAGONG NAV-ITEM STYLES --- */
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 12px 24px;
+            padding: 12px 16px;
+            margin: 4px 16px; 
             color: var(--text-secondary);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            transition: all 0.2s;
+            border-radius: 12px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
+            background: transparent;
         }
 
         .nav-item i {
             margin-right: 12px;
             font-size: 20px;
+            transition: transform 0.3s ease;
         }
 
-        .nav-item:hover { background-color: #d9ebfa; }
+        .nav-item:hover { 
+            background-color: rgba(230, 230, 250, 0.5); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--french-blue);
+            transform: translateX(4px); 
+        }
+
+        .nav-item:hover i {
+            transform: scale(1.1); 
+        }
 
         .nav-item.active {
-            background-color: var(--sidebar-active);
-            color: var(--primary-navy);
-            border-right: 4px solid var(--primary-navy);
+            background: linear-gradient(135deg, var(--french-blue), #3d5096);
+            color: #FFFFFF;
+            box-shadow: 0 4px 15px rgba(47, 63, 123, 0.25); 
+        }
+
+        .nav-item.active i {
+            color: #FFFFFF;
         }
 
         /* --- Main Content Area --- */
@@ -278,10 +298,16 @@
 
         a { text-decoration: none; }
 
-        .logout-form { width: 100%; margin: 0; padding: 0; }
+        .logout-form { width: 100%; margin: 0; padding: 0; margin-top: 40px; padding-bottom: 20px;}
         .btn-logout {
-            background: transparent; border: none; width: 100%; text-align: left;
-            cursor: pointer; font-family: inherit; font-size: inherit; color:var(--primary-red);
+            background: transparent; 
+            border: none; 
+            width: 100%; 
+            text-align: left;
+            cursor: pointer; 
+            font-family: inherit; 
+            font-size: inherit; 
+            color: var(--french-blue); /* Pinalitan from --primary-red */
         }
 
         /* TOAST NOTIFICATION STYLES */
@@ -993,7 +1019,7 @@
                 text: "You are about to log out from the admin dashboard.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#891C1C', 
+                confirmButtonColor: '#2F3F7B', 
                 cancelButtonColor: '#6B7280',  
                 confirmButtonText: 'Yes, log out',
                 cancelButtonText: 'Cancel'
