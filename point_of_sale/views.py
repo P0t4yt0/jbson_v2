@@ -28,8 +28,9 @@ from billing_payment.models import Invoice, InvoiceItem
 from django.db.models import Q, F, ProtectedError, Sum, DecimalField
 from django.core.paginator import Paginator
 from notifications.models import Notification
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def pos_view(request):
     products = InventoryItem.objects.all()
     categories = Category.objects.all()
@@ -58,6 +59,7 @@ def pos_view(request):
         'sold_items': sold_items,
     })
 
+@login_required
 def add_to_cart(request):
     product = get_object_or_404(InventoryItem, id=request.GET.get('product_id'))
 
@@ -149,7 +151,7 @@ def update_cart_item(request):
             print(f"POS UPDATE ERROR: {str(e)}") 
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
         
-
+@login_required
 def add_by_barcode(request):
     barcode = request.GET.get('barcode')
     product = InventoryItem.objects.filter(barcode_id=barcode).first()
@@ -187,7 +189,7 @@ def add_by_barcode(request):
     transaction.calculate_totals()
     return JsonResponse({'status': 'success'})
 
-    
+@login_required
 def process_payment(request):
     transaction_id = request.session.get('transaction_id')
     if not transaction_id:
@@ -378,7 +380,7 @@ def process_payment(request):
         messages.error(request, f"Transaction Error: {str(e)}")
         return redirect('point_of_sale:pos_index')
     
-    
+@login_required
 def void_transaction(request):
     # 1. Kunin ang current transaction ID mula sa session
     transaction_id = request.session.get('transaction_id')
@@ -412,10 +414,11 @@ def void_transaction(request):
 
     return redirect('point_of_sale:pos_index')
 
-
+@login_required
 def reset_transaction(request):
     return void_transaction(request)
 
+@login_required
 def quotation_list_view(request):
     # 1. Kunin ang mga parameters
     search_query = request.GET.get('search', '').strip()
@@ -461,6 +464,7 @@ def quotation_list_view(request):
     
     return render(request, 'point_of_sale/quotation_list.html', context)
 
+@login_required
 def save_as_quotation(request, transaction_id):
     """Ise-save ang current open transaction bilang draft/quotation"""
     # Hanapin yung open transaction
@@ -486,6 +490,7 @@ def save_as_quotation(request, transaction_id):
     # I-redirect pabalik sa POS screen para makapag-transact ng bago
     return redirect('pos:pos_index')
 
+@login_required
 def load_quotation_to_pos(request, transaction_id):
     """Kukunin ang quotation at ilo-load pabalik sa mismong POS screen"""
     # 1. Hanapin yung quotation gamit ang ID
@@ -509,6 +514,7 @@ def load_quotation_to_pos(request, transaction_id):
     # 4. I-redirect pabalik sa main POS screen
     return redirect('pos:pos_index')
 
+@login_required
 def get_quotation_details(request):
     ref_number = request.GET.get('ref')
     
@@ -541,6 +547,7 @@ def get_quotation_details(request):
         # Catch any backend errors para hindi mag-crash yung server at mag "Network Error"
         return JsonResponse({'status': 'error', 'message': str(e)})
     
+@login_required
 def reprint_receipt(request, txn_id):
     transaction = get_object_or_404(Transaction, id=txn_id)
     

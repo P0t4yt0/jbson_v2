@@ -430,6 +430,7 @@ def employee_dashboard(request):
         
     return redirect('pos:pos_index')
 
+
 def user_management_view(request):
     if request.method == "POST":
         # 1. Grab the form data
@@ -551,6 +552,7 @@ def settings_hub_view(request):
         'db_size': get_current_db_size() # yung function mo
     })
 
+@login_required
 def delete_user(request, user_id):
     # 1. Check permissions
     if not request.user.is_superuser:

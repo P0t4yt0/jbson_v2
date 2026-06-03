@@ -13,7 +13,9 @@ from .models import Customer, Invoice, InvoicePayment, SalesReturn, SalesReturnI
 from point_of_sale.models import Transaction
 from inventory.models import InventoryItem
 from activity_log.utils import log_system_activity
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def customer_list(request):
     # Handle Adding a New Customer
     if request.method == 'POST':
@@ -77,7 +79,8 @@ def customer_list(request):
         'status_filter': status_filter,
         'per_page': per_page,
     })
-
+    
+@login_required         
 def customer_ledger(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     
@@ -89,6 +92,8 @@ def customer_ledger(request, pk):
         'invoices': invoices
     })
 
+
+@login_required
 def get_payment_history_json(request, invoice_id):
     """API endpoint para ibalik ang payment history ng isang invoice sa JSON format"""
     invoice = get_object_or_404(Invoice, pk=invoice_id)
@@ -114,6 +119,7 @@ def get_payment_history_json(request, invoice_id):
         'payments': payments_data
     })
 
+@login_required
 def pay_invoice(request, invoice_id):
     if request.method == 'POST':
         invoice = get_object_or_404(Invoice, id=invoice_id)
@@ -148,6 +154,8 @@ def pay_invoice(request, invoice_id):
         
     return redirect('billing_payment:customer_list')
 
+
+@login_required
 def sales_list(request):
     all_transactions = Transaction.objects.all().order_by('-date_completed')
     
@@ -186,7 +194,8 @@ def sales_list(request):
         'method_filter': method_filter, 
     }
     return render(request, 'billing_payment/sales_list.html', context)
-
+    
+@login_required
 def transaction_details(request, txn_id):
     transaction = get_object_or_404(Transaction, id=txn_id)
     items = transaction.sold_items.all()
@@ -196,6 +205,8 @@ def transaction_details(request, txn_id):
         'items': items
     }
     return render(request, 'billing_payment/transaction_details.html', context)
+
+@login_required         
 
 def get_sale_details_api(request, txn_id):
     try:
@@ -227,6 +238,8 @@ def get_sale_details_api(request, txn_id):
         # Catch any other backend errors so it doesn't cause a Network Error in JS
         return JsonResponse({'status': 'error', 'message': str(e)})
     
+
+@login_required
 def invoice_list_view(request):
     search_query = request.GET.get('search', '').strip()
     status_filter = request.GET.get('status', '')
@@ -264,6 +277,8 @@ def invoice_list_view(request):
     
     return render(request, 'billing_payment/invoice_list.html', context)
 
+
+@login_required
 def create_invoice_view(request):
     if request.method == 'POST':
         form = InvoiceForm(request.POST)
@@ -300,6 +315,8 @@ def create_invoice_view(request):
     }
     return render(request, 'billing_payment/create_invoice.html', context)
 
+
+@login_required
 def invoice_items_json(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     
@@ -342,6 +359,7 @@ def invoice_items_json(request, invoice_id):
     }
     return JsonResponse(data)
 
+@login_required
 def sales_return_list(request):
     query = request.GET.get('q', '').strip()
     
@@ -381,6 +399,7 @@ def sales_return_list(request):
     }
     return render(request, 'billing_payment/sales_return_list.html', context)
 
+@login_required         
 def process_return(request):
     if request.method == 'POST':
         txn_ref = request.POST.get('transaction_ref')
@@ -431,6 +450,7 @@ def process_return(request):
         messages.success(request, f"Return {return_id} processed! Refund Amount: ₱{running_total}")
         return redirect('billing_payment:sales_return_list')
 
+@login_required         
 def verify_transaction(request):
     txn_ref = request.GET.get('txn_ref')
     try:
