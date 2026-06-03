@@ -398,7 +398,9 @@
                         onfocus="this.style.borderColor='var(--status-red)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)';" onblur="this.style.borderColor='#FECACA'; this.style.boxShadow='none';">
                         <option value="">-- Choose Contractor --</option>
                         {% for customer in credit_customers %}
-                            <option value="{{ customer.id }}">{{ customer.name }} (Limit: ₱{{ customer.available_credit }})</option>
+                            <option value="{{ customer.id }}" data-terms="{{ customer.payment_terms }}">
+                                {{ customer.name }} (Limit: ₱{{ customer.available_credit }})
+                            </option>
                         {% endfor %}
                     </select>
 
@@ -408,53 +410,25 @@
                             <span id="cs-principal" style="font-family:'Inconsolata', monospace; font-weight:700; color:var(--text-primary); font-size: 16px;">₱0.00</span>
                         </div>
 
-                        <div style="background:white; border:1px solid var(--border-color); border-radius:10px; padding:14px; margin-bottom:10px;">
+                        <div style="background:white; border:1px solid var(--border-color); border-radius:10px; padding:14px; margin-bottom:10px; box-shadow: 0 4px 6px rgba(47, 63, 123, 0.05);">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <span style="font-weight:700; font-size:14px; color:var(--french-blue);">Net 60</span>
-                                <span style="font-size:12px; color:var(--text-secondary); background:rgba(248, 250, 252, 0.8); padding:4px 10px; border-radius:20px; font-weight:600;">Due in 60 days</span>
+                                <span id="cs-term-label" style="font-weight:800; font-size:15px; color:var(--french-blue);">Net XX</span>
+                                <span id="cs-due-badge" style="font-size:12px; color:var(--french-blue); background:rgba(47, 63, 123, 0.1); padding:4px 10px; border-radius:20px; font-weight:700;">Due in XX days</span>
                             </div>
                             <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-secondary); margin-bottom:4px;">
-                                <span>Interest (2%):</span>
-                                <span id="cs-interest-60" style="font-family:'Inconsolata', monospace; font-weight:600;">+₱0.00</span>
+                                <span id="cs-interest-label">Interest (X%):</span>
+                                <span id="cs-interest-amount" style="font-family:'Inconsolata', monospace; font-weight:700; color:#dc2626;">+₱0.00</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:16px; color:var(--french-blue); border-top:1px solid var(--border-color); padding-top:8px; margin-top:8px;">
-                                <span>Total Payable:</span>
-                                <span id="cs-total-60" style="font-family:'Inconsolata', monospace;">₱0.00</span>
+                            <div style="display:flex; justify-content:space-between; align-items: center; border-top:1px dashed var(--border-color); padding-top:12px; margin-top:8px;">
+                                <span style="font-weight:700; font-size:14px; color:var(--text-primary);">Total Payable:</span>
+                                <span id="cs-total-payable" style="font-weight:800; font-size:24px; color:var(--amber-flame); font-family:'Inconsolata', monospace; letter-spacing:-0.5px;">₱0.00</span>
                             </div>
-                            <div id="cs-due-date-60" style="font-size:12px; color:var(--text-secondary); margin-top:6px; text-align:right;"></div>
-                        </div>
-
-                        <div style="background:white; border:1px solid var(--border-color); border-radius:10px; padding:14px; margin-bottom:16px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <span style="font-weight:700; font-size:14px; color:var(--french-blue);">Net 90</span>
-                                <span style="font-size:12px; color:var(--text-secondary); background:rgba(248, 250, 252, 0.8); padding:4px 10px; border-radius:20px; font-weight:600;">Due in 90 days</span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-secondary); margin-bottom:4px;">
-                                <span>Interest (4%):</span>
-                                <span id="cs-interest-90" style="font-family:'Inconsolata', monospace; font-weight:600;">+₱0.00</span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:16px; color:var(--french-blue); border-top:1px solid var(--border-color); padding-top:8px; margin-top:8px;">
-                                <span>Total Payable:</span>
-                                <span id="cs-total-90" style="font-family:'Inconsolata', monospace;">₱0.00</span>
-                            </div>
-                            <div id="cs-due-date-90" style="font-size:12px; color:var(--text-secondary); margin-top:6px; text-align:right;"></div>
-                        </div>
-
-                        <div>
-                            <label style="font-weight:700; font-size:14px; color:var(--french-blue); display:block; margin-bottom:8px;">Payment Term:</label>
-                            <div style="display:flex; gap:10px;">
-                                <button type="button" id="term-btn-60" onclick="selectTerm(60)"
-                                    style="flex:1; padding:12px; border-radius:10px; border:2px solid var(--french-blue); background:var(--french-blue); color:white; font-family: var(--font-main); font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s ease;">
-                                    Net 60
-                                </button>
-                                <button type="button" id="term-btn-90" onclick="selectTerm(90)"
-                                    style="flex:1; padding:12px; border-radius:10px; border:2px solid var(--border-color); background:white; color:var(--text-secondary); font-family: var(--font-main); font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s ease;">
-                                    Net 90
-                                </button>
-                            </div>
+                            <div id="cs-due-date" style="font-size:12px; color:var(--text-secondary); margin-top:8px; text-align:right; font-weight: 500;"></div>
                         </div>
                     </div>
-                </div><div id="amount-paid-group" style="margin-bottom:20px;">
+                </div>
+                
+                <div id="amount-paid-group" style="margin-bottom:20px;">
                     <label style="font-weight:700; font-size:14px; color:var(--text-secondary); display:block; margin-bottom:8px;">Amount Paid:</label>
                     <input type="number" id="cash-received" oninput="calculateChange()" placeholder="0.00"
                         style="width:100%; padding:16px; border-radius:12px; border:2px solid var(--amber-flame); background: rgba(255, 255, 255, 0.9); font-family:'Inconsolata', monospace; font-size:28px; font-weight:800; color: var(--french-blue); margin-bottom:16px; box-sizing:border-box; outline:none; transition: box-shadow 0.3s ease;"
@@ -786,44 +760,52 @@
     // ════════════════════════════════════════════════
 
     function updateCreditSummary() {
+        const selectEl = document.getElementById('credit-customer');
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+
+        // Itago ang summary kung walang piniling customer
+        if (!selectedOption || !selectedOption.value) {
+            document.getElementById('credit-summary').style.display = 'none';
+            return;
+        }
+
+        // Basahin ang pre-approved terms ng customer (Default ay 30 kung blangko)
+        const terms = parseInt(selectedOption.getAttribute('data-terms')) || 30;
+
         const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
         const principal = parseFloat(totalText) || 0;
         if (!principal) return;
 
-        const interest60 = principal * 0.02;
-        const interest90 = principal * 0.04;
+        // I-set ang Interest Rate base sa terms
+        let interestRate = 0;
+        if (terms === 60) interestRate = 0.02;
+        else if (terms === 90) interestRate = 0.04;
+
+        const interestAmount = principal * interestRate;
+        const totalPayable = principal + interestAmount;
 
         const fmt     = n => n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const fmtDate = d => d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+        const fmtDate = d => d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' });
 
+        // Update ang HTML Text gamit ang bagong computations
         document.getElementById('cs-principal').innerText   = '₱' + fmt(principal);
-        document.getElementById('cs-interest-60').innerText = '+₱' + fmt(interest60);
-        document.getElementById('cs-total-60').innerText    = '₱'  + fmt(principal + interest60);
-        document.getElementById('cs-interest-90').innerText = '+₱' + fmt(interest90);
-        document.getElementById('cs-total-90').innerText    = '₱'  + fmt(principal + interest90);
+        document.getElementById('cs-term-label').innerText  = 'Net ' + terms;
+        document.getElementById('cs-due-badge').innerText   = 'Due in ' + terms + ' days';
+        document.getElementById('cs-interest-label').innerText = `Interest (${interestRate * 100}%):`;
+        document.getElementById('cs-interest-amount').innerText = '+₱' + fmt(interestAmount);
+        document.getElementById('cs-total-payable').innerText = '₱' + fmt(totalPayable);
 
+        // Compute Due Date
         const today = new Date();
-        const due60 = new Date(today); due60.setDate(today.getDate() + 60);
-        const due90 = new Date(today); due90.setDate(today.getDate() + 90);
-        document.getElementById('cs-due-date-60').innerText = 'Due by: ' + fmtDate(due60);
-        document.getElementById('cs-due-date-90').innerText = 'Due by: ' + fmtDate(due90);
+        const dueDate = new Date(today); 
+        dueDate.setDate(today.getDate() + terms);
+        document.getElementById('cs-due-date').innerHTML = `<i class="ph ph-calendar-blank" style="vertical-align: middle; margin-right: 4px;"></i> Exact Due Date: <strong>${fmtDate(dueDate)}</strong>`;
 
+        // I-display ang summary
         document.getElementById('credit-summary').style.display = 'block';
-        selectTerm(selectedTerm); // re-apply highlight
     }
 
-    function selectTerm(days) {
-        selectedTerm = days;
-        const btn60 = document.getElementById('term-btn-60');
-        const btn90 = document.getElementById('term-btn-90');
-        if (days === 60) {
-            btn60.style.cssText += '; background:var(--french-blue); color:white; border-color:var(--french-blue);';
-            btn90.style.cssText += '; background:white; color:var(--text-secondary); border-color:var(--border-color);';
-        } else {
-            btn90.style.cssText += '; background:var(--french-blue); color:white; border-color:var(--french-blue);';
-            btn60.style.cssText += '; background:white; color:var(--text-secondary); border-color:var(--border-color);';
-        }
-    }
+    
 </script>
 
 {% endblock %}

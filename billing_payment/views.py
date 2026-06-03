@@ -302,17 +302,43 @@ def create_invoice_view(request):
 
 def invoice_items_json(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
-    items = invoice.items.all() 
     
-    data = {
-        'items': [
-            {
+    items_data = []
+    items_subtotal = Decimal('0.00')
+
+    # Alamin kung POS o Manual ang pinagmulan at kunin lang ang Products
+    if invoice.source == 'pos' and invoice.transaction:
+        for item in invoice.transaction.sold_items.all():
+            items_data.append({
+                'product_name': item.inventory_item.item_name,
+                'quantity': item.quantity,
+                'unit_price': str(item.unit_price),
+                'subtotal': str(item.subtotal),
+            })
+            items_subtotal += item.subtotal
+    else:
+        for item in invoice.items.all():
+            items_data.append({
                 'product_name': item.product_name,
                 'quantity': item.quantity,
                 'unit_price': str(item.unit_price),
                 'subtotal': str(item.subtotal),
-            } for item in items
-        ]
+            })
+            # Wag i-add sa subtotal ang interest para hindi mag-double
+            if "Interest" not in item.product_name:
+                items_subtotal += item.subtotal
+
+    # Kunin ang Terms base sa Customer Profile
+    term_label = f"Net {invoice.customer.payment_terms}" if invoice.customer else "N/A"
+
+    # I-pasa ang data sa modal nang hindi na ginalaw ang database records
+    data = {
+        'term': term_label,
+        'due_date': invoice.due_date.strftime("%B %d, %Y") if invoice.due_date else "N/A",
+        'items_subtotal': str(items_subtotal),
+        'interest_amount': str(invoice.interest_amount),  
+        'grand_total': str(invoice.total_amount),         
+        'items': items_data
     }
     return JsonResponse(data)
 
