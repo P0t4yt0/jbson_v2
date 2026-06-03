@@ -26,3 +26,6 @@ def reports_guide(request):
 
 def management_guide(request):
     return render(request, 'user_manual/management_guide.html', {'active_tab': 'management'})
+
+def settings_guide(request):
+    return render(request, 'user_manual/settings_guide.html', {'active_tab': 'settings'})

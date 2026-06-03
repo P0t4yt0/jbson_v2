@@ -634,12 +634,10 @@
         
         <div class="content-scroll">
             
-            <!-- BACKGROUND ACCENT BLOBS -->
             <div class="bg-shape shape-1"></div>
             <div class="bg-shape shape-2"></div>
             <div class="bg-shape shape-3"></div>
 
-            <!-- CONTAINER PARA HINDI MA-AFFECT NG BLUR YUNG CONTENT -->
             <div style="position: relative; z-index: 1;">
                 {% block content %}
                 
@@ -713,7 +711,6 @@
 
                 <div class="welcome-header">
                     <div>
-                        <!-- WELCOME TEXT -->
                         <h1 style="margin: 0; font-size: 28px; color: var(--french-blue); letter-spacing: -0.5px;">Welcome, {{ request.user.first_name|default:request.user.username|default:"Admin" }}!</h1>
                         <p style="color: var(--text-secondary); font-size: 15px; margin-top: 4px;">Track JBson's financial health and operations.</p>
                     </div>
@@ -732,7 +729,6 @@
                     </form>
                 </div>
 
-                <!-- SOLID KPI GRID -->
                 <div class="kpi-grid">
                     <div class="kpi-card sales">
                         <div class="kpi-title-wrapper">
@@ -765,7 +761,6 @@
                 </div>
 
                 <div class="chart-row">
-                    <!-- PANEL 1: Financial Overview -->
                     <div class="panel">
                         <h3 class="panel-title">
                             <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-bar" style="color: var(--french-blue);"></i></span>
@@ -776,7 +771,6 @@
                         </div>
                     </div>
                     
-                    <!-- PANEL 2: Top Selling Products -->
                     <div class="panel" style="display: flex; flex-direction: column;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                             <h3 class="panel-title" style="margin: 0;">
@@ -793,10 +787,8 @@
                             
                             <div style="flex: 1.2;">
                                 <ul class="modern-list" style="margin: 0;">
-                                    <!-- PINALITAN ANG SLICE PARA TOP 5 -->
                                     {% for product in top_products|slice:":5" %}
                                     <li>
-                                        <!-- ADDED ELLIPSIS STYLE PARA HINDI SUMIKSIK -->
                                         <span class="item-main" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;" title="{{ product.inventory_item__item_name }}">
                                             {{ product.inventory_item__item_name }}
                                         </span>
@@ -812,7 +804,6 @@
                 </div>
 
                 <div class="action-row">
-                    <!-- CRITICAL STOCK PANEL -->
                     <div class="panel">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                             <h3 class="panel-title" style="margin: 0;">
@@ -838,7 +829,6 @@
                         </ul>
                     </div>
 
-                    <!-- DUE INVOICES PANEL -->
                     <div class="panel">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                             <h3 class="panel-title" style="margin: 0;">
@@ -851,7 +841,7 @@
                             {% for invoice in unpaid_invoices %}
                             <li>
                                 <div>
-                                    <span class="item-main">{{ invoice.customer.first_name }} {{ invoice.customer.last_name }}</span>
+                                    <span class="item-main">{% if invoice.customer.first_name %}{{ invoice.customer.first_name }} {{ invoice.customer.last_name }}{% elif invoice.customer.name %}{{ invoice.customer.name }}{% else %}{{ invoice.customer }}{% endif %}</span>
                                     <span class="item-sub">Due: {{ invoice.due_date|date:"M d" }}</span>
                                 </div>
                                 <div style="text-align: right;">
@@ -870,7 +860,6 @@
          </div>
     </main>
 
-    <!-- SCRIPTS RETAINED 100% FROM ORIGINAL -->
     <script>
         const bellBtn = document.getElementById('bell-btn');
         const notifMenu = document.getElementById('notif-menu');

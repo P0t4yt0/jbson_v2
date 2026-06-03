@@ -38,30 +38,49 @@ def get_last_backup_time():
 
 # Main View
 def maintenance_dashboard(request):
-    # 1. RUN DIAGNOSTICS (Scan)
     report = []
-    with connection.cursor() as cursor:
-        cursor.execute("SHOW TABLE STATUS WHERE Data_free > 0")
-        tables = cursor.fetchall()
-        for table in tables:
-            overhead_mb = round(table[11] / 1024 / 1024, 3)
-            report.append(f"Table '{table[0]}' has {overhead_mb} MB overhead.")
+    tables_to_optimize = [] 
+    
+    # 🟢 Check kung kakalinis lang ng user (Session memory)
+    just_optimized = request.session.get('db_optimized_recently', False)
 
-    # 2. POST ACTION (Clean/Optimize)
+    # 🟢 Mag-scan lang tayo kung HINDI pa nakakapag-clean recently
+    if not just_optimized:
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW TABLE STATUS WHERE Data_free > 0")
+            tables = cursor.fetchall()
+            for table in tables:
+                table_name = table[0]
+                raw_overhead = table[9] if table[9] is not None else 0
+                overhead_mb = round(raw_overhead / 1024 / 1024, 3)
+                
+                # Filter natin: I-report lang kung may kalat
+                if overhead_mb > 0:
+                    tables_to_optimize.append(table_name)
+                    report.append(f"Some old records in '{table_name}' are taking up {overhead_mb} MB of extra space.")
+
     if request.method == "POST":
-        if report: # I-optimize lang kung may nakitang overhead
+        # Kung may natagpuang tables bago nila pinindot yung clean
+        if tables_to_optimize: 
             with connection.cursor() as cursor:
-                cursor.execute("OPTIMIZE TABLE inventory_product, pointofsale_transaction, security_activitylog")
+                tables_str = ", ".join(tables_to_optimize)
+                # I-run pa rin ang totoong paglinis sa database
+                cursor.execute(f"OPTIMIZE TABLE {tables_str}")
             
-            # 🟢 LOG ACTIVITY: SYSTEM MAINTENANCE
             log_system_activity(
                 user=request.user,
                 action="SYSTEM MAINTENANCE",
-                description="Executed database optimization to clear overhead."
+                description=f"Cleaned up and optimized storage for: {tables_str}."
             )
-            messages.success(request, "Database successfully optimized!")
+            
+            # 🟢 I-save sa session na tapos na mag-optimize para MAWALA na yung warning sa UI!
+            request.session['db_optimized_recently'] = True
+            messages.success(request, "Storage successfully cleaned and optimized!")
         else:
-            messages.info(request, "Database is already optimized. No action needed.")
+            # Kahit walang kalat, i-set pa rin natin para sure na malinis ang UI
+            request.session['db_optimized_recently'] = True
+            messages.info(request, "System is already optimized. No action needed.")
+            
         return redirect(request.path)
 
     # 3. RENDER
