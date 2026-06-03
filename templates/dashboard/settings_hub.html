@@ -108,7 +108,26 @@
     .icon-blue { background: rgba(47, 63, 123, 0.1); color: var(--french-blue); }
     .icon-amber { background: rgba(255, 185, 21, 0.1); color: var(--amber-flame); }
     .icon-red { background: rgba(239, 68, 68, 0.1); color: var(--status-red); }
-
+    
+    /* Password Input Styling */
+    .encryption-input {
+        width: 100%;
+        font-size: 13px;
+        padding: 12px 16px;
+        border: 2px solid #E2E8F0; /* Matches your subtle borders */
+        border-radius: 12px;
+        color: #333;
+        background: #F8FAFC;
+        transition: all 0.2s ease;
+        font-family: var(--font-main);
+        box-sizing: border-box;
+    }
+    
+    .encryption-input:focus {
+        outline: none;
+        border-color: var(--french-blue);
+        background: #FFF;
+    }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 
@@ -193,7 +212,7 @@
                 <div style="flex-grow: 1;">
                     <div class="icon-circle icon-blue"><i class="ph ph-download-simple"></i></div>
                     <h3 class="settings-header" style="font-size: 18px; margin-bottom: 8px;">System Backup</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">Generate and download a compressed SQL dump of the current database.</p>
+                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">Generate and download a highly-secured, encrypted SQL dump of the current database.</p>
 
                     <p style="font-size: 13px; font-weight: 600; color: var(--primary-navy); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
                         <i class="ph ph-clock-counter-clockwise" style="font-size: 1.2rem; color: var(--amber-flame);"></i>
@@ -201,10 +220,14 @@
                     </p>
                 </div>
 
-                <form action="{% url 'maintenance:trigger_backup' %}" method="POST" style="margin: 0;">
+                <form id="backupForm" action="{% url 'maintenance:trigger_backup' %}" method="POST" style="margin: 0;">
                     {% csrf_token %}
+                    <div style="margin-bottom: 16px;">
+                        <input type="password" name="encryption_key" class="encryption-input" placeholder="Set an encryption password" required>
+                        <small style="color: var(--text-secondary); font-size: 11px; margin-top: 4px; display: block;">* Don't forget this password. You will need it to restore data.</small>
+                    </div>
                     <button type="submit" class="settings-btn btn-french">
-                        Download Latest Backup
+                        <i class="ph ph-lock-key"></i> Encrypt & Download
                     </button>
                 </form>
             </div>
@@ -213,17 +236,21 @@
                 <div style="flex-grow: 1;">
                     <div class="icon-circle icon-amber"><i class="ph ph-upload-simple"></i></div>
                     <h3 class="settings-header" style="font-size: 18px; margin-bottom: 8px; color: var(--amber-flame);">System Recovery</h3>
-                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">Upload a .gz backup file to restore the system state.</p>
+                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">Upload an encrypted backup file to restore the system state.</p>
                     
                     <form action="{% url 'maintenance:trigger_restore' %}" method="POST" enctype="multipart/form-data" id="restoreForm">
                         {% csrf_token %}
-                        <div class="file-upload-wrapper" style="margin-bottom: 20px;">
-                            <input type="file" name="backup_file" accept=".gz" required>
+                        <div class="file-upload-wrapper" style="margin-bottom: 16px;">
+                            <input type="file" name="backup_file" accept=".gz,.enc" required>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <input type="password" name="decryption_key" class="encryption-input" placeholder="Enter decryption password" required>
                         </div>
                 </div>
 
                     <button type="submit" class="settings-btn btn-amber">
-                        Restore Database
+                        <i class="ph ph-lock-key-open"></i> Decrypt & Restore
                     </button>
                 </form>
             </div>
@@ -310,6 +337,32 @@
             if (result.isConfirmed) { event.target.submit(); } 
         });
     }
+    // ==========================================
+    // BACKUP PASSWORD VALIDATION
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const backupForm = document.getElementById('backupForm');
+        
+        if (backupForm) {
+            backupForm.addEventListener('submit', function(event) {
+                // Kunin yung value na tinype sa password field
+                const passwordInput = backupForm.querySelector('input[name="encryption_key"]').value;
+                
+                // I-check kung less than 8 characters
+                if (passwordInput.length < 8) {
+                    event.preventDefault(); // Pigilan ang pag-download
+                    
+                    // Maglabas ng magandang SweetAlert warning
+                    Swal.fire({
+                        title: 'Weak Password',
+                        text: 'For your security, the encryption password must be at least 8 characters long.',
+                        icon: 'warning',
+                        confirmButtonColor: '#EF4444', // Matches your Danger Status Red
+                    });
+                }
+            });
+        }
+    });
 </script>
 
 {% endblock content %}
