@@ -79,7 +79,8 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.invoice_no} - {self.customer.name}"
+        customer_name = self.customer.name if self.customer else "Walk-in"
+        return f"{self.invoice_no} - {customer_name}"
 
 # --- 2.1 INVOICE ITEMS (Para sa Manual Create Invoice) ---
 class InvoiceItem(models.Model):

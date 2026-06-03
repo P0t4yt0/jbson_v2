@@ -22,6 +22,8 @@ class Notification(models.Model):
         ('backup_success', 'Backup Success'),
         ('restore_success','Restore Success'),
         ('info',           'Information'),
+        ('invoice_due',    'Invoice Due Alert'),
+        ('invoice_overdue','Invoice Overdue Alert'),
     ]
 
     PRIORITY_CHOICES = [

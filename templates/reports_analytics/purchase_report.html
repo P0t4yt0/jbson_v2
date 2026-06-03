@@ -304,7 +304,7 @@
         } catch (error) {
             console.error("Export Error: ", error);
             alert("An error occurred during export. Please try again.");
-        } {
+        } finally {
             pdfBtn.disabled = false;
             csvBtn.disabled = false;
             pdfBtn.innerHTML = '<i class="ph ph-file-pdf"></i> Export PDF';

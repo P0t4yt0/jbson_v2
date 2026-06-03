@@ -300,7 +300,7 @@
         } catch (error) {
             console.error("Export Error: ", error);
             alert("Nagkaroon ng error sa pag-export. Pakisubukang muli.");
-        } {
+        } finally {
             pdfBtn.disabled = false;
             csvBtn.disabled = false;
             pdfBtn.innerHTML = '<i class="ph ph-file-pdf" style="font-size: 1.1rem;"></i> Export PDF';

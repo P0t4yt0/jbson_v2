@@ -1303,10 +1303,8 @@
         fetchLiveNotifications();
 
         window.markNotifRead = function(notifId, linkEl, event) {
+            event.preventDefault(); // Pipigilan pumunta sa link agad para maka-save muna sa database
             const targetUrl = linkEl.getAttribute('href');
-            if (!targetUrl || targetUrl === '#' || targetUrl === 'None') {
-                event.preventDefault(); 
-            }
 
             const clearAllUrl = "{% url 'notifications:mark_read_api' %}";
             const singleUrl = clearAllUrl.replace('mark-read', `mark-read-single/${notifId}`).replace('//', '/');
@@ -1319,15 +1317,21 @@
                 }
             }).then(response => response.json())
             .then(data => {
-                if (data.status === 'success') {
-                    const newCount = data.unread_count;
-                    if (newCount > 0) {
-                        badgeElement.style.display = 'block';
-                        badgeElement.innerText = newCount > 9 ? '9+' : newCount;
-                    } else {
-                        badgeElement.style.display = 'none';
+                if (targetUrl && targetUrl !== '#' && targetUrl !== 'None') {
+                    // Kapag na-mark as read na saka palang tayo lilipat ng page
+                    window.location.href = targetUrl;
+                } else {
+                    // Kung walang target URL, i-refresh lang ang notif count
+                    if (data.status === 'success') {
+                        const newCount = data.unread_count;
+                        if (newCount > 0) {
+                            badgeElement.style.display = 'block';
+                            badgeElement.innerText = newCount > 9 ? '9+' : newCount;
+                        } else {
+                            badgeElement.style.display = 'none';
+                        }
+                        setTimeout(() => { fetchLiveNotifications(); }, 300);
                     }
-                    setTimeout(() => { fetchLiveNotifications(); }, 300);
                 }
             });
         };
