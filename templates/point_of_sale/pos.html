@@ -4,138 +4,46 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
     body { background-color: var(--bg-main, #F4F6F9); margin: 0; overflow: hidden; }
-
-    /* Sleek scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.8); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-    /* ── LAYOUT ────────────────────────────────────── */
-    .pos-container {
-        display: flex;
-        height: calc(95vh - 90px);
-        gap: 24px;
-        overflow: hidden;
-        max-width: 1500px;
-    }
+    .pos-container { display: flex; height: calc(95vh - 90px); gap: 24px; overflow: hidden; max-width: 1500px; }
     .swal2-container { z-index: 100000 !important; }
 
-    /* ── LEFT: INVENTORY ────────────────────────────── */
     .inventory-section { flex: 2.2; display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: hidden; }
-
     .search-header { display: flex; gap: 16px; margin-bottom: 20px; flex-shrink: 0; }
-    
     .search-input-group { position: relative; flex: 1.5; }
     .search-input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--french-blue); }
-    
-    .search-input { 
-        width: 100%; 
-        padding: 14px 16px 14px 48px; 
-        border: 2px solid var(--french-blue); 
-        border-radius: 12px; 
-        outline: none; 
-        background: rgba(255, 255, 255, 0.9); 
-        font-size: 14px; 
-        font-family: var(--font-main);
-        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.1); 
-        transition: all 0.3s ease;
-    }
+    .search-input { width: 100%; padding: 14px 16px 14px 48px; border: 2px solid var(--french-blue); border-radius: 12px; outline: none; background: rgba(255, 255, 255, 0.9); font-size: 14px; font-family: var(--font-main); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.1); transition: all 0.3s ease; }
     .search-input:focus { box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.2); background: #FFFFFF; }
-    
-    .text-search { 
-        flex: 1; 
-        padding: 14px 16px; 
-        border: 1px solid var(--border-color); 
-        border-radius: 12px; 
-        outline: none; 
-        font-size: 14px; 
-        font-family: var(--font-main);
-        background: rgba(255, 255, 255, 0.8); 
-        backdrop-filter: blur(8px);
-        transition: all 0.3s ease;
-    }
+    .text-search { flex: 1; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; font-size: 14px; font-family: var(--font-main); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); transition: all 0.3s ease; }
     .text-search:focus { border-color: var(--french-blue); background: #FFFFFF; box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1); }
 
     .category-tabs { display: flex; gap: 12px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 8px; flex-shrink: 0; }
-    .tab { 
-        padding: 10px 24px; 
-        border-radius: 10px; 
-        border: 1px solid var(--border-color); 
-        font-weight: 600; 
-        font-size: 13px; 
-        font-family: var(--font-main);
-        cursor: pointer; 
-        background: rgba(255, 255, 255, 0.7); 
-        backdrop-filter: blur(8px);
-        color: var(--text-secondary); 
-        flex-shrink: 0; 
-        transition: all 0.2s ease; 
-    }
+    .tab { padding: 10px 24px; border-radius: 10px; border: 1px solid var(--border-color); font-weight: 600; font-size: 13px; font-family: var(--font-main); cursor: pointer; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px); color: var(--text-secondary); flex-shrink: 0; transition: all 0.2s ease; }
     .tab:hover { border-color: var(--french-blue); background: rgba(255, 255, 255, 0.9); color: var(--french-blue); transform: translateY(-2px); }
     .tab.active { background: var(--french-blue); color: white; border-color: var(--french-blue); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2); }
 
     .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; overflow-y: auto; align-content: start; padding-right: 8px; padding-bottom: 24px; }
-    
-    .product-card { 
-        background: rgba(255, 255, 255, 0.75); 
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-radius: 16px; 
-        padding: 16px; 
-        text-align: center; 
-        border: 1px solid rgba(255, 255, 255, 0.6); 
-        cursor: pointer; 
-        transition: all 0.3s ease; 
-        box-shadow: 0 8px 24px -8px rgba(47, 63, 123, 0.08); 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: space-between; 
-        height: 130px; 
-    }
+    .product-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 16px; padding: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.6); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 24px -8px rgba(47, 63, 123, 0.08); display: flex; flex-direction: column; justify-content: space-between; height: 130px; }
     .product-card:hover { border-color: var(--amber-flame); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(47, 63, 123, 0.15); background: rgba(255, 255, 255, 0.95); }
     .product-card .pid { font-size: 12px; font-family: 'Inconsolata', monospace; color: var(--text-secondary); font-weight: 600; }
     .product-card .name { font-weight: 700; color: var(--text-primary); font-size: 14px; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .product-card .price { color: #e6a300; font-family: 'Inconsolata', monospace; font-weight: 800; font-size: 18px; margin-top: auto; }
 
-    /* ── RIGHT: ORDER SECTION (GLASSMORPHISM) ────────── */
-    .order-section {
-        flex: 1.1;
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-radius: var(--border-radius, 20px);
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 16px 40px -12px rgba(47, 63, 123, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        overflow: hidden;
-        min-width: 420px;
-        height: 100%;
-    }
-
-    .order-header {
-        padding: 24px;
-        border-bottom: 1px solid var(--border-color);
-        background: rgba(248, 250, 252, 0.6);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-shrink: 0;
-    }
+    .order-section { flex: 1.1; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: var(--border-radius, 20px); display: flex; flex-direction: column; box-shadow: 0 16px 40px -12px rgba(47, 63, 123, 0.15); border: 1px solid rgba(255, 255, 255, 0.6); overflow: hidden; min-width: 420px; height: 100%; }
+    .order-header { padding: 24px; border-bottom: 1px solid var(--border-color); background: rgba(248, 250, 252, 0.6); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .order-header h3 { margin: 0; font-size: 20px; color: var(--french-blue); font-weight: 800; font-family: var(--font-heading); }
 
-    /* ── CART VIEW ──────────────────────────────────── */
     #cart-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
-
     .cart-container { flex: 1; overflow-y: auto; padding: 24px; min-height: 0; }
-
     .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color); }
     .cart-item-name { margin: 0; font-size: 14px; color: var(--text-primary); font-weight: 700; margin-bottom: 6px; }
     .cart-item-price { color: var(--text-secondary); font-size: 14px; font-family: 'Inconsolata', monospace; font-weight: 600; }
@@ -143,126 +51,40 @@
     .qty-btn { background: white; border: 1px solid var(--border-color); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: 900; font-size: 16px; color: var(--text-secondary); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
     .qty-btn:hover { background: var(--french-blue); color: white; border-color: var(--french-blue); }
     .qty-input { width: 44px; height: 30px; text-align: center; font-family: 'Inconsolata', monospace; font-weight: 700; font-size: 15px; border: none; background: transparent; outline: none; color: var(--french-blue); }
-    
     .delete-btn { background: #FFF5F5; border: 1px solid #FECACA; color: var(--status-red); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
     .delete-btn:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
-    
     .item-subtotal { font-weight: 800; color: var(--french-blue); min-width: 80px; font-family: 'Inconsolata', monospace; text-align: right; font-size: 16px; }
 
     .order-summary { padding: 24px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid var(--border-color); box-shadow: 0 -8px 24px rgba(47, 63, 123, 0.05); flex-shrink: 0; }
     .total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 28px; color: var(--amber-flame); margin-bottom: 24px; align-items: center; letter-spacing: -1px; }
-    
     .btn-action-group { display: flex; gap: 12px; width: 100%; margin-bottom: 16px; }
-    
     .btn-void { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #FECACA; background: #FFF5F5; color: var(--status-red); font-weight: 700; font-family: var(--font-main); cursor: pointer; text-align: center; text-decoration: none; font-size: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
     .btn-void:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
-    
     .btn-quote { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid var(--border-color); background: white; color: var(--text-secondary); font-weight: 700; font-family: var(--font-main); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; width: 100%; }
     .btn-quote:hover { background: var(--french-blue); border-color: var(--french-blue); color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15); }
-    
     .btn-main { width: 100%; padding: 20px; border-radius: 12px; border: none; background: var(--french-blue); color: white; font-weight: 800; font-family: var(--font-main); font-size: 18px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(47, 63, 123, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.5px; }
     .btn-main:hover { background: #1a2858; transform: translateY(-3px); box-shadow: 0 12px 24px rgba(47, 63, 123, 0.35); }
 
-    /* ── PAYMENT VIEW ───────────────────────────────── */
     #payment-view { flex: 1; display: none; flex-direction: column; overflow: hidden; min-height: 0; }
-
-    /* Tabs */
-    .pay-method-tabs {
-        display: flex;
-        border-bottom: 2px solid var(--border-color);
-        background: rgba(248, 250, 252, 0.6);
-        flex-shrink: 0;
-    }
-    .pay-tab {
-        flex: 1;
-        padding: 16px 8px;
-        border: none;
-        border-bottom: 3px solid transparent;
-        margin-bottom: -2px;
-        background: transparent;
-        font-weight: 700;
-        font-size: 13px;
-        font-family: var(--font-main);
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    }
+    .pay-method-tabs { display: flex; border-bottom: 2px solid var(--border-color); background: rgba(248, 250, 252, 0.6); flex-shrink: 0; }
+    .pay-tab { flex: 1; padding: 16px 8px; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; background: transparent; font-weight: 700; font-size: 13px; font-family: var(--font-main); color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .pay-tab i { font-size: 18px; }
     .pay-tab:hover { background: rgba(255, 255, 255, 0.5); color: var(--french-blue); }
-    .pay-tab.active {
-        color: var(--french-blue);
-        border-bottom-color: var(--french-blue);
-        background: rgba(255, 255, 255, 0.8);
-        font-weight: 800;
-    }
+    .pay-tab.active { color: var(--french-blue); border-bottom-color: var(--french-blue); background: rgba(255, 255, 255, 0.8); font-weight: 800; }
 
-    /* Scrollable payment body */
     .payment-body { flex: 1; overflow-y: auto; padding: 24px; min-height: 0; }
+    .pay-total-display { background: rgba(47, 63, 123, 0.05); border: 1px solid rgba(47, 63, 123, 0.1); border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center; }
 
-    /* Total display inside payment view */
-    .pay-total-display {
-        background: rgba(47, 63, 123, 0.05);
-        border: 1px solid rgba(47, 63, 123, 0.1);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 24px;
-        text-align: center;
-    }
-
-    /* Footer with back + confirm */
-    .pay-footer {
-        padding: 20px 24px;
-        border-top: 1px solid var(--border-color);
-        background: rgba(255, 255, 255, 0.9);
-        flex-shrink: 0;
-    }
-    .btn-back {
-        flex: 1;
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        background: white;
-        color: var(--text-secondary);
-        font-weight: 700;
-        font-family: var(--font-main);
-        cursor: pointer;
-        font-size: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: 0.2s;
-    }
+    .pay-footer { padding: 20px 24px; border-top: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.9); flex-shrink: 0; }
+    .btn-back { flex: 1; padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); background: white; color: var(--text-secondary); font-weight: 700; font-family: var(--font-main); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
     .btn-back:hover { background: #F8FAFC; border-color: var(--french-blue); color: var(--french-blue); transform: translateY(-2px); }
 
-    .btn-confirm {
-        flex: 2.5;
-        padding: 16px;
-        border-radius: 12px;
-        border: none;
-        background: var(--amber-flame);
-        color: white;
-        font-weight: 800;
-        font-family: var(--font-main);
-        cursor: pointer;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        box-shadow: 0 6px 16px rgba(255, 185, 21, 0.25);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
+    .btn-confirm { flex: 2.5; padding: 16px; border-radius: 12px; border: none; background: var(--amber-flame); color: white; font-weight: 800; font-family: var(--font-main); cursor: pointer; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 6px 16px rgba(255, 185, 21, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-confirm:hover { background: #e6a300; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 185, 21, 0.35); }
     .btn-confirm i { font-size: 20px; }
 </style>
 
 <div class="pos-container">
-
     <div class="inventory-section">
         <div class="search-header">
             <div class="search-input-group">
@@ -295,7 +117,6 @@
     </div>
 
     <div class="order-section">
-
         <div class="order-header">
             <h3 id="order-header-title">Order Details</h3>
             <p style="font-family: 'Inconsolata', monospace; font-weight: 700; font-size: 16px; margin: 0; color: var(--french-blue); background: rgba(47, 63, 123, 0.1); padding: 6px 12px; border-radius: 10px;">
@@ -345,7 +166,7 @@
                     <a href="{% url 'point_of_sale:void_transaction' %}" class="btn-void" onclick="confirmVoid(event, this.href)">
                         <i class="ph ph-x-circle" style="margin-right:6px; font-size: 18px;"></i>Void Order
                     </a>
-                    <form action="{% url 'pos:save_quotation' transaction.id %}" method="POST" style="flex:1; display:flex;">
+                    <form action="{% url 'point_of_sale:save_quotation' transaction.id %}" method="POST" style="flex:1; display:flex;">
                         {% csrf_token %}
                         <button type="submit" class="btn-quote">
                             <i class="ph ph-file-text" style="margin-right:6px; font-size: 18px;"></i>Save Quotation
@@ -353,12 +174,11 @@
                     </form>
                 </div>
 
-                <button class="btn-main" onclick="showPaymentView()">
-                 PAY NOW
-                </button>
+                <button class="btn-main" onclick="showPaymentView()">PAY NOW</button>
             </div>
-        </div><div id="payment-view">
+        </div>
 
+        <div id="payment-view">
             <div class="pay-method-tabs">
                 <button class="pay-tab active" data-method="Cash" onclick="switchPayTab('Cash')">
                     <i class="ph ph-money"></i> Cash
@@ -372,7 +192,6 @@
             </div>
 
             <div class="payment-body">
-
                 <div class="pay-total-display">
                     <p style="color:var(--french-blue); font-size:12px; margin:0 0 6px; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Total Due</p>
                     <div style="color:var(--amber-flame); font-size:36px; font-family:'Inconsolata', monospace; font-weight:800; line-height:1.1; letter-spacing:-1px;">
@@ -441,8 +260,9 @@
                         </span>
                     </div>
                 </div>
+            </div>
 
-            </div><div class="pay-footer">
+            <div class="pay-footer">
                 <div style="display:flex; gap:12px;">
                     <button class="btn-back" onclick="showCartView()">
                         <i class="ph ph-arrow-left" style="font-size:18px;"></i> Back
@@ -452,9 +272,11 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-        </div></div></div><script>
-    // ── Django messages ──────────────────────────────
+<script>
     {% if messages %}
         {% for message in messages %}
             let swalIcon = 'info';
@@ -475,12 +297,8 @@
     let selectedMethod = "Cash";
     let selectedTerm   = 60;
 
-    // ════════════════════════════════════════════════
-    // CART FUNCTIONS
-    // ════════════════════════════════════════════════
-
     function addToCart(productId) {
-        fetch(`/pos/add-to-cart/?product_id=${productId}`)
+        fetch("{% url 'point_of_sale:add_to_cart' %}?product_id=" + productId)
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -567,10 +385,6 @@
         .catch(err => Swal.fire('System Error', err.message, 'error'));
     }
 
-    // ════════════════════════════════════════════════
-    // SEARCH & CATEGORY FILTER
-    // ════════════════════════════════════════════════
-
     document.querySelector('.text-search').addEventListener('input', function () {
         const searchTerm = this.value.toLowerCase();
         const activeTabText = document.querySelector('.tab.active').innerText;
@@ -587,7 +401,6 @@
 
     function applyFilters(categoryName, searchTerm) {
         document.querySelectorAll('.product-card').forEach(p => {
-            // UPDATED: Now searches by both Name and Barcode (pid)
             const name = p.querySelector('.name').innerText.toLowerCase();
             const pid = p.querySelector('.pid').innerText.toLowerCase();
             const cat  = p.getAttribute('data-category');
@@ -600,15 +413,11 @@
         });
     }
 
-    // ════════════════════════════════════════════════
-    // BARCODE SCANNER
-    // ════════════════════════════════════════════════
-
     document.getElementById('barcode-input').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             const val = this.value.trim();
             if (val) {
-                fetch(`/pos/add-by-barcode/?barcode=${encodeURIComponent(val)}`)
+                fetch("{% url 'point_of_sale:add_by_barcode' %}?barcode=" + encodeURIComponent(val))
                     .then(r => r.json())
                     .then(d => {
                         if (d.status === 'success') { location.reload(); }
@@ -619,22 +428,15 @@
         }
     });
 
-    // ════════════════════════════════════════════════
-    // PAYMENT VIEW  –  show / hide
-    // ════════════════════════════════════════════════
-
     function showPaymentView() {
         const totalText = document.getElementById('grand-total').innerText.replace(/,/g, '');
-        if (parseFloat(totalText) <= 0 || isNaN(parseFloat(totalText))) {
+        if (parseFloat(totalText) <= 0 || isNaN(parseFloat(totalText)) || totalText === '') {
             return Swal.fire({ title: 'Empty Cart', text: 'Please add items to the cart before checking out.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
         }
-        // Sync the total display
         document.getElementById('modal-total-due').innerText = document.getElementById('grand-total').innerText;
-        // Swap views
         document.getElementById('cart-view').style.display    = 'none';
         document.getElementById('payment-view').style.display = 'flex';
         document.getElementById('order-header-title').innerText = 'Payment';
-        // Default tab
         switchPayTab('Cash');
     }
 
@@ -642,20 +444,13 @@
         document.getElementById('payment-view').style.display = 'none';
         document.getElementById('cart-view').style.display    = 'flex';
         document.getElementById('order-header-title').innerText = 'Order Details';
-        // Reset inputs
         document.getElementById('cash-received').value   = '';
         document.getElementById('ref-number-input').value = '';
         document.getElementById('sum-change').innerText   = '0.00';
     }
 
-    // ════════════════════════════════════════════════
-    // TAB SWITCHING
-    // ════════════════════════════════════════════════
-
     function switchPayTab(method) {
         selectedMethod = method;
-
-        // Highlight the active tab
         document.querySelectorAll('.pay-tab').forEach(t => {
             t.classList.toggle('active', t.dataset.method === method);
         });
@@ -671,26 +466,19 @@
             refGroup.style.display    = 'none';
             cashInput.value = '';
             updateCreditSummary();
-
         } else if (method === 'Online Bank') {
             creditGroup.style.display = 'none';
             amountGroup.style.display = 'block';
             refGroup.style.display    = 'block';
             setTimeout(() => document.getElementById('ref-number-input').focus(), 100);
-
-        } else { // Cash
+        } else {
             creditGroup.style.display = 'none';
             amountGroup.style.display = 'block';
             refGroup.style.display    = 'none';
             setTimeout(() => cashInput.focus(), 100);
         }
-
         calculateChange();
     }
-
-    // ════════════════════════════════════════════════
-    // CASH CHANGE CALCULATION
-    // ════════════════════════════════════════════════
 
     function calculateChange() {
         const total  = parseFloat(document.getElementById('modal-total-due').innerText.replace(/,/g, '')) || 0;
@@ -702,10 +490,6 @@
         el.style.color = change >= 0 ? '#15803d' : 'var(--status-red)';
     }
 
-    // ════════════════════════════════════════════════
-    // FINALIZE PAYMENT
-    // ════════════════════════════════════════════════
-
     function finalizeAndPrint() {
         const totalText  = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
         const total      = parseFloat(totalText) || 0;
@@ -713,7 +497,6 @@
         const customerId = document.getElementById('credit-customer').value;
         const refNum     = document.getElementById('ref-number-input').value.trim();
 
-        // Validation
         if (selectedMethod !== 'Trade Credit' && parseFloat(paidVal) < total) {
             return Swal.fire({ title: 'Insufficient Funds', text: 'The payment amount is less than the total due.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
         }
@@ -745,38 +528,29 @@
 
                 const paymentTerm  = selectedMethod === 'Trade Credit' ? `Net${selectedTerm}` : '';
 
-                window.location.href =
-                    `/pos/process-payment/?method=${encodeURIComponent(selectedMethod)}` +
-                    `&received=${creditTotal}` +
-                    `&customer_id=${customerId}` +
-                    `&ref_num=${encodeURIComponent(refNum)}` +
-                    `&payment_term=${paymentTerm}`;
+                window.location.href = "{% url 'point_of_sale:process_payment' %}?method=" + encodeURIComponent(selectedMethod) +
+                    "&received=" + creditTotal +
+                    "&customer_id=" + customerId +
+                    "&ref_num=" + encodeURIComponent(refNum) +
+                    "&payment_term=" + paymentTerm;
             }
         });
     }
-
-    // ════════════════════════════════════════════════
-    // TRADE CREDIT HELPERS
-    // ════════════════════════════════════════════════
 
     function updateCreditSummary() {
         const selectEl = document.getElementById('credit-customer');
         const selectedOption = selectEl.options[selectEl.selectedIndex];
 
-        // Itago ang summary kung walang piniling customer
         if (!selectedOption || !selectedOption.value) {
             document.getElementById('credit-summary').style.display = 'none';
             return;
         }
 
-        // Basahin ang pre-approved terms ng customer (Default ay 30 kung blangko)
         const terms = parseInt(selectedOption.getAttribute('data-terms')) || 30;
-
         const totalText = document.getElementById('modal-total-due').innerText.replace(/,/g, '');
         const principal = parseFloat(totalText) || 0;
         if (!principal) return;
 
-        // I-set ang Interest Rate base sa terms
         let interestRate = 0;
         if (terms === 60) interestRate = 0.02;
         else if (terms === 90) interestRate = 0.04;
@@ -787,7 +561,6 @@
         const fmt     = n => n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const fmtDate = d => d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' });
 
-        // Update ang HTML Text gamit ang bagong computations
         document.getElementById('cs-principal').innerText   = '₱' + fmt(principal);
         document.getElementById('cs-term-label').innerText  = 'Net ' + terms;
         document.getElementById('cs-due-badge').innerText   = 'Due in ' + terms + ' days';
@@ -795,17 +568,13 @@
         document.getElementById('cs-interest-amount').innerText = '+₱' + fmt(interestAmount);
         document.getElementById('cs-total-payable').innerText = '₱' + fmt(totalPayable);
 
-        // Compute Due Date
         const today = new Date();
         const dueDate = new Date(today); 
         dueDate.setDate(today.getDate() + terms);
         document.getElementById('cs-due-date').innerHTML = `<i class="ph ph-calendar-blank" style="vertical-align: middle; margin-right: 4px;"></i> Exact Due Date: <strong>${fmtDate(dueDate)}</strong>`;
 
-        // I-display ang summary
         document.getElementById('credit-summary').style.display = 'block';
     }
-
-    
 </script>
 
 {% endblock %}

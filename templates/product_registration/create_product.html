@@ -1,114 +1,96 @@
 {% load static %}
 
 <style>
-/* =============================================
-   PRODUCT FORM MODAL — JBSON Design System
-   ============================================= */
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-/* Font Inheritance Optimization */
-.pf-overlay, .sub-modal-overlay { font-family: 'Inter', sans-serif; }
-.pf-overlay input, .pf-overlay select, .pf-overlay button, 
-.sub-modal-overlay input, .sub-modal-overlay select, .sub-modal-overlay button { font-family: inherit; }
+    .pf-overlay, .sub-modal-overlay { font-family: 'Inter', sans-serif; }
+    .pf-overlay input, .pf-overlay select, .pf-overlay button, 
+    .sub-modal-overlay input, .sub-modal-overlay select, .sub-modal-overlay button { font-family: inherit; }
 
-/* Main Overlays & Cards */
-.pf-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.pf-card { background: rgba(255, 255, 255, 0.98); width: 640px; max-height: 92vh; overflow-y: auto; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.8); border-top: 6px solid #2F3F7B; padding: 36px 40px 32px; box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.28), 0 0 24px rgba(0, 0, 0, 0.04); position: relative; }
-.pf-card::-webkit-scrollbar { width: 5px; }
-.pf-card::-webkit-scrollbar-track { background: #F4F6F9; border-radius: 10px; }
-.pf-card::-webkit-scrollbar-thumb { background: #C7D2E7; border-radius: 10px; }
+    .pf-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .pf-card { background: rgba(255, 255, 255, 0.98); width: 640px; max-height: 92vh; overflow-y: auto; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.8); border-top: 6px solid #2F3F7B; padding: 36px 40px 32px; box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.28), 0 0 24px rgba(0, 0, 0, 0.04); position: relative; }
+    .pf-card::-webkit-scrollbar { width: 5px; }
+    .pf-card::-webkit-scrollbar-track { background: #F4F6F9; border-radius: 10px; }
+    .pf-card::-webkit-scrollbar-thumb { background: #C7D2E7; border-radius: 10px; }
 
-/* Headers & Labels */
-.pf-modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #E5E7EB; }
-.pf-modal-header-icon { width: 44px; height: 44px; background: #EEF2FF; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.pf-modal-header-icon i { font-size: 22px; color: #2F3F7B; }
-.pf-modal-title { font-size: 22px; font-weight: 800; color: #2F3F7B; letter-spacing: -0.5px; }
-.pf-modal-subtitle { font-size: 13px; color: #6B7280; font-weight: 500; margin-top: 2px; }
-.pf-section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #9CA3AF; margin-bottom: 14px; margin-top: 24px; }
-.pf-label { display: block; font-size: 12.5px; font-weight: 700; color: #212529; margin-bottom: 7px; }
-.pf-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
-.pf-label-row .pf-label { margin-bottom: 0; }
-.req { color: #891C1C; }
+    .pf-modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #E5E7EB; }
+    .pf-modal-header-icon { width: 44px; height: 44px; background: #EEF2FF; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pf-modal-header-icon i { font-size: 22px; color: #2F3F7B; }
+    .pf-modal-title { font-size: 22px; font-weight: 800; color: #2F3F7B; letter-spacing: -0.5px; }
+    .pf-modal-subtitle { font-size: 13px; color: #6B7280; font-weight: 500; margin-top: 2px; }
+    .pf-section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #9CA3AF; margin-bottom: 14px; margin-top: 24px; }
+    .pf-label { display: block; font-size: 12.5px; font-weight: 700; color: #212529; margin-bottom: 7px; }
+    .pf-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+    .pf-label-row .pf-label { margin-bottom: 0; }
+    .req { color: #891C1C; }
 
-/* Layout & Actions */
-.pf-row { display: flex; gap: 18px; margin-bottom: 18px; }
-.pf-col { flex: 1; }
-.pf-full { margin-bottom: 18px; }
-.pf-add-new { color: #2F3F7B; font-size: 12px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; opacity: 0.85; transition: opacity 0.2s; }
-.pf-add-new:hover { opacity: 1; text-decoration: underline; }
+    .pf-row { display: flex; gap: 18px; margin-bottom: 18px; }
+    .pf-col { flex: 1; }
+    .pf-full { margin-bottom: 18px; }
+    .pf-add-new { color: #2F3F7B; font-size: 12px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 3px; opacity: 0.85; transition: opacity 0.2s; }
+    .pf-add-new:hover { opacity: 1; text-decoration: underline; }
 
-/* Inputs & Selects */
-.pf-input, .pf-select { width: 100%; padding: 12px 14px; font-size: 13.5px; border: 1px solid #D1D5DB; border-radius: 10px; outline: none; color: #212529; background-color: #F8FAFC; transition: all 0.2s ease; -webkit-appearance: none; appearance: none; }
-.pf-input::placeholder { color: #9CA3AF; }
-.pf-input:focus, .pf-select:focus { border-color: #2F3F7B; background-color: #FFFFFF; box-shadow: 0 0 0 4px rgba(47, 63, 123, 0.09); }
-.pf-input[readonly] { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; border-color: #E2E8F0; }
+    .pf-input, .pf-select { width: 100%; padding: 12px 14px; font-size: 13.5px; border: 1px solid #D1D5DB; border-radius: 10px; outline: none; color: #212529; background-color: #F8FAFC; transition: all 0.2s ease; -webkit-appearance: none; appearance: none; }
+    .pf-input::placeholder { color: #9CA3AF; }
+    .pf-input:focus, .pf-select:focus { border-color: #2F3F7B; background-color: #FFFFFF; box-shadow: 0 0 0 4px rgba(47, 63, 123, 0.09); }
+    .pf-input[readonly] { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; border-color: #E2E8F0; }
 
-/* Barcode */
-.pf-barcode-wrap { display: flex; }
-.pf-barcode-wrap .pf-input { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; }
-.pf-scan-btn { background: #2F3F7B; color: white; border: none; padding: 0 20px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; cursor: pointer; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: background 0.2s; flex-shrink: 0; }
-.pf-scan-btn:hover { background: #212C59; }
+    .pf-barcode-wrap { display: flex; }
+    .pf-barcode-wrap .pf-input { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; }
+    .pf-scan-btn { background: #2F3F7B; color: white; border: none; padding: 0 20px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; cursor: pointer; font-size: 11.5px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: background 0.2s; flex-shrink: 0; }
+    .pf-scan-btn:hover { background: #212C59; }
 
-/* Intelligence Section */
-.pf-intel-section { background: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #2F3F7B; border-radius: 14px; padding: 20px 22px; margin-top: 8px; margin-bottom: 24px; }
-.pf-intel-header { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; }
-.pf-intel-header i { color: #2F3F7B; font-size: 18px; }
-.pf-intel-header h4 { margin: 0; font-size: 14px; font-weight: 800; color: #2F3F7B; }
-.pf-intel-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; background: #EEF2FF; color: #2F3F7B; padding: 2px 8px; border-radius: 20px; margin-left: auto; }
-.pf-intel-desc { font-size: 12px; color: #6B7280; margin: 6px 0 18px; line-height: 1.5; }
-.pf-intel-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
-.pf-intel-input { width: 100%; padding: 10px 13px; font-size: 13px; border: 1px solid #D1D5DB; border-radius: 8px; outline: none; color: #212529; background: #FFFFFF; transition: all 0.2s; }
-.pf-intel-input:focus { border-color: #2F3F7B; box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.08); }
-.pf-intel-divider { height: 1px; background: #E5E7EB; margin: 18px 0; }
+    .pf-intel-section { background: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #2F3F7B; border-radius: 14px; padding: 20px 22px; margin-top: 8px; margin-bottom: 24px; }
+    .pf-intel-header { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; }
+    .pf-intel-header i { color: #2F3F7B; font-size: 18px; }
+    .pf-intel-header h4 { margin: 0; font-size: 14px; font-weight: 800; color: #2F3F7B; }
+    .pf-intel-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; background: #EEF2FF; color: #2F3F7B; padding: 2px 8px; border-radius: 20px; margin-left: auto; }
+    .pf-intel-desc { font-size: 12px; color: #6B7280; margin: 6px 0 18px; line-height: 1.5; }
+    .pf-intel-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+    .pf-intel-input { width: 100%; padding: 10px 13px; font-size: 13px; border: 1px solid #D1D5DB; border-radius: 8px; outline: none; color: #212529; background: #FFFFFF; transition: all 0.2s; }
+    .pf-intel-input:focus { border-color: #2F3F7B; box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.08); }
+    .pf-intel-divider { height: 1px; background: #E5E7EB; margin: 18px 0; }
 
-/* Lead Time Sub-box */
-.pf-lead-box { background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 10px; padding: 14px 16px; }
-.pf-lead-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
-.pf-lead-header i { color: #2F3F7B; font-size: 16px; }
-.pf-lead-header span { font-size: 13px; font-weight: 700; color: #2F3F7B; }
-.pf-lead-desc { font-size: 11.5px; color: #6B7280; margin: 4px 0 14px; }
+    .pf-lead-box { background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 10px; padding: 14px 16px; }
+    .pf-lead-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+    .pf-lead-header i { color: #2F3F7B; font-size: 16px; }
+    .pf-lead-header span { font-size: 13px; font-weight: 700; color: #2F3F7B; }
+    .pf-lead-desc { font-size: 11.5px; color: #6B7280; margin: 4px 0 14px; }
 
-/* Footer Buttons */
-.pf-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 8px; }
-.pf-btn-primary { background: #2F3F7B; color: white; padding: 13px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.22); transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 7px; }
-.pf-btn-primary:hover { background: #212C59; box-shadow: 0 6px 18px rgba(47, 63, 123, 0.3); transform: translateY(-1px); }
-.pf-btn-primary:active { transform: translateY(1px); }
-.pf-btn-cancel { background: white; color: #374151; border: 1.5px solid #D1D5DB; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center; transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-.pf-btn-cancel:hover { background: #F9FAFB; border-color: #9CA3AF; }
+    .pf-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 8px; }
+    .pf-btn-primary { background: #2F3F7B; color: white; padding: 13px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.22); transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 7px; }
+    .pf-btn-primary:hover { background: #212C59; box-shadow: 0 6px 18px rgba(47, 63, 123, 0.3); transform: translateY(-1px); }
+    .pf-btn-primary:active { transform: translateY(1px); }
+    .pf-btn-cancel { background: white; color: #374151; border: 1.5px solid #D1D5DB; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; text-align: center; transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .pf-btn-cancel:hover { background: #F9FAFB; border-color: #9CA3AF; }
 
-/* Sub-Modals (Category & Supplier) */
-.sub-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; }
-.sub-modal-card { background: rgba(255, 255, 255, 0.99); padding: 32px; border-radius: 20px; border-top: 6px solid #2F3F7B; width: 370px; box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.28); }
-.sub-modal-icon-wrap { width: 44px; height: 44px; background: #EEF2FF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
-.sub-modal-icon-wrap i { font-size: 22px; color: #2F3F7B; }
-.sub-modal-card h3 { margin: 0 0 20px; font-size: 19px; font-weight: 800; color: #2F3F7B; letter-spacing: -0.3px; }
-.sub-modal-label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 6px; color: #374151; }
-.sub-modal-input { width: 100%; padding: 11px 14px; border: 1px solid #D1D5DB; border-radius: 10px; font-size: 13.5px; margin-bottom: 16px; outline: none; background: #F8FAFC; color: #212529; transition: all 0.2s; }
-.sub-modal-input:focus { border-color: #2F3F7B; background: white; box-shadow: 0 0 0 4px rgba(47, 63, 123, 0.09); }
-.sub-modal-input[readonly] { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; border-color: #E2E8F0; }
-.sub-modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
-.sub-btn-cancel { background: #F3F4F6; border: none; padding: 10px 18px; border-radius: 9px; cursor: pointer; font-weight: 600; font-size: 13px; color: #374151; transition: background 0.2s; }
-.sub-btn-cancel:hover { background: #E5E7EB; }
-.sub-btn-save { background: #2F3F7B; color: white; border: none; padding: 10px 20px; border-radius: 9px; cursor: pointer; font-weight: 700; font-size: 13px; box-shadow: 0 4px 10px rgba(47, 63, 123, 0.2); transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
-.sub-btn-save:hover { background: #212C59; transform: translateY(-1px); }
+    .sub-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; }
+    .sub-modal-card { background: rgba(255, 255, 255, 0.99); padding: 32px; border-radius: 20px; border-top: 6px solid #2F3F7B; width: 370px; box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.28); }
+    .sub-modal-icon-wrap { width: 44px; height: 44px; background: #EEF2FF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .sub-modal-icon-wrap i { font-size: 22px; color: #2F3F7B; }
+    .sub-modal-card h3 { margin: 0 0 20px; font-size: 19px; font-weight: 800; color: #2F3F7B; letter-spacing: -0.3px; }
+    .sub-modal-label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 6px; color: #374151; }
+    .sub-modal-input { width: 100%; padding: 11px 14px; border: 1px solid #D1D5DB; border-radius: 10px; font-size: 13.5px; margin-bottom: 16px; outline: none; background: #F8FAFC; color: #212529; transition: all 0.2s; }
+    .sub-modal-input:focus { border-color: #2F3F7B; background: white; box-shadow: 0 0 0 4px rgba(47, 63, 123, 0.09); }
+    .sub-modal-input[readonly] { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; border-color: #E2E8F0; }
+    .sub-modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+    .sub-btn-cancel { background: #F3F4F6; border: none; padding: 10px 18px; border-radius: 9px; cursor: pointer; font-weight: 600; font-size: 13px; color: #374151; transition: background 0.2s; }
+    .sub-btn-cancel:hover { background: #E5E7EB; }
+    .sub-btn-save { background: #2F3F7B; color: white; border: none; padding: 10px 20px; border-radius: 9px; cursor: pointer; font-weight: 700; font-size: 13px; box-shadow: 0 4px 10px rgba(47, 63, 123, 0.2); transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .sub-btn-save:hover { background: #212C59; transform: translateY(-1px); }
 
-/* Scanner Modal */
-.scanner-card { background: rgba(255, 255, 255, 0.99); padding: 36px 32px; border-radius: 20px; border-top: 6px solid #2F3F7B; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.28); }
-.scanner-icon-ring { width: 80px; height: 80px; background: #EEF2FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
-.scanner-icon-ring i { font-size: 40px; color: #2F3F7B; }
-.scanner-card h2 { margin: 0 0 8px; font-size: 21px; font-weight: 800; color: #212529; letter-spacing: -0.4px; }
-.scanner-card p { color: #6B7280; font-size: 13.5px; margin-bottom: 22px; font-weight: 500; }
-.scanner-input { width: 100%; padding: 14px 16px; border: 2px solid #2F3F7B; border-radius: 10px; font-size: 20px; text-align: center; outline: none; margin-bottom: 14px; font-family: 'Inconsolata', monospace; background: #F8FAFC; color: #212529; box-shadow: 0 0 0 5px rgba(47, 63, 123, 0.08); letter-spacing: 2px; }
-.scanner-cancel-btn { background: #F3F4F6; color: #374151; border: none; padding: 13px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: background 0.2s; }
-.scanner-cancel-btn:hover { background: #E5E7EB; }
+    .scanner-card { background: rgba(255, 255, 255, 0.99); padding: 36px 32px; border-radius: 20px; border-top: 6px solid #2F3F7B; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.28); }
+    .scanner-icon-ring { width: 80px; height: 80px; background: #EEF2FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+    .scanner-icon-ring i { font-size: 40px; color: #2F3F7B; }
+    .scanner-card h2 { margin: 0 0 8px; font-size: 21px; font-weight: 800; color: #212529; letter-spacing: -0.4px; }
+    .scanner-card p { color: #6B7280; font-size: 13.5px; margin-bottom: 22px; font-weight: 500; }
+    .scanner-input { width: 100%; padding: 14px 16px; border: 2px solid #2F3F7B; border-radius: 10px; font-size: 20px; text-align: center; outline: none; margin-bottom: 14px; font-family: 'Inconsolata', monospace; background: #F8FAFC; color: #212529; box-shadow: 0 0 0 5px rgba(47, 63, 123, 0.08); letter-spacing: 2px; }
+    .scanner-cancel-btn { background: #F3F4F6; color: #374151; border: none; padding: 13px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; transition: background 0.2s; }
+    .scanner-cancel-btn:hover { background: #E5E7EB; }
 </style>
 
-<!-- =============================================
-     MAIN PRODUCT FORM MODAL
-     ============================================= -->
 <div class="pf-overlay">
     <div class="pf-card">
-        <!-- Modal Header -->
         <div class="pf-modal-header">
             <div class="pf-modal-header-icon"><i class="ph ph-package"></i></div>
             <div>
@@ -120,10 +102,8 @@
         <form method="POST" action="{% if item.id %}{% url 'inventory:edit_product' item.id %}{% else %}{% url 'product_registration:create_product' %}{% endif %}">
             {% csrf_token %}
 
-            <!-- Section: Basic Info -->
             <div class="pf-section-label">Basic Information</div>
 
-            <!-- Product Name & ID -->
             <div class="pf-row">
                 <div class="pf-col">
                     <label class="pf-label">Product Name <span class="req">*</span></label>
@@ -135,7 +115,6 @@
                 </div>
             </div>
 
-            <!-- Category & Qty -->
             <div class="pf-row">
                 <div class="pf-col">
                     <div class="pf-label-row">
@@ -155,7 +134,6 @@
                 </div>
             </div>
 
-            <!-- Supplier -->
             <div class="pf-full">
                 <div class="pf-label-row">
                     <label class="pf-label">Supplier</label>
@@ -169,10 +147,8 @@
                 </select>
             </div>
 
-            <!-- Section: Pricing & Identification -->
             <div class="pf-section-label">Pricing & Identification</div>
 
-            <!-- Barcode -->
             <div class="pf-full">
                 <label class="pf-label">Barcode ID <span class="req">*</span></label>
                 <div class="pf-barcode-wrap">
@@ -181,13 +157,11 @@
                 </div>
             </div>
 
-            <!-- Price -->
             <div class="pf-full">
                 <label class="pf-label">Price <span class="req">*</span></label>
                 <input type="number" name="price" step="0.01" value="{{ item.price }}" required class="pf-input" placeholder="0.00">
             </div>
 
-            <!-- Inventory Intelligence Section -->
             <div class="pf-intel-section">
                 <div class="pf-intel-header">
                     <i class="ph ph-chart-bar"></i>
@@ -220,7 +194,6 @@
 
                 <div class="pf-intel-divider"></div>
 
-                <!-- Lead Time Sub-box -->
                 <div class="pf-lead-box">
                     <div class="pf-lead-header">
                         <i class="ph ph-truck"></i>
@@ -241,7 +214,6 @@
                 </div>
             </div>
 
-            <!-- Footer -->
             <div class="pf-footer">
                 <a href="{% url 'inventory:inventory_list' %}" class="pf-btn-cancel"><i class="ph ph-x"></i> Cancel</a>
                 <button type="submit" class="pf-btn-primary">
@@ -250,7 +222,6 @@
             </div>
         </form>
 
-        <!-- Category Modal -->
         <div id="categoryModal" class="sub-modal-overlay">
             <div class="sub-modal-card">
                 <div class="sub-modal-icon-wrap"><i class="ph ph-tag"></i></div>
@@ -266,7 +237,6 @@
             </div>
         </div>
 
-        <!-- Supplier Modal -->
         <div id="supModal" class="sub-modal-overlay">
             <div class="sub-modal-card">
                 <div class="sub-modal-icon-wrap"><i class="ph ph-buildings"></i></div>
@@ -282,7 +252,6 @@
             </div>
         </div>
 
-        <!-- Scanner Modal -->
         <div id="barcodeScannerModal" class="sub-modal-overlay">
             <div class="scanner-card">
                 <div class="scanner-icon-ring"><i class="ph ph-barcode"></i></div>
@@ -297,7 +266,6 @@
 </div>
 
 <script>
-// --- CATEGORY FUNCTIONS ---
 function openCatModal() { document.getElementById('categoryModal').style.display = 'flex'; }
 function closeCatModal() { document.getElementById('categoryModal').style.display = 'none'; }
 function submitNewCategory() {
@@ -325,7 +293,6 @@ document.getElementById('modal_cat_name').addEventListener('input', function () 
     document.getElementById('modal_cat_prefix').value = prefix.toUpperCase();
 });
 
-// --- SUPPLIER FUNCTIONS ---
 function openSupModal() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randomPart = '';
@@ -351,7 +318,6 @@ function submitNewSupplier() {
     });
 }
 
-// --- BARCODE SCANNER ---
 (function() {
     const scanBtn = document.getElementById('trigger-scan-btn'), scannerModal = document.getElementById('barcodeScannerModal');
     const closeBtn = document.getElementById('close-barcode-modal'), modInp = document.getElementById('modal-barcode-input'), mainInp = document.getElementById('main-barcode-input');
@@ -371,7 +337,6 @@ function submitNewSupplier() {
     }
 })();
 
-// --- SUPPLIER LEAD TIME ---
 (function() {
     const supSel = document.getElementById('supplierSelect'), avgInp = document.getElementById('id_avg_lead'), maxInp = document.getElementById('id_max_lead');
     if (!supSel || !avgInp || !maxInp) return;

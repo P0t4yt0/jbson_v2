@@ -1,4 +1,4 @@
-<body onload="window.print(); setTimeout(function(){ window.location='/pos/'; }, 1000);" style="font-family: 'Courier New', Courier, monospace; width: 280px; padding: 10px; color: #000;">
+<body onload="window.print(); setTimeout(function(){ window.location='{% url 'point_of_sale:pos_index' %}'; }, 1000);" style="font-family: 'Courier New', Courier, monospace; width: 280px; padding: 10px; color: #000;">
     
     <div style="text-align: center;">
         <h2 style="margin-bottom: 5px;">JBSON HARDWARE</h2>
@@ -36,33 +36,41 @@
     <hr style="border-top: 1px dashed #000;">
 
     <div style="font-size: 14px; margin-top: 10px;">
-    <div style="display: flex; justify-content: space-between;">
-        <span>TOTAL:</span>
-        <span>₱{{ transaction.total_amount }}</span>
-    </div>
-    
-    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-        <span>Method:</span>
-        <span>{{ transaction.payment_method }}</span>
-    </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>TOTAL:</span>
+            <span>₱{{ transaction.total_amount }}</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+            <span>Method:</span>
+            <span>
+                {% if transaction.payment_method == 'credit' %}
+                    Trade Credit
+                {% elif transaction.payment_method == 'bank' %}
+                    Online Wallet
+                {% else %}
+                    {{ transaction.payment_method|title }}
+                {% endif %}
+            </span>
+        </div>
 
-    {% if transaction.reference_number %}
-    <div style="display: flex; justify-content: space-between;">
-        <span>Ref No:</span>
-        <span>{{ transaction.reference_number }}</span>
-    </div>
-    {% endif %}
+        {% if transaction.reference_number %}
+        <div style="display: flex; justify-content: space-between;">
+            <span>Ref No:</span>
+            <span>{{ transaction.reference_number }}</span>
+        </div>
+        {% endif %}
 
-    <div style="display: flex; justify-content: space-between;">
-        <span>Paid:</span>
-        <span>₱{{ amount_received|floatformat:2 }}</span>
-    </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Paid:</span>
+            <span>₱{{ amount_received|floatformat:2 }}</span>
+        </div>
 
-    <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px solid #000; margin-top: 5px; padding-top: 5px;">
-        <span>CHANGE:</span>
-        <span>₱{{ change|floatformat:2 }}</span>
+        <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px solid #000; margin-top: 5px; padding-top: 5px;">
+            <span>CHANGE:</span>
+            <span>₱{{ change|floatformat:2 }}</span>
+        </div>
     </div>
-</div>
 
     <div style="text-align: center; margin-top: 20px; font-size: 12px;">
         <p>Thank you for shopping!</p>

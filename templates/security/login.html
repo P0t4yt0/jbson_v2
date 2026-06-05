@@ -6,21 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log In - JBSON Hardware</title>
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
-    
-    
-    <!-- Importing Fonts (Matching Dashboard) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Include SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* CSS Reset & Global Styles */
         * {
             margin: 0;
             padding: 0;
@@ -29,7 +21,6 @@
         }
 
         :root {
-            /* Mismong color variables mula sa Dashboard mo */
             --french-blue: #2F3F7B;
             --mustard: #FFD358;
             --amber-flame: #FFB915;
@@ -47,18 +38,14 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            
-            /* Dashboard Background Style: Dot Matrix */
             background-color: var(--bg-main);
             background-image: radial-gradient(rgba(47, 63, 123, 0.08) 1.5px, transparent 1.5px);
             background-size: 24px 24px;
-            
             position: relative;
             overflow: hidden; 
             color: var(--text-primary);
         }
 
-        /* --- Background Blobs (Enhanced Opacity & Spread) --- */
         .bg-shape {
             position: fixed;
             border-radius: 50%;
@@ -84,42 +71,30 @@
             filter: blur(100px); 
         }
 
-        /* --- Header / Logo Section --- */
         .header-logo {
             text-align: center;
-            margin-bottom: 25px; /* Brought closer to the card */
+            margin-bottom: 25px;
             z-index: 10;
             display: flex;
             justify-content: center; 
         }
-
         .logo-image {
             max-width: 250px; 
             height: auto;
-            /* Subtle drop shadow behind the logo to ensure it pops */
             filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.05));
         }
 
-        /* --- Login Card Container (Enhanced for Contrast) --- */
         .card {
-            /* Subtle glassmorphism effect */
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            
             width: 100%;
-            max-width: 440px; /* Slightly wider */
+            max-width: 440px;
             padding: 45px 40px;
-            
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.8);
-            border-top: 6px solid var(--french-blue); /* Strong Accent Line */
-            
-            /* Much stronger layered shadow for floating effect */
-            box-shadow: 
-                0 25px 50px -12px rgba(47, 63, 123, 0.25),
-                0 0 20px rgba(0, 0, 0, 0.03);
-            
+            border-top: 6px solid var(--french-blue);
+            box-shadow: 0 25px 50px -12px rgba(47, 63, 123, 0.25), 0 0 20px rgba(0, 0, 0, 0.03);
             z-index: 10;
             position: relative;
         }
@@ -141,7 +116,6 @@
             line-height: 1.5;
         }
 
-        /* --- Form Elements --- */
         .form-group {
             margin-bottom: 22px;
             position: relative;
@@ -179,7 +153,6 @@
             box-shadow: 0 0 0 4px rgba(47, 63, 123, 0.1);
         }
         
-        /* Updated Icon Styling */
         .input-icon {
             position: absolute;
             right: 16px;
@@ -200,7 +173,6 @@
             color: var(--french-blue);
         }
 
-        /* Form Options */
         .form-options {
             display: flex;
             justify-content: space-between;
@@ -250,7 +222,6 @@
             text-decoration: underline;
         }
 
-        /* Submit Button */
         .btn-submit {
             width: 100%;
             padding: 14px;
@@ -275,12 +246,8 @@
             box-shadow: 0 2px 8px rgba(47, 63, 123, 0.2);
         }
 
-        /* Responsive adjustments */
         @media (max-width: 480px) {
-            .card {
-             margin: 0 20px; 
-             padding: 35px 25px; 
-            }
+            .card { margin: 0 20px; padding: 35px 25px; }
             .shape-1 { width: 300px; height: 300px; }
             .shape-2 { width: 400px; height: 400px; }
         }
@@ -288,30 +255,22 @@
 </head>
 <body>
 
-    <!-- Background Accents (Matching Dashboard) -->
     <div class="bg-shape shape-1"></div>
     <div class="bg-shape shape-2"></div>
     <div class="bg-shape shape-3"></div>
 
-    <!-- Logo Section -->
     <div class="header-logo">
-    <img 
-        src="{% static 'images/jbson-logo.png' %}" 
-        alt="JbSon Hardware and Construction Supplies"
-        class="logo-image">
+        <img src="{% static 'images/jbson-logo.png' %}" alt="JbSon Hardware and Construction Supplies" class="logo-image">
     </div>
 
-    <!-- Login Card -->
     <div class="card">
         <div class="card-header">
             <h3>Log In</h3>
             <p>Access the JBSON Hardware panel using your username and password.</p>
         </div>
 
-        <!-- Working Form Structure -->
         <form method="POST" action="">
             {% csrf_token %}
-
             <div class="form-group">
                 <label for="username">Username <span class="required-asterisk">*</span></label>
                 <div class="input-wrapper">
@@ -340,7 +299,6 @@
         </form>
     </div>
 
-    <!-- SweetAlert Trigger for Django Messages -->
     {% if messages %}
         <script>
             document.addEventListener("DOMContentLoaded", function() {
@@ -349,14 +307,13 @@
                         icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
                         title: "{% if message.tags == 'error' %}Login Failed{% else %}Success!{% endif %}",
                         text: "{{ message|escapejs }}",
-                        confirmButtonColor: "#2F3F7B" // Updated to match dashboard French Blue
+                        confirmButtonColor: "#2F3F7B"
                     });
                 {% endfor %}
             });
         </script>
     {% endif %}
 
-    <!-- JavaScript for Toggle Password -->
     <script>
         function togglePassword(inputId, iconElement) {
             const input = document.getElementById(inputId);
