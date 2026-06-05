@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 import json
+import csv
 from django.http import JsonResponse
 from django.db.models import Q, F, ProtectedError
 from django.contrib import messages # IDINAGDAG NATIN ITO PARA SA NOTIFICATIONS
@@ -8,6 +9,7 @@ from .models import InventoryItem, Category, Supplier, GeneratedBarcode
 from decimal import Decimal
 import random
 import barcode
+import re
 from .models import InventoryItem
 from .models import Supplier, PurchaseOrder, PurchaseOrderItem, InventoryItem
 from .models import Supplier # <-- Make sure Supplier is imported
@@ -147,51 +149,157 @@ def run_abc_analysis(request):
     return redirect('inventory:inventory_list')
 
 @login_required
-def import_csv(request):
+def preview_csv_import(request):
+    """Hakbang 1: Babasahin lang ang CSV, mag-a-assign ng ID/Barcodes, at ibabalik sa UI."""
     if request.method == 'POST':
         csv_file = request.FILES.get('csv_file')
-
-        # Basic validations
-        if not csv_file:
-            messages.error(request, "Walang file na na-upload.")
-            return redirect('inventory:inventory_list')
-
-        if not csv_file.name.endswith('.csv'):
-            messages.error(request, "Mali ang file format. Please upload a CSV file.")
-            return redirect('inventory:inventory_list')
+        if not csv_file or not csv_file.name.endswith('.csv'):
+            return JsonResponse({'status': 'error', 'message': 'Invalid file. Please upload a CSV file.'})
 
         try:
-            # Read and decode the CSV file
             file_data = csv_file.read().decode('utf-8').splitlines()
             reader = csv.DictReader(file_data)
-
-            # Loop through the CSV rows and save to DB
+            
+            preview_data = []
+            category_counters = {} # Para walang duplicate IDs sa memory
+            
             for row in reader:
-                # Gumagamit tayo ng update_or_create para kung existing na ang product ID,
-                # i-uupdate na lang niya imbes na mag-duplicate.
-                Product.objects.update_or_create(
-                    product_id=row.get('product_id'), # Ito yung hahanapin niyang unique identifier
+                cat_name = row.get('CATEGORY', '').strip()
+                
+                # Kunin ang Prefix (Kung wala yung category sa DB, default to 'GEN' at ipapa-create natin mamaya)
+                category = Category.objects.filter(name__iexact=cat_name).first()
+                prefix = category.prefix.upper() if category else cat_name[:3].upper().ljust(3, 'X')
+                
+                # --- PRODUCT ID GENERATION (No Race Conditions) ---
+                if prefix not in category_counters:
+                    last_item = InventoryItem.objects.filter(product_id__startswith=prefix).order_by('id').last()
+                    if last_item:
+                        numeric_matches = re.findall(r'\d+', last_item.product_id)
+                        category_counters[prefix] = int(numeric_matches[-1]) if numeric_matches else 0
+                    else:
+                        category_counters[prefix] = 0
+                
+                category_counters[prefix] += 1
+                new_product_id = f"{prefix}{str(category_counters[prefix]).zfill(3)}"
+                
+                # --- BARCODE GENERATION ---
+                barcode_id = row.get('BARCODE', '').strip()
+                is_auto_generated = False
+                if not barcode_id:
+                    barcode_id = generate_unique_barcode()
+                    is_auto_generated = True
+
+                preview_data.append({
+                    'product_id': new_product_id,
+                    'item_name': row.get('PRODUCT_NAME', ''),
+                    'supplier': row.get('SUPPLIER', ''),
+                    'category': cat_name,
+                    'price': row.get('PRICE', 0),
+                    'quantity': row.get('QTY', 0),
+                    'barcode_id': barcode_id,
+                    'is_auto_generated': is_auto_generated
+                })
+
+            return JsonResponse({'status': 'success', 'data': preview_data})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+            
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
+
+
+@login_required
+def confirm_csv_import(request):
+    """Hakbang 2: Tatanggapin ang confirmed JSON galing sa Modal at i-sa-save sa database."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rows = data.get('rows', [])
+            
+            # Create Batch ID para sa option B natin
+            today_str = timezone.now().strftime('%Y%m%d')
+            last_batch = GeneratedBarcode.objects.filter(batch_id__startswith=f"AU{today_str}").order_by('-batch_id').first()
+            seq = (int(last_batch.batch_id.split('-')[-1]) + 1) if last_batch and '-' in last_batch.batch_id else 1
+            current_batch_id = f"AU{today_str}-{seq:02d}"
+            
+            generated_barcodes_to_create = []
+            new_barcodes_count = 0
+            
+            # Isang query lang para makuha lahat ng existing barcodes sa system ngayon
+            existing_inventory_barcodes = set(
+                InventoryItem.objects.values_list('barcode_id', flat=True)
+            )
+            
+            for row in rows:
+                current_barcode = row['barcode_id'].strip()
+                
+                # --- BAGONG CHECK: Kung ang barcode ay ginagamit na ng IBANG produkto sa database ---
+                # Gagamit tayo ng field combination or validation para maiwasan ang crash
+                duplicate_item = InventoryItem.objects.filter(barcode_id=current_barcode).first()
+                
+                # Kung ang barcode ay ginagamit na ng ibang product ID, harangin natin para hindi mag-crash
+                if duplicate_item and duplicate_item.product_id != row['product_id']:
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': f"Ang Barcode '{current_barcode}' ay ginagamit na ng produktong '{duplicate_item.item_name}' ({duplicate_item.product_id}). Pakiaayos ang inyong CSV file."
+                    })
+
+                # 1. Kunin o gawan ng bagong Category kung wala pa
+                category, _ = Category.objects.get_or_create(
+                    name=row['category'],
+                    defaults={'prefix': row['category'][:3].upper()}
+                )
+                
+                # 2. Kunin o gawan ng bagong Supplier kung nilagyan
+                supplier_obj = None
+                if row.get('supplier'):
+                    supplier_obj, _ = Supplier.objects.get_or_create(name=row['supplier'])
+                
+                # 3. I-save sa InventoryItem gamit ang update_or_create (Safe na ito ngayon)
+                InventoryItem.objects.update_or_create(
+                    product_id=row['product_id'],
                     defaults={
-                        'item_name': row.get('item_name', ''),
-                        'price': row.get('price', 0.0),
-                        'barcode_id': row.get('barcode_id', ''),
-                        'quantity': row.get('quantity', 0),
-                        'reorder_point': row.get('reorder_point', 10),
-                        
-                        # Note: Kung may Foreign Keys ka (tulad ng category/supplier), 
-                        # kailangan mo munang i-query or i-get_or_create ang instance nila bago i-save dito.
-                        # Example:
-                        # 'category': Category.objects.get(name=row.get('category_name'))
+                        'item_name': row['item_name'],
+                        'category': category,
+                        'supplier': supplier_obj,
+                        'price': row['price'],
+                        'quantity': row['quantity'],
+                        'barcode_id': current_barcode,
                     }
                 )
                 
-            messages.success(request, "Products successfully imported!")
+                # 4. Kung auto-generated ito nung preview phase, i-log sa Barcode History
+                if row.get('is_auto_generated'):
+                    generated_barcodes_to_create.append(
+                        GeneratedBarcode(
+                            barcode_id=current_barcode,
+                            product_name=row['item_name'],
+                            batch_id=current_batch_id
+                        )
+                    )
+                    new_barcodes_count += 1
+                    
+            # I-save lahat ng bagong barcode sa isang bagsakan para mas mabilis
+            if generated_barcodes_to_create:
+                GeneratedBarcode.objects.bulk_create(generated_barcodes_to_create)
+                
+            log_system_activity(
+                user=request.user, 
+                action="CSV IMPORT", 
+                description=f"Imported {len(rows)} products. Auto-generated {new_barcodes_count} barcodes."
+            )
+            messages.success(request, f"Successfully imported {len(rows)} products!")
+            
+            return JsonResponse({
+                'status': 'success',
+                'batch_id': current_batch_id,
+                'new_barcodes_count': new_barcodes_count,
+                'redirect_url': '/inventory/'
+            })
             
         except Exception as e:
-            messages.error(request, f"May error sa pag-import: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)})
 
-    # Kapag tapos na, ibabalik niya ang user sa product list page
-    return redirect('inventory:inventory_list')
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'})
 
 @login_required
 def edit_product(request, pk):
@@ -363,22 +471,26 @@ def barcode_module_view(request):
         product_name = request.POST.get('product_name', '').strip()
         
         if product_name:
-            # CHECK: Prevent duplicate product names (case-insensitive)
-            if GeneratedBarcode.objects.filter(product_name__iexact=product_name).exists():
-                messages.error(request, f"A barcode for '{product_name}' has already been generated. Please check the history below.")
+            # --- BAGONG LOGIC: Silipin pareho ang History at ang mismong Inventory ---
+            in_history = GeneratedBarcode.objects.filter(product_name__iexact=product_name).exists()
+            in_inventory = InventoryItem.objects.filter(item_name__iexact=product_name).exists()
+            
+            if in_history or in_inventory:
+                messages.error(request, f"Cannot generate: The product '{product_name}' already exists in your Inventory or Barcode History.")
+            # -------------------------------------------------------------------------
             else:
-                # Generate 480 prefix + 9 random digits
-                base_number = f"480{random.randint(100000000, 999999999)}"
+                # TATAWAGIN YUNG HELPER FUNCTION 
+                full_barcode = generate_unique_barcode() 
                 
-                # Generate valid 13-digit code
-                EAN = barcode.get_barcode_class('ean13')
-                my_barcode = EAN(base_number) 
-                full_barcode = my_barcode.get_fullcode()
+                # BAGONG BATCH ID FORMAT (MA + Date)
+                today_str = timezone.now().strftime('%Y%m%d')
+                manual_batch_id = f"MA{today_str}"
                 
                 # Save to Database
                 GeneratedBarcode.objects.create(
                     barcode_id=full_barcode,
-                    product_name=product_name
+                    product_name=product_name,
+                    batch_id=manual_batch_id
                 )
                 
                 log_system_activity(
@@ -395,10 +507,36 @@ def barcode_module_view(request):
             messages.error(request, "Product name is required to generate a barcode.")
 
     # Fetch history of all generated barcodes to display in the list
-    context['history'] = GeneratedBarcode.objects.all().order_by('-created_at')
+    history_list = GeneratedBarcode.objects.all().order_by('-created_at')
+    
+    # --- PAGINATION LOGIC ---
+    per_page = request.GET.get('per_page', 10)
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+        
+    paginator = Paginator(history_list, per_page)
+    page_number = request.GET.get('page', 1)
+    history_page = paginator.get_page(page_number)
+    
+    context['history'] = history_page
+    context['per_page'] = per_page
 
     return render(request, 'inventory/generate_barcode.html', context)
 
+def generate_unique_barcode():
+    """Helper function na gumagawa ng natatanging barcode para sa CSV at Manual generation."""
+    while True:
+        base_number = f"480{random.randint(100000000, 999999999)}"
+        EAN_class = barcode.get_barcode_class('ean13')
+        full_barcode = EAN_class(base_number).get_fullcode()
+        
+        # Siguraduhing wala pang gumagamit sa Inventory o sa History
+        if not GeneratedBarcode.objects.filter(barcode_id=full_barcode).exists() and \
+           not InventoryItem.objects.filter(barcode_id=full_barcode).exists():
+            return full_barcode
+        
 def is_admin_check(user):
     return user.is_authenticated and getattr(user, "role", "employee") == "admin"
 
@@ -1240,3 +1378,9 @@ def employee_dashboard_view(request):
     }
 
     return render(request, 'dashboard/employee_dashboard.html', context)
+
+@login_required
+def fetch_barcode_batch(request, batch_id):
+    """Kinukuha ang barcodes as JSON para i-print directly sa frontend."""
+    barcodes = GeneratedBarcode.objects.filter(batch_id=batch_id).values('barcode_id', 'product_name')
+    return JsonResponse({'status': 'success', 'barcodes': list(barcodes)})

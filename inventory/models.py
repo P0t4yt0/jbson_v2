@@ -226,6 +226,7 @@ class PurchaseOrderItem(models.Model):
 class GeneratedBarcode(models.Model):
     barcode_id = models.CharField(max_length=50, unique=True)
     product_name = models.CharField(max_length=200)
+    batch_id = models.CharField(max_length=50, default='MANUAL')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

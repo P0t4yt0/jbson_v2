@@ -12,7 +12,11 @@ urlpatterns = [
     # ETO YUNG BAGONG URL NATIN PARA SA BULK DELETE
     path('bulk-delete/', views.bulk_delete_products, name='bulk_delete_products'),
 
-    path('products/import/', views.import_csv, name='import_csv'),
+    path('products/import/preview/', views.preview_csv_import, name='preview_csv_import'),
+    path('products/import/confirm/', views.confirm_csv_import, name='confirm_csv_import'),
+    
+    # IDAGDAG ITO (Para sa pag-print ng barcodes per batch):
+    path('generate-barcode/fetch-batch/<str:batch_id>/', views.fetch_barcode_batch, name='fetch_barcode_batch'),
     
     path('low-stocks/', views.low_stock_view, name='low_stock_view'),
     path('categories/', views.category_list, name='category_list'),
