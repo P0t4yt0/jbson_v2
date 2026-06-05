@@ -10,7 +10,6 @@
 <style>
     .num-font { font-family: 'Inconsolata', monospace; letter-spacing: 0.5px; }
 
-    /* DROPDOWN STYLES (GLASSMORPHISM) */
     .dropdown-container { position: relative; display: inline-block; }
     .dropdown-menu {
         display: none; position: absolute; background-color: rgba(255, 255, 255, 0.95);
@@ -30,14 +29,12 @@
     .dropdown-item:hover { background-color: rgba(47, 63, 123, 0.05); color: var(--french-blue); padding-left: 20px; }
     .item-count-badge { background: rgba(239, 68, 68, 0.1); color: var(--status-red); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 800; border: 1px solid rgba(239, 68, 68, 0.2); }
 
-    /* MAIN HUB STYLES */
     .po-container { max-width: 1500px; margin: 0 auto; padding: 0 0 30px 0; font-family: var(--font-main); color: var(--text-primary); }
     .header-section { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
     .header-section h2 { font-size: 28px; font-weight: 800; margin: 0; color: var(--french-blue); letter-spacing: -0.5px; font-family: var(--font-heading); }
     .header-section p { color: var(--amber-flame); font-size: 15px; margin: 5px 0 0 0; font-weight: 500; }
     .split-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
     
-    /* GLASS PANELS */
     .glass-panel, .po-list-section {
         background: rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(12px);
@@ -49,7 +46,6 @@
 
     .po-list-section { padding: 24px; max-height: 85vh; overflow-y: auto; }
     
-    /* PO CARDS */
     .po-card { display: block; text-decoration: none; border: 1px solid var(--border-color); padding: 18px; border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.8); transition: all 0.3s ease; position: relative; overflow: hidden; }
     .po-card:hover { border-color: var(--french-blue); background: #FFFFFF; transform: translateY(-2px); box-shadow: 0 8px 16px -4px rgba(47, 63, 123, 0.15); }
     .po-card.active { border-color: var(--french-blue); background: #FFFFFF; box-shadow: 0 8px 16px -4px rgba(47, 63, 123, 0.15); }
@@ -64,12 +60,10 @@
     .form-group { flex: 1; }
     .form-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
     
-    /* INPUTS & SELECTS */
     .form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 12px; font-size: 14px; color: var(--text-primary); transition: all 0.3s; background: rgba(255, 255, 255, 0.8); box-sizing: border-box; font-family: var(--font-main); }
     .form-group input:focus, .form-group select:focus { border-color: var(--french-blue); background: #FFFFFF; box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1); outline: none; }
     .form-group input:disabled, .form-group select:disabled { background: rgba(248, 250, 252, 0.6); color: var(--text-primary); cursor: not-allowed; border-color: rgba(203, 213, 225, 0.5); font-weight: 600; opacity: 1; -webkit-text-fill-color: var(--text-primary); }
     
-    /* TABLE & NUMBERS */
     table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; }
     th { text-align: left; padding: 12px 14px; color: var(--text-secondary); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid rgba(226, 232, 240, 0.8); }
     td { padding: 16px 14px; border-bottom: 1px solid rgba(226, 232, 240, 0.6); vertical-align: middle; }
@@ -85,18 +79,15 @@
     
     .subtotal-text { font-weight: 800; color: var(--french-blue); font-size: 16px; font-family: 'Inconsolata', monospace; }
     
-    /* ADD/REMOVE ROW BUTTONS */
     .btn-add { background: rgba(255, 255, 255, 0.8); color: var(--french-blue); padding: 14px 20px; border-radius: 12px; border: 1px dashed var(--french-blue); font-weight: 600; font-family: var(--font-main); font-size: 14px; cursor: pointer; transition: all 0.3s ease; width: 100%; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-add:hover { background: var(--french-blue); color: white; box-shadow: 0 4px 10px rgba(47, 63, 123, 0.15); }
     
     .btn-remove { background: #FFF5F5; color: var(--status-red); border: 1px solid #FCA5A5; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 18px; }
     .btn-remove:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
     
-    /* GRAND TOTAL */
     .grand-total-box { background: rgba(47, 63, 123, 0.05); padding: 24px 30px; border-radius: 16px; border: 1px solid rgba(47, 63, 123, 0.1); display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
     .grand-total-text { font-size: 32px; font-weight: 800; color: var(--amber-flame); margin: 0; font-family: 'Inconsolata', monospace; letter-spacing: -1px; }
     
-    /* SAFE ACTION BUTTONS (Renamed to avoid conflicts) */
     .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid rgba(226, 232, 240, 0.6); padding-top: 24px; }
     .action-group-right { display: flex; gap: 12px; align-items: center; }
     

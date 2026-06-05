@@ -1,35 +1,19 @@
-"""
-security/models.py
-─────────────────────────────────────────────────────────────────────────────
-Security Module – Database Models
-Product Management System with POS for JBSON Hardware
-
-Models:
-  - User         Custom user model with username + bcrypt password + role field
-  - ActivityLog  Immutable audit trail (login/logout/create/modify events)
-─────────────────────────────────────────────────────────────────────────────
-"""
-
-from auditlog.registry import auditlog
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+import uuid
 from django.db import models
-from datetime import timedelta
+from django.conf import settings
 from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from auditlog.registry import auditlog
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Custom User Manager
-# ─────────────────────────────────────────────────────────────────────────────
+def generate_recovery_key():
+    raw_key = uuid.uuid4().hex[:16].upper()
+    return f"{raw_key[:4]}-{raw_key[4:8]}-{raw_key[8:12]}-{raw_key[12:]}"
 
 class UserManager(BaseUserManager):
-    """Manager for the custom User model."""
-
     def create_user(self, username, password=None, role="employee", **extra_fields):
         if not username:
             raise ValueError("A username is required.")
         user = self.model(username=username, role=role, **extra_fields)
-        # set_password() calls Django's PASSWORD_HASHERS → bcrypt (first in list)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -39,21 +23,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         return self.create_user(username, password, role="admin", **extra_fields)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Custom User Model
-# ─────────────────────────────────────────────────────────────────────────────
-
 class User(AbstractBaseUser, PermissionsMixin):
-    """
-    Custom user model.
-
-    Stores a bcrypt-hashed password (Django's hasher infrastructure).
-    The `role` field drives all access-control decisions:
-        'admin'    → Administrator  – full system privileges
-        'employee' → Employee       – restricted to POS / Billing / Inventory
-    """
-
     ROLE_ADMIN = "admin"
     ROLE_EMPLOYEE = "employee"
     ROLE_CHOICES = [
@@ -61,22 +31,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         (ROLE_EMPLOYEE, "Employee"),
     ]
 
-    # Core identity fields
     username = models.CharField(max_length=150, unique=True)
     full_name = models.CharField(max_length=255, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_EMPLOYEE)
-
-    # Account state
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)  # Django admin access
-
+    is_staff = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = []  # username + password are always required
+    REQUIRED_FIELDS = []
 
     class Meta:
         db_table = "security_user"
@@ -85,8 +51,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
-
-    # ── Convenience properties ────────────────────────────────────────────────
 
     @property
     def is_admin(self) -> bool:
@@ -99,20 +63,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return self.full_name or self.username
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Activity Log  (immutable audit trail)
-# ─────────────────────────────────────────────────────────────────────────────
-
 class ActivityLog(models.Model):
-    """
-    Immutable audit record for all significant user actions.
-
-    Per project spec:
-      - Administrators can VIEW logs but not modify them.
-      - Automatic logging is triggered from views/signals.
-    """
-
     ACTION_LOGIN = "LOGIN"
     ACTION_LOGOUT = "LOGOUT"
     ACTION_USER_CREATED = "USER_CREATED"
@@ -141,7 +92,6 @@ class ActivityLog(models.Model):
         ordering = ["-timestamp"]
         verbose_name = "Activity Log"
         verbose_name_plural = "Activity Logs"
-        # Prevent updates via the ORM (delete is still possible for admins)
         default_permissions = ("view",)
 
     def __str__(self):
@@ -149,24 +99,9 @@ class ActivityLog(models.Model):
         return f"[{self.timestamp:%Y-%m-%d %H:%M}] {user_str} – {self.action}"
 
     def save(self, *args, **kwargs):
-        """Enforce immutability: only allow INSERTs."""
         if self.pk is not None:
             raise PermissionError("ActivityLog entries cannot be modified once created.")
         super().save(*args, **kwargs)
-# ─────────────────────────────────────────────────────────────────────────────
-# Employee Profile (Recovery System)
-# ─────────────────────────────────────────────────────────────────────────────
-import uuid
-
-def generate_recovery_key():
-    """
-    Generates a 16-character alphanumeric key formatted as XXXX-XXXX-XXXX-XXXX.
-    This is called when a new profile is created.
-    """
-    # Generate a random UUID, remove hyphens, make it uppercase, take first 16 chars
-    raw_key = uuid.uuid4().hex[:16].upper()
-    # Format it with hyphens for readability
-    return f"{raw_key[:4]}-{raw_key[4:8]}-{raw_key[8:12]}-{raw_key[12:]}"
 
 class EmployeeProfile(models.Model):
     user = models.OneToOneField(
@@ -181,12 +116,9 @@ class EmployeeProfile(models.Model):
     )
     reset_requested = models.BooleanField(default=False)
     reset_approved_by_admin = models.BooleanField(default=False)
-
-    # ---> NEW: Reports Hub Access Tracking <---
     reports_access_requested = models.BooleanField(default=False)
     reports_access_expires_at = models.DateTimeField(null=True, blank=True)
     reports_access_approved = models.BooleanField(default=False)
-
     settings_access_requested = models.BooleanField(default=False)
     settings_access_expires_at = models.DateTimeField(null=True, blank=True)
     settings_access_approved = models.BooleanField(default=False)
@@ -199,30 +131,20 @@ class EmployeeProfile(models.Model):
     def __str__(self):
         return f"Profile for {self.user.username}"
     
-    # ---> NEW: Helper method to check if access is active <---
     @property
     def has_valid_reports_access(self):
-        """Returns True only if approved AND the 10-minute timer hasn't expired."""
         if not self.reports_access_approved:
             return False
-        
-        # If there's an expiration time and the current time is past it, it's invalid.
         if self.reports_access_expires_at and timezone.now() > self.reports_access_expires_at:
             return False
-            
         return True
     
     @property
     def has_valid_settings_access(self):
-        """Returns True only if approved AND the 1-hour timer hasn't expired."""
         if not self.settings_access_approved:
             return False
-        
         if self.settings_access_expires_at and timezone.now() > self.settings_access_expires_at:
             return False
-            
         return True
-
-
 
 auditlog.register(User, exclude_fields=['password', 'last_login'])

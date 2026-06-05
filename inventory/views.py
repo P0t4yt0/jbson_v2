@@ -1,42 +1,43 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-import json
 import csv
-from django.http import JsonResponse
-from django.db.models import Q, F, ProtectedError
-from django.contrib import messages # IDINAGDAG NATIN ITO PARA SA NOTIFICATIONS
-from .models import InventoryItem, Category, Supplier, GeneratedBarcode
-from decimal import Decimal
+import json
 import random
-import barcode
 import re
-from .models import InventoryItem
-from .models import Supplier, PurchaseOrder, PurchaseOrderItem, InventoryItem
-from .models import Supplier # <-- Make sure Supplier is imported
-from django.db.models import RestrictedError
-from activity_log.utils import log_system_activity
-from django.db.models import Sum, F, DecimalField
-from django.utils import timezone
 from datetime import timedelta
-from django.db.models.functions import Coalesce
-from django.db.models import Q, F, Sum, Count, ProtectedError, DecimalField
-from django.db.models.functions import Coalesce
-from point_of_sale.models import Transaction, TransactionItem
-from django.db import transaction
+from decimal import Decimal
+import barcode
+from django.apps import apps
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from point_of_sale.models import Transaction
-from inventory.models import InventoryItem, PurchaseOrder
-from billing_payment.models import SalesReturn, Invoice
+from django.db import transaction
+from django.db.models import Count, DecimalField, F, ProtectedError, Q, Sum
+from django.db.models.functions import Coalesce
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from activity_log.utils import log_system_activity
+from billing_payment.models import Invoice, SalesReturn
+from point_of_sale.models import Transaction, TransactionItem
+from reports_analytics.models import Expense
 from security.models import EmployeeProfile
-from reports_analytics.models import Expense # Assuming you have this based on your migrations!
-from django.db.models import F
-from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import Category, GeneratedBarcode, InventoryItem, PurchaseOrder, PurchaseOrderItem, Supplier
 
+def generate_unique_barcode():
+    while True:
+        base_number = f"480{random.randint(100000000, 999999999)}"
+        EAN_class = barcode.get_barcode_class('ean13')
+        full_barcode = EAN_class(base_number).get_fullcode()
+        
+        if not GeneratedBarcode.objects.filter(barcode_id=full_barcode).exists() and \
+           not InventoryItem.objects.filter(barcode_id=full_barcode).exists():
+            return full_barcode
+
+def is_admin_check(user):
+    return user.is_authenticated and getattr(user, "role", "employee") == "admin"
 
 @login_required         
 def inventory_list(request):
-    """Displays all items in the inventory with their ABC status and filters."""
-    
     search_query = request.GET.get('search', '').strip()
     category_id = request.GET.get('category', '')
     low_stock = request.GET.get('low_stock', '')
@@ -47,7 +48,6 @@ def inventory_list(request):
 
     items = InventoryItem.objects.all()
 
-    # FIX 1: Idinagdag ang product_id at barcode_id sa search logic
     if search_query:
         items = items.filter(
             Q(item_name__icontains=search_query) |
@@ -68,7 +68,6 @@ def inventory_list(request):
     if supplier_id:
         items = items.filter(supplier_id=supplier_id)
 
-    # Sorting
     if sort_query == 'supplier':
         items = items.order_by('supplier__name', 'abc_classification', '-id')
     elif sort_query == '-supplier':
@@ -76,7 +75,6 @@ def inventory_list(request):
     else:
         items = items.order_by('abc_classification', '-id')
 
-    # Pagination Setup
     try:
         per_page = int(per_page)
     except ValueError:
@@ -100,57 +98,79 @@ def inventory_list(request):
     }
     return render(request, 'inventory/product_list.html', context)
 
-
 @login_required
-def run_abc_analysis(request):
-    items = InventoryItem.objects.all()
+def edit_product(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
     
-    # --- STEP 1: PRE-CALCULATION LOGIC ---
-    item_value_pairs = []
-    total_store_value = Decimal('0')
+    if request.method == 'POST':
+        item.item_name = request.POST.get('item_name') or item.item_name
+        item.category_id = request.POST.get('category') or item.category_id
+        item.supplier_id = request.POST.get('supplier') or item.supplier_id
+        item.quantity = request.POST.get('quantity') or item.quantity
+        item.barcode_id = request.POST.get('barcode_id') or item.barcode_id
+        item.price = request.POST.get('price') or item.price
+        item.unit_cost = request.POST.get('unit_cost') or item.unit_cost
+        item.annual_demand = request.POST.get('annual_demand') or item.annual_demand
+        
+        item.average_daily_sales = float(request.POST.get('average_daily_sales') or item.average_daily_sales or 0)
+        item.max_daily_sales = float(request.POST.get('max_daily_sales') or item.max_daily_sales or 0)
+        item.average_lead_time_days = int(request.POST.get('average_lead_time_days') or item.average_lead_time_days or 0)
+        item.max_lead_time_days = int(request.POST.get('max_lead_time_days') or item.max_lead_time_days or 0)
 
-    for item in items:
-        actual_sales = getattr(item, 'actual_sales_count', 0)
-        manual_est = int(item.annual_demand or 0)
-        
-        effective_demand = actual_sales if actual_sales > 0 else manual_est
-        
-        unit_cost = Decimal(str(item.unit_cost or 0))
-        item_value = unit_cost * effective_demand
-        
-        item_value_pairs.append((item, item_value))
-        total_store_value += item_value
-
-    if total_store_value == 0:
+        item.save()
+        log_system_activity(
+            user=request.user,
+            action="EDIT PRODUCT",
+            description=f"Updated details/ROP for product: {item.item_name}"
+        )
         return redirect('inventory:inventory_list')
 
-    # --- STEP 2: SORTING & CLASSIFICATION ---
-    item_value_pairs.sort(key=lambda x: x[1], reverse=True)
+    categories = Category.objects.all()
+    suppliers = Supplier.objects.filter(is_active=True)
+    return render(request, 'product_registration/create_product.html', {
+        'item': item,
+        'categories': categories,
+        'suppliers': suppliers
+    })
 
-    running_sum = Decimal('0')
-    for item, item_value in item_value_pairs:
-        running_sum += item_value
-        cumulative_percentage = (running_sum / total_store_value) * 100
-
-        if cumulative_percentage <= 70:
-            item.abc_classification = 'A'
-        elif cumulative_percentage <= 90:
-            item.abc_classification = 'B'
-        else:
-            item.abc_classification = 'C'
-        
-        item.save()
-    log_system_activity(
+@login_required
+def delete_product(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
+    try:
+        item_name = item.item_name
+        item.delete()
+        log_system_activity(
             user=request.user,
-            action="ABC ANALYSIS",
-            description="Executed ABC Inventory Classification analysis and updated item priorities."
+            action="DELETE PRODUCT",
+            description=f"Deleted inventory item: '{item_name}'"
         )
-    
+        messages.success(request, f'Product "{item_name}" deleted successfully.')
+    except ProtectedError:
+        messages.error(request, f'Cannot delete "{item.item_name}" because it is already linked to existing transactions/sales.')
+      
+    return redirect('inventory:inventory_list')
+
+@login_required
+def bulk_delete_products(request):
+    if request.method == 'POST':
+        ids_string = request.POST.get('product_ids', '')
+        if ids_string:
+            id_list = ids_string.split(',')
+            try:
+                deleted_count, _ = InventoryItem.objects.filter(pk__in=id_list).delete()
+                log_system_activity(
+                    user=request.user,
+                    action="BULK DELETE",
+                    description=f"Bulk deleted {deleted_count} inventory items."
+                )
+                messages.success(request, f'Successfully deleted {deleted_count} product(s).')
+            except ProtectedError:
+                messages.error(request, 'Action failed. Some of the selected products cannot be deleted because they have existing transaction records.')
+                
     return redirect('inventory:inventory_list')
 
 @login_required
 def preview_csv_import(request):
-    """Hakbang 1: Babasahin lang ang CSV, mag-a-assign ng ID/Barcodes, at ibabalik sa UI."""
     if request.method == 'POST':
         csv_file = request.FILES.get('csv_file')
         if not csv_file or not csv_file.name.endswith('.csv'):
@@ -161,16 +181,13 @@ def preview_csv_import(request):
             reader = csv.DictReader(file_data)
             
             preview_data = []
-            category_counters = {} # Para walang duplicate IDs sa memory
+            category_counters = {}
             
             for row in reader:
                 cat_name = row.get('CATEGORY', '').strip()
-                
-                # Kunin ang Prefix (Kung wala yung category sa DB, default to 'GEN' at ipapa-create natin mamaya)
                 category = Category.objects.filter(name__iexact=cat_name).first()
                 prefix = category.prefix.upper() if category else cat_name[:3].upper().ljust(3, 'X')
                 
-                # --- PRODUCT ID GENERATION (No Race Conditions) ---
                 if prefix not in category_counters:
                     last_item = InventoryItem.objects.filter(product_id__startswith=prefix).order_by('id').last()
                     if last_item:
@@ -182,7 +199,6 @@ def preview_csv_import(request):
                 category_counters[prefix] += 1
                 new_product_id = f"{prefix}{str(category_counters[prefix]).zfill(3)}"
                 
-                # --- BARCODE GENERATION ---
                 barcode_id = row.get('BARCODE', '').strip()
                 is_auto_generated = False
                 if not barcode_id:
@@ -206,16 +222,13 @@ def preview_csv_import(request):
             
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
 
-
 @login_required
 def confirm_csv_import(request):
-    """Hakbang 2: Tatanggapin ang confirmed JSON galing sa Modal at i-sa-save sa database."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             rows = data.get('rows', [])
             
-            # Create Batch ID para sa option B natin
             today_str = timezone.now().strftime('%Y%m%d')
             last_batch = GeneratedBarcode.objects.filter(batch_id__startswith=f"AU{today_str}").order_by('-batch_id').first()
             seq = (int(last_batch.batch_id.split('-')[-1]) + 1) if last_batch and '-' in last_batch.batch_id else 1
@@ -224,37 +237,25 @@ def confirm_csv_import(request):
             generated_barcodes_to_create = []
             new_barcodes_count = 0
             
-            # Isang query lang para makuha lahat ng existing barcodes sa system ngayon
-            existing_inventory_barcodes = set(
-                InventoryItem.objects.values_list('barcode_id', flat=True)
-            )
-            
             for row in rows:
                 current_barcode = row['barcode_id'].strip()
-                
-                # --- BAGONG CHECK: Kung ang barcode ay ginagamit na ng IBANG produkto sa database ---
-                # Gagamit tayo ng field combination or validation para maiwasan ang crash
                 duplicate_item = InventoryItem.objects.filter(barcode_id=current_barcode).first()
                 
-                # Kung ang barcode ay ginagamit na ng ibang product ID, harangin natin para hindi mag-crash
                 if duplicate_item and duplicate_item.product_id != row['product_id']:
                     return JsonResponse({
                         'status': 'error', 
                         'message': f"Ang Barcode '{current_barcode}' ay ginagamit na ng produktong '{duplicate_item.item_name}' ({duplicate_item.product_id}). Pakiaayos ang inyong CSV file."
                     })
 
-                # 1. Kunin o gawan ng bagong Category kung wala pa
                 category, _ = Category.objects.get_or_create(
                     name=row['category'],
                     defaults={'prefix': row['category'][:3].upper()}
                 )
                 
-                # 2. Kunin o gawan ng bagong Supplier kung nilagyan
                 supplier_obj = None
                 if row.get('supplier'):
                     supplier_obj, _ = Supplier.objects.get_or_create(name=row['supplier'])
                 
-                # 3. I-save sa InventoryItem gamit ang update_or_create (Safe na ito ngayon)
                 InventoryItem.objects.update_or_create(
                     product_id=row['product_id'],
                     defaults={
@@ -267,7 +268,6 @@ def confirm_csv_import(request):
                     }
                 )
                 
-                # 4. Kung auto-generated ito nung preview phase, i-log sa Barcode History
                 if row.get('is_auto_generated'):
                     generated_barcodes_to_create.append(
                         GeneratedBarcode(
@@ -278,7 +278,6 @@ def confirm_csv_import(request):
                     )
                     new_barcodes_count += 1
                     
-            # I-save lahat ng bagong barcode sa isang bagsakan para mas mabilis
             if generated_barcodes_to_create:
                 GeneratedBarcode.objects.bulk_create(generated_barcodes_to_create)
                 
@@ -302,92 +301,89 @@ def confirm_csv_import(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid method'})
 
 @login_required
-def edit_product(request, pk):
-    item = get_object_or_404(InventoryItem, pk=pk)
-    
-    if request.method == 'POST':
-        # Ginagamit natin yung "or item.<field>" para kung empty yung pinasa sa form, 
-        # ire-retain niya yung dating naka-save sa database.
-        item.item_name = request.POST.get('item_name') or item.item_name
-        item.category_id = request.POST.get('category') or item.category_id
-        item.supplier_id = request.POST.get('supplier') or item.supplier_id
-        item.quantity = request.POST.get('quantity') or item.quantity
-        item.barcode_id = request.POST.get('barcode_id') or item.barcode_id
-        
-        # Pinalitan natin ang fallback from 0/0.00 to their existing values
-        item.price = request.POST.get('price') or item.price
-        item.unit_cost = request.POST.get('unit_cost') or item.unit_cost
-        item.annual_demand = request.POST.get('annual_demand') or item.annual_demand
-        
-        # --- NEW ROP FIELDS ---
-        item.average_daily_sales = float(request.POST.get('average_daily_sales') or item.average_daily_sales or 0)
-        item.max_daily_sales = float(request.POST.get('max_daily_sales') or item.max_daily_sales or 0)
-        item.average_lead_time_days = int(request.POST.get('average_lead_time_days') or item.average_lead_time_days or 0)
-        item.max_lead_time_days = int(request.POST.get('max_lead_time_days') or item.max_lead_time_days or 0)        # ----------------------
+def run_abc_analysis(request):
+    items = InventoryItem.objects.all()
+    item_value_pairs = []
+    total_store_value = Decimal('0')
 
-        item.save()
-        log_system_activity(
-            user=request.user,
-            action="EDIT PRODUCT",
-            description=f"Updated details/ROP for product: {item.item_name}"
-        )
+    for item in items:
+        actual_sales = getattr(item, 'actual_sales_count', 0)
+        manual_est = int(item.annual_demand or 0)
+        effective_demand = actual_sales if actual_sales > 0 else manual_est
+        unit_cost = Decimal(str(item.unit_cost or 0))
+        item_value = unit_cost * effective_demand
+        
+        item_value_pairs.append((item, item_value))
+        total_store_value += item_value
+
+    if total_store_value == 0:
         return redirect('inventory:inventory_list')
 
-    categories = Category.objects.all()
-    suppliers = Supplier.objects.filter(is_active=True)
-    return render(request, 'product_registration/create_product.html', {
-        'item': item,
-        'categories': categories,
-        'suppliers': suppliers
-    })
-# SINGLE DELETE VIEW
-@login_required
-def delete_product(request, pk):
-    item = get_object_or_404(InventoryItem, pk=pk)
-    try:
-        item_name = item.item_name
-        item.delete()
+    item_value_pairs.sort(key=lambda x: x[1], reverse=True)
+
+    running_sum = Decimal('0')
+    for item, item_value in item_value_pairs:
+        running_sum += item_value
+        cumulative_percentage = (running_sum / total_store_value) * 100
+
+        if cumulative_percentage <= 70:
+            item.abc_classification = 'A'
+        elif cumulative_percentage <= 90:
+            item.abc_classification = 'B'
+        else:
+            item.abc_classification = 'C'
         
-        # DITO DAPAT SA LOOB NG TRY
-        log_system_activity(
-            user=request.user,
-            action="DELETE PRODUCT",
-            description=f"Deleted inventory item: '{item_name}'"
-        )
-        messages.success(request, f'Product "{item_name}" deleted successfully.')
-    except ProtectedError:
-        messages.error(request, f'Cannot delete "{item.item_name}" because it is already linked to existing transactions/sales.')
-      
-    return redirect('inventory:inventory_list')
+        item.save()
 
-
-# BULK DELETE VIEW
-@login_required
-def bulk_delete_products(request):
-    if request.method == 'POST':
-        ids_string = request.POST.get('product_ids', '')
-        if ids_string:
-            id_list = ids_string.split(',')
-            try:
-                # Subukang burahin lahat ng na-check
-                deleted_count, _ = InventoryItem.objects.filter(pk__in=id_list).delete()
-                log_system_activity(
-                    user=request.user,
-                    action="BULK DELETE",
-                    description=f"Bulk deleted {deleted_count} inventory items."
-                )
-                messages.success(request, f'Successfully deleted {deleted_count} product(s).')
-            except ProtectedError:
-                # Kung kahit isa sa na-check ay may transaction, iba-block ng database lahat
-                messages.error(request, 'Action failed. Some of the selected products cannot be deleted because they have existing transaction records.')
-                
+    log_system_activity(
+        user=request.user,
+        action="ABC ANALYSIS",
+        description="Executed ABC Inventory Classification analysis and updated item priorities."
+    )
     return redirect('inventory:inventory_list')
 
 @login_required
 def low_stock_view(request):
-    """Specifically filters items that are at or below min_stock."""
     low_stock_items = [item for item in InventoryItem.objects.all() if item.is_low_stock]
     return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
+
+@login_required
+def auto_calibrate_rop(request):
+    days = int(request.GET.get('days', 7))
+    days = max(7, min(days, 365))
+
+    lookback = timezone.now() - timedelta(days=days)
+    items = InventoryItem.objects.all()
+    updated_count = 0
+
+    for item in items:
+        sales = TransactionItem.objects.filter(
+            inventory_item=item,
+            transaction__status__in=['completed', 'paid'],
+            transaction__date_created__gte=lookback
+        )
+
+        daily_sales_dict = {}
+        for sale in sales:
+            date_str = sale.transaction.date_created.strftime('%Y-%m-%d')
+            daily_sales_dict[date_str] = daily_sales_dict.get(date_str, 0) + sale.quantity
+
+        if daily_sales_dict:
+            total_sales = sum(daily_sales_dict.values())
+            active_days = len(daily_sales_dict)
+
+            item.average_daily_sales = float(total_sales) / float(active_days)
+            item.max_daily_sales = float(max(daily_sales_dict.values()))
+            item.save()
+            updated_count += 1
+
+    log_system_activity(
+        user=request.user,
+        action="AUTO CALIBRATE",
+        description=f"Auto-calibrated ROP for {updated_count} items based on last {days} days of sales (blank days excluded)."
+    )
+    messages.success(request, f"Done! ROP updated for {updated_count} items. Blank days were excluded from the average so your numbers stay accurate.")
+    return redirect('inventory:inventory_list')
 
 @login_required
 def category_list(request):
@@ -398,8 +394,6 @@ def category_list(request):
         if new_name and new_prefix:
             if not Category.objects.filter(name=new_name).exists():
                 Category.objects.create(name=new_name, prefix=new_prefix)
-                
-                # DITO DAPAT SA LOOB NG IF NOT EXISTS
                 log_system_activity(
                     user=request.user,
                     action="ADD CATEGORY",
@@ -412,19 +406,17 @@ def category_list(request):
             messages.error(request, 'Error: Category name or prefix is missing.')
         
         return redirect('inventory:category_list')
-    # 2. NORMAL PAGE LOAD (GET REQUEST)
-    # prefetch_related makes loading items much faster!
+
     categories = Category.objects.prefetch_related('items').all()
     return render(request, 'inventory/category_list.html', {'categories': categories})
 
 @login_required
 def edit_category(request, pk):
-    """Allows editing the category name only."""
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
         new_name = request.POST.get('name')
         if new_name:
-            old_name = category.name # 🔴 KAILANGAN ITO BAGO MO I-SAVE ANG BAGO
+            old_name = category.name
             category.name = new_name
             category.save()
             
@@ -438,13 +430,10 @@ def edit_category(request, pk):
 
 @login_required
 def delete_category(request, pk):
-    """Deletes a category ONLY if it has no products."""
     category = get_object_or_404(Category, pk=pk)
     try:
         cat_name = category.name
         category.delete()
-        
-        # DITO DAPAT SA LOOB NG TRY
         log_system_activity(
             user=request.user,
             action="DELETE CATEGORY",
@@ -455,248 +444,9 @@ def delete_category(request, pk):
         messages.error(request, f'Cannot delete "{category.name}" because there are products currently assigned to it.')
         
     return redirect('inventory:category_list')
-import os
-from django.conf import settings
-import barcode
-from barcode.writer import ImageWriter
-import random
-from django.shortcuts import render
-
-@login_required
-def barcode_module_view(request):
-    context = {}
-    
-    if request.method == 'POST':
-        # Get the product name from the form
-        product_name = request.POST.get('product_name', '').strip()
-        
-        if product_name:
-            # --- BAGONG LOGIC: Silipin pareho ang History at ang mismong Inventory ---
-            in_history = GeneratedBarcode.objects.filter(product_name__iexact=product_name).exists()
-            in_inventory = InventoryItem.objects.filter(item_name__iexact=product_name).exists()
-            
-            if in_history or in_inventory:
-                messages.error(request, f"Cannot generate: The product '{product_name}' already exists in your Inventory or Barcode History.")
-            # -------------------------------------------------------------------------
-            else:
-                # TATAWAGIN YUNG HELPER FUNCTION 
-                full_barcode = generate_unique_barcode() 
-                
-                # BAGONG BATCH ID FORMAT (MA + Date)
-                today_str = timezone.now().strftime('%Y%m%d')
-                manual_batch_id = f"MA{today_str}"
-                
-                # Save to Database
-                GeneratedBarcode.objects.create(
-                    barcode_id=full_barcode,
-                    product_name=product_name,
-                    batch_id=manual_batch_id
-                )
-                
-                log_system_activity(
-                    user=request.user,
-                    action="GENERATE BARCODE",
-                    description=f"Generated new barcode ({full_barcode}) for '{product_name}'"
-                )
-
-                # Pass data to template for preview
-                context['barcode_id'] = full_barcode
-                context['product_name'] = product_name
-                messages.success(request, f"Barcode generated successfully for '{product_name}'!")
-        else:
-            messages.error(request, "Product name is required to generate a barcode.")
-
-    # Fetch history of all generated barcodes to display in the list
-    history_list = GeneratedBarcode.objects.all().order_by('-created_at')
-    
-    # --- PAGINATION LOGIC ---
-    per_page = request.GET.get('per_page', 10)
-    try:
-        per_page = int(per_page)
-    except ValueError:
-        per_page = 10
-        
-    paginator = Paginator(history_list, per_page)
-    page_number = request.GET.get('page', 1)
-    history_page = paginator.get_page(page_number)
-    
-    context['history'] = history_page
-    context['per_page'] = per_page
-
-    return render(request, 'inventory/generate_barcode.html', context)
-
-def generate_unique_barcode():
-    """Helper function na gumagawa ng natatanging barcode para sa CSV at Manual generation."""
-    while True:
-        base_number = f"480{random.randint(100000000, 999999999)}"
-        EAN_class = barcode.get_barcode_class('ean13')
-        full_barcode = EAN_class(base_number).get_fullcode()
-        
-        # Siguraduhing wala pang gumagamit sa Inventory o sa History
-        if not GeneratedBarcode.objects.filter(barcode_id=full_barcode).exists() and \
-           not InventoryItem.objects.filter(barcode_id=full_barcode).exists():
-            return full_barcode
-        
-def is_admin_check(user):
-    return user.is_authenticated and getattr(user, "role", "employee") == "admin"
-
-@login_required
-def admin_dashboard_view(request):
-    # SILIPIN ANG ROLE: Kung hindi siya admin, itapon siya agad sa employee dashboard nang MALINIS
-    if getattr(request.user, "role", "employee") != "admin":
-        return redirect('employee_dashboard')
-    today = timezone.now().date()
-    
-    # --- 1. GLOBAL DATE FILTER LOGIC ---
-    date_filter = request.GET.get('filter', 'all_time')
-    if date_filter == 'today': start_date = today
-    elif date_filter == 'this_week': start_date = today - timedelta(days=today.weekday())
-    elif date_filter == 'this_month': start_date = today.replace(day=1)
-    elif date_filter == 'this_year': start_date = today.replace(month=1, day=1)
-    else: start_date = None 
-
-    # --- 2. BASE QUERIES ---
-    tx_base = Transaction.objects.filter(status__in=['completed', 'paid'])
-    po_base = PurchaseOrder.objects.filter(status='received')
-    invoice_base = Invoice.objects.all()
-    expense_base = None # Will assign dynamically based on import
-
-    # Try to import Expense safely just in case
-    try:
-        from reports_analytics.models import Expense
-        expense_base = Expense.objects.all()
-    except ImportError:
-        pass
-
-    if start_date:
-        tx_base = tx_base.filter(date_created__date__gte=start_date)
-        po_base = po_base.filter(order_date__gte=start_date)
-        if expense_base is not None: expense_base = expense_base.filter(expense_date__gte=start_date)
-
-    # --- 3. CORE METRICS CALCULATION ---
-    total_sales = tx_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-    total_purchase = po_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-    sales_return = SalesReturn.objects.aggregate(t=Coalesce(Sum('total_refund'), Decimal('0.00'), output_field=DecimalField()))['t']
-    invoice_due = Invoice.objects.filter(status='unpaid').aggregate(t=Coalesce(Sum('balance_due'), Decimal('0.00'), output_field=DecimalField()))['t']
-    
-    expenses = Decimal('0.00')
-    if expense_base is not None:
-        expenses = expense_base.aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-
-    total_outflow = total_purchase + expenses
-    net_profit = total_sales - total_outflow - sales_return
-
-    # --- 4. ADVANCED CHART DATA (7-Day Financials) ---
-    chart_labels = []
-    chart_sales_data = []
-    chart_outflow_data = []
-    chart_profit_data = []
-
-    for i in range(6, -1, -1):
-        current_day = today - timedelta(days=i)
-        next_day = current_day + timedelta(days=1) # Create the boundary for "tomorrow"
-        
-        chart_labels.append(current_day.strftime('%b %d'))
-        
-        # 1. Fetch Sales (BULLETPROOF: Using >= today and < tomorrow)
-        d_sales = Transaction.objects.filter(
-            date_created__gte=current_day,
-            date_created__lt=next_day,
-            status__in=['completed', 'credit']
-        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-        
-        # 2. Fetch Purchases
-        d_purchases = PurchaseOrder.objects.filter(
-            status='received', 
-            order_date__gte=current_day,
-            order_date__lt=next_day
-        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-        
-        # 3. Fetch Expenses
-        d_expenses = Decimal('0.00')
-        if expense_base is not None:
-            d_expenses = expense_base.filter(
-                expense_date__gte=current_day,
-                expense_date__lt=next_day
-            ).aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-            
-        d_outflow = d_purchases + d_expenses
-        d_profit = d_sales - d_outflow
-
-        chart_sales_data.append(float(d_sales))
-        chart_outflow_data.append(float(d_outflow))
-        chart_profit_data.append(float(d_profit))
-
-    # --- 5. TOP PRODUCTS DOUGHNUT CHART ---
-    # Fetch all items from completed or credit sales
-    top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'credit'])
-    
-    if start_date:
-        # THE FIX: Using __gte on the raw datetime bypasses the SQLite date bug!
-        top_items_base = top_items_base.filter(transaction__date_created__gte=start_date)
-
-    # Group by item name, sum the quantities, and grab the top 5
-    top_products_qs = top_items_base.values('inventory_item__item_name').annotate(total_sold=Sum('quantity')).order_by('-total_sold')[:5]
-    
-    donut_labels = [p['inventory_item__item_name'] for p in top_products_qs]
-    donut_data = [float(p['total_sold']) for p in top_products_qs]
-
-    # --- 6. ACTIONABLE LISTS ---
-    low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
-    unpaid_invoices = Invoice.objects.filter(status='unpaid').order_by('due_date')[:5]
-
-    metrics = {
-        'total_sales': total_sales,
-        'total_outflow': total_outflow,
-        'net_profit': net_profit,
-        'invoice_due': invoice_due,
-        'current_filter': date_filter,
-    }
-
-    context = {
-        'metrics': metrics,
-        'low_stock_items': low_stock_items,
-        'top_products': top_products_qs,
-        'unpaid_invoices': unpaid_invoices,
-        'chart_labels': json.dumps(chart_labels),
-        'chart_sales_data': json.dumps(chart_sales_data),
-        'chart_outflow_data': json.dumps(chart_outflow_data),
-        'chart_profit_data': json.dumps(chart_profit_data),
-        'donut_labels': json.dumps(donut_labels),
-        'donut_data': json.dumps(donut_data),
-    }
-
-    return render(request, 'dashboard/dashboard.html', context)
-
-@login_required
-def delete_user(request, user_id):
-    if not request.user.is_superuser:
-        messages.error(request, "Access denied.")
-        return redirect('security:register')
-
-    # Hanapin ang user gamit ang tamang tool
-    user_to_delete = get_object_or_404(User, id=user_id)
-    
-    if user_to_delete == request.user:
-        messages.error(request, "You cannot delete yourself.")
-    else:
-        username_deleted = user_to_delete.username
-        user_to_delete.delete()
-
-        log_system_activity(
-            user=request.user,
-            action="DELETE USER",
-            description=f"Deleted user account: '{username_deleted}'"
-        )
-        
-        messages.success(request, f"User '{username_deleted}' deleted.")
-        
-    # Redirect pabalik sa User Management page
-    return redirect('security:register')
 
 @login_required
 def supplier_list(request):
-    # Handle Adding a New Supplier (POST)
     if request.method == 'POST':
         name = request.POST.get('name')
         contact_name = request.POST.get('contact_name')
@@ -727,14 +477,11 @@ def supplier_list(request):
             
         return redirect('inventory:supplier_list')
 
-    # --- GET REQUEST (SEARCH, PAGINATION) ---
     search_query = request.GET.get('search', '').strip()
     per_page = request.GET.get('per_page', 10)
 
-    # 1. Base Query (Naka-filter na sa active suppliers lang)
     suppliers = Supplier.objects.filter(is_active=True).order_by('name')
     
-    # 2. Search Filter
     if search_query:
         suppliers = suppliers.filter(
             Q(name__icontains=search_query) |
@@ -743,7 +490,6 @@ def supplier_list(request):
             Q(email__icontains=search_query)
         )
         
-    # 3. Pagination Setup
     try:
         per_page = int(per_page)
     except ValueError:
@@ -759,13 +505,49 @@ def supplier_list(request):
         'per_page': per_page,
     })
 
-# BAGONG VIEW PARA SA ARCHIVED SUPPLIERS
+@login_required
+def edit_supplier(request, supplier_id):
+    supplier = get_object_or_404(Supplier, id=supplier_id)
+    
+    if request.method == 'POST':
+        supplier.save()
+        
+        for product in InventoryItem.objects.filter(supplier=supplier):
+            product.save()
+
+        log_system_activity(
+            user=request.user,
+            action="EDIT SUPPLIER",
+            description=f"Updated details for supplier: '{supplier.name}'"
+        )
+        messages.success(request, f"Supplier '{supplier.name}' updated! All associated product reorder points have been instantly recalculated.")
+        return redirect('inventory:supplier_list')
+    
+    return render(request, 'inventory/edit_supplier.html', {
+        'supplier': supplier
+    })
+
+@login_required
+def delete_supplier(request, supplier_id):
+    if request.method == 'POST':
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        supplier.is_active = False
+        supplier.save()
+
+        log_system_activity(
+            user=request.user,
+            action="ARCHIVE SUPPLIER",
+            description=f"Archived supplier '{supplier.name}'"
+        )
+        messages.success(request, f"Supplier '{supplier.name}' has been archived and hidden from the system.")
+            
+    return redirect('inventory:supplier_list')
+
 @login_required
 def archived_supplier_list(request):
     search_query = request.GET.get('search', '').strip()
     per_page = request.GET.get('per_page', 10)
 
-    # Filter para sa archived suppliers
     suppliers = Supplier.objects.filter(is_active=False).order_by('name')
     
     if search_query:
@@ -791,16 +573,13 @@ def archived_supplier_list(request):
         'per_page': per_page,
     })
 
-# I-update ang redirection ng unarchive
 @login_required
 def unarchive_supplier(request, supplier_id):
     if request.method == 'POST':
         supplier = get_object_or_404(Supplier, id=supplier_id)
-        
         supplier.is_active = True
         supplier.save()
 
-        # Assuming log_system_activity is imported
         log_system_activity(
             user=request.user,
             action="RESTORE SUPPLIER",
@@ -808,9 +587,14 @@ def unarchive_supplier(request, supplier_id):
         )
         messages.success(request, f"Supplier '{supplier.name}' has been restored.")
             
-    # I-redirect pabalik sa archived page imbes na sa main list
     return redirect('inventory:archived_supplier_list')
 
+@login_required
+def po_list(request):
+    purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
+    return render(request, 'inventory/po_list.html', {
+        'purchase_orders': purchase_orders
+    })
 
 @login_required
 def create_po(request):
@@ -823,8 +607,6 @@ def create_po(request):
         unit_costs = request.POST.getlist('unit_cost[]')
         
         supplier = get_object_or_404(Supplier, id=supplier_id)
-        
-        # Adviser Fix: If no date is provided, use 7-day fallback
         fallback_date = timezone.now().date() + timezone.timedelta(days=7)
         action = request.POST.get('action')
         po_status = 'pending' if action == 'submit_po' else 'draft'
@@ -832,11 +614,10 @@ def create_po(request):
         po = PurchaseOrder.objects.create(
             supplier=supplier,
             expected_delivery=expected_delivery if expected_delivery else fallback_date,
-            status=po_status # Officially saving it as an order!
+            status=po_status
         )
         
         total_amount = Decimal('0.00')
-        
         for i in range(len(product_ids)):
             if product_ids[i] and quantities[i] and unit_costs[i]:
                 product = get_object_or_404(InventoryItem, id=product_ids[i])
@@ -853,6 +634,7 @@ def create_po(request):
                 
         po.total_amount = total_amount
         po.save()
+        
         if po_status == 'draft':
             log_system_activity(user=request.user, action="DRAFT PO", description=f"Drafted PO for {supplier.name}.")
             messages.success(request, f"Draft saved successfully for {supplier.name}.")
@@ -861,8 +643,7 @@ def create_po(request):
             log_system_activity(user=request.user, action="GENERATE PO", description=f"Generated PO {po.po_number} for {supplier.name}.")
             messages.success(request, f"Purchase Order {po.po_number} officially generated!")
             return redirect('inventory:create_po')
- 
-    # --- GET REQUEST: LOAD FORM OR AUTO-FILL DRAFT ---
+
     suppliers = Supplier.objects.filter(is_active=True)
     products = InventoryItem.objects.all().order_by('item_name')
     
@@ -870,7 +651,6 @@ def create_po(request):
     auto_items = []
     fallback_date_str = (timezone.now().date() + timezone.timedelta(days=7)).strftime('%Y-%m-%d')
 
-    # 1. Calculate which items actually need restocking
     low_stock_qs = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
         incoming_qty=Coalesce(
             Sum(
@@ -883,25 +663,21 @@ def create_po(request):
         effective_qty=F('quantity') + F('incoming_qty')
     ).filter(effective_qty__lte=F('reorder_point'))
 
-    # 2. Group them by supplier to pass to the template dropdown
     suppliers_needing_restock = (
-    low_stock_qs
-    .values('supplier__id', 'supplier__name')
-    .annotate(item_count=Count('id', distinct=True))
-    .order_by('supplier__id')          # stable sort before dedup
-    .distinct()                        # drop any duplicate supplier rows
-    .order_by('-item_count')           # then re-sort by most items
-)
+        low_stock_qs
+        .values('supplier__id', 'supplier__name')
+        .annotate(item_count=Count('id', distinct=True))
+        .order_by('supplier__id')
+        .distinct()
+        .order_by('-item_count')
+    )
 
-
-    # 3. Process the Auto-Draft request for a SPECIFIC supplier
     if request.GET.get('auto') == 'true':
         target_supplier_id = request.GET.get('supplier_id')
 
         if target_supplier_id:
             auto_supplier_id = int(target_supplier_id)
         else:
-            # Fallback if they click a generic link: pick the one with most items
             top_supplier = suppliers_needing_restock.first()
             if top_supplier:
                 auto_supplier_id = int(top_supplier['supplier__id'])
@@ -954,132 +730,14 @@ def create_po(request):
         'auto_items': auto_items,
         'fallback_date_str': fallback_date_str,
         'purchase_orders': purchase_orders,
-        'suppliers_needing_restock': suppliers_needing_restock # Passed to template
+        'suppliers_needing_restock': suppliers_needing_restock
     })
-
-@login_required
-def po_list(request):
-    # Fetch all Purchase Orders, ordered by newest first
-    purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
-    
-    return render(request, 'inventory/po_list.html', {
-        'purchase_orders': purchase_orders
-    })
-
-@transaction.atomic
-def receive_po(request, po_id):
-    po = get_object_or_404(PurchaseOrder, id=po_id)
-    
-    # Safety check: Only process if it's currently pending
-    if po.status != 'pending':
-        messages.error(request, "This order has already been processed or cancelled.")
-        return redirect('inventory:create_po')
-        
-    for item in po.items.all():
-        product = item.product
-        
-        # --- SAFE COSTING: Weighted Average Cost (WAC) ---
-        current_qty = Decimal(product.quantity)
-        ordered_qty = Decimal(item.quantity_ordered)
-        
-        current_total_value = current_qty * product.unit_cost
-        new_delivery_value = ordered_qty * item.unit_cost
-        
-        new_total_quantity = current_qty + ordered_qty
-        
-        if new_total_quantity > 0:
-            new_average_cost = (current_total_value + new_delivery_value) / new_total_quantity
-            product.unit_cost = round(new_average_cost, 2)
-            
-        # Add the new stock
-        product.quantity += item.quantity_ordered
-        product.save()
-        
-        # Mark the PO item as fully received
-        item.quantity_received = item.quantity_ordered
-        item.save()
-        
-    # Mark the entire Purchase Order as complete
-    po.status = 'received'
-    po.save()
-
-    log_system_activity(
-        user=request.user,
-        action="RECEIVE PO",
-        description=f"Received delivery for PO {po.po_number}. Inventory stock and average costs updated."
-    )
-    messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been safely updated.")
-    return redirect('inventory:create_po')
-
-@login_required
-def edit_supplier(request, supplier_id):
-    supplier = get_object_or_404(Supplier, id=supplier_id)
-    
-    if request.method == 'POST':
-        # ... (updating fields)
-        supplier.save()
-        
-        for product in InventoryItem.objects.filter(supplier=supplier):
-            product.save()
-
-        # DITO DAPAT SA LOOB NG POST, BAGO MAG-REDIRECT
-        log_system_activity(
-            user=request.user,
-            action="EDIT SUPPLIER",
-            description=f"Updated details for supplier: '{supplier.name}'"
-        )
-        messages.success(request, f"Supplier '{supplier.name}' updated! All associated product reorder points have been instantly recalculated.")
-        
-        return redirect('inventory:supplier_list')
-    
-    # Render GET Request
-    return render(request, 'inventory/edit_supplier.html', {
-        'supplier': supplier
-    })
-
-@login_required
-def delete_supplier(request, supplier_id):
-    if request.method == 'POST':
-        supplier = get_object_or_404(Supplier, id=supplier_id)
-        
-        # Soft Delete: Just mark them as inactive instead of wiping the data!
-        supplier.is_active = False
-        supplier.save()
-
-        log_system_activity(
-            user=request.user,
-            action="ARCHIVE SUPPLIER",
-            description=f"Archived supplier '{supplier.name}'"
-        )
-        messages.success(request, f"Supplier '{supplier.name}' has been archived and hidden from the system.")
-            
-    return redirect('inventory:supplier_list')
-
-@login_required
-def unarchive_supplier(request, supplier_id):
-    if request.method == 'POST':
-        supplier = get_object_or_404(Supplier, id=supplier_id)
-        
-        # Restore the supplier!
-        supplier.is_active = True
-        supplier.save()
-
-        log_system_activity(
-            user=request.user,
-            action="RESTORE SUPPLIER",
-            description=f"Restored archived supplier '{supplier.name}'"
-        )
-        messages.success(request, f"Supplier '{supplier.name}' has been restored and is active again.")
-            
-    return redirect('inventory:supplier_list')
 
 @login_required
 def edit_po(request, po_id):
-    """Loads a specific Purchase Order into the Hub for Editing/Viewing."""
     target_po = get_object_or_404(PurchaseOrder, id=po_id)
     
     if request.method == 'POST':
-        # Safety Lock: We only allow edits if the items haven't been delivered yet!
         if target_po.status == 'draft':
             supplier_id = request.POST.get('supplier')
             if supplier_id:
@@ -1089,7 +747,6 @@ def edit_po(request, po_id):
             if expected_delivery:
                 target_po.expected_delivery = expected_delivery
             
-            # Rebuild the items list completely so they can add/remove rows easily
             target_po.items.all().delete()
             
             product_ids = request.POST.getlist('product_id[]')
@@ -1127,19 +784,16 @@ def edit_po(request, po_id):
                 log_system_activity(user=request.user, action="EDIT DRAFT PO", description=f"Updated Draft PO {target_po.po_number}.")
                 messages.success(request, f"Draft {target_po.po_number} successfully updated!")
                 return redirect('inventory:edit_po', po_id=target_po.id)
-        else: # NEW: Add an error message if they somehow try to force a save
+        else:
             messages.error(request, "This order is already being processed and cannot be edited.")
         return redirect('inventory:edit_po', po_id=target_po.id)
 
-    # GET Request: Load the UI
     purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
     suppliers = Supplier.objects.filter(is_active=True)
     products = InventoryItem.objects.all().order_by('item_name')
     
-    # Safely format the date for the HTML date picker
     formatted_date = target_po.expected_delivery.strftime('%Y-%m-%d') if target_po.expected_delivery else ''
 
-    # --- REPLACED PENDING DRAFT COUNT WITH THE NEW DROPDOWN LOGIC ---
     low_stock_qs = InventoryItem.objects.exclude(supplier__isnull=True).annotate(
         incoming_qty=Coalesce(
             Sum(
@@ -1153,14 +807,13 @@ def edit_po(request, po_id):
     ).filter(effective_qty__lte=F('reorder_point'))
 
     suppliers_needing_restock = (
-    low_stock_qs
-    .values('supplier__id', 'supplier__name')
-    .annotate(item_count=Count('id', distinct=True))
-    .order_by('supplier__id')          # stable sort before dedup
-    .distinct()                        # drop any duplicate supplier rows
-    .order_by('-item_count')           # then re-sort by most items
-)
-    # ----------------------------------------------------------------
+        low_stock_qs
+        .values('supplier__id', 'supplier__name')
+        .annotate(item_count=Count('id', distinct=True))
+        .order_by('supplier__id')
+        .distinct()
+        .order_by('-item_count')
+    )
 
     return render(request, 'inventory/create_po.html', {
         'purchase_orders': purchase_orders,
@@ -1169,12 +822,52 @@ def edit_po(request, po_id):
         'target_po': target_po,
         'edit_mode': True,
         'formatted_date': formatted_date,
-        'suppliers_needing_restock': suppliers_needing_restock # <--- Updated context variable
+        'suppliers_needing_restock': suppliers_needing_restock
     })
 
 @login_required
+@transaction.atomic
+def receive_po(request, po_id):
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    
+    if po.status != 'pending':
+        messages.error(request, "This order has already been processed or cancelled.")
+        return redirect('inventory:create_po')
+        
+    for item in po.items.all():
+        product = item.product
+        
+        current_qty = Decimal(product.quantity)
+        ordered_qty = Decimal(item.quantity_ordered)
+        
+        current_total_value = current_qty * product.unit_cost
+        new_delivery_value = ordered_qty * item.unit_cost
+        
+        new_total_quantity = current_qty + ordered_qty
+        
+        if new_total_quantity > 0:
+            new_average_cost = (current_total_value + new_delivery_value) / new_total_quantity
+            product.unit_cost = round(new_average_cost, 2)
+            
+        product.quantity += item.quantity_ordered
+        product.save()
+        
+        item.quantity_received = item.quantity_ordered
+        item.save()
+        
+    po.status = 'received'
+    po.save()
+
+    log_system_activity(
+        user=request.user,
+        action="RECEIVE PO",
+        description=f"Received delivery for PO {po.po_number}. Inventory stock and average costs updated."
+    )
+    messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been safely updated.")
+    return redirect('inventory:create_po')
+
+@login_required
 def delete_po(request, po_id):
-    """Cancels a drafted or pending Purchase Order instead of deleting it."""
     po = get_object_or_404(PurchaseOrder, id=po_id)
     
     if po.status in ['draft', 'pending']:
@@ -1194,57 +887,66 @@ def delete_po(request, po_id):
     return redirect('inventory:create_po')
 
 @login_required
-def auto_calibrate_rop(request):
-    days = int(request.GET.get('days', 7))
-    days = max(7, min(days, 365))
-
-    lookback = timezone.now() - timedelta(days=days)
-    items = InventoryItem.objects.all()
-    updated_count = 0
-
-    for item in items:
-        sales = TransactionItem.objects.filter(
-            inventory_item=item,
-            transaction__status__in=['completed', 'paid'],
-            transaction__date_created__gte=lookback
-        )
-
-        daily_sales_dict = {}
-        for sale in sales:
-            date_str = sale.transaction.date_created.strftime('%Y-%m-%d')
-            daily_sales_dict[date_str] = daily_sales_dict.get(date_str, 0) + sale.quantity
-
-        if daily_sales_dict:
-            total_sales = sum(daily_sales_dict.values())
-            active_days = len(daily_sales_dict)  # Only days that actually had sales
-
-            # Use active days for average so blank days don't drag it down
-            item.average_daily_sales = float(total_sales) / float(active_days)
-            item.max_daily_sales = float(max(daily_sales_dict.values()))
-            item.save()
-            updated_count += 1
-
-    log_system_activity(
-        user=request.user,
-        action="AUTO CALIBRATE",
-        description=f"Auto-calibrated ROP for {updated_count} items based on last {days} days of sales (blank days excluded)."
-    )
-    messages.success(request, f"Done! ROP updated for {updated_count} items. Blank days were excluded from the average so your numbers stay accurate.")
-    return redirect('inventory:inventory_list')
-
-@login_required
 def print_po(request, po_id):
-    """Generates a clean, printable A4 HTML view of the Purchase Order."""
     po = get_object_or_404(PurchaseOrder, id=po_id)
     return render(request, 'inventory/print_po.html', {'po': po})
 
 @login_required
-def delete_generated_barcode(request, pk):
-    """Deletes a generated barcode from the history list."""
+def barcode_module_view(request):
+    context = {}
+    
     if request.method == 'POST':
-        # Import GeneratedBarcode if you haven't globally
-        from .models import GeneratedBarcode 
+        product_name = request.POST.get('product_name', '').strip()
         
+        if product_name:
+            in_history = GeneratedBarcode.objects.filter(product_name__iexact=product_name).exists()
+            in_inventory = InventoryItem.objects.filter(item_name__iexact=product_name).exists()
+            
+            if in_history or in_inventory:
+                messages.error(request, f"Cannot generate: The product '{product_name}' already exists in your Inventory or Barcode History.")
+            else:
+                full_barcode = generate_unique_barcode() 
+                today_str = timezone.now().strftime('%Y%m%d')
+                manual_batch_id = f"MA{today_str}"
+                
+                GeneratedBarcode.objects.create(
+                    barcode_id=full_barcode,
+                    product_name=product_name,
+                    batch_id=manual_batch_id
+                )
+                
+                log_system_activity(
+                    user=request.user,
+                    action="GENERATE BARCODE",
+                    description=f"Generated new barcode ({full_barcode}) for '{product_name}'"
+                )
+
+                context['barcode_id'] = full_barcode
+                context['product_name'] = product_name
+                messages.success(request, f"Barcode generated successfully for '{product_name}'!")
+        else:
+            messages.error(request, "Product name is required to generate a barcode.")
+
+    history_list = GeneratedBarcode.objects.all().order_by('-created_at')
+    
+    per_page = request.GET.get('per_page', 10)
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
+        
+    paginator = Paginator(history_list, per_page)
+    page_number = request.GET.get('page', 1)
+    history_page = paginator.get_page(page_number)
+    
+    context['history'] = history_page
+    context['per_page'] = per_page
+
+    return render(request, 'inventory/generate_barcode.html', context)
+
+@login_required
+def delete_generated_barcode(request, pk):
+    if request.method == 'POST':
         barcode_record = get_object_or_404(GeneratedBarcode, pk=pk)
         product_name = barcode_record.product_name
         barcode_record.delete()
@@ -1258,14 +960,16 @@ def delete_generated_barcode(request, pk):
     return redirect('inventory:generate_barcode_page')
 
 @login_required
-def employee_dashboard_view(request):
-    # 1. SECURITY REDIRECT: Kung Admin ang nakalog-in, itapon pabalik sa admin dashboard
-    if getattr(request.user, "role", "employee") == "admin":
-        return redirect('admin_dashboard')
+def fetch_barcode_batch(request, batch_id):
+    barcodes = GeneratedBarcode.objects.filter(batch_id=batch_id).values('barcode_id', 'product_name')
+    return JsonResponse({'status': 'success', 'barcodes': list(barcodes)})
 
+@login_required
+def admin_dashboard_view(request):
+    if getattr(request.user, "role", "employee") != "admin":
+        return redirect('employee_dashboard')
     today = timezone.now().date()
     
-    # --- 2. GLOBAL DATE FILTER LOGIC ---
     date_filter = request.GET.get('filter', 'all_time')
     if date_filter == 'today': start_date = today
     elif date_filter == 'this_week': start_date = today - timedelta(days=today.weekday())
@@ -1273,24 +977,15 @@ def employee_dashboard_view(request):
     elif date_filter == 'this_year': start_date = today.replace(month=1, day=1)
     else: start_date = None 
 
-    # --- 3. BASE QUERIES ---
     tx_base = Transaction.objects.filter(status__in=['completed', 'paid'])
     po_base = PurchaseOrder.objects.filter(status='received')
-    invoice_base = Invoice.objects.all()
-    expense_base = None
-
-    try:
-        from reports_analytics.models import Expense
-        expense_base = Expense.objects.all()
-    except ImportError:
-        pass
+    expense_base = Expense.objects.all()
 
     if start_date:
         tx_base = tx_base.filter(date_created__date__gte=start_date)
         po_base = po_base.filter(order_date__gte=start_date)
         if expense_base is not None: expense_base = expense_base.filter(expense_date__gte=start_date)
 
-    # --- 4. CORE METRICS CALCULATION ---
     total_sales = tx_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
     total_purchase = po_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
     sales_return = SalesReturn.objects.aggregate(t=Coalesce(Sum('total_refund'), Decimal('0.00'), output_field=DecimalField()))['t']
@@ -1303,7 +998,6 @@ def employee_dashboard_view(request):
     total_outflow = total_purchase + expenses
     net_profit = total_sales - total_outflow - sales_return
 
-    # --- 5. ADVANCED CHART DATA (7-Day Financials) ---
     chart_labels = []
     chart_sales_data = []
     chart_outflow_data = []
@@ -1311,7 +1005,7 @@ def employee_dashboard_view(request):
 
     for i in range(6, -1, -1):
         current_day = today - timedelta(days=i)
-        next_day = current_day + timedelta(days=1) 
+        next_day = current_day + timedelta(days=1)
         
         chart_labels.append(current_day.strftime('%b %d'))
         
@@ -1341,7 +1035,6 @@ def employee_dashboard_view(request):
         chart_outflow_data.append(float(d_outflow))
         chart_profit_data.append(float(d_profit))
 
-    # --- 6. TOP PRODUCTS DOUGHNUT CHART ---
     top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'credit'])
     if start_date:
         top_items_base = top_items_base.filter(transaction__date_created__gte=start_date)
@@ -1351,7 +1044,6 @@ def employee_dashboard_view(request):
     donut_labels = [p['inventory_item__item_name'] for p in top_products_qs]
     donut_data = [float(p['total_sold']) for p in top_products_qs]
 
-    # --- 7. ACTIONABLE LISTS ---
     low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
     unpaid_invoices = Invoice.objects.filter(status='unpaid').order_by('due_date')[:5]
 
@@ -1363,7 +1055,113 @@ def employee_dashboard_view(request):
         'current_filter': date_filter,
     }
 
-    # --- 8. IPASA ANG CONTEXT SA EMPLOYEE TEMPLATE ---
+    context = {
+        'metrics': metrics,
+        'low_stock_items': low_stock_items,
+        'top_products': top_products_qs,
+        'unpaid_invoices': unpaid_invoices,
+        'chart_labels': json.dumps(chart_labels),
+        'chart_sales_data': json.dumps(chart_sales_data),
+        'chart_outflow_data': json.dumps(chart_outflow_data),
+        'chart_profit_data': json.dumps(chart_profit_data),
+        'donut_labels': json.dumps(donut_labels),
+        'donut_data': json.dumps(donut_data),
+    }
+
+    return render(request, 'dashboard/dashboard.html', context)
+
+@login_required
+def employee_dashboard_view(request):
+    if getattr(request.user, "role", "employee") == "admin":
+        return redirect('admin_dashboard')
+
+    today = timezone.now().date()
+    
+    date_filter = request.GET.get('filter', 'all_time')
+    if date_filter == 'today': start_date = today
+    elif date_filter == 'this_week': start_date = today - timedelta(days=today.weekday())
+    elif date_filter == 'this_month': start_date = today.replace(day=1)
+    elif date_filter == 'this_year': start_date = today.replace(month=1, day=1)
+    else: start_date = None 
+
+    tx_base = Transaction.objects.filter(status__in=['completed', 'paid'])
+    po_base = PurchaseOrder.objects.filter(status='received')
+    expense_base = Expense.objects.all()
+
+    if start_date:
+        tx_base = tx_base.filter(date_created__date__gte=start_date)
+        po_base = po_base.filter(order_date__gte=start_date)
+        if expense_base is not None: expense_base = expense_base.filter(expense_date__gte=start_date)
+
+    total_sales = tx_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    total_purchase = po_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    sales_return = SalesReturn.objects.aggregate(t=Coalesce(Sum('total_refund'), Decimal('0.00'), output_field=DecimalField()))['t']
+    invoice_due = Invoice.objects.filter(status='unpaid').aggregate(t=Coalesce(Sum('balance_due'), Decimal('0.00'), output_field=DecimalField()))['t']
+    
+    expenses = Decimal('0.00')
+    if expense_base is not None:
+        expenses = expense_base.aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+
+    total_outflow = total_purchase + expenses
+    net_profit = total_sales - total_outflow - sales_return
+
+    chart_labels = []
+    chart_sales_data = []
+    chart_outflow_data = []
+    chart_profit_data = []
+
+    for i in range(6, -1, -1):
+        current_day = today - timedelta(days=i)
+        next_day = current_day + timedelta(days=1)
+        
+        chart_labels.append(current_day.strftime('%b %d'))
+        
+        d_sales = Transaction.objects.filter(
+            date_created__gte=current_day,
+            date_created__lt=next_day,
+            status__in=['completed', 'credit']
+        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+        
+        d_purchases = PurchaseOrder.objects.filter(
+            status='received', 
+            order_date__gte=current_day,
+            order_date__lt=next_day
+        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+        
+        d_expenses = Decimal('0.00')
+        if expense_base is not None:
+            d_expenses = expense_base.filter(
+                expense_date__gte=current_day,
+                expense_date__lt=next_day
+            ).aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+            
+        d_outflow = d_purchases + d_expenses
+        d_profit = d_sales - d_outflow
+
+        chart_sales_data.append(float(d_sales))
+        chart_outflow_data.append(float(d_outflow))
+        chart_profit_data.append(float(d_profit))
+
+    top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'credit'])
+    if start_date:
+        top_items_base = top_items_base.filter(transaction__date_created__gte=start_date)
+
+    top_products_qs = top_items_base.values('inventory_item__item_name').annotate(total_sold=Sum('quantity')).order_by('-total_sold')[:5]
+    
+    donut_labels = [p['inventory_item__item_name'] for p in top_products_qs]
+    donut_data = [float(p['total_sold']) for p in top_products_qs]
+
+    low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
+    unpaid_invoices = Invoice.objects.filter(status='unpaid').order_by('due_date')[:5]
+
+    metrics = {
+        'total_sales': total_sales,
+        'total_outflow': total_outflow,
+        'net_profit': net_profit,
+        'invoice_due': invoice_due,
+        'current_filter': date_filter,
+    }
+
     context = {
         'metrics': metrics,
         'low_stock_items': low_stock_items,
@@ -1380,7 +1178,24 @@ def employee_dashboard_view(request):
     return render(request, 'dashboard/employee_dashboard.html', context)
 
 @login_required
-def fetch_barcode_batch(request, batch_id):
-    """Kinukuha ang barcodes as JSON para i-print directly sa frontend."""
-    barcodes = GeneratedBarcode.objects.filter(batch_id=batch_id).values('barcode_id', 'product_name')
-    return JsonResponse({'status': 'success', 'barcodes': list(barcodes)})
+def delete_user(request, user_id):
+    if not request.user.is_superuser:
+        messages.error(request, "Access denied.")
+        return redirect('security:register')
+
+    user_to_delete = get_object_or_404(User, id=user_id)
+    
+    if user_to_delete == request.user:
+        messages.error(request, "You cannot delete yourself.")
+    else:
+        username_deleted = user_to_delete.username
+        user_to_delete.delete()
+
+        log_system_activity(
+            user=request.user,
+            action="DELETE USER",
+            description=f"Deleted user account: '{username_deleted}'"
+        )
+        messages.success(request, f"User '{username_deleted}' deleted.")
+        
+    return redirect('security:register')

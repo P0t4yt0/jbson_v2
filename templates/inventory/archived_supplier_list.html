@@ -7,7 +7,6 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    /* GLASSMORPHISM PANELS */
     .table-container, .filter-container {
         background: rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(12px);
@@ -27,7 +26,6 @@
         margin-bottom: 24px;
     }
     
-    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -42,7 +40,6 @@
         transition: background-color 0.2s ease;
     }
 
-    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
     .table-clean tbody tr:hover td {
         background-color: rgba(255, 255, 255, 0.6);
     }
@@ -56,7 +53,6 @@
         border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
     
-    /* ACTION BUTTONS WITH HOVER EFFECTS */
     .action-group { display: flex; gap: 8px; align-items: center; justify-content: flex-start; }
     
     .table-action-btn {
@@ -86,7 +82,6 @@
     .table-action-btn.disabled { opacity: 0.5; cursor: not-allowed; }
     .table-action-btn.disabled:hover { transform: none; box-shadow: none; background-color: rgba(255, 255, 255, 0.9); color: var(--text-secondary); border-color: #e2e8f0; }
 
-    /* FORM & FILTER STYLES */
     .filter-form-wrapper {
         display: flex; gap: 16px; align-items: center; margin: 0; flex-wrap: wrap; width: 100%;
     }
@@ -152,7 +147,6 @@
         transform: translateY(-2px);
     }
 
-    /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
         justify-content: space-between;
@@ -288,7 +282,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Handle Django Messages
         {% if messages %}
             {% for message in messages %}
                 let iconType = 'info';
@@ -306,7 +299,6 @@
             {% endfor %}
         {% endif %}
 
-        // SweetAlert for Restore Confirmation
         const restoreButtons = document.querySelectorAll('.restore-btn');
         restoreButtons.forEach(button => {
             button.addEventListener('click', function() {

@@ -1,64 +1,41 @@
-"""
-security/views.py
-─────────────────────────────────────────────────────────────────────────────
-Security Module – Authentication Views
-Product Management System with POS for JBSON Hardware
-
-Handles:
-  - User Login  (GET renders form / POST authenticates via Django's bcrypt hasher)
-  - User Logout
-  - Role-based redirect after login:
-      • Administrator  → /dashboard/admin/
-      • Employee       → /dashboard/employee/
-─────────────────────────────────────────────────────────────────────────────
-"""
-
-import json  # <--- IDAGDAG ITO SA PINAKATAAS
+import json
 import logging
-import os
-import re # We need this to check password rules
-from urllib import request
+import re
+from functools import wraps
+from datetime import timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.contrib.auth.hashers import check_password
+from django.core.paginator import Paginator
+from django.db import connection
+from django.db.models import Sum, DecimalField, F
+from django.db.models.functions import Coalesce
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
-from django.core.paginator import Paginator
-from django.db.models import Sum, DecimalField, F
-from django.urls import reverse
-from django.shortcuts import render, redirect, get_object_or_404
-from notifications.models import Notification
-from django.conf import settings
-from django.db import connection
 
-# IMPORT NG MODELS: Pinagsama na natin ang ActivityLog at EmployeeProfile dito!
-from .models import ActivityLog, EmployeeProfile
-
-from django.db.models import Sum, DecimalField
-from django.db.models.functions import Coalesce
-from point_of_sale.models import Transaction
+from activity_log.utils import log_system_activity
 from billing_payment.models import SalesReturn
 from inventory.models import InventoryItem
-from datetime import timedelta
-from activity_log.utils import log_system_activity
-from functools import wraps
+from notifications.models import Notification
+from point_of_sale.models import Transaction
+from .models import ActivityLog, EmployeeProfile
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
-# ─────────────────────────────────────────────────────────────────────────────
-# Helpers
-# ─────────────────────────────────────────────────────────────────────────────
-  # <-- Idagdag ito
+
 def settings_access_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        role = getattr(request.user, "role", "employee").lower()
+        role = getattr(request.user, 'role', 'employee').lower()
         
-        # Admin bypasses this check
-        if role == "employee" and not request.user.is_superuser:
+        if role == 'employee' and not request.user.is_superuser:
             profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
             
             if not profile.has_valid_settings_access:
@@ -69,7 +46,6 @@ def settings_access_required(view_func):
                     profile.save()
                     was_expired = True
                 
-                # Render blocked page
                 return render(request, 'dashboard/settings_access_request.html', {
                     'profile': profile,
                     'was_expired': was_expired
@@ -79,18 +55,12 @@ def settings_access_required(view_func):
     return _wrapped_view
 
 def _get_client_ip(request):
-    """Extract the real client IP, respecting reverse-proxy headers."""
-    x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded:
-        return x_forwarded.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "unknown")
+        return x_forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', 'unknown')
 
- 
 def _log_activity(user, action: str, description: str, request=None):
-    """
-    Persist a record to the ActivityLog table.
-    Silently ignores failures so auth flow is never blocked.
-    """
     try:
         ActivityLog.objects.create(
             user=user,
@@ -99,68 +69,51 @@ def _log_activity(user, action: str, description: str, request=None):
             ip_address=_get_client_ip(request) if request else None,
             timestamp=timezone.now(),
         )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("ActivityLog write failed: %s", exc)
-
+    except Exception as exc:
+        logger.warning('ActivityLog write failed: %s', exc)
 
 def _role_redirect_url(user) -> str:
-    """
-    Return the appropriate dashboard URL based on the user's role.
-    """
-   
-    if getattr(user, "role", "employee") == "admin":
-        return "/dashboard/admin/"
-    
-    return "/pos/" 
-
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Login View
-# ─────────────────────────────────────────────────────────────────────────────
+    if getattr(user, 'role', 'employee') == 'admin':
+        return '/dashboard/admin/'
+    return '/pos/'
 
 @never_cache
-@require_http_methods(["GET", "POST"])
+@require_http_methods(['GET', 'POST'])
 def login_view(request):
     if request.user.is_authenticated:
         return redirect(_role_redirect_url(request.user))
 
-    if request.method == "GET":
-        return render(request, "security/login.html")
+    if request.method == 'GET':
+        return render(request, 'security/login.html')
 
-    username = request.POST.get("username", "").strip()
-    password = request.POST.get("password", "")
+    username = request.POST.get('username', '').strip()
+    password = request.POST.get('password', '')
 
     if not username or not password:
-        messages.error(request, "Please enter both username and password.")
-        return render(request, "security/login.html", status=400)
+        messages.error(request, 'Please enter both username and password.')
+        return render(request, 'security/login.html', status=400)
 
-    # 1. I-check kung tama ang username at password
     user = authenticate(request, username=username, password=password)
     
     if user is None:
-        logger.warning("Failed login attempt for username=%r ip=%s", username, _get_client_ip(request))
-        messages.error(request, "Invalid username or password. Please try again.")
-        return render(request, "security/login.html", status=401)
+        logger.warning('Failed login attempt for username=%r ip=%s', username, _get_client_ip(request))
+        messages.error(request, 'Invalid username or password. Please try again.')
+        return render(request, 'security/login.html', status=401)
 
-    # 2. I-check kung active pa ang account
     if not user.is_active:
-        messages.error(request, "Your account has been deactivated. Contact the administrator.")
-        return render(request, "security/login.html", status=403)
+        messages.error(request, 'Your account has been deactivated. Contact the administrator.')
+        return render(request, 'security/login.html', status=403)
 
-    # 3. I-log in ang user sa system
     login(request, user)
 
-    # 4. I-save sa Activity Log
     _log_activity(
         user=user,
-        action="LOGIN",
+        action='LOGIN',
         description=f"User '{user.username}' logged in successfully.",
         request=request,
     )
-    logger.info("Successful login: username=%r role=%r", user.username, getattr(user, "role", "N/A"))
+    logger.info('Successful login: username=%r role=%r', user.username, getattr(user, 'role', 'N/A'))
 
-    # 5. Dito na ang Dynamic Redirect natin
     if user.role == 'admin':
         return redirect('admin_dashboard') 
     elif user.role == 'employee':
@@ -168,69 +121,46 @@ def login_view(request):
         
     return redirect(_role_redirect_url(user))
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Logout View
-# ─────────────────────────────────────────────────────────────────────────────
-
 @login_required
-@require_http_methods(["GET", "POST"])
+@require_http_methods(['GET', 'POST'])
 def logout_view(request):
     user = request.user
 
     _log_activity(
         user=user,
-        action="LOGOUT",
+        action='LOGOUT',
         description=f"User '{user.username}' logged out.",
         request=request,
     )
 
     logout(request)
-    messages.success(request, "You have been logged out successfully.")
-    return redirect("security:login")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Registration View  (Admin-only)
-# ─────────────────────────────────────────────────────────────────────────────
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('security:login')
 
 @login_required
-@require_http_methods(["GET", "POST"])
+@require_http_methods(['GET', 'POST'])
 def register_view(request):
     from .forms import UserRegistrationForm
 
-    if getattr(request.user, "role", "employee") != "admin":
-        messages.error(request, "You do not have permission to access this page.")
+    if getattr(request.user, 'role', 'employee') != 'admin':
+        messages.error(request, 'You do not have permission to access this page.')
         return redirect(_role_redirect_url(request.user))
 
-    if request.method == "GET":
+    if request.method == 'GET':
         form = UserRegistrationForm()
-        return render(request, "security/register.html", {"form": form})
+        return render(request, 'security/register.html', {'form': form})
 
     form = UserRegistrationForm(request.POST)
     if form.is_valid():
         new_user = form.save(commit=False)
-        new_user.set_password(form.cleaned_data["password1"])
+        new_user.set_password(form.cleaned_data['password1'])
         new_user.save()
-
-        # TININGGAL NATIN ITO PARA HINDI MAG-DOBLE ANG LOG DAHIL MAY AUDITLOG NA SA MODELS.PY
-        # _log_activity(
-        #     user=request.user,
-        #     action="USER_CREATED",
-        #     description=f"Admin '{request.user.username}' created account '{new_user.username}' with role '{new_user.role}'.",
-        #     request=request,
-        # )
-
         messages.success(request, f"Account for '{new_user.username}' created successfully.")
-        return redirect("security:register")
+        return redirect('security:register')
 
-    return render(request, "security/register.html", {"form": form}, status=400)
+    return render(request, 'security/register.html', {'form': form}, status=400)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Account Recovery / Forgot Password View
-# ─────────────────────────────────────────────────────────────────────────────
-
-@require_http_methods(["GET", "POST"])
+@require_http_methods(['GET', 'POST'])
 def forgot_password_view(request):
     context = {'step': 'request'} 
     current_username = request.session.get('reset_username', None)
@@ -238,39 +168,30 @@ def forgot_password_view(request):
     if current_username:
         try:
             profile = EmployeeProfile.objects.get(user__username=current_username)
-            
-            # Kuhanin ang "check" parameter mula sa URL
             check_mode = request.GET.get('check') == 'status'
 
             if request.session.get('key_verified'):
                 context['step'] = 'set_new_password'
-            
             elif profile.reset_approved_by_admin:
                 context['step'] = 'verify_key'
-                # Kung galing sa button click, ipakita ang SUCCESS
                 if check_mode:
-                    messages.success(request, "Success! Request approved. Please enter the Recovery Key from your Admin.")
-            
+                    messages.success(request, 'Success! Request approved. Please enter the Recovery Key from your Admin.')
             elif profile.reset_requested:
                 context['step'] = 'pending_approval'
-                # Kung galing sa button click, ipakita ang PENDING error
                 if check_mode:
-                    messages.error(request, "Your request is still pending. Please contact your Admin for approval.")
-                    
+                    messages.error(request, 'Your request is still pending. Please contact your Admin for approval.')
         except EmployeeProfile.DoesNotExist:
             request.session.pop('reset_username', None)
 
-    if request.method == "POST":
-        action = request.POST.get("action")
+    if request.method == 'POST':
+        action = request.POST.get('action')
 
-        # ── FLOW 1: Request Reset ──────────────────────────────────────────
-        if action == "request_reset":
-            username = request.POST.get("username", "").strip()
+        if action == 'request_reset':
+            username = request.POST.get('username', '').strip()
             try:
                 user = User.objects.get(username=username)
                 profile, created = EmployeeProfile.objects.get_or_create(user=user)
                 
-                # THE FIX: I-set sa True ang request, at i-reset sa False ang approval
                 profile.reset_requested = True
                 profile.reset_approved_by_admin = False 
                 profile.save()
@@ -280,16 +201,15 @@ def forgot_password_view(request):
                 
                 _log_activity(
                     user=user,
-                    action="PASSWORD_RESET_REQUEST",
+                    action='PASSWORD_RESET_REQUEST',
                     description=f"User '{username}' requested a password reset.",
                     request=request,
                 )
 
                 admins = User.objects.filter(role='Admin', is_active=True)
-                
                 for admin_user in admins:
                     Notification.objects.create(
-                        user=admin_user,  # <-- THIS IS THE MAGIC KEY!
+                        user=admin_user,
                         notification_type='password_reset', 
                         priority='high',
                         title='Password Reset Request',
@@ -297,35 +217,30 @@ def forgot_password_view(request):
                         action_url=reverse('user_management')
                     )
 
-
-                messages.success(request, "Your request has been forwarded to the Administrator.")
+                messages.success(request, 'Your request has been forwarded to the Administrator.')
             except User.DoesNotExist:
-                messages.success(request, "If that username exists, a request has been forwarded to the Administrator.")
+                messages.success(request, 'If that username exists, a request has been forwarded to the Administrator.')
             
-            return redirect("security:forgot_password")
+            return redirect('security:forgot_password')
 
-        # ── FLOW 2: Verify Recovery Key
-        elif action == "verify_key":
-            input_key = request.POST.get("recovery_key", "").strip()
+        elif action == 'verify_key':
+            input_key = request.POST.get('recovery_key', '').strip()
             profile = EmployeeProfile.objects.get(user__username=current_username)
 
             if input_key == profile.recovery_key:
-                # Key is correct! Save to session so they stay on Step 4
                 request.session['key_verified'] = True
                 context['step'] = 'set_new_password'
-                messages.success(request, "Key verified! You may now create a new password.")
+                messages.success(request, 'Key verified! You may now create a new password.')
             else:
-                messages.error(request, "Invalid Recovery Key. Please check your spelling and try again.")
+                messages.error(request, 'Invalid Recovery Key. Please check your spelling and try again.')
                 context['step'] = 'verify_key'
 
-        # ── FLOW 3: Set New Password
-        elif action == "set_password":
-            new_password = request.POST.get("new_password")
-            confirm_password = request.POST.get("confirm_password")
+        elif action == 'set_password':
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
 
             if new_password and new_password == confirm_password:
                 user = User.objects.get(username=current_username)
-                
                 user.set_password(new_password)
                 user.save()
 
@@ -336,7 +251,7 @@ def forgot_password_view(request):
 
                 _log_activity(
                     user=user,
-                    action="PASSWORD_CHANGED",
+                    action='PASSWORD_CHANGED',
                     description=f"User '{user.username}' successfully reset their password via recovery key.",
                     request=request,
                 )
@@ -344,37 +259,29 @@ def forgot_password_view(request):
                 request.session.pop('reset_username', None)
                 request.session.pop('key_verified', None)
                 
-                messages.success(request, "Password successfully updated. You may now log in.")
-                return redirect("security:login")
+                messages.success(request, 'Password successfully updated. You may now log in.')
+                return redirect('security:login')
             else:
-                messages.error(request, "Passwords do not match. Please try again.")
+                messages.error(request, 'Passwords do not match. Please try again.')
                 context['step'] = 'set_new_password'
 
-    return render(request, "security/forgot_password.html", context)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Admin Review Requests View
-# ─────────────────────────────────────────────────────────────────────────────
+    return render(request, 'security/forgot_password.html', context)
 
 @login_required
-@require_http_methods(["GET", "POST"])
+@require_http_methods(['GET', 'POST'])
 def admin_review_resets_view(request):
-    """
-    Admin interface to review, approve, or reject employee password reset requests.
-    """
-    if getattr(request.user, "role", "employee") != "admin":
-        messages.error(request, "You do not have permission to access this page.")
+    if getattr(request.user, 'role', 'employee') != 'admin':
+        messages.error(request, 'You do not have permission to access this page.')
         return redirect(_role_redirect_url(request.user))
 
-    if request.method == "POST":
-        profile_id = request.POST.get("profile_id")
-        action = request.POST.get("action")
+    if request.method == 'POST':
+        profile_id = request.POST.get('profile_id')
+        action = request.POST.get('action')
         
         try:
             profile = EmployeeProfile.objects.get(id=profile_id)
             
-            if action == "approve":
+            if action == 'approve':
                 profile.reset_approved_by_admin = True
                 profile.save()
                 
@@ -385,42 +292,34 @@ def admin_review_resets_view(request):
                 
                 _log_activity(
                     user=request.user,
-                    action="USER_MODIFIED",
+                    action='USER_MODIFIED',
                     description=f"Admin '{request.user.username}' approved password reset for '{profile.user.username}'.",
                     request=request,
                 )
                 
-            elif action == "reject":
+            elif action == 'reject':
                 profile.reset_requested = False
                 profile.reset_approved_by_admin = False
                 profile.save()
-                
                 messages.error(request, f"Reset request for {profile.user.username} was denied.")
                 
         except EmployeeProfile.DoesNotExist:
-            messages.error(request, "Employee profile not found.")
+            messages.error(request, 'Employee profile not found.')
             
-        return redirect("user_management")
+        return redirect('user_management')
+
     pending_requests = EmployeeProfile.objects.filter(
         reset_requested=True, 
         reset_approved_by_admin=False
     )
-    
-    return render(request, "security/admin_review_resets.html", {"pending_requests": pending_requests})
+    return render(request, 'security/admin_review_resets.html', {'pending_requests': pending_requests})
 
-User = get_user_model() 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Admin Dashboard View
-# ─────────────────────────────────────────────────────────────────────────────
 @login_required
 def admin_dashboard(request):
-    # 1. Security Check: Admin lang dapat ang makapasok
-    if getattr(request.user, "role", "employee") != "admin":
-        messages.error(request, "Access denied. Admin privileges required.")
-        return redirect("security:employee_dashboard")
+    if getattr(request.user, 'role', 'employee') != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('security:employee_dashboard')
 
-    # 2. COMPUTATIONS
     total_sales = Transaction.objects.filter(status__in=['completed', 'paid']).aggregate(
         total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField())
     )['total']
@@ -432,7 +331,6 @@ def admin_dashboard(request):
     profit = total_sales - sales_return
     low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
 
-    # 3. METRICS
     metrics = {
         'total_sales': total_sales,
         'sales_return': sales_return,
@@ -444,57 +342,44 @@ def admin_dashboard(request):
         'payment_return': 0.00,
     }
 
-    # 4. CONTEXT (Safe version: walang error kung walang PasswordReset model)
     context = {
         'metrics': metrics,
         'low_stock_items': low_stock_items,
         'pending_resets': [], 
         'pending_reset_count': 0,
     }
-
     return render(request, 'dashboard/dashboard.html', context)
 
 @login_required
 def employee_dashboard(request):
-    """
-    Ito ang sasalo sa mga employees pagka-log in. 
-    Wala nang dashboard na i-re-render, diretso agad sa POS.
-    """
-    
-    if getattr(request.user, "role", "employee") == "admin" or request.user.is_superuser:
+    if getattr(request.user, 'role', 'employee') == 'admin' or request.user.is_superuser:
         return redirect('admin_dashboard')
-        
     return redirect('pos:pos_index')
 
-
 def user_management_view(request):
-    if request.method == "POST":
-        # 1. Grab the form data
+    if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password') # New field!
+        confirm_password = request.POST.get('confirm_password')
         role = request.POST.get('role')
         full_name = request.POST.get('full_name')
 
-        # 2. SAFETY CHECK: Stop the database crash before it happens
         if not full_name:
-            messages.error(request, "Error: Full Name was missing from the form. Please hard-refresh your browser (Ctrl+F5) and try again.")
+            messages.error(request, 'Error: Full Name was missing from the form. Please hard-refresh your browser (Ctrl+F5) and try again.')
             return redirect('user_management')
 
-        # 3. Check for taken usernames
         if User.objects.filter(username=username).exists():
             messages.error(request, f"The username '{username}' is already taken.")
             return redirect('user_management')
         
         if password != confirm_password:
-            messages.error(request, "Passwords do not match. Please try again.")
+            messages.error(request, 'Passwords do not match. Please try again.')
             return redirect('user_management')
         
         if len(password) < 8 or not re.search(r'\d', password) or not re.search(r'[A-Z]', password):
-            messages.error(request, "Password does not meet the security requirements.")
+            messages.error(request, 'Password does not meet the security requirements.')
             return redirect('user_management')
             
-        # 4. Create the user (Added 'role=role' to keep your database happy!)
         new_user = User.objects.create_user(
             username=username, 
             password=password,
@@ -502,7 +387,6 @@ def user_management_view(request):
             role=role 
         )
         
-        # 5. Apply Django admin permissions based on the role
         if role == 'Admin':
             new_user.is_staff = True
             new_user.is_superuser = True
@@ -513,32 +397,27 @@ def user_management_view(request):
         new_user.save()
         log_system_activity(
             user=request.user,
-            action="CREATE USER",
+            action='CREATE USER',
             description=f"Created a new {role} account for {full_name} ({username})."
         )
         messages.success(request, f"Successfully created {role} account for {full_name}.")
         return redirect('user_management')
 
-    # 6. Fetch users for the list view
     users = User.objects.all().order_by('-date_created')
 
-    # Fetch both types of pending requests
     pending_report_requests = EmployeeProfile.objects.filter(
         reports_access_requested=True, 
         reports_access_approved=False
     )
-    
     pending_reset_requests = EmployeeProfile.objects.filter(
         reset_requested=True, 
         reset_approved_by_admin=False
     )
-
     pending_settings_requests = EmployeeProfile.objects.filter(
         settings_access_requested=True, 
         settings_access_approved=False
     )
     
-    # Bundle them into one unified list for the template
     pending_requests = []
     
     for req in pending_reset_requests:
@@ -583,86 +462,63 @@ def get_current_db_size():
         result = cursor.fetchone()
         return result[0] if result and result[0] else 0
 
-
 @login_required
-@settings_access_required  # <-- Idagdag ito
+@settings_access_required
 def settings_hub_view(request):
-    # 1. SCAN LOGIC (Dapat nasa view na nagre-render ng settings_hub.html)
     report = []
     with connection.cursor() as cursor:
-        # Check para sa fragmentation
-        cursor.execute("SHOW TABLE STATUS WHERE Data_free > 0")
+        cursor.execute('SHOW TABLE STATUS WHERE Data_free > 0')
         tables = cursor.fetchall()
         for table in tables:
-            # Ipakita kung lampas 0 MB ang overhead
             overhead_mb = round(table[11] / 1024 / 1024, 3)
             if overhead_mb > 0:
                 report.append(f"Table '{table[0]}' has {overhead_mb} MB overhead.")
 
-    # 2. RENDER
     return render(request, 'dashboard/settings_hub.html', {
         'report': report,
-        'db_size': get_current_db_size() # yung function mo
+        'db_size': get_current_db_size()
     })
 
 @login_required
 def delete_user(request, user_id):
-    # 1. Check permissions
     if not request.user.is_superuser:
-        messages.error(request, "Access denied.")
+        messages.error(request, 'Access denied.')
         return redirect('security:register')
 
-    # 2. Hanapin ang user
     user_to_delete = get_object_or_404(User, id=user_id)
     username = user_to_delete.username
     user_to_delete.delete()
     log_system_activity(
         user=request.user,
-        action="DELETE USER",
+        action='DELETE USER',
         description=f"Deleted user account: '{username}'"
     )
     messages.success(request, f"User '{username}' deleted.")
-    
     return redirect('user_management')
 
-# Sa loob ng security/views.py
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib.auth import get_user_model
-from django.contrib import messages
-from django.contrib.auth.hashers import check_password
-from django.http import JsonResponse
-
-User = get_user_model()
-
-# Idagdag mo itong bagong view para sa AJAX password verification
 def verify_admin_password(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         data = json.loads(request.body)
         password = data.get('password')
         
         if request.user.check_password(password):
-            return JsonResponse({"success": True})
+            return JsonResponse({'success': True})
         else:
-            return JsonResponse({"success": False})
+            return JsonResponse({'success': False})
             
-    return JsonResponse({"error": "Invalid request"}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
-
-# I-update mo rin yung existing edit_user_view mo.
-# Tinanggal na natin yung current_pass check dito kasi ginawa na natin sa SweetAlert.
 def edit_user_view(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         user = get_object_or_404(User, id=user_id)
         
-        # Update basic info
         user.full_name = request.POST.get('edit_full_name')
         user.username = request.POST.get('edit_username')
         
         role = request.POST.get('edit_role')
         user.is_superuser = (role == 'Admin')
         
-        # New password if provided
         new_pass = request.POST.get('new_password')
         if new_pass:
             user.set_password(new_pass)
@@ -670,26 +526,21 @@ def edit_user_view(request):
         user.save()
         log_system_activity(
             user=request.user,
-            action="EDIT USER",
+            action='EDIT USER',
             description=f"Modified account details/permissions for user '{user.username}'."
         )
-        messages.success(request, f"User {user.username} updated successfully!")
+        messages.success(request, f'User {user.username} updated successfully!')
         
-    return redirect('user_management') # Siguraduhing tama ang redirect name mo
-
-from notifications.models import Notification
+    return redirect('user_management')
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(['POST'])
 def request_reports_access(request):
-    """Allows an employee to request access to the reports hub."""
-    # FIX: Added .lower() to handle 'Employee' (capital E)
-    if getattr(request.user, "role", "employee").lower() == "employee":
+    if getattr(request.user, 'role', 'employee').lower() == 'employee':
         profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
         profile.reports_access_requested = True
         profile.save()
 
-        # Notify Admins
         admins = User.objects.filter(role='Admin', is_active=True)
         for admin in admins:
             Notification.objects.create(
@@ -698,45 +549,41 @@ def request_reports_access(request):
                 priority='medium',
                 title='Reports Access Request',
                 message=f"Employee '{request.user.username}' is requesting access to the Reports Hub.",
-                action_url=reverse('user_management')  # Links to User Management page
+                action_url=reverse('user_management')
             )
         
         log_system_activity(
             user=request.user,
-            action="REQUEST REPORTS ACCESS",
-            description="Employee requested access to the Reports Hub."
+            action='REQUEST REPORTS ACCESS',
+            description='Employee requested access to the Reports Hub.'
         )
-        messages.success(request, "Request to access the Reports Hub has been sent to the Admin.")
+        messages.success(request, 'Request to access the Reports Hub has been sent to the Admin.')
     return redirect('reports_analytics:reports_hub')
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(['POST'])
 def review_reports_access(request):
-    """Admin function to approve or reject reports access."""
-    # FIX: Check for superuser or 'Admin' properly
-    is_admin = getattr(request.user, "role", "employee").lower() == "admin" or request.user.is_superuser
+    is_admin = getattr(request.user, 'role', 'employee').lower() == 'admin' or request.user.is_superuser
     if not is_admin:
         return redirect(_role_redirect_url(request.user))
         
-    profile_id = request.POST.get("profile_id")
-    action = request.POST.get("action")
+    profile_id = request.POST.get('profile_id')
+    action = request.POST.get('action')
     
     try:
         profile = EmployeeProfile.objects.get(id=profile_id)
-        if action == "approve":
+        if action == 'approve':
             profile.reports_access_approved = True
             profile.reports_access_requested = False
             profile.reports_access_expires_at = timezone.now() + timedelta(minutes=60)
             profile.save()
             log_system_activity(
                 user=request.user,
-                action="APPROVE REPORTS ACCESS",
+                action='APPROVE REPORTS ACCESS',
                 description=f"Approved 1-hour reports access for '{profile.user.username}'."
             )
-            messages.success(request, f"Reports access granted to {profile.user.full_name} for 1 hour.")
+            messages.success(request, f'Reports access granted to {profile.user.full_name} for 1 hour.')
             
-            # Notify the employee
-            # Notify the employee
             Notification.objects.create(
                 user=profile.user,
                 notification_type='access_approved',
@@ -746,33 +593,31 @@ def review_reports_access(request):
                 action_url=reverse('reports_analytics:reports_hub')
             )
             
-        elif action == "reject":
+        elif action == 'reject':
             profile.reports_access_requested = False
             profile.reports_access_approved = False
-            profile.reports_access_expires_at = None # Reset timer
+            profile.reports_access_expires_at = None
             profile.save()
             log_system_activity(
                 user=request.user,
-                action="REJECT REPORTS ACCESS",
+                action='REJECT REPORTS ACCESS',
                 description=f"Rejected reports access request for '{profile.user.username}'."
             )
-            messages.error(request, f"Reports access denied for {profile.user.full_name}.")
+            messages.error(request, f'Reports access denied for {profile.user.full_name}.')
             
     except EmployeeProfile.DoesNotExist:
-        messages.error(request, "Profile not found.")
+        messages.error(request, 'Profile not found.')
         
     return redirect('user_management')
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(['POST'])
 def request_settings_access(request):
-    """Employee requests access to Settings Hub."""
-    if getattr(request.user, "role", "employee").lower() == "employee":
+    if getattr(request.user, 'role', 'employee').lower() == 'employee':
         profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
         profile.settings_access_requested = True
         profile.save()
 
-        # Notify Admins
         admins = User.objects.filter(role='Admin', is_active=True)
         for admin in admins:
             Notification.objects.create(
@@ -781,44 +626,42 @@ def request_settings_access(request):
                 priority='medium',
                 title='General Settings Access Request',
                 message=f"Employee '{request.user.username}' is requesting access to General Settings.",
-                action_url=reverse('user_management') 
+                action_url=reverse('user_management')
             )
         
         log_system_activity(
             user=request.user,
-            action="REQUEST SETTINGS ACCESS",
-            description="Employee requested access to General Settings."
+            action='REQUEST SETTINGS ACCESS',
+            description='Employee requested access to General Settings.'
         )
-        messages.success(request, "Request to access General Settings has been sent to the Admin.")
+        messages.success(request, 'Request to access General Settings has been sent to the Admin.')
     return redirect('settings_hub')
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(['POST'])
 def review_settings_access(request):
-    """Admin approves/rejects Settings access."""
-    is_admin = getattr(request.user, "role", "employee").lower() == "admin" or request.user.is_superuser
+    is_admin = getattr(request.user, 'role', 'employee').lower() == 'admin' or request.user.is_superuser
     if not is_admin:
         return redirect(_role_redirect_url(request.user))
         
-    profile_id = request.POST.get("profile_id")
-    action = request.POST.get("action")
+    profile_id = request.POST.get('profile_id')
+    action = request.POST.get('action')
     
     try:
         profile = EmployeeProfile.objects.get(id=profile_id)
-        if action == "approve":
+        if action == 'approve':
             profile.settings_access_approved = True
             profile.settings_access_requested = False
-            profile.settings_access_expires_at = timezone.now() + timedelta(minutes=60) # 1 hour
+            profile.settings_access_expires_at = timezone.now() + timedelta(minutes=60)
             profile.save()
             
             log_system_activity(
                 user=request.user,
-                action="APPROVE SETTINGS ACCESS",
+                action='APPROVE SETTINGS ACCESS',
                 description=f"Approved 1-hour settings access for '{profile.user.username}'."
             )
-            messages.success(request, f"Settings access granted to {profile.user.full_name} for 1 hour.")
+            messages.success(request, f'Settings access granted to {profile.user.full_name} for 1 hour.')
             
-            # --- NOTIFICATION PABALIK KAY EMPLOYEE ---
             Notification.objects.create(
                 user=profile.user,
                 notification_type='info',
@@ -828,19 +671,20 @@ def review_settings_access(request):
                 action_url=reverse('settings_hub')
             )
             
-        elif action == "reject":
+        elif action == 'reject':
             profile.settings_access_requested = False
             profile.settings_access_approved = False
             profile.settings_access_expires_at = None
             profile.save()
+            
             log_system_activity(
                 user=request.user,
-                action="REJECT SETTINGS ACCESS",
+                action='REJECT SETTINGS ACCESS',
                 description=f"Rejected settings access request for '{profile.user.username}'."
             )
-            messages.error(request, f"Settings access denied for {profile.user.full_name}.")
+            messages.error(request, f'Settings access denied for {profile.user.full_name}.')
             
     except EmployeeProfile.DoesNotExist:
-        messages.error(request, "Profile not found.")
+        messages.error(request, 'Profile not found.')
         
     return redirect('user_management')

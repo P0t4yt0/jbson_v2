@@ -10,7 +10,6 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    /* GLASSMORPHISM PANELS */
     .table-container, .filter-container {
         background: rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(12px);
@@ -30,7 +29,6 @@
         margin-bottom: 24px;
     }
     
-    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -59,7 +57,6 @@
         border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
 
-    /* TABLE ACTION BUTTONS (Pencil) */
     .table-action-btn {
         display: inline-flex;
         align-items: center;
@@ -80,14 +77,11 @@
         transform: translateY(-3px); 
         box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
-    /* Pilitin ang Actions column na lumapad at magkasya sa isang linya */
-.table-clean th:last-child, 
 .table-clean td:last-child {
     width: 150px !important;
     min-width: 150px !important;
 }
 
-/* Siguraduhing magkakatabi ang mga buttons at hindi bababa ang isa */
 .table-clean td:last-child .action-group {
     display: flex !important;
     flex-direction: row !important;
@@ -99,7 +93,6 @@
     .btn-edit { color: var(--text-secondary); }
     .btn-edit:hover { background-color: var(--text-secondary); color: white; border-color: var(--text-secondary); }
 
-    /* CUSTOM TOP ACTION BUTTONS */
     .action-btn-custom {
         display: inline-flex;
         align-items: center;
@@ -120,23 +113,18 @@
         transform: translateY(-2px);
     }
 
-    /* Red - Low Stock / Delete */
     .btn-red { color: var(--status-red); background-color: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
     .btn-red:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
 
-    /* Blue - Scan Barcode */
     .btn-blue { color: var(--french-blue); background-color: rgba(47, 63, 123, 0.1); border-color: rgba(47, 63, 123, 0.2); }
     .btn-blue:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.2); }
 
-    /* Green - Analyze Priority */
     .btn-green { color: var(--status-green); background-color: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2); }
     .btn-green:hover { background-color: var(--status-green); color: white; border-color: var(--status-green); box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2); }
 
-    /* Orange - Auto Calibrate */
     .btn-orange { color: var(--amber-flame); background-color: rgba(255, 185, 21, 0.1); border-color: rgba(255, 185, 21, 0.2); }
     .btn-orange:hover { background-color: var(--amber-flame); color: white; border-color: var(--amber-flame); box-shadow: 0 4px 10px rgba(255, 185, 21, 0.2); }
 
-    /* Grey - Clear Filters */
     .btn-grey { color: var(--text-secondary); background-color: rgba(248, 250, 252, 0.8); border-color: rgba(203, 213, 225, 0.8); }
     .btn-grey:hover { background-color: #FFFFFF; color: var(--french-blue); border-color: var(--french-blue); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1); }
 
@@ -146,7 +134,6 @@
     .btn-reprint { color: var(--french-blue); }
     .btn-reprint:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
 
-    /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
         justify-content: space-between;
@@ -186,7 +173,6 @@
     }
     .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
 
-    /* STOCK & PRIORITY TOOLTIPS */
     .stock-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .stock-low { background: #fef2f2; color: var(--status-red); border: 1px solid #fecaca; }   
     .stock-good { background: #f0fdf4; color: var(--status-green); border: 1px solid #bbf7d0; }  
@@ -208,7 +194,6 @@
 
     .row-selected { background: rgba(255, 211, 88, 0.1) !important; }
 
-    /* MODAL STYLES */
     .blur-modal {
         display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; 
         align-items: center; justify-content: center; 
@@ -243,19 +228,17 @@
         box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
     .swal2-title {
-    font-size: 18px; /* Dati ay mas malaki, maaari mong subukan ang 18px o 20px */
+    font-size: 18px; 
     }
-        /* Force ALL SweetAlert OK buttons to use French Blue */
     .swal2-styled.swal2-confirm {
         background-color: var(--french-blue) !important;
-        color: #FFFFFF !important; /* Clean white text over the dark blue */
+        color: #FFFFFF !important;
         font-weight: 700 !important;
         box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2) !important;
     }
     .swal2-styled.swal2-confirm:hover {
-        background-color: #1a2858 !important; /* Darker navy shade on hover match */
+        background-color: #1a2858 !important; 
     }
-    /* BAGONG IDINAGDAG: PRINT STYLES PARA SA PRODUCT_LIST.HTML */
     @media print {
         body * {
             visibility: hidden;
@@ -591,7 +574,6 @@
 </div>
 
 <script>
-/* FUNCTION PARA SA PAGINATION */
 function goToPage(pageNumber) {
     document.getElementById('pageInput').value = pageNumber;
     document.getElementById('inventory-filter-form').submit();
@@ -599,7 +581,6 @@ function goToPage(pageNumber) {
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    /* ------------------ AUTO-CALIBRATE ------------------ */
     const calibrateBtn = document.getElementById('autoCalibrateBtn');
         calibrateBtn?.addEventListener('click', function(e) {
             e.preventDefault();
@@ -640,7 +621,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 
-    /* ------------------ ABC ANALYSIS ------------------ */
     const analyzeBtn = document.getElementById("analyze-priority-btn");
     analyzeBtn?.addEventListener("click", function (e) {
         e.preventDefault();
@@ -669,7 +649,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
-    /* ------------------ BARCODE SCANNER ------------------ */
     const scannerModal = document.getElementById("scanner-modal");
     const scanBtn = document.getElementById("scan-barcode-btn");
     const closeScannerBtn = document.getElementById("close-scanner-modal");
@@ -697,7 +676,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    /* ------------------ BULK DELETE ------------------ */
     const selectAllCheckbox = document.getElementById("selectAll");
     const rowCheckboxes = document.querySelectorAll(".rowCheckbox");
     const bulkDeleteBtn = document.getElementById("bulk-delete-btn");
@@ -739,7 +717,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    /* ------------------ IMPORT CSV (STAGING & CONFIRMATION) ------------------ */
     const importCsvBtn = document.getElementById('import-csv-btn');
     const csvFileInput = document.getElementById('csv-file-input');
     
@@ -936,7 +913,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    /* ------------------ EDIT MODAL ------------------ */
     const modal = document.getElementById("edit-product-modal");
     const modalContent = document.getElementById("edit-product-modal-content");
     const closeBtn = document.getElementById("close-edit-modal");
@@ -967,7 +943,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
-/* ------------------ VIEW & PRINT SINGLE BARCODE ------------------ */
     window.viewBarcodeModal = function(barcodeId, productName) {
         if (!barcodeId || barcodeId === "None" || barcodeId.trim() === "") {
             Swal.fire({

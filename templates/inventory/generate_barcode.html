@@ -8,7 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <style>
-    /* PRINT STYLES (Keep intact) */
     @media print {
         body * { visibility: hidden; }
         .no-print { display: none !important; }
@@ -29,7 +28,6 @@
         }
     }
 
-    /* GLASSMORPHISM PANELS */
     .glass-panel, .table-container {
         background: rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(12px);
@@ -44,7 +42,6 @@
         overflow-x: auto; 
     }
 
-    /* GLASS INPUTS */
     .glass-input {
         width: 100%; 
         padding: 14px 16px; 
@@ -64,7 +61,6 @@
         box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
 
-    /* PRIMARY BUTTON */
     .page-btn-primary {
         background-color: var(--french-blue); 
         color: white; 
@@ -89,7 +85,6 @@
         box-shadow: 0 8px 16px rgba(47, 63, 123, 0.3);
     }
 
-    /* ACTION BUTTONS */
     .page-btn-secondary {
         background-color: var(--amber-flame); 
         color: white; 
@@ -136,7 +131,6 @@
         box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1);
     }
 
-    /* CLEAN TABLE STYLING */
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -162,7 +156,6 @@
         border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
     }
 
-    /* TABLE ACTION BUTTONS */
     .table-action-btn {
         display: inline-flex;
         align-items: center;
@@ -184,7 +177,7 @@
         box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
     .swal2-title {
-    font-size: 18px; /* Dati ay mas malaki, maaari mong subukan ang 18px o 20px */
+    font-size: 18px;
     }
 
     .btn-view { color: var(--status-green); }
@@ -199,7 +192,6 @@
     .btn-delete { color: var(--status-red); background-color: #fdf4f4; border-color: #fecaca; }
     .btn-delete:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
 
-    /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
         justify-content: space-between;

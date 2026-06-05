@@ -1,7 +1,6 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 import json
-from django.contrib import messages # 1. IMPORT MESSAGES
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.http import JsonResponse
 from inventory.models import InventoryItem, Category, Supplier
 
@@ -31,14 +30,11 @@ def create_product(request, pk=None):
         category = get_object_or_404(Category, id=category_id)
         supplier = Supplier.objects.filter(id=supplier_id).first()
 
-        # 2. ADD THE DUPLICATE BARCODE CHECKS HERE
         if item:
-            # If editing, ensure the barcode doesn't belong to a DIFFERENT item
             if InventoryItem.objects.filter(barcode_id=barcode_id).exclude(pk=item.pk).exists():
                 messages.error(request, f"Update failed: Barcode '{barcode_id}' is already used by another product.")
                 return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
             
-            # --- UPDATE LOGIC ---
             item.item_name = item_name
             item.category = category
             item.supplier = supplier
@@ -51,17 +47,14 @@ def create_product(request, pk=None):
             item.max_daily_sales = max_daily_sales
             item.average_lead_time_days = average_lead_time_days
             item.max_lead_time_days = max_lead_time_days
-            
             item.save() 
             messages.success(request, f"Product '{item.item_name}' updated successfully.")
             
         else:
-            # If creating, ensure the barcode doesn't exist AT ALL
             if InventoryItem.objects.filter(barcode_id=barcode_id).exists():
                 messages.error(request, f"Cannot add product: Barcode '{barcode_id}' is already registered to an existing item.")
                 return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
 
-            # --- CREATE LOGIC ---
             InventoryItem.objects.create(
                 item_name=item_name,
                 category=category,
@@ -86,7 +79,6 @@ def create_product(request, pk=None):
         'suppliers': suppliers
     })
 
-@csrf_exempt
 def add_category_ajax(request):
     if request.method == 'POST':
         try:
@@ -99,7 +91,6 @@ def add_category_ajax(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 def add_supplier_ajax(request):
     if request.method == 'POST':
         try:
@@ -111,7 +102,6 @@ def add_supplier_ajax(request):
             return JsonResponse({'status': 'success', 'id': new_sup.id, 'name': new_sup.name})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-        
 
 def get_categories_ajax(request):
     categories = list(Category.objects.values('id', 'name'))
