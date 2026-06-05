@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views  # <--- This tells it to look in the CURRENT folder (billing_payment)
+from . import views  
 
 app_name = 'billing_payment'
 urlpatterns = [

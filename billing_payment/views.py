@@ -8,7 +8,6 @@ from django.db import transaction
 from decimal import Decimal
 import uuid
 
-# Siguraduhing tama ang mga imports base sa folder structure mo
 from .models import Customer, Invoice, InvoicePayment, SalesReturn, SalesReturnItem
 from point_of_sale.models import Transaction
 from inventory.models import InventoryItem
@@ -43,26 +42,21 @@ def customer_list(request):
             messages.success(request, f"Customer '{name}' added successfully.")
         return redirect('billing_payment:customer_list')
 
-    # --- GET REQUEST (SEARCH, FILTER, PAGINATION) ---
     search_query = request.GET.get('search', '').strip()
     status_filter = request.GET.get('status', '')
     per_page = request.GET.get('per_page', 10)
 
-    # 1. Base Query
     customers = Customer.objects.all().order_by('-credit_balance')
     
-    # 2. Search Filter (Customer Name o Contact)
     if search_query:
         customers = customers.filter(
             Q(name__icontains=search_query) |
             Q(phone__icontains=search_query)
         )
     
-    # 3. Status Filter
     if status_filter:
         customers = customers.filter(credit_status__iexact=status_filter)
         
-    # 4. Pagination Setup
     try:
         per_page = int(per_page)
     except ValueError:
@@ -72,7 +66,6 @@ def customer_list(request):
     page_number = request.GET.get('page', 1)
     customers_page = paginator.get_page(page_number)
     
-    # 5. I-pass sa context
     return render(request, 'billing_payment/customer_list.html', {
         'customers': customers_page,
         'search_query': search_query,
@@ -84,7 +77,6 @@ def customer_list(request):
 def customer_ledger(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     
-    # Get all invoices for this customer, newest first
     invoices = customer.invoices.all().order_by('-issue_date', '-id')
     
     return render(request, 'billing_payment/customer_ledger.html', {
@@ -98,7 +90,6 @@ def get_payment_history_json(request, invoice_id):
     """API endpoint para ibalik ang payment history ng isang invoice sa JSON format"""
     invoice = get_object_or_404(Invoice, pk=invoice_id)
     
-    # FIX 1: Pinalitan ang '-payment_date' ng '-date'
     if hasattr(invoice, 'payments'):
         payments_queryset = invoice.payments.all().order_by('-date')
     else:
@@ -108,7 +99,6 @@ def get_payment_history_json(request, invoice_id):
     for p in payments_queryset:
         payments_data.append({
             'amount': float(p.amount), 
-            # FIX 2: Pinalitan ang p.payment_date ng p.date
             'date': p.date.strftime("%b %d, %Y"), 
             'method': p.method.capitalize() 
         })
@@ -131,12 +121,10 @@ def pay_invoice(request, invoice_id):
             
         method = request.POST.get('method', 'cash')
 
-        # Safety Check: Don't allow overpaying or negative payments
         if amount <= 0 or amount > invoice.balance_due:
             messages.error(request, f"Invalid payment amount. You can only pay up to ₱{invoice.balance_due}.")
             return redirect('billing_payment:customer_ledger', pk=invoice.customer.id)
 
-        # Create the Payment! 
         InvoicePayment.objects.create(
             invoice=invoice,
             amount=amount,
@@ -215,8 +203,6 @@ def get_sale_details_api(request, txn_id):
         
         items_data = []
         for item in items:
-            # Safe calculation: Subtotal divided by Quantity
-            # If quantity is 0 (to avoid division by zero error), set to 0
             computed_price = float(item.subtotal) / int(item.quantity) if int(item.quantity) > 0 else 0
             
             items_data.append({
@@ -235,7 +221,6 @@ def get_sale_details_api(request, txn_id):
     except Transaction.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Transaction not found'})
     except Exception as e:
-        # Catch any other backend errors so it doesn't cause a Network Error in JS
         return JsonResponse({'status': 'error', 'message': str(e)})
     
 
@@ -323,7 +308,6 @@ def invoice_items_json(request, invoice_id):
     items_data = []
     items_subtotal = Decimal('0.00')
 
-    # Alamin kung POS o Manual ang pinagmulan at kunin lang ang Products
     if invoice.source == 'pos' and invoice.transaction:
         for item in invoice.transaction.sold_items.all():
             items_data.append({
@@ -341,14 +325,11 @@ def invoice_items_json(request, invoice_id):
                 'unit_price': str(item.unit_price),
                 'subtotal': str(item.subtotal),
             })
-            # Wag i-add sa subtotal ang interest para hindi mag-double
             if "Interest" not in item.product_name:
                 items_subtotal += item.subtotal
 
-    # Kunin ang Terms base sa Customer Profile
     term_label = f"Net {invoice.customer.payment_terms}" if invoice.customer else "N/A"
 
-    # I-pasa ang data sa modal nang hindi na ginalaw ang database records
     data = {
         'term': term_label,
         'due_date': invoice.due_date.strftime("%B %d, %Y") if invoice.due_date else "N/A",
@@ -469,7 +450,7 @@ def verify_transaction(request):
             if remaining_qty > 0:
                 items_data.append({
                     'id': sold_item.inventory_item.id,
-                    'name': sold_item.inventory_item.item_name, # Note: Binago ko ito papuntang .item_name baka ito ang ginagamit mo sa model
+                    'name': sold_item.inventory_item.item_name, 
                     'max_qty': remaining_qty 
                 })
 

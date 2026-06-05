@@ -11,7 +11,7 @@ from datetime import timedelta
 import uuid
 from point_of_sale.models import Transaction
 
-# --- 1. CUSTOMER TABLE ---
+# ---  CUSTOMER TABLE ---
 class Customer(models.Model):
     name = models.CharField(max_length=150, unique=True)
     phone = models.CharField(max_length=20, blank=True)
@@ -19,7 +19,7 @@ class Customer(models.Model):
     # Trade Credit Core Fields
     is_credit_customer = models.BooleanField(default=False)
     credit_limit = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    credit_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) # How much they owe
+    credit_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
     
     TERMS_CHOICES = [(30, 'Net 30'), (60, 'Net 60'), (90, 'Net 90')]
     payment_terms = models.IntegerField(choices=TERMS_CHOICES, default=30)
@@ -45,7 +45,7 @@ class Customer(models.Model):
             return True
         return False
 
-# --- 2. INVOICE TABLE ---
+# --- INVOICE TABLE ---
 class Invoice(models.Model):
     SOURCE_CHOICES = [('manual', 'Manual Entry'), ('pos', 'POS System')]
     STATUS_CHOICES = [('unpaid', 'Unpaid'), ('overdue', 'Overdue'), ('paid', 'Paid')]
@@ -72,7 +72,6 @@ class Invoice(models.Model):
             short = uuid.uuid4().hex[:5].upper()
             self.invoice_no = f'INV-{today}-{short}'
             
-        # Auto-calculate due date based on customer terms kung wala pang nakalagay
         if not self.due_date and self.customer_id:
             self.due_date = self.issue_date + timedelta(days=self.customer.payment_terms)
             
@@ -82,7 +81,7 @@ class Invoice(models.Model):
         customer_name = self.customer.name if self.customer else "Walk-in"
         return f"{self.invoice_no} - {customer_name}"
 
-# --- 2.1 INVOICE ITEMS (Para sa Manual Create Invoice) ---
+# --- INVOICE ITEMS (Para sa Manual Create Invoice) ---
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
     product_name = models.CharField(max_length=255)
@@ -97,7 +96,7 @@ class InvoiceItem(models.Model):
     def __str__(self):
         return f"{self.product_name} on {self.invoice.invoice_no}"
 
-# --- 3. PAYMENTS AGAINST TRADE CREDIT ---
+# --- PAYMENTS AGAINST TRADE CREDIT ---
 class InvoicePayment(models.Model):
     invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='payments')    
     amount = models.DecimalField(max_digits=12, decimal_places=2)
@@ -122,7 +121,7 @@ class InvoicePayment(models.Model):
             
         super().save(*args, **kwargs)
 
-# --- 4. POS PAYMENTS & RECEIPTS ---
+# --- POS PAYMENTS & RECEIPTS ---
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('cash',   'Cash'),

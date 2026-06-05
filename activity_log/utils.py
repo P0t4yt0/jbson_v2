@@ -1,4 +1,3 @@
-# activity_log/utils.py
 from security.models import ActivityLog
 
 def log_system_activity(user, action, description):
