@@ -27,7 +27,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING(f"WARNING: This will OVERWRITE current data in {db_name}."))
         self.stdout.write(f"Preparing to restore system state from: {filepath}...")
 
-        # Extract gz to a temporary SQL file first (Windows friendly)
         temp_sql_path = os.path.join(settings.BASE_DIR, 'secure_backups', 'temp_restore.sql')
         
         try:
@@ -38,16 +37,59 @@ class Command(BaseCommand):
             
             self.stdout.write("Restoring to MySQL database...")
             
-            # Windows command to pipe the SQL file into mysql
-            restore_cmd = f"mysql -h {db_host} -u {db_user} -p{db_password} {db_name} < \"{temp_sql_path}\""
-            subprocess.run(restore_cmd, shell=True, check=True)
+            possible_mysql_paths = [
+                'mysql',
+                r'C:\xampp\mysql\bin\mysql.exe',
+                r'D:\xampp\mysql\bin\mysql.exe',
+                r'E:\xampp\mysql\bin\mysql.exe',
+                r'F:\xampp\mysql\bin\mysql.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.1\bin\mysql.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe',
+            ]
+            
+            mysql_exe = None
+            for path in possible_mysql_paths:
+                if path == 'mysql' and shutil.which('mysql'):
+                    mysql_exe = 'mysql'
+                    break
+                elif os.path.exists(path):
+                    mysql_exe = path
+                    break
+                    
+            if not mysql_exe:
+                raise Exception("Unable to find mysql.exe for the restore process.")
+
+            restore_cmd = [
+                mysql_exe,
+                f"--user={db_user}",
+            ]
+            
+            if db_host and db_host != 'localhost':
+                restore_cmd.append(f"--host={db_host}")
+                
+            if db_password:
+                restore_cmd.append(f"--password={db_password}")
+                
+            restore_cmd.append(db_name)
+            
+            with open(temp_sql_path, 'rb') as f_in:
+                process = subprocess.run(
+                    restore_cmd,
+                    stdin=f_in,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False
+                )
+            
+            if process.returncode != 0:
+                error_msg = process.stderr.decode('utf-8', errors='ignore').strip()
+                raise Exception(f"MySQL Restore Error: {error_msg}")
             
             self.stdout.write(self.style.SUCCESS('SUCCESS: Database successfully restored from backup!'))
-        except subprocess.CalledProcessError as e:
-            self.stdout.write(self.style.ERROR(f'Recovery failed during MySQL import: {e}'))
+            
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'Recovery failed: {e}'))
+            raise Exception(f'Recovery failed: {e}')
         finally:
-            # Clean up the temporary extracted file
             if os.path.exists(temp_sql_path):
                 os.remove(temp_sql_path)

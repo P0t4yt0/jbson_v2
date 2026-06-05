@@ -11,18 +11,13 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from security.views import settings_access_required
 
-
-# 🟢 FIX: Gumamit ng get_user_model() para sa Custom User Models
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-# 🟢 SIGURADUHING NAKA-IMPORT ITO
 from activity_log.utils import log_system_activity
 BUFFER_SIZE = 64 * 1024
 
-# ==========================================
 # HELPER FUNCTIONS
-# ==========================================
 
 def get_current_db_size():
     with connection.cursor() as cursor:
@@ -94,9 +89,7 @@ def maintenance_dashboard(request):
     return render(request, 'dashboard/settings_hub.html', context)
 
 
-# ==========================================
 # BACKUP, RESTORE, AND DELETE VIEWS
-# ==========================================
 
 def trigger_backup(request):
     if request.method == 'POST':
@@ -158,14 +151,12 @@ def trigger_restore(request):
             except ValueError:
                 raise Exception("Incorrect decryption password or corrupted backup file.")
 
-            # 🟢 PROTECT JBSON ACCOUNT: Safely check existing attributes
+
             jbson_data = None
             try:
-                # Ginamit natin ang iexact para case-insensitive
                 jbson_user = User.objects.get(username__iexact='jbson') 
                 jbson_data = {'password': jbson_user.password}
                 
-                # Kukunin lang ang mga ito KUNG nag-eexist sa Custom User Model mo
                 if hasattr(jbson_user, 'email'):
                     jbson_data['email'] = jbson_user.email
                 if hasattr(jbson_user, 'is_superuser'):
@@ -178,7 +169,6 @@ def trigger_restore(request):
             # Restore using the decrypted file
             call_command('restore_db', decrypted_filepath)
             
-            # 🟢 RESTORE JBSON ACCOUNT: Ibalik lang ang mga fields na meron ka
             if jbson_data:
                 user_obj, created = User.objects.get_or_create(username='JBSON')
                 user_obj.password = jbson_data['password']
@@ -215,7 +205,6 @@ def trigger_restore(request):
 
 def delete_all_data(request):
     if request.method == 'POST':
-        # 🟢 FIX: In-update ang listahan para sa Custom User Model ('security_user')
         protected_tables = [
             'security_user', 
             'security_user_groups', 
@@ -241,8 +230,7 @@ def delete_all_data(request):
                 
                 cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
 
-            # Ligtas na ide-delete lahat maliban sa JBSON account gamit ang tamang model
-            User.objects.exclude(username__iexact='jbson').delete()
+            User.objects.exclude(is_superuser=True).delete()
 
             log_system_activity(
                 user=request.user,
@@ -250,7 +238,7 @@ def delete_all_data(request):
                 description="Performed a full system wipe. All transactions and extra accounts were cleared."
             )
 
-            messages.success(request, 'System wiped! All transactions and other accounts cleared, but JBSON account remains safe.')
+            messages.success(request, 'System wiped! All normal accounts and transactions are cleared, but ALL Admin accounts remain safe.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
              

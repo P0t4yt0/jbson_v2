@@ -36,34 +36,73 @@ class Command(BaseCommand):
             filename = f"{db_name}_backup_{timestamp}.sql.gz"
             filepath = os.path.join(backup_dir, filename)
             
-            # Create a temporary raw SQL file
             raw_sql_path = os.path.join(backup_dir, f"temp_{timestamp}.sql")
             
             db_user = db_settings['USER']
-            db_password = db_settings['PASSWORD']
+            db_password = db_settings.get('PASSWORD', '')
             db_host = db_settings.get('HOST', 'localhost')
+
+
+            possible_dump_paths = [
+                'mysqldump', 
+                r'C:\xampp\mysql\bin\mysqldump.exe',
+                r'D:\xampp\mysql\bin\mysqldump.exe',
+                r'E:\xampp\mysql\bin\mysqldump.exe',
+                r'F:\xampp\mysql\bin\mysqldump.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.1\bin\mysqldump.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqldump.exe',
+            ]
+            
+            mysqldump_exe = None
+            for path in possible_dump_paths:
+                if path == 'mysqldump' and shutil.which('mysqldump'):
+                    mysqldump_exe = 'mysqldump'
+                    break
+                elif os.path.exists(path):
+                    mysqldump_exe = path
+                    break
+                    
+            if not mysqldump_exe:
+                raise Exception("Unable to find mysql.exe for the restore process.")
 
             self.stdout.write(f"Starting MySQL backup for {db_name}...")
             
-            # Removed the piped gzip to avoid Windows errors
-            dump_cmd = f"mysqldump -h {db_host} -u {db_user} -p{db_password} {db_name} > {raw_sql_path}"
+            dump_cmd = [
+                mysqldump_exe,
+                f"--user={db_user}",
+            ]
+            
+            if db_host and db_host != 'localhost':
+                dump_cmd.append(f"--host={db_host}")
+                
+            if db_password:
+                dump_cmd.append(f"--password={db_password}")
+                
+            dump_cmd.append(db_name)
             
             try:
-                # 1. Run mysqldump to generate raw SQL
-                subprocess.run(dump_cmd, shell=True, check=True)
+                with open(raw_sql_path, 'w', encoding='utf-8') as f_out:
+                    process = subprocess.run(
+                        dump_cmd, 
+                        stdout=f_out, 
+                        stderr=subprocess.PIPE, 
+                        text=True,
+                        check=False
+                    )
                 
-                # 2. Compress the SQL file using Python's gzip
+                if process.returncode != 0:
+                    error_msg = process.stderr.strip()
+                    raise Exception(f"MySQL Error Details: {error_msg}")
+                
                 with open(raw_sql_path, 'rb') as f_in:
                     with gzip.open(filepath, 'wb') as f_out:
                         shutil.copyfileobj(f_in, f_out)
                         
-                # 3. Clean up the temporary raw SQL file
                 os.remove(raw_sql_path)
-                
                 self.stdout.write(self.style.SUCCESS(f'SUCCESS: MySQL Backup saved to {filepath}'))
-            except subprocess.CalledProcessError as e:
-                self.stdout.write(self.style.ERROR(f'WARNING: Backup failed - {e}'))
-                self.stdout.write(self.style.WARNING("Tip: Make sure MySQL 'bin' folder is in your Windows System PATH."))
-        
-        else:
-            self.stdout.write(self.style.ERROR('Unsupported database engine for automatic backup.'))
+                
+            except Exception as e:
+                if os.path.exists(raw_sql_path):
+                    os.remove(raw_sql_path)
+                raise Exception(f'{e}')
