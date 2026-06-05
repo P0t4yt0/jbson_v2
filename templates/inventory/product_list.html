@@ -3,6 +3,7 @@
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
@@ -36,11 +37,11 @@
         table-layout: fixed;
     }
     .table-clean th, .table-clean td {
-        padding: 16px 14px; 
+        padding: 12px 8px; 
         text-align: left;
         border-bottom: 1px solid rgba(226, 232, 240, 0.6);
         color: var(--text-primary);
-        font-size: 14px; 
+        font-size: 13px; 
         vertical-align: middle;
         transition: background-color 0.2s ease;
     }
@@ -79,6 +80,22 @@
         transform: translateY(-3px); 
         box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
     }
+    /* Pilitin ang Actions column na lumapad at magkasya sa isang linya */
+.table-clean th:last-child, 
+.table-clean td:last-child {
+    width: 150px !important;
+    min-width: 150px !important;
+}
+
+/* Siguraduhing magkakatabi ang mga buttons at hindi bababa ang isa */
+.table-clean td:last-child .action-group {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+}
     .btn-edit { color: var(--text-secondary); }
     .btn-edit:hover { background-color: var(--text-secondary); color: white; border-color: var(--text-secondary); }
 
@@ -122,7 +139,13 @@
     /* Grey - Clear Filters */
     .btn-grey { color: var(--text-secondary); background-color: rgba(248, 250, 252, 0.8); border-color: rgba(203, 213, 225, 0.8); }
     .btn-grey:hover { background-color: #FFFFFF; color: var(--french-blue); border-color: var(--french-blue); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1); }
-    
+
+    .btn-view { color: var(--status-green); }
+    .btn-view:hover { background-color: var(--status-green); color: white; border-color: var(--status-green); }
+
+    .btn-reprint { color: var(--french-blue); }
+    .btn-reprint:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+
     /* PAGINATION STYLES */
     .pagination-wrapper {
         display: flex;
@@ -219,6 +242,53 @@
         background: #FFFFFF;
         box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
     }
+    .swal2-title {
+    font-size: 18px; /* Dati ay mas malaki, maaari mong subukan ang 18px o 20px */
+    }
+        /* Force ALL SweetAlert OK buttons to use French Blue */
+    .swal2-styled.swal2-confirm {
+        background-color: var(--french-blue) !important;
+        color: #FFFFFF !important; /* Clean white text over the dark blue */
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2) !important;
+    }
+    .swal2-styled.swal2-confirm:hover {
+        background-color: #1a2858 !important; /* Darker navy shade on hover match */
+    }
+    /* BAGONG IDINAGDAG: PRINT STYLES PARA SA PRODUCT_LIST.HTML */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #print-section, #print-section * {
+            visibility: visible;
+        }
+        #print-section {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            justify-items: center;
+        }
+        .blur-modal {
+            display: none !important;
+        }
+        .barcode-card {
+            text-align: center;
+            page-break-inside: avoid;
+            margin-bottom: 20px;
+        }
+        .barcode-title {
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 5px;
+        }
+    }
+
 </style>
 
 <div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
@@ -382,10 +452,20 @@
                         </td>
 
                         <td style="text-align: center;">
-                            <div class="action-group" style="justify-content: center;">
+                            <div class="action-group" style="justify-content: center; gap: 8px; display: flex;">
+                                
+                                <a href="#" onclick="viewBarcodeModal('{{ item.barcode_id }}', '{{ item.item_name|escapejs }}'); return false;" class="table-action-btn btn-view" title="View Barcode">
+                                    <i class="ph ph-eye"></i>
+                                </a>
+
+                                <a href="#" onclick="printSingleBarcode('{{ item.barcode_id }}', '{{ item.item_name|escapejs }}'); return false;" class="table-action-btn btn-reprint" title="Print Barcode">
+                                    <i class="ph ph-printer"></i>
+                                </a>
+
                                 <a href="#" class="edit-product-btn table-action-btn btn-edit" data-url="{% url 'inventory:edit_product' item.pk %}" title="Edit Product">
                                     <i class="ph ph-pencil-simple"></i>
                                 </a>
+                                
                             </div>
                         </td>
 
@@ -441,15 +521,72 @@
     <input type="hidden" name="product_ids" id="hidden-delete-ids">
 </form>
 
-<form id="import-csv-form" method="POST" action="{% url 'inventory:import_csv' %}" enctype="multipart/form-data" style="display: none;">
+<form id="import-csv-form" method="POST" action="" enctype="multipart/form-data" style="display: none;">
     {% csrf_token %}
     <input type="file" name="csv_file" id="csv-file-input" accept=".csv">
 </form>
+
+<div id="print-section" style="display: none;"></div>
 
 <div id="edit-product-modal" class="blur-modal">
     <div class="modal-box" style="width: 650px; padding: 0; position: relative;">
         <button id="close-edit-modal" style="position: absolute; top: 20px; right: 24px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); transition: 0.2s; z-index: 10;" onmouseover="this.style.color='var(--status-red)'" onmouseout="this.style.color='var(--text-secondary)'">&times;</button>
         <div id="edit-product-modal-content"></div>
+    </div>
+</div>
+
+<div id="csv-preview-modal" class="blur-modal">
+    <div class="modal-box" style="width: 850px; padding: 30px; max-height: 85vh; display: flex; flex-direction: column;">
+        <h2 style="color: var(--french-blue); margin-top: 0; font-family: var(--font-heading); font-weight: 800; font-size: 24px;">Review Import Data</h2>
+        <p style="color: var(--text-secondary); margin-top: 0; margin-bottom: 20px; font-size: 14px;">
+            Please review the products below. Items highlighted with a badge will have their barcodes automatically generated by the system.
+        </p>
+        
+        <div style="overflow-y: auto; flex-grow: 1; margin-bottom: 20px; border-radius: 10px; border: 1px solid rgba(203, 213, 225, 0.8); background: rgba(255, 255, 255, 0.5);">
+            <table class="table-clean" style="margin-bottom: 0;">
+                <thead style="background: rgba(248, 250, 252, 0.9); position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th style="width: 15%;">Product ID</th>
+                        <th style="width: 30%;">Product Name</th>
+                        <th style="width: 20%;">Category</th>
+                        <th style="width: 35%;">Barcode Preview</th>
+                    </tr>
+                </thead>
+                <tbody id="csv-preview-tbody">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" class="action-btn-custom btn-grey" onclick="document.getElementById('csv-preview-modal').style.display='none'; document.getElementById('csv-file-input').value='';">
+                Cancel
+            </button>
+            <button type="button" id="confirm-import-btn" class="action-btn-custom btn-green">
+                <i class="ph ph-check-circle"></i> Confirm & Save to Inventory
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="csv-success-modal" class="blur-modal">
+    <div class="modal-box" style="width: 450px; padding: 40px 30px; text-align: center;">
+        <div style="width: 70px; height: 70px; background: rgba(34, 197, 94, 0.1); color: var(--status-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 36px;">
+            <i class="ph ph-check-circle"></i>
+        </div>
+        <h2 style="color: var(--french-blue); margin: 0 0 10px 0; font-family: var(--font-heading); font-weight: 800;">Import Successful!</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 15px;" id="success-summary-text"></p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <a href="#" id="print-batch-btn" class="action-btn-custom btn-blue" style="width: 100%; justify-content: center;">
+                <i class="ph ph-printer"></i> Print New Barcodes
+            </a>
+            <a href="{% url 'inventory:generate_barcode_page' %}" class="action-btn-custom btn-grey" style="width: 100%; justify-content: center;">
+                <i class="ph ph-clock-counter-clockwise"></i> Go to Barcode History
+            </a>
+            <button type="button" class="action-btn-custom btn-grey" style="width: 100%; justify-content: center; background: transparent; border: none; box-shadow: none;" onclick="window.location.reload();">
+                Close & View Inventory
+            </button>
+        </div>
     </div>
 </div>
 
@@ -602,41 +739,201 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    /* ------------------ IMPORT CSV ------------------ */
+    /* ------------------ IMPORT CSV (STAGING & CONFIRMATION) ------------------ */
     const importCsvBtn = document.getElementById('import-csv-btn');
     const csvFileInput = document.getElementById('csv-file-input');
-    const importCsvForm = document.getElementById('import-csv-form');
+    
+    const previewModal = document.getElementById('csv-preview-modal');
+    const previewTbody = document.getElementById('csv-preview-tbody');
+    const confirmImportBtn = document.getElementById('confirm-import-btn');
+    
+    const successModal = document.getElementById('csv-success-modal');
+    const successSummaryText = document.getElementById('success-summary-text');
+    const printBatchBtn = document.getElementById('print-batch-btn');
+    
+    let currentPreviewData = []; 
 
+    // 1. Trigger File Input with Format Reminder
     importCsvBtn?.addEventListener('click', function(e) {
         e.preventDefault();
-        csvFileInput.click();
+        
+        Swal.fire({
+            title: 'CSV Import Format',
+            html: `
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">Before uploading, please ensure your CSV file has exactly these column headers:</p>
+                <div style="background: rgba(248, 250, 252, 0.9); padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; text-align: left; font-family: 'Inconsolata', monospace; font-size: 14px; line-height: 1.8;">
+                    <ul style="margin: 0; padding-left: 20px; color: var(--french-blue); font-weight: 700;">
+                        <li>PRODUCT_NAME</li>
+                        <li>SUPPLIER</li>
+                        <li>CATEGORY</li>
+                        <li>PRICE</li>
+                        <li>QTY</li>
+                        <li>BARCODE <span style="color: #94a3b8; font-weight: 500; font-size: 12px;">(Optional - leave blank to auto-generate)</span></li>
+                    </ul>
+                </div>
+                <p style="font-size: 12px; color: var(--status-red); margin-top: 10px; font-style: italic;">Note: Do NOT include a Product ID column. The system will create it for you.</p>
+            `,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--french-blue)',
+            cancelButtonColor: 'var(--text-secondary)',
+            confirmButtonText: 'I understand, Proceed',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Bubuksan lang ang file explorer kapag nag-confirm sila
+                csvFileInput.click();
+            }
+        });
     });
 
+    // 2. Upload File for Preview (AJAX)
     csvFileInput?.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            const fileName = this.files[0].name;
-            Swal.fire({
-                title: 'Import CSV',
-                text: `Are you sure you want to import products from "${fileName}"?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: 'var(--french-blue)',
-                cancelButtonColor: 'var(--text-secondary)',
-                confirmButtonText: 'Yes, import it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Uploading...',
-                        text: 'Please wait while we import your products.',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
-                    importCsvForm.submit();
+        if (this.files.length === 0) return;
+        
+        const file = this.files[0];
+        const formData = new FormData();
+        formData.append('csv_file', file);
+        
+        // Get CSRF Token from the hidden form
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        Swal.fire({
+            title: 'Reading File...',
+            text: 'Parsing your CSV and generating temporary IDs...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch("{% url 'inventory:preview_csv_import' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": csrfToken },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            Swal.close();
+            if (data.status === 'success') {
+                currentPreviewData = data.data;
+                populatePreviewTable(currentPreviewData);
+                previewModal.style.display = "flex";
+            } else {
+                Swal.fire('Error', data.message, 'error');
+                csvFileInput.value = '';
+            }
+        })
+        .catch(error => {
+            Swal.close();
+            Swal.fire('Error', 'Failed to connect to the server.', 'error');
+            csvFileInput.value = '';
+        });
+    });
+
+    // 3. Helper Function para i-build yung table sa loob ng Modal
+    function populatePreviewTable(rows) {
+        previewTbody.innerHTML = '';
+        rows.forEach(row => {
+            // IDINAGDAG/BINAGO: Ang kulay ng AUTO-GENERATED badge ay Mustard na ngayon (#FFD358)
+            const autoBadge = row.is_auto_generated 
+                ? `<span style="background: rgba(255, 211, 88, 0.25); color: #b28900; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;">AUTO-GENERATED</span>` 
+                : `<span style="background: rgba(226, 232, 240, 0.5); color: var(--text-secondary); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;">EXISTING</span>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-family: 'Inconsolata', monospace; font-weight: 700; color: var(--french-blue);">${row.product_id}</td>
+                <td style="font-weight: 600; color: var(--text-primary);">${row.item_name}</td>
+                <td style="color: var(--text-secondary);">${row.category}</td>
+                <td style="font-family: 'Inconsolata', monospace; color: var(--text-secondary);">
+                    ${row.barcode_id || row.barcode} ${autoBadge}
+                </td>
+            `;
+            previewTbody.appendChild(tr);
+        });
+    }
+
+    // 4. Confirm and Save to Database (AJAX)
+    confirmImportBtn?.addEventListener('click', function() {
+        if (currentPreviewData.length === 0) return;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const previousText = this.innerHTML;
+        this.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Saving...';
+        this.disabled = true;
+
+        fetch("{% url 'inventory:confirm_csv_import' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ rows: currentPreviewData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.innerHTML = previousText;
+            this.disabled = false;
+            
+            if (data.status === 'success') {
+                previewModal.style.display = "none";
+                csvFileInput.value = '';
+                
+                // Set up the Success Modal details
+                successSummaryText.innerHTML = `Successfully saved <strong>${currentPreviewData.length}</strong> products.<br>The system generated <strong>${data.new_barcodes_count}</strong> new barcodes.`;
+                
+                // INI-UPDATE ANG LOGIC PARA SA AUTO-PRINT SA LOOB NG CURRENT PAGE
+                if (data.new_barcodes_count > 0) {
+                    printBatchBtn.style.display = "inline-flex";
+                    printBatchBtn.onclick = function(e) {
+                        e.preventDefault();
+                        let fetchUrl = "{% url 'inventory:fetch_barcode_batch' 'PLACEHOLDER' %}".replace('PLACEHOLDER', data.batch_id);
+                        this.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Preparing...';
+                        
+                        fetch(fetchUrl)
+                        .then(res => res.json())
+                        .then(resData => {
+                            this.innerHTML = '<i class="ph ph-printer"></i> Print New Barcodes';
+                            if(resData.status === 'success') {
+                                const printSection = document.getElementById('print-section');
+                                printSection.innerHTML = ''; 
+                                
+                                resData.barcodes.forEach(bc => {
+                                    printSection.innerHTML += `
+                                        <div class="barcode-card">
+                                            <div class="barcode-title">${bc.product_name}</div>
+                                            <svg class="barcode-svg-render" data-value="${bc.barcode_id || bc.barcode}"></svg>
+                                        </div>
+                                    `;
+                                });
+                                
+                                document.querySelectorAll('.barcode-svg-render').forEach(svg => {
+                                    JsBarcode(svg, svg.getAttribute('data-value'), {
+                                        format: "EAN13",
+                                        width: 1.5,
+                                        height: 50,
+                                        displayValue: true,
+                                        fontSize: 14,
+                                        margin: 0
+                                    });
+                                });
+                                
+                                window.print();
+                            }
+                        });
+                    };
                 } else {
-                    csvFileInput.value = ''; // Reset input if user cancels
+                    printBatchBtn.style.display = "none";
                 }
-            });
-        }
+                
+                successModal.style.display = "flex";
+            } else {
+                Swal.fire('Database Error', data.message, 'error');
+            }
+        })
+        .catch(error => {
+            this.innerHTML = previousText;
+            this.disabled = false;
+            Swal.fire('Error', 'Failed to save data. Please check your connection.', 'error');
+        });
     });
 
     /* ------------------ EDIT MODAL ------------------ */
@@ -670,6 +967,110 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
+/* ------------------ VIEW & PRINT SINGLE BARCODE ------------------ */
+    window.viewBarcodeModal = function(barcodeId, productName) {
+        if (!barcodeId || barcodeId === "None" || barcodeId.trim() === "") {
+            Swal.fire({
+                title: 'Missing Barcode',
+                text: `Product '${productName}' has no registered barcode.`,
+                icon: 'warning',
+                confirmButtonColor: 'var(--french-blue)'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: `<span style="color: var(--french-blue); font-family: var(--font-heading); font-weight: 800;">${productName}</span>`,
+            html: `
+                <div style="padding: 20px; background: white; border-radius: 12px; display: inline-block; margin-top: 10px; border: 1px dashed rgba(203, 213, 225, 0.8);">
+                    <svg id="swal-barcode-single"></svg>
+                </div>
+            `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: '450px',
+            didOpen: () => {
+                try {
+                    // Enforce EAN13 for consistent UI
+                    JsBarcode("#swal-barcode-single", barcodeId.trim(), {
+                        format: "EAN13", 
+                        width: 2, 
+                        height: 80, 
+                        displayValue: true, 
+                        fontSize: 20, 
+                        margin: 10, 
+                        textMargin: 8, 
+                        font: "Inconsolata"
+                    });
+                } catch (e) {
+                    // If it fails the EAN-13 math check, show an error instead of CODE128
+                    document.getElementById('swal-barcode-single').outerHTML = `
+                        <p style="color: var(--amber-flame); font-size: 14px; margin: 0; font-weight: bold;">
+                            <i class="ph ph-info"></i> Standard Manufacturer Barcode
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 12px; margin-top: 6px; line-height: 1.5; padding: 0 10px;">
+                            This item uses a non-retail or international barcode format (${barcodeId.trim()}). 
+                            No preview is needed—this barcode is active and fully scannable at the POS counter!
+                        </p>
+                    `;
+                }
+            }
+        });
+    };
+
+    window.printSingleBarcode = function(barcodeId, productName) {
+        if (!barcodeId || barcodeId === "None" || barcodeId.trim() === "") {
+            Swal.fire('Cannot Print', 'No registered barcode to print.', 'error');
+            return;
+        }
+
+        // Friendly confirmation prompt bago ituloy ang pag-print
+        Swal.fire({
+            title: 'Print Barcode Label',
+            text: `Do you want to open the print layout for '${productName}'?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--french-blue)',
+            cancelButtonColor: 'var(--text-secondary)',
+            confirmButtonText: 'Yes, Print',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const printSection = document.getElementById('print-section');
+                
+                printSection.innerHTML = `
+                    <div class="barcode-card" style="margin: 0 auto; padding: 20px; text-align: center;">
+                        <div class="barcode-title" style="font-weight: bold; margin-bottom: 10px;">${productName}</div>
+                        <svg id="single-print-barcode"></svg>
+                    </div>
+                `;
+                
+                try {
+                    JsBarcode("#single-print-barcode", barcodeId.trim(), {
+                        format: "EAN13",
+                        width: 1.5,
+                        height: 50,
+                        displayValue: true,
+                        fontSize: 14,
+                        margin: 0
+                    });
+                    
+                    setTimeout(() => {
+                        window.print();
+                    }, 200);
+
+                } catch (e) {
+                    // Friendly message if the code belongs to a non-EAN13 manufacturer standard
+                    Swal.fire({
+                        title: 'Label Printing Not Required',
+                        text: `This product already comes with an international or manufacturer barcode (${barcodeId.trim()}). You can scan the factory label directly at the POS checkout without printing a new one!`,
+                        icon: 'info',
+                        confirmButtonColor: 'var(--french-blue)'
+                    });
+                }
+            }
+        });
+    };
 </script>
 
 {% endblock %}
