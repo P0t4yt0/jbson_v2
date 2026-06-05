@@ -9,22 +9,24 @@ from django.core.management import call_command
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
+# 🟢 FIX: Gumamit ng get_user_model() para sa Custom User Models
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 # 🟢 SIGURADUHING NAKA-IMPORT ITO
 from activity_log.utils import log_system_activity
 BUFFER_SIZE = 64 * 1024
+
 # ==========================================
 # HELPER FUNCTIONS
 # ==========================================
 
-# Helper para sa Database Size
 def get_current_db_size():
     with connection.cursor() as cursor:
         cursor.execute("SELECT round(sum(data_length + index_length) / 1024 / 1024, 2) FROM information_schema.tables WHERE table_schema = 'jbson_dev';")
         result = cursor.fetchone()
         return result[0] if result and result[0] else 0
 
-# Helper para sa Last Backup Time
 def get_last_backup_time():
     backup_dir = os.path.join(settings.BASE_DIR, 'secure_backups')
     if not os.path.exists(backup_dir):
@@ -43,10 +45,8 @@ def maintenance_dashboard(request):
     report = []
     tables_to_optimize = [] 
     
-    # 🟢 Check kung kakalinis lang ng user (Session memory)
     just_optimized = request.session.get('db_optimized_recently', False)
 
-    # 🟢 Mag-scan lang tayo kung HINDI pa nakakapag-clean recently
     if not just_optimized:
         with connection.cursor() as cursor:
             cursor.execute("SHOW TABLE STATUS WHERE Data_free > 0")
@@ -56,17 +56,14 @@ def maintenance_dashboard(request):
                 raw_overhead = table[9] if table[9] is not None else 0
                 overhead_mb = round(raw_overhead / 1024 / 1024, 3)
                 
-                # Filter natin: I-report lang kung may kalat
                 if overhead_mb > 0:
                     tables_to_optimize.append(table_name)
                     report.append(f"Some old records in '{table_name}' are taking up {overhead_mb} MB of extra space.")
 
     if request.method == "POST":
-        # Kung may natagpuang tables bago nila pinindot yung clean
         if tables_to_optimize: 
             with connection.cursor() as cursor:
                 tables_str = ", ".join(tables_to_optimize)
-                # I-run pa rin ang totoong paglinis sa database
                 cursor.execute(f"OPTIMIZE TABLE {tables_str}")
             
             log_system_activity(
@@ -75,17 +72,14 @@ def maintenance_dashboard(request):
                 description=f"Cleaned up and optimized storage for: {tables_str}."
             )
             
-            # 🟢 I-save sa session na tapos na mag-optimize para MAWALA na yung warning sa UI!
             request.session['db_optimized_recently'] = True
             messages.success(request, "Storage successfully cleaned and optimized!")
         else:
-            # Kahit walang kalat, i-set pa rin natin para sure na malinis ang UI
             request.session['db_optimized_recently'] = True
             messages.info(request, "System is already optimized. No action needed.")
             
         return redirect(request.path)
 
-    # 3. RENDER
     context = {
         'db_size': get_current_db_size(),
         'report': report,
@@ -108,12 +102,9 @@ def trigger_backup(request):
             return redirect(request.META.get('HTTP_REFERER', '/'))
 
         try:
-            # 1. Generate standard backup via management command
             call_command('backup_db')
             
-            # 2. Hanapin yung pinaka-latest na raw backup (.gz or .sql)
             backup_dir = os.path.join(settings.BASE_DIR, 'secure_backups')
-            # Filter out existing .enc files para hindi ma-double encrypt
             files = [os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if not f.endswith('.enc')]
             
             if not files:
@@ -122,21 +113,17 @@ def trigger_backup(request):
             latest_file = max(files, key=os.path.getctime)
             encrypted_file = f"{latest_file}.enc"
             
-            # 3. ENCRYPT THE FILE
             pyAesCrypt.encryptFile(latest_file, encrypted_file, encryption_key, BUFFER_SIZE)
             
-            # 4. SECURITY PROTOCOL: Delete the raw, unencrypted file from the server!
             if os.path.exists(latest_file):
                 os.remove(latest_file)
             
-            # 5. Log Activity
             log_system_activity(
                 user=request.user,
                 action="DATABASE BACKUP",
                 description="Successfully generated and downloaded an ENCRYPTED database backup."
             )
             
-            # 6. Serve the .enc file to the user
             response = FileResponse(open(encrypted_file, 'rb'), as_attachment=True)
             return response
             
@@ -158,21 +145,48 @@ def trigger_restore(request):
         filename = fs.save(uploaded_file.name, uploaded_file)
         encrypted_filepath = fs.path(filename)
         
-        # Prepare target filename for decryption (tatanggalin lang natin yung .enc)
         decrypted_filepath = encrypted_filepath.replace('.enc', '') if encrypted_filepath.endswith('.enc') else f"{encrypted_filepath}_decrypted.gz"
 
         try:
-            # 1. DECRYPT THE FILE
             try:
                 pyAesCrypt.decryptFile(encrypted_filepath, decrypted_filepath, decryption_key, BUFFER_SIZE)
             except ValueError:
-                # Ang pyAesCrypt ay magba-bato ng ValueError kapag MALI ang password
                 raise Exception("Incorrect decryption password or corrupted backup file.")
 
-            # 2. Restore using the decrypted file
+            # 🟢 PROTECT JBSON ACCOUNT: Safely check existing attributes
+            jbson_data = None
+            try:
+                # Ginamit natin ang iexact para case-insensitive
+                jbson_user = User.objects.get(username__iexact='jbson') 
+                jbson_data = {'password': jbson_user.password}
+                
+                # Kukunin lang ang mga ito KUNG nag-eexist sa Custom User Model mo
+                if hasattr(jbson_user, 'email'):
+                    jbson_data['email'] = jbson_user.email
+                if hasattr(jbson_user, 'is_superuser'):
+                    jbson_data['is_superuser'] = jbson_user.is_superuser
+                if hasattr(jbson_user, 'is_staff'):
+                    jbson_data['is_staff'] = jbson_user.is_staff
+            except User.DoesNotExist:
+                pass
+
+            # Restore using the decrypted file
             call_command('restore_db', decrypted_filepath)
             
-            # 3. Log Activity
+            # 🟢 RESTORE JBSON ACCOUNT: Ibalik lang ang mga fields na meron ka
+            if jbson_data:
+                user_obj, created = User.objects.get_or_create(username='JBSON')
+                user_obj.password = jbson_data['password']
+                
+                if 'email' in jbson_data:
+                    user_obj.email = jbson_data['email']
+                if 'is_superuser' in jbson_data:
+                    user_obj.is_superuser = jbson_data['is_superuser']
+                if 'is_staff' in jbson_data:
+                    user_obj.is_staff = jbson_data['is_staff']
+                    
+                user_obj.save()
+            
             log_system_activity(
                 user=request.user,
                 action="DATABASE RESTORE",
@@ -185,7 +199,7 @@ def trigger_restore(request):
             messages.error(request, f'Restore failed: {e}')
             
         finally:
-            # 4. CLEANUP: Delete both the uploaded .enc and the decrypted raw file from the server
+            # CLEANUP
             if os.path.exists(encrypted_filepath):
                 os.remove(encrypted_filepath)
             if os.path.exists(decrypted_filepath):
@@ -193,15 +207,16 @@ def trigger_restore(request):
                 
         return redirect(request.META.get('HTTP_REFERER', '/'))
 
+
 def delete_all_data(request):
     if request.method == 'POST':
-        # 1. Tables na HINDI dapat mabura (Credentials & System Core)
+        # 🟢 FIX: In-update ang listahan para sa Custom User Model ('security_user')
         protected_tables = [
-            'auth_user', 
+            'security_user', 
+            'security_user_groups', 
+            'security_user_user_permissions',
             'auth_group', 
             'auth_permission', 
-            'auth_user_groups', 
-            'auth_user_user_permissions', 
             'django_migrations',
             'django_content_type',
             'django_session',
@@ -210,30 +225,27 @@ def delete_all_data(request):
 
         try:
             with connection.cursor() as cursor:
-                # Kunin ang lahat ng tables sa database
                 cursor.execute("SHOW TABLES")
                 all_tables = [row[0] for row in cursor.fetchall()]
 
-                # I-disable ang foreign key checks para hindi mag-error
                 cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
                 
                 for table in all_tables:
                     if table not in protected_tables:
-                        # Dito natin buburahin lahat ng DATA (TRUNCATE)
-                        # Pero hindi mabubura ang structure ng table
                         cursor.execute(f"TRUNCATE TABLE {table};")
                 
-                # I-enable ulit ang foreign key checks
                 cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
 
-            # 🟢 LOG ACTIVITY: WIPE DATA (nasa loob ng try block)
+            # Ligtas na ide-delete lahat maliban sa JBSON account gamit ang tamang model
+            User.objects.exclude(username__iexact='jbson').delete()
+
             log_system_activity(
                 user=request.user,
                 action="SYSTEM WIPE",
-                description="Performed a full system wipe (Truncate). All transactions and configurations were cleared."
+                description="Performed a full system wipe. All transactions and extra accounts were cleared."
             )
 
-            messages.success(request, 'System wiped! All transactions cleared but credentials remain.')
+            messages.success(request, 'System wiped! All transactions and other accounts cleared, but JBSON account remains safe.')
         except Exception as e:
             messages.error(request, f'Error: {e}')
              

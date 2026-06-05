@@ -289,6 +289,10 @@
                     <a href="#" id="scan-barcode-btn" class="action-btn-custom btn-blue">
                         <i class="ph ph-barcode"></i> Scan Barcode
                     </a>
+
+                    <a href="#" id="import-csv-btn" class="action-btn-custom btn-grey">
+                        <i class="ph ph-file-csv"></i> Import CSV
+                    </a>
                 </div>
 
                 <div>
@@ -435,6 +439,11 @@
 <form id="bulk-delete-form" method="POST" action="{% url 'inventory:bulk_delete_products' %}" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="product_ids" id="hidden-delete-ids">
+</form>
+
+<form id="import-csv-form" method="POST" action="{% url 'inventory:import_csv' %}" enctype="multipart/form-data" style="display: none;">
+    {% csrf_token %}
+    <input type="file" name="csv_file" id="csv-file-input" accept=".csv">
 </form>
 
 <div id="edit-product-modal" class="blur-modal">
@@ -591,6 +600,43 @@ document.addEventListener("DOMContentLoaded", function () {
                 bulkDeleteForm.submit();
             }
         });
+    });
+
+    /* ------------------ IMPORT CSV ------------------ */
+    const importCsvBtn = document.getElementById('import-csv-btn');
+    const csvFileInput = document.getElementById('csv-file-input');
+    const importCsvForm = document.getElementById('import-csv-form');
+
+    importCsvBtn?.addEventListener('click', function(e) {
+        e.preventDefault();
+        csvFileInput.click();
+    });
+
+    csvFileInput?.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const fileName = this.files[0].name;
+            Swal.fire({
+                title: 'Import CSV',
+                text: `Are you sure you want to import products from "${fileName}"?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--french-blue)',
+                cancelButtonColor: 'var(--text-secondary)',
+                confirmButtonText: 'Yes, import it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Uploading...',
+                        text: 'Please wait while we import your products.',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    importCsvForm.submit();
+                } else {
+                    csvFileInput.value = ''; // Reset input if user cancels
+                }
+            });
+        }
     });
 
     /* ------------------ EDIT MODAL ------------------ */

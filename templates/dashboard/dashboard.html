@@ -410,7 +410,7 @@
         <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
             <i class="ph ph-book"></i> User Manual
         </a>
-        <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path %}active{% endif %}">
+        <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path and '/manual/' not in request.path %}active{% endif %}">
             <i class="ph ph-gear"></i> General Settings
         </a>
         <form action="{% url 'security:logout' %}" method="POST" class="logout-form" onsubmit="confirmLogout(event, this)">

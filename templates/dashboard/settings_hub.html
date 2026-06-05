@@ -243,7 +243,11 @@
                 <div style="flex-grow: 1;">
                     <div class="icon-circle icon-blue"><i class="ph ph-download-simple"></i></div>
                     <h3 class="settings-header" style="font-size: 20px; margin: 0 0 8px 0;">System Backup</h3>
-                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; font-weight: 500;">Generate and download a highly-secured, encrypted SQL dump of the current database.</p>
+                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; font-weight: 500;">Generate and download a highly-secured, encrypted SQL dump of the current database.</p>
+                    
+                    <p style="font-size: 12px; color: var(--status-green); font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;">
+                        <i class="ph ph-shield-check" style="font-size: 16px;"></i> The main "JBSON" account is protected.
+                    </p>
 
                     <p style="font-size: 13px; font-weight: 700; color: var(--french-blue); margin: 0 0 20px 0; display: flex; align-items: center; gap: 6px; background: rgba(255, 185, 21, 0.1); padding: 8px 12px; border-radius: 8px; width: fit-content; border: 1px solid rgba(255, 185, 21, 0.2);">
                         <i class="ph ph-clock-counter-clockwise" style="font-size: 18px; color: var(--amber-flame);"></i>
@@ -267,8 +271,12 @@
                 <div style="flex-grow: 1;">
                     <div class="icon-circle icon-amber"><i class="ph ph-upload-simple"></i></div>
                     <h3 class="settings-header" style="font-size: 20px; margin: 0 0 8px 0; color: var(--amber-flame);">System Recovery</h3>
-                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px; font-weight: 500;">Upload an encrypted backup file to restore the system state.</p>
+                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; font-weight: 500;">Upload an encrypted backup file to restore the system state.</p>
                     
+                    <p style="font-size: 12px; color: var(--status-green); font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 6px;">
+                        <i class="ph ph-shield-check" style="font-size: 16px;"></i> The main "JBSON" account will not be overwritten.
+                    </p>
+
                     <form action="{% url 'maintenance:trigger_restore' %}" method="POST" enctype="multipart/form-data" id="restoreForm">
                         {% csrf_token %}
                         <div class="file-upload-wrapper" style="margin-bottom: 16px;">
@@ -293,7 +301,8 @@
             <h3 style="color: var(--status-red); margin: 0 0 6px 0; font-size: 20px; font-family: var(--font-heading); font-weight: 800; display: flex; align-items: center; gap: 8px;">
                 <i class="ph ph-warning" style="font-size: 24px;"></i> Danger Zone
             </h3>
-            <p style="font-size: 14px; color: #991b1b; font-weight: 500; margin: 0;">Permanently delete all inventory and transaction records. This action cannot be undone.</p>
+            <p style="font-size: 14px; color: #991b1b; font-weight: 500; margin: 0;">Permanently delete all inventory and transaction records.</p>
+            <p style="font-size: 13px; color: var(--status-red); font-weight: 700; margin: 4px 0 0 0;">(Don't worry, the main "JBSON" account is strictly protected and will not be deleted).</p>
         </div>
         <form action="{% url 'maintenance:delete_all_data' %}" method="POST" onsubmit="confirmWipeData(event);" style="margin: 0; min-width: 200px;">
             {% csrf_token %}
@@ -354,17 +363,17 @@
         }, 2000);
     }
 
-    // Wipe Warning
+    // Wipe Warning updated to ensure JBSON account is safe
     function confirmWipeData(event) {
         event.preventDefault();
         Swal.fire({
             title: 'Wipe all data?',
-            text: "This will permanently delete ALL records!",
+            text: "This will permanently delete all records EXCEPT the main JBSON account.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444', // Matches Status Red
             cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Yes, wipe everything!'
+            confirmButtonText: 'Yes, wipe everything else!'
         }).then((result) => { 
             if (result.isConfirmed) { event.target.submit(); } 
         });

@@ -11,6 +11,8 @@ urlpatterns = [
     
     # ETO YUNG BAGONG URL NATIN PARA SA BULK DELETE
     path('bulk-delete/', views.bulk_delete_products, name='bulk_delete_products'),
+
+    path('products/import/', views.import_csv, name='import_csv'),
     
     path('low-stocks/', views.low_stock_view, name='low_stock_view'),
     path('categories/', views.category_list, name='category_list'),

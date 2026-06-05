@@ -147,6 +147,53 @@ def run_abc_analysis(request):
     return redirect('inventory:inventory_list')
 
 @login_required
+def import_csv(request):
+    if request.method == 'POST':
+        csv_file = request.FILES.get('csv_file')
+
+        # Basic validations
+        if not csv_file:
+            messages.error(request, "Walang file na na-upload.")
+            return redirect('inventory:inventory_list')
+
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "Mali ang file format. Please upload a CSV file.")
+            return redirect('inventory:inventory_list')
+
+        try:
+            # Read and decode the CSV file
+            file_data = csv_file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(file_data)
+
+            # Loop through the CSV rows and save to DB
+            for row in reader:
+                # Gumagamit tayo ng update_or_create para kung existing na ang product ID,
+                # i-uupdate na lang niya imbes na mag-duplicate.
+                Product.objects.update_or_create(
+                    product_id=row.get('product_id'), # Ito yung hahanapin niyang unique identifier
+                    defaults={
+                        'item_name': row.get('item_name', ''),
+                        'price': row.get('price', 0.0),
+                        'barcode_id': row.get('barcode_id', ''),
+                        'quantity': row.get('quantity', 0),
+                        'reorder_point': row.get('reorder_point', 10),
+                        
+                        # Note: Kung may Foreign Keys ka (tulad ng category/supplier), 
+                        # kailangan mo munang i-query or i-get_or_create ang instance nila bago i-save dito.
+                        # Example:
+                        # 'category': Category.objects.get(name=row.get('category_name'))
+                    }
+                )
+                
+            messages.success(request, "Products successfully imported!")
+            
+        except Exception as e:
+            messages.error(request, f"May error sa pag-import: {e}")
+
+    # Kapag tapos na, ibabalik niya ang user sa product list page
+    return redirect('inventory:inventory_list')
+
+@login_required
 def edit_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     
