@@ -1,18 +1,11 @@
-"""
-Module 11 — User Manual
-In-app help system with System Guide, FAQs, and Troubleshooting.
-Content managed by admins and served to all users.
-"""
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
 
 class ManualSection(models.Model):
-    """
-    Top-level sections of the User Manual.
-    e.g. System Guide, FAQs, Troubleshooting Guide
-    """
+
     SECTION_TYPE_CHOICES = [
         ('guide',           'System Guide'),
         ('faq',             'FAQs'),
@@ -38,10 +31,7 @@ class ManualSection(models.Model):
 
 
 class ManualArticle(models.Model):
-    """
-    Individual help article within a ManualSection.
-    Supports rich text content (HTML).
-    """
+
     section      = models.ForeignKey(ManualSection, on_delete=models.CASCADE, related_name='articles')
     title        = models.CharField(max_length=200)
     content      = models.TextField()   # HTML content

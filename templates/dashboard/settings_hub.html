@@ -8,10 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-    /* SETTINGS UI MATCHING DASHBOARD
 
-    
-    /* GLASSMORPHISM PANELS */
     .settings-panel {
         background: rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(12px);
@@ -31,7 +28,7 @@
         border-color: rgba(255, 255, 255, 0.9);
     }
 
-    /* DANGER ZONE PANEL (Tinted Red Glass) */
+    /* DANGER ZONE PANEL */
     .panel-danger {
         background: rgba(254, 242, 242, 0.75);
         border: 1px solid rgba(239, 68, 68, 0.3);
@@ -115,7 +112,7 @@
         background: rgba(255, 255, 255, 0.9);
     }
 
-    /* ICON BACKGROUNDS */
+    /* BACKGROUND */
     .icon-circle {
         width: 48px;
         height: 48px;
@@ -130,7 +127,7 @@
     .icon-amber { background: rgba(255, 185, 21, 0.1); color: var(--amber-flame); }
     .icon-red { background: rgba(239, 68, 68, 0.1); color: var(--status-red); }
     
-    /* PASSWORD INPUT STYLING */
+    /* PASSWORD */
     .encryption-input {
         width: 100%;
         font-size: 14px;
@@ -152,7 +149,7 @@
     
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* SWEETALERT BACKDROP SYNC */
+    /* SWEETALERT */
     .swal2-container.swal2-backdrop-show {
         backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
@@ -305,7 +302,7 @@
 </div>
 
 <script>
-    // Handle Django Messages (Alerts)
+    // Django Messages 
     document.addEventListener("DOMContentLoaded", function() {
         {% if messages %}
             {% for message in messages %}
@@ -332,7 +329,6 @@
                     timerProgressBar: true
                 });
                 
-                // Keep the scan results open if optimization was performed
                 var messageContent = "{{ message|escapejs }}".toLowerCase();
                 if (messageContent.includes('optimiz')) {
                     document.getElementById('scan-init').style.display = 'none';
@@ -354,7 +350,6 @@
         }, 2000);
     }
 
-    // Wipe Warning updated to ensure JBSON account is safe
     function confirmWipeData(event) {
         event.preventDefault();
         Swal.fire({
@@ -387,7 +382,7 @@
                         title: 'Weak Password',
                         text: 'For your security, the encryption password must be at least 8 characters long.',
                         icon: 'warning',
-                        confirmButtonColor: '#EF4444', // Matches your Danger Status Red
+                        confirmButtonColor: '#EF4444', 
                     });
                 }
             });

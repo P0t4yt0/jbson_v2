@@ -730,7 +730,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     let currentPreviewData = []; 
 
-    // 1. Trigger File Input with Format Reminder
+    // Trigger File Input with Format Reminder
     importCsvBtn?.addEventListener('click', function(e) {
         e.preventDefault();
         
@@ -758,13 +758,12 @@ document.addEventListener("DOMContentLoaded", function () {
             cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Bubuksan lang ang file explorer kapag nag-confirm sila
                 csvFileInput.click();
             }
         });
     });
 
-    // 2. Upload File for Preview (AJAX)
+    // Upload File for Preview
     csvFileInput?.addEventListener('change', function() {
         if (this.files.length === 0) return;
         
@@ -772,7 +771,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const formData = new FormData();
         formData.append('csv_file', file);
         
-        // Get CSRF Token from the hidden form
+        // CSRF Token 
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         Swal.fire({
@@ -806,11 +805,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // 3. Helper Function para i-build yung table sa loob ng Modal
     function populatePreviewTable(rows) {
         previewTbody.innerHTML = '';
         rows.forEach(row => {
-            // IDINAGDAG/BINAGO: Ang kulay ng AUTO-GENERATED badge ay Mustard na ngayon (#FFD358)
+
             const autoBadge = row.is_auto_generated 
                 ? `<span style="background: rgba(255, 211, 88, 0.25); color: #b28900; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;">AUTO-GENERATED</span>` 
                 : `<span style="background: rgba(226, 232, 240, 0.5); color: var(--text-secondary); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;">EXISTING</span>`;
@@ -828,7 +826,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 4. Confirm and Save to Database (AJAX)
+    //  Confirm and Save to Database
     confirmImportBtn?.addEventListener('click', function() {
         if (currentPreviewData.length === 0) return;
         
@@ -854,10 +852,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 previewModal.style.display = "none";
                 csvFileInput.value = '';
                 
-                // Set up the Success Modal details
                 successSummaryText.innerHTML = `Successfully saved <strong>${currentPreviewData.length}</strong> products.<br>The system generated <strong>${data.new_barcodes_count}</strong> new barcodes.`;
                 
-                // INI-UPDATE ANG LOGIC PARA SA AUTO-PRINT SA LOOB NG CURRENT PAGE
                 if (data.new_barcodes_count > 0) {
                     printBatchBtn.style.display = "inline-flex";
                     printBatchBtn.onclick = function(e) {
@@ -926,7 +922,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     modalContent.innerHTML = html;
                     modal.style.display = "flex";
 
-                    // Manually execute any <script> tags injected via innerHTML
                     modalContent.querySelectorAll("script").forEach(oldScript => {
                         const newScript = document.createElement("script");
                         newScript.textContent = oldScript.textContent;
@@ -966,7 +961,6 @@ document.addEventListener("DOMContentLoaded", function () {
             width: '450px',
             didOpen: () => {
                 try {
-                    // Enforce EAN13 for consistent UI
                     JsBarcode("#swal-barcode-single", barcodeId.trim(), {
                         format: "EAN13", 
                         width: 2, 
@@ -978,7 +972,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         font: "Inconsolata"
                     });
                 } catch (e) {
-                    // If it fails the EAN-13 math check, show an error instead of CODE128
                     document.getElementById('swal-barcode-single').outerHTML = `
                         <p style="color: var(--amber-flame); font-size: 14px; margin: 0; font-weight: bold;">
                             <i class="ph ph-info"></i> Standard Manufacturer Barcode
@@ -999,7 +992,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Friendly confirmation prompt bago ituloy ang pag-print
         Swal.fire({
             title: 'Print Barcode Label',
             text: `Do you want to open the print layout for '${productName}'?`,
@@ -1035,7 +1027,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     }, 200);
 
                 } catch (e) {
-                    // Friendly message if the code belongs to a non-EAN13 manufacturer standard
                     Swal.fire({
                         title: 'Label Printing Not Required',
                         text: `This product already comes with an international or manufacturer barcode (${barcodeId.trim()}). You can scan the factory label directly at the POS checkout without printing a new one!`,

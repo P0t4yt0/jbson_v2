@@ -11,12 +11,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
         :root {
-            /* Strict Color Palette */
+            /* Color Palette */
             --french-blue: #2F3F7B;
             --mustard: #FFD358;
             --amber-flame: #FFB915;
 
-            /* Original Theme Variables */
             --bg-main: #F4F6F9;
             --bg-card: #FFFFFF;
             --primary-red: #891C1C;
@@ -56,7 +55,7 @@
             overflow: hidden;
         }
 
-        /* --- Sidebar Navigation --- */
+        /* Sidebar Navigation */
         .sidebar {
             width: 260px;
             background-color: var(--bg-card);
@@ -135,7 +134,7 @@
             color: #FFFFFF;
         }
 
-        /* --- Main Content Area --- */
+        /* Main Content Area */
         .main-wrapper {
             flex: 1;
             display: flex;
@@ -144,7 +143,7 @@
             position: relative;
         }
 
-        /* --- Header --- */
+        /* Header */
         .top-header {
             height: 70px;
             background-color: var(--bg-card);
@@ -211,7 +210,7 @@
         .dropdown-item { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
 
-        /* --- Scrollable Content Grid --- */
+        /* Scrollable Content Grid */
         .content-scroll {
             flex: 1;
             overflow-y: auto;
@@ -519,7 +518,7 @@
                 {% block content %}
                 
                 <style>
-                    /* SOLID KPI CARDS DESIGN */
+                    /* KPI CARDS */
                     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
                     
                     .kpi-card { border-radius: var(--border-radius); padding: 28px; border: none; box-shadow: var(--shadow-subtle); display: flex; flex-direction: column; gap: 12px; transition: transform 0.3s ease, box-shadow 0.3s ease; }

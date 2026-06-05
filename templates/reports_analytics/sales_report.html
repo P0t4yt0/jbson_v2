@@ -9,19 +9,19 @@
 
 <style>
     :root {
-        /* BRAND FONTS ALIGNED WITH DASHBOARD */
+        /* FONTS */
         --font-heading: 'Inter', sans-serif;
         --font-body: 'Inter', sans-serif;
         --font-mono: 'Inconsolata', monospace; 
 
-        /* MAIN SYSTEM COLORS FROM DASHBOARD */
+        /* COLORS*/
         --color-main-red: #891C1C;      
         --color-main-navy: #2F3F7B;     
         --color-accent-orange: #FFB915; 
         --color-accent-green: #22C55E;  
         --color-mustard: #FFD358;       
 
-        /* SYSTEM ALERTS / BADGES */
+        /* SYSTEM ALERTS */
         --bg-success: #dcfce7;
         --text-success: #166534;
         --bg-pending: #fef08a;
@@ -59,18 +59,18 @@
     .page-btn { border: 1px solid #D1D5DB; padding: 5px 10px; border-radius: 4px; color: var(--text-main); text-decoration: none; background: white; display: flex; align-items: center; justify-content: center; }
     .page-btn:hover { background: #F9FAFB; }
 
-   /* PDF EXPORT CUSTOM CLASS CODES (PO FORMATTED) */
+   /* PDF EXPORT CUSTOM  */
     .pdf-export-wrapper { background: white !important; padding: 20px 30px !important; font-family: 'DM Sans', sans-serif !important; color: #1a1a2e !important; }
     .pdf-export-wrapper .card-box { border: none !important; box-shadow: none !important; margin-bottom: 24px !important; break-inside: avoid; width: 100% !important; flex: none !important; padding: 0 !important; background: transparent !important; }
     
-    /* Make KPIs look like the PO Info Strip */
+    /*  KPIs */
     .pdf-export-wrapper #kpi-section { display: grid !important; grid-template-columns: 1fr 1fr 1fr 1fr !important; gap: 0 !important; background: #f5f6fa !important; border: 1px solid #e8e8f0 !important; border-radius: 8px !important; margin-bottom: 24px !important; overflow: hidden !important; flex-direction: row !important; }
     .pdf-export-wrapper #kpi-section .card-box { border: none !important; border-right: 1px solid #e8e8f0 !important; background: transparent !important; padding: 14px 18px !important; border-radius: 0 !important; margin: 0 !important; }
     .pdf-export-wrapper #kpi-section .card-box:last-child { border-right: none !important; }
     .pdf-export-wrapper #kpi-section .card-box div { font-size: 10px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; color: #9a9ab0 !important; margin-bottom: 5px !important; }
     .pdf-export-wrapper #kpi-section .card-box h2 { font-family: 'DM Mono', monospace !important; font-size: 16px !important; font-weight: 500 !important; color: #1a1a2e !important; margin: 0 !important; }
 
-    /* Tables & Headers formatted like PO */
+    /* Tables & Headers */
     .pdf-export-wrapper h3 { font-family: 'DM Sans', sans-serif !important; font-size: 10px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; color: #7a7a9a !important; background: #f5f6fa !important; padding: 8px 16px !important; border: 1px solid #e8e8f0 !important; border-bottom: none !important; border-radius: 8px 8px 0 0 !important; margin: 0 !important; }
     .pdf-export-wrapper table { width: 100% !important; border-collapse: collapse !important; border-left: 1px solid #e8e8f0 !important; border-right: 1px solid #e8e8f0 !important; border-bottom: 1px solid #e8e8f0 !important; }
     .pdf-export-wrapper thead { display: table-header-group !important; }
@@ -475,7 +475,7 @@
             filename: `JBSON_${scope.toUpperCase()}_Report_${dateStamp}.pdf`, 
             image: { type: 'jpeg', quality: 0.98 }, 
             html2canvas: { scale: 2, useCORS: true }, 
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, // Match PO settings (A4 Portrait)
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }, 
             pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
         };
 

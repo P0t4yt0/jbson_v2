@@ -490,9 +490,8 @@
         window.location.search = urlParams.toString();
     }
 
-    // --- SWEETALERT CONFIGURATIONS ---
     
-    // 1. Django Messages to SweetAlert
+    // Django Messages 
     document.addEventListener("DOMContentLoaded", function() {
         {% if messages %}
             {% for message in messages %}
@@ -521,7 +520,7 @@
             {% endfor %}
         {% endif %}
 
-        // 2. SweetAlert for Archive Confirmation
+        // SweetAlert for Archive Confirmation
         const archiveButtons = document.querySelectorAll('.archive-btn');
         archiveButtons.forEach(button => {
             button.addEventListener('click', function() {

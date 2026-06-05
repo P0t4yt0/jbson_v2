@@ -3,13 +3,12 @@
 
 {% block manual_content %}
 <style>
-    /* Base Styles */
+
     .kb-container { font-family: 'Inter', system-ui, -apple-system, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; color: #334155; }
     .inventory-header { text-align: center; margin-bottom: 50px; padding-bottom: 40px; border-bottom: 1px solid #e2e8f0; }
     .inventory-header h1 { color: #092c4c; font-size: 32px; font-weight: 800; margin-bottom: 12px; margin-top: 0; }
     .inventory-header p { color: #64748b; font-size: 16px; max-width: 700px; margin: 0 auto; }
     
-    /* Dropdown Styles */
     details.kb-dropdown { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s ease; }
     details.kb-dropdown:hover { box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1); border-color: #092c4c; }
     details.kb-dropdown summary { padding: 24px 30px; cursor: pointer; font-weight: 700; color: #092c4c; font-size: 18px; background: #ffffff; border-radius: 12px; list-style: none; position: relative; display: flex; align-items: center; justify-content: space-between; }
@@ -51,7 +50,7 @@
         <p>Learn how to manage trade credit accounts, track invoices, process payments, and handle sales returns.</p>
     </div>
 
-    <!-- Submodule 1: Invoice Management -->
+    <!-- Invoice Management -->
     <details class="kb-dropdown">
         <summary>Invoice Management</summary>
         <div class="kb-dropdown-content">
@@ -77,7 +76,7 @@
         </div>
     </details>
 
-    <!-- Submodule 2: Trade Credit Accounts -->
+    <!-- Trade Credit Accounts -->
     <details class="kb-dropdown">
         <summary>Trade Credit Accounts</summary>
         <div class="kb-dropdown-content">
@@ -103,7 +102,7 @@
             </div>
         </div>
     </details>
-    <!-- Submodule 3: Sales Returns -->
+    <!-- Sales Returns -->
     <details class="kb-dropdown">
         <summary>Sales Returns</summary>
         <div class="kb-dropdown-content">

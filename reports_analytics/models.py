@@ -1,19 +1,11 @@
-"""
-Module 6 — Reports & Analytics
-Stores generated report metadata and file paths.
-Reports are built using SQL aggregate functions on live data,
-then exported as PDF. Admin-only access.
-"""
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
 
 class Report(models.Model):
-    """
-    Metadata record for every generated report.
-    The actual PDF is stored in media/reports/.
-    """
+
     REPORT_TYPE_CHOICES = [
         ('sales_summary',   'Sales Summary'),
         ('sales_daily',     'Daily Sales Report'),

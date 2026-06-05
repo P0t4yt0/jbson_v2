@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
 
 <style>
-    /* Card/Container Layout with Glassmorphism */
     .layout-grid { 
         display: grid; 
         grid-template-columns: 2fr 1fr; 
@@ -511,7 +510,7 @@
         }
     }
 
-    // -- HELPER FOR REAL-TIME VALIDATION --
+    // FOR REAL-TIME VALIDATION
     function updateRuleState(ruleId, isValid, isNeutral = false) {
         const ruleElement = document.getElementById(ruleId);
         const iconElement = ruleElement.querySelector('i');
@@ -528,7 +527,7 @@
         }
     }
 
-    // -- REGISTER FORM CHECKER --
+    // REGISTER FORM 
     const passInput = document.getElementById('main_password');
     const confirmInput = document.getElementById('confirm_password');
 
@@ -560,7 +559,7 @@
     updateRuleState('rule-match', false, true);
 
 
-    // -- MODAL FORM CHECKER (Optional Password) --
+    // MODAL FORM CHECKER (Optional Password) 
     const modalPassInput = document.getElementById('modal_new_password');
     const modalConfirmInput = document.getElementById('modal_confirm_password');
 
@@ -568,7 +567,6 @@
         const val = modalPassInput.value;
         const confirmVal = modalConfirmInput.value;
 
-        // Since it's optional, if empty, set to neutral UI (circle instead of x-circle)
         if (val.length === 0 && confirmVal.length === 0) {
             updateRuleState('modal-rule-length', false, true);
             updateRuleState('modal-rule-upper', false, true);
@@ -587,9 +585,8 @@
     modalConfirmInput.addEventListener('input', checkModalRules);
 
 
-    // -- MODAL CONTROLS & NEW FLOW --
     
-    // -- MULTI-STEP EDIT FLOW STARTING WITH POPUP VERIFICATION --
+    // MULTI-STEP EDIT FLOW
     function openEditModalFlow(userId, fullName, username, role) {
         Swal.fire({
             html: `
@@ -640,7 +637,7 @@
                 const ruleMatch = popup.querySelector('#swal-rule-match');
                 const ruleIcon = ruleMatch.querySelector('i');
 
-                // Eye Icon Logic
+     
                 toggle1.addEventListener('click', () => {
                     const type = pass1.getAttribute('type') === 'password' ? 'text' : 'password';
                     pass1.setAttribute('type', type);
@@ -655,7 +652,7 @@
                     toggle2.style.color = type === 'password' ? 'var(--text-secondary)' : 'var(--french-blue)';
                 });
 
-                // Match Logic
+       
                 const checkMatch = () => {
                     const val1 = pass1.value;
                     const val2 = pass2.value;
@@ -787,7 +784,7 @@
     }
 
 
-    // -- SWEETALERT DELETE CONFIRMATION --
+    // SWEETALERT DELETE CONFIRMATION
     function showDeleteAlert(deleteUrl, username) {
         Swal.fire({
             title: 'Delete User?',

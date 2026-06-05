@@ -140,7 +140,6 @@ def sales_report_view(request):
     sales_paginator = Paginator(transactions_final, sales_per_page, orphans=0)
     sales_page = sales_paginator.get_page(p_sales_num)
 
-    # --- PAGINATE RETURNS ---
     returns_final = returns_qs.order_by('-created_at')
     
     returns_per_page = request.GET.get('returns_per_page', 5)
@@ -225,7 +224,6 @@ def procurement_report(request):
             Q(status__icontains=procurement_search)
         )
 
-    # PAGINATION LOGIC para sa Master Purchase History
     po_per_page = request.GET.get('po_per_page', 10)
     try: po_per_page = int(po_per_page)
     except ValueError: po_per_page = 10
@@ -268,7 +266,7 @@ def purchase_report_view(request):
         except ValueError:
             pass
 
-    # --- BACKEND SEARCH LOGIC ---
+    # BACKEND SEARCH LOGIC 
     if purchase_search:
         purchase_orders_qs = purchase_orders_qs.filter(
             Q(po_number__icontains=purchase_search) |
@@ -276,7 +274,7 @@ def purchase_report_view(request):
             Q(status__icontains=purchase_search)  
         )
 
-    # --- TOTAL PURCHASES SUMMARY ---
+    # TOTAL PURCHASES SUMMARY
     summary = purchase_orders_qs.aggregate(
         total_expense=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()),
         total_po_count=Count('id')
@@ -284,12 +282,12 @@ def purchase_report_view(request):
     total_expense = summary['total_expense']
     total_po_count = summary['total_po_count']
 
-    # --- SUPPLIER BREAKDOWN ---
+    # SUPPLIER BREAKDOWN
     supplier_breakdown = purchase_orders_qs.values('supplier__name').annotate(
         total_spent=Coalesce(Sum('total_amount'), 0, output_field=DecimalField())
     ).order_by('-total_spent')
 
-    # --- TOP PURCHASED PRODUCTS (GINAWANG TOP 5) ---
+    # TOP PURCHASED PRODUCTS (5)
     purchased_items = PurchaseOrderItem.objects.filter(purchase_order__in=purchase_orders_qs)
     top_purchased_products = purchased_items.values(
         'product__item_name' 
@@ -298,7 +296,6 @@ def purchase_report_view(request):
         total_spent_on_item=Sum(F('quantity_received') * F('unit_cost'), output_field=DecimalField())
     ).order_by('-total_spent_on_item')[:5] 
 
-    # --- PAGINATION LOGIC ---
     po_per_page = request.GET.get('po_per_page', 10)
     try: po_per_page = int(po_per_page)
     except ValueError: po_per_page = 10
@@ -306,7 +303,6 @@ def purchase_report_view(request):
     purchase_orders_ordered = purchase_orders_qs.order_by('-order_date')
     page_number = request.GET.get('page', 1)
     
-    # Nilagyan ng orphans=0 para strict pagination
     paginator = Paginator(purchase_orders_ordered, po_per_page, orphans=0)
     purchase_orders_page = paginator.get_page(page_number)
 
@@ -497,7 +493,6 @@ def inventory_report_view(request):
 
 @reports_access_required
 def profit_loss_report_view(request):
-    # --- LOGIC PARA SA PAG-SAVE NG EXPENSE (MODAL POST) ---
     if request.method == 'POST' and 'add_expense' in request.POST:
         expense_date = request.POST.get('expense_date')
         description = request.POST.get('description')
@@ -529,7 +524,7 @@ def profit_loss_report_view(request):
     purchase_qs = PurchaseOrder.objects.exclude(status__icontains='cancel')
     opex_qs = Expense.objects.all()
 
-    # --- DATE FILTERS ---
+    # DATE FILTERS
     if start_date_str and end_date_str:
         try:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
@@ -539,7 +534,7 @@ def profit_loss_report_view(request):
             opex_qs = opex_qs.filter(expense_date__range=[start_date, end_date])
         except ValueError: pass
 
-    # --- SEARCH FILTERS (Para gumana sa lahat ng page) ---
+    # SEARCH FILTERS
     if purchase_search:
         purchase_qs = purchase_qs.filter(
             Q(po_number__icontains=purchase_search) | 
@@ -552,13 +547,12 @@ def profit_loss_report_view(request):
             Q(category__icontains=expense_search)
         )
 
-    # --- TOTALS CALCULATION ---
+    # TOTALS CALCULATION
     total_income = sales_qs.aggregate(total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()))['total']
     total_purchases = purchase_qs.aggregate(total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()))['total']
     total_opex = opex_qs.aggregate(total=Coalesce(Sum('amount'), 0, output_field=DecimalField()))['total']
     net_profit = total_income - total_purchases - total_opex
 
-    # --- STRICT PAGINATION ---
     try:
         po_per_page = int(request.GET.get('po_per_page', 5))
     except ValueError:
@@ -724,7 +718,6 @@ def annual_report_view(request):
 @login_required
 @reports_access_required
 def reports_hub(request):
-    """Main hub para sa lahat ng reports."""
     
     if getattr(request.user, "role", "employee") == "employee":
         profile, created = EmployeeProfile.objects.get_or_create(user=request.user)

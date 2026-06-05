@@ -27,16 +27,23 @@ def get_current_db_size():
 
 def get_last_backup_time():
     backup_dir = os.path.join(settings.BASE_DIR, 'secure_backups')
+
     if not os.path.exists(backup_dir):
-        return "No backups yet"
-    
-    files = [os.path.join(backup_dir, f) for f in os.listdir(backup_dir) if f.endswith(('.gz', '.sqlite3', '.sql', '.enc'))]
-    if not files:
-        return "No backups yet"
-        
-    latest_file = max(files, key=os.path.getctime)
-    dt_object = datetime.fromtimestamp(os.path.getctime(latest_file))
-    return dt_object.strftime("%B %d, %Y - %I:%M %p")
+        return "Never"
+
+    valid_files = []
+    for f in os.listdir(backup_dir):
+        file_path = os.path.join(backup_dir, f)
+        if os.path.isfile(file_path) and not f.startswith('.'):
+            valid_files.append(file_path)
+
+    if not valid_files:
+        return "Never"
+
+    latest_file = max(valid_files, key=os.path.getmtime)
+    timestamp = os.path.getmtime(latest_file)
+
+    return datetime.fromtimestamp(timestamp).strftime('%B %d, %Y, %I:%M %p')
 
 # Main View
 @login_required

@@ -462,32 +462,31 @@
         });
     }
 
-    // Swaps the print classes to print a specific history barcode
+    // specific history barcode
     function reprintHistoryBarcode(barcodeId, productName) {
         const currentPrintArea = document.getElementById('new-barcode-print-area');
         const historyPrintArea = document.getElementById('history-print-area');
 
-        // 1. Hide the current barcode print area if it exists
         if (currentPrintArea) {
             currentPrintArea.classList.remove('print-active');
             currentPrintArea.style.display = 'none';
         }
 
-        // 2. Setup the history print area text and SVG
+        // Setup the history print area 
         document.getElementById('history-print-name').innerText = productName;
         JsBarcode("#history-barcode-canvas", barcodeId, {
             format: "EAN13", width: 2, height: 80, displayValue: true, fontSize: 22, margin: 10, textMargin: 8, font: "Inconsolata"
         });
 
-        // 3. Temporarily show the history area so the printer can see it
+        // Temporarily show the history area 
         historyPrintArea.style.display = 'inline-block';
         historyPrintArea.classList.add('print-active');
 
-        // 4. Add a tiny delay so the browser has time to render the barcode before opening the print dialog
+        // barcode render (time)
         setTimeout(() => {
             window.print();
 
-            // 5. Cleanup: Hide the history area again and restore the original barcode view
+            // Hide and restore the original barcode view
             historyPrintArea.style.display = 'none';
             historyPrintArea.classList.remove('print-active');
             if (currentPrintArea) {
@@ -497,7 +496,6 @@
         }, 150);
     }
 
-    // BAGONG FUNCTION PARA SA VIEW BARCODE MODAL
     function viewBarcodeModal(barcodeId, productName) {
         Swal.fire({
             title: `<span style="color: var(--french-blue); font-family: var(--font-heading); font-weight: 800;">${productName}</span>`,

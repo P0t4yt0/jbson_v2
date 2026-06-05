@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 import datetime
-import gzip  # Added Python's native gzip
+import gzip 
 from django.core.management.base import BaseCommand
 from django.conf import settings
 

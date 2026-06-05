@@ -7,7 +7,6 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <style>
-    /* GLASSMORPHISM PANELS */
     .table-container, .filter-container {
         background: rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(12px);
@@ -27,7 +26,7 @@
         margin-bottom: 24px;
     }
     
-    /* CLEAN TABLE STYLING */
+
     .table-clean {
         width: 100%;
         border-collapse: collapse;
@@ -42,7 +41,6 @@
         transition: background-color 0.2s ease;
     }
 
-    /* GLASS-LIKE HOVER EFFECT FOR ROWS */
     .table-clean tbody tr:hover td {
         background-color: rgba(255, 255, 255, 0.6);
     }
@@ -61,17 +59,17 @@
     .badge-edit { background-color: rgba(255, 185, 21, 0.1); color: var(--amber-flame); font-weight: bold; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid rgba(255, 185, 21, 0.2); }
     .badge-delete { background-color: rgba(239, 68, 68, 0.1); color: var(--status-red); font-weight: bold; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid rgba(239, 68, 68, 0.2); }
 
-    /* FORM & FILTER STYLES (WITH WRAP AND SPACING FIX) */
+    /* FORM & FILTER STYLES */
     .filter-form-wrapper {
         display: flex;
         gap: 16px;
         align-items: center;
-        flex-wrap: wrap; /* Allows wrapping instead of overlapping */
+        flex-wrap: wrap; 
         width: 100%;
     }
 
     .search-wrapper {
-        flex: 2 1 250px; /* Grow, shrink, base width */
+        flex: 2 1 250px; 
         position: relative;
     }
 
@@ -79,7 +77,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        flex: 1.5 1 280px; /* Grow, shrink, base width */
+        flex: 1.5 1 280px; 
     }
 
     .filter-input {
@@ -406,9 +404,8 @@
 
 <script>
     function goToPage(pageNumber) {
-        // Set the hidden page input to the number we clicked
         document.getElementById('pageInput').value = pageNumber;
-        // Submit the form (which remembers our search and filters!)
+        // Submit the form 
         document.getElementById('filterForm').submit();
     }
 </script>
