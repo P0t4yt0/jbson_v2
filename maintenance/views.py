@@ -8,6 +8,9 @@ from django.http import FileResponse
 from django.core.management import call_command
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.contrib.auth.decorators import login_required
+from security.views import settings_access_required
+
 
 # 🟢 FIX: Gumamit ng get_user_model() para sa Custom User Models
 from django.contrib.auth import get_user_model
@@ -41,6 +44,8 @@ def get_last_backup_time():
     return dt_object.strftime("%B %d, %Y - %I:%M %p")
 
 # Main View
+@login_required
+@settings_access_required
 def maintenance_dashboard(request):
     report = []
     tables_to_optimize = [] 

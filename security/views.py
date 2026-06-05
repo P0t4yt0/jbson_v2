@@ -44,12 +44,39 @@ from billing_payment.models import SalesReturn
 from inventory.models import InventoryItem
 from datetime import timedelta
 from activity_log.utils import log_system_activity
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
+  # <-- Idagdag ito
+def settings_access_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        role = getattr(request.user, "role", "employee").lower()
+        
+        # Admin bypasses this check
+        if role == "employee" and not request.user.is_superuser:
+            profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
+            
+            if not profile.has_valid_settings_access:
+                was_expired = False
+                if profile.settings_access_approved:
+                    profile.settings_access_approved = False
+                    profile.settings_access_expires_at = None
+                    profile.save()
+                    was_expired = True
+                
+                # Render blocked page
+                return render(request, 'dashboard/settings_access_request.html', {
+                    'profile': profile,
+                    'was_expired': was_expired
+                })
+                
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 def _get_client_ip(request):
     """Extract the real client IP, respecting reverse-proxy headers."""
@@ -505,6 +532,11 @@ def user_management_view(request):
         reset_requested=True, 
         reset_approved_by_admin=False
     )
+
+    pending_settings_requests = EmployeeProfile.objects.filter(
+        settings_access_requested=True, 
+        settings_access_approved=False
+    )
     
     # Bundle them into one unified list for the template
     pending_requests = []
@@ -527,6 +559,15 @@ def user_management_view(request):
             'icon': 'ph-chart-pie-slice'
         })
 
+    for req in pending_settings_requests:
+        pending_requests.append({
+            'id': req.id,
+            'user': req.user,
+            'type_label': 'General Settings Access',
+            'action_url': reverse('security:review_settings_access'),
+            'icon': 'ph-gear'
+        })
+
     return render(request, 'dashboard/user_management.html', {
         'users': users,
         'pending_requests': pending_requests
@@ -542,6 +583,9 @@ def get_current_db_size():
         result = cursor.fetchone()
         return result[0] if result and result[0] else 0
 
+
+@login_required
+@settings_access_required  # <-- Idagdag ito
 def settings_hub_view(request):
     # 1. SCAN LOGIC (Dapat nasa view na nagre-render ng settings_hub.html)
     report = []
@@ -713,6 +757,88 @@ def review_reports_access(request):
                 description=f"Rejected reports access request for '{profile.user.username}'."
             )
             messages.error(request, f"Reports access denied for {profile.user.full_name}.")
+            
+    except EmployeeProfile.DoesNotExist:
+        messages.error(request, "Profile not found.")
+        
+    return redirect('user_management')
+
+@login_required
+@require_http_methods(["POST"])
+def request_settings_access(request):
+    """Employee requests access to Settings Hub."""
+    if getattr(request.user, "role", "employee").lower() == "employee":
+        profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
+        profile.settings_access_requested = True
+        profile.save()
+
+        # Notify Admins
+        admins = User.objects.filter(role='Admin', is_active=True)
+        for admin in admins:
+            Notification.objects.create(
+                user=admin,
+                notification_type='info',
+                priority='medium',
+                title='General Settings Access Request',
+                message=f"Employee '{request.user.username}' is requesting access to General Settings.",
+                action_url=reverse('user_management') 
+            )
+        
+        log_system_activity(
+            user=request.user,
+            action="REQUEST SETTINGS ACCESS",
+            description="Employee requested access to General Settings."
+        )
+        messages.success(request, "Request to access General Settings has been sent to the Admin.")
+    return redirect('settings_hub')
+
+@login_required
+@require_http_methods(["POST"])
+def review_settings_access(request):
+    """Admin approves/rejects Settings access."""
+    is_admin = getattr(request.user, "role", "employee").lower() == "admin" or request.user.is_superuser
+    if not is_admin:
+        return redirect(_role_redirect_url(request.user))
+        
+    profile_id = request.POST.get("profile_id")
+    action = request.POST.get("action")
+    
+    try:
+        profile = EmployeeProfile.objects.get(id=profile_id)
+        if action == "approve":
+            profile.settings_access_approved = True
+            profile.settings_access_requested = False
+            profile.settings_access_expires_at = timezone.now() + timedelta(minutes=60) # 1 hour
+            profile.save()
+            
+            log_system_activity(
+                user=request.user,
+                action="APPROVE SETTINGS ACCESS",
+                description=f"Approved 1-hour settings access for '{profile.user.username}'."
+            )
+            messages.success(request, f"Settings access granted to {profile.user.full_name} for 1 hour.")
+            
+            # --- NOTIFICATION PABALIK KAY EMPLOYEE ---
+            Notification.objects.create(
+                user=profile.user,
+                notification_type='info',
+                priority='high',
+                title='Settings Access Approved',
+                message='Your request for General Settings is approved. You have 1 hour of access starting now.',
+                action_url=reverse('settings_hub')
+            )
+            
+        elif action == "reject":
+            profile.settings_access_requested = False
+            profile.settings_access_approved = False
+            profile.settings_access_expires_at = None
+            profile.save()
+            log_system_activity(
+                user=request.user,
+                action="REJECT SETTINGS ACCESS",
+                description=f"Rejected settings access request for '{profile.user.username}'."
+            )
+            messages.error(request, f"Settings access denied for {profile.user.full_name}.")
             
     except EmployeeProfile.DoesNotExist:
         messages.error(request, "Profile not found.")

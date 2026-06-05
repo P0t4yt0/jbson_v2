@@ -38,4 +38,6 @@ urlpatterns = [
     path('verify-admin-password/', views.verify_admin_password, name='verify_admin_password'),
     path('request-reports-access/', views.request_reports_access, name='request_reports_access'),
     path('review-reports-access/', views.review_reports_access, name='review_reports_access'),
+    path('request-settings-access/', views.request_settings_access, name='request_settings_access'),
+    path('review-settings-access/', views.review_settings_access, name='review_settings_access'),
 ]

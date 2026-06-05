@@ -23,6 +23,11 @@
             <button class="btn" disabled style="width: 100%; justify-content: center; background-color: #E5E7EB; color: var(--text-secondary); cursor: not-allowed; padding: 12px;">
                 <i class="ph ph-clock"></i> Request Pending...
             </button>
+            <script>
+            setTimeout(function() {
+                window.location.reload();
+            }, 5000);
+        </script>
         {% else %}
             <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
                 You currently do not have permission to view the Reports Hub. Please request access to continue.

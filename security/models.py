@@ -187,6 +187,10 @@ class EmployeeProfile(models.Model):
     reports_access_expires_at = models.DateTimeField(null=True, blank=True)
     reports_access_approved = models.BooleanField(default=False)
 
+    settings_access_requested = models.BooleanField(default=False)
+    settings_access_expires_at = models.DateTimeField(null=True, blank=True)
+    settings_access_approved = models.BooleanField(default=False)
+
     class Meta:
         db_table = "security_employee_profile"
         verbose_name = "Employee Profile"
@@ -204,6 +208,17 @@ class EmployeeProfile(models.Model):
         
         # If there's an expiration time and the current time is past it, it's invalid.
         if self.reports_access_expires_at and timezone.now() > self.reports_access_expires_at:
+            return False
+            
+        return True
+    
+    @property
+    def has_valid_settings_access(self):
+        """Returns True only if approved AND the 1-hour timer hasn't expired."""
+        if not self.settings_access_approved:
+            return False
+        
+        if self.settings_access_expires_at and timezone.now() > self.settings_access_expires_at:
             return False
             
         return True
