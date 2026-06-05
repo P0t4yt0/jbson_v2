@@ -44,7 +44,7 @@ class Report(models.Model):
     date_from     = models.DateField(null=True, blank=True)
     date_to       = models.DateField(null=True, blank=True)
     file_path     = models.FileField(upload_to='reports/', blank=True, null=True)
-    source_table  = models.CharField(max_length=50, blank=True)   # e.g. 'pos_transactions'
+    source_table  = models.CharField(max_length=50, blank=True)   
     date_generated = models.DateTimeField(default=timezone.now)
 
     class Meta:

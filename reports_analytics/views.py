@@ -1,6 +1,5 @@
 from django.shortcuts import render
 
-# Create your views here.
 from django.shortcuts import render
 from django.db.models import Sum, Count, Q
 from point_of_sale.models import Transaction, TransactionItem
@@ -41,10 +40,8 @@ def reports_access_required(view_func):
         if role == "employee" and not request.user.is_superuser:
             profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
             
-            # ---> NEW: Check validity using our 10-minute timer property <---
             if not profile.has_valid_reports_access:
                 
-                # Check if they *were* approved but their time just expired
                 was_expired = False
                 if profile.reports_access_approved:
                     # Auto-revoke their permissions in the database
@@ -53,10 +50,9 @@ def reports_access_required(view_func):
                     profile.save()
                     was_expired = True
                 
-                # Block them and show the request page
                 return render(request, 'reports_analytics/reports_access_request.html', {
                     'profile': profile,
-                    'was_expired': was_expired # Pass this to the template
+                    'was_expired': was_expired 
                 })
                 
         return view_func(request, *args, **kwargs)
@@ -64,7 +60,6 @@ def reports_access_required(view_func):
 
 @reports_access_required
 def sales_report_view(request):
-    # 1. Kunin ang dates, search inputs, at tanggalin ang 'None' bug
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
     sales_search = request.GET.get('sales_search', '').strip()
@@ -73,18 +68,18 @@ def sales_report_view(request):
     if start_date_str == 'None': start_date_str = ''
     if end_date_str == 'None': end_date_str = ''
 
-    # 2. Base queries
+    # Base queries
     transactions_qs = Transaction.objects.filter(status__in=['completed', 'paid', 'credit'])
     returns_qs = SalesReturn.objects.all()
 
-    # 3. Date Filtering
+    # Date Filtering
     if start_date_str and end_date_str:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
         transactions_qs = transactions_qs.filter(date_completed__range=[start_date, end_date])
         returns_qs = returns_qs.filter(created_at__range=[start_date, end_date])
 
-    # 4. BACKEND SEARCH FILTER (SALES) -- MAY REFUNDED LOGIC NA
+    # BACKEND SEARCH FILTER (SALES) -- MAY REFUNDED LOGIC NA
     if sales_search:
         if sales_search.lower() == 'refunded':
             transactions_qs = transactions_qs.filter(
@@ -96,7 +91,7 @@ def sales_report_view(request):
                 Q(payment_method__icontains=sales_search)
             ).distinct()
 
-    # 5. BACKEND SEARCH FILTER (RETURNS)
+    # BACKEND SEARCH FILTER (RETURNS)
     if returns_search:
         returns_qs = returns_qs.filter(
             Q(return_id__icontains=returns_search) |
@@ -188,12 +183,10 @@ def sales_report_view(request):
 
 @reports_access_required
 def procurement_report(request):
-    # 1. Grab dates and search from the form
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
-    procurement_search = request.GET.get('procurement_search', '').strip() # <-- KINUHA ANG SEARCH
+    procurement_search = request.GET.get('procurement_search', '').strip() 
 
-    # 2. Build the base queries and filters
     po_query = PurchaseOrder.objects.all()
     supplier_po_filter = Q()
     
@@ -209,13 +202,13 @@ def procurement_report(request):
             po_query = po_query.filter(order_date__lte=datetime.combine(end_date, time.max))
             supplier_po_filter &= Q(purchase_orders__order_date__lte=datetime.combine(end_date, time.max))
 
-    # 3. High-Level KPIs
+    # High-Level KPIs
     total_spent = po_query.filter(status='received').aggregate(total=Sum('total_amount'))['total'] or 0
     pending_cash = po_query.filter(status='pending').aggregate(total=Sum('total_amount'))['total'] or 0
     total_pos = po_query.count()
     active_suppliers = Supplier.objects.filter(is_active=True).count()
 
-    # 4. Supplier Leaderboard
+    # Supplier Leaderboard
     suppliers = Supplier.objects.annotate(
         total_pos=Count('purchase_orders', filter=supplier_po_filter),
         total_spent=Sum(
@@ -224,7 +217,7 @@ def procurement_report(request):
         )
     ).order_by('-total_spent')
 
-    # 5. BACKEND SEARCH FILTER (PO Number, Supplier, Status)
+    # BACKEND SEARCH FILTER (PO Number, Supplier, Status)
     if procurement_search:
         po_query = po_query.filter(
             Q(po_number__icontains=procurement_search) |
@@ -232,7 +225,7 @@ def procurement_report(request):
             Q(status__icontains=procurement_search)
         )
 
-    # 6. PAGINATION LOGIC para sa Master Purchase History
+    # PAGINATION LOGIC para sa Master Purchase History
     po_per_page = request.GET.get('po_per_page', 10)
     try: po_per_page = int(po_per_page)
     except ValueError: po_per_page = 10
@@ -249,18 +242,18 @@ def procurement_report(request):
         'total_pos': total_pos,
         'active_suppliers': active_suppliers,
         'suppliers': suppliers,
-        'recent_pos': recent_pos_page, # <-- Ipinasa ang paginated na object
+        'recent_pos': recent_pos_page, 
         'start_date': start_date_str,
         'end_date': end_date_str,
         'po_per_page': po_per_page,
-        'procurement_search': procurement_search, # <-- Ipinasa sa context
+        'procurement_search': procurement_search, 
     })
 
 @reports_access_required
 def purchase_report_view(request):
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
-    purchase_search = request.GET.get('purchase_search', '').strip() # <-- Kinuha ang search input
+    purchase_search = request.GET.get('purchase_search', '').strip() 
 
     if start_date_str == 'None': start_date_str = ''
     if end_date_str == 'None': end_date_str = ''
@@ -303,7 +296,7 @@ def purchase_report_view(request):
     ).annotate(
         total_qty_bought=Sum('quantity_received'), 
         total_spent_on_item=Sum(F('quantity_received') * F('unit_cost'), output_field=DecimalField())
-    ).order_by('-total_spent_on_item')[:5] # <-- Pinalitan ng 5
+    ).order_by('-total_spent_on_item')[:5] 
 
     # --- PAGINATION LOGIC ---
     po_per_page = request.GET.get('po_per_page', 10)
@@ -326,7 +319,7 @@ def purchase_report_view(request):
         'start_date': start_date_str,
         'end_date': end_date_str,
         'po_per_page': po_per_page,
-        'purchase_search': purchase_search, # <-- Ipinasa sa context
+        'purchase_search': purchase_search, 
     }
     
     if 'is_generating' in request.GET:
@@ -343,18 +336,15 @@ def purchase_report_view(request):
 
 @reports_access_required
 def invoice_report_view(request):
-    # 1. Kunin ang dates, search input, at i-strip ang 'None' or empty strings
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
-    invoice_search = request.GET.get('invoice_search', '').strip() # <-- KINUHA ANG SEARCH
+    invoice_search = request.GET.get('invoice_search', '').strip() 
 
     if start_date_str == 'None': start_date_str = ''
     if end_date_str == 'None': end_date_str = ''
 
-    # 2. Base Query
     invoices_qs = Invoice.objects.filter(customer__isnull=False).exclude(status__icontains='cancel')
 
-    # 3. Date Filtering logic
     if start_date_str and end_date_str:
         try:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
@@ -363,20 +353,18 @@ def invoice_report_view(request):
         except ValueError:
             pass
 
-    # 4. BACKEND SEARCH FILTER (MAY PAID/UNPAID LOGIC)
     if invoice_search:
         search_lower = invoice_search.lower()
         if search_lower == 'unpaid':
-            invoices_qs = invoices_qs.filter(balance_due__gt=0) # May utang pa
+            invoices_qs = invoices_qs.filter(balance_due__gt=0) 
         elif search_lower == 'paid':
-            invoices_qs = invoices_qs.filter(balance_due__lte=0) # Bayad na
+            invoices_qs = invoices_qs.filter(balance_due__lte=0) 
         else:
             invoices_qs = invoices_qs.filter(
                 Q(invoice_no__icontains=invoice_search) |
                 Q(customer__name__icontains=invoice_search)
             )
 
-    # 5. Annotations and Metrics
     invoices_qs = invoices_qs.annotate(
         paid_amount=F('total_amount') - F('balance_due')
     )
@@ -392,17 +380,14 @@ def invoice_report_view(request):
         'total_balance': summary_data['total_bal'],
     }
 
-    # 6. PAGINATION LOGIC
     invoice_per_page = request.GET.get('invoice_per_page', 10)
     try: invoice_per_page = int(invoice_per_page)
     except ValueError: invoice_per_page = 10
 
-    # Nilagyan ng orphans=0 para saktong bilang per page
     paginator = Paginator(invoices_qs.order_by('-issue_date'), invoice_per_page, orphans=0)
     page_number = request.GET.get('page', 1)
     invoices_page = paginator.get_page(page_number)
 
-    # 7. Customer breakdown
     customer_breakdown = invoices_qs.values('customer__name').annotate(
         customer_total=Sum('total_amount'),
         customer_due=Sum('balance_due')
@@ -415,7 +400,7 @@ def invoice_report_view(request):
         'start_date': start_date_str,
         'end_date': end_date_str,
         'invoice_per_page': invoice_per_page,
-        'invoice_search': invoice_search, # <-- IPINASA SA HTML
+        'invoice_search': invoice_search, 
     }
     
     if 'is_generating' in request.GET:
@@ -434,16 +419,13 @@ def invoice_report_view(request):
 def inventory_report_view(request):
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
-    inv_search = request.GET.get('inv_search', '').strip() # <-- Kinuha ang search input
+    inv_search = request.GET.get('inv_search', '').strip() 
 
-    # Iwas sa 'None' bug
     if start_date_str == 'None': start_date_str = ''
     if end_date_str == 'None': end_date_str = ''
 
-    # 1. Base Query
     products_qs = InventoryItem.objects.all()
 
-    # 2. Date Filter
     if start_date_str and end_date_str:
         try:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
@@ -452,14 +434,12 @@ def inventory_report_view(request):
         except ValueError:
             pass
 
-    # 3. BACKEND SEARCH FILTER (MAY LOW STOCK LOGIC)
     if inv_search:
-        # Kung nag-search sila ng 'low' o 'stock', isasama ng query ang mga low stock items
         if inv_search.lower() in ['low', 'stock', 'low stock']:
             products_qs = products_qs.filter(
                 Q(item_name__icontains=inv_search) |
                 Q(category__name__icontains=inv_search) |
-                Q(quantity__lte=F('reorder_point')) # <-- Hahanapin din ang low stock
+                Q(quantity__lte=F('reorder_point')) 
             )
         else:
             products_qs = products_qs.filter(
@@ -467,12 +447,10 @@ def inventory_report_view(request):
                 Q(category__name__icontains=inv_search)
             )
 
-    # 4. Annotations para sa total value per item
     products_qs = products_qs.annotate(
         total_value=F('quantity') * F('unit_cost')
     )
 
-    # 5. Global Metrics (Base sa filtered query)
     summary_data = products_qs.aggregate(
         total_items=Count('id'),
         total_val=Coalesce(Sum('total_value'), 0, output_field=DecimalField()),
@@ -485,16 +463,13 @@ def inventory_report_view(request):
         'low_stock_count': low_stock_count
     }
 
-    # 6. PAGINATION LOGIC
     inv_per_page = request.GET.get('inv_per_page', 10)
     try: inv_per_page = int(inv_per_page)
     except ValueError: inv_per_page = 10
 
-    # I-order bago i-paginate
     products_ordered = products_qs.order_by('item_name')
     
     page_number = request.GET.get('page', 1)
-    # Orphans=0 para strict ang count per page
     paginator = Paginator(products_ordered, inv_per_page, orphans=0)
     products_page = paginator.get_page(page_number)
 
@@ -504,7 +479,7 @@ def inventory_report_view(request):
         'start_date': start_date_str,
         'end_date': end_date_str,
         'inv_per_page': inv_per_page,
-        'inv_search': inv_search, # <-- Ipinasa sa context
+        'inv_search': inv_search, 
     }
     
     if 'is_generating' in request.GET:
@@ -542,7 +517,6 @@ def profit_loss_report_view(request):
             except Exception as e:
                 pass
 
-    # --- KUNIN ANG MGA GET PARAMETERS ---
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
     purchase_search = request.GET.get('purchase_search', '').strip()
@@ -619,7 +593,6 @@ def profit_loss_report_view(request):
 
 @reports_access_required
 def annual_report_view(request):
-    # 1. Kunin ang filters
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
     annual_search = request.GET.get('annual_search', '').strip()
@@ -627,12 +600,10 @@ def annual_report_view(request):
     if start_date_str == 'None': start_date_str = ''
     if end_date_str == 'None': end_date_str = ''
 
-    # 2. Base Queries mula sa lahat ng tables
     sales_qs = Transaction.objects.filter(status__in=['completed', 'paid'])
     purchases_qs = PurchaseOrder.objects.exclude(status__icontains='cancel')
     expenses_qs = Expense.objects.all()
 
-    # 3. Date Filtering
     if start_date_str and end_date_str:
         try:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
@@ -643,7 +614,7 @@ def annual_report_view(request):
         except ValueError:
             pass
 
-    # 4. Global Metrics & EXECUTIVE SUMMARY MATH
+    # Global Metrics & EXECUTIVE SUMMARY MATH
     total_sales = sales_qs.aggregate(total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()))['total']
     total_purchases = purchases_qs.aggregate(total=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()))['total']
     total_opex = expenses_qs.aggregate(total=Coalesce(Sum('amount'), 0, output_field=DecimalField()))['total']
@@ -653,15 +624,15 @@ def annual_report_view(request):
     profit_margin = (net_profit / total_sales * 100) if total_sales > 0 else 0
     expense_ratio = (total_expenses_combined / total_sales * 100) if total_sales > 0 else 0
 
-    # 5. Group Data by Month (Manual Grouping para iwas MySQL Error)
+    # Group Data by Month 
     monthly_data = {}
 
     def process_qs(qs, date_attr, amount_attr, key_name):
         for item in qs:
             d = getattr(item, date_attr)
             if d:
-                sort_key = d.strftime('%Y-%m') # Ex. 2026-05
-                display_name = d.strftime('%B %Y') # Ex. May 2026
+                sort_key = d.strftime('%Y-%m') 
+                display_name = d.strftime('%B %Y') 
                 
                 if sort_key not in monthly_data:
                     monthly_data[sort_key] = {
@@ -678,7 +649,7 @@ def annual_report_view(request):
     process_qs(purchases_qs, 'order_date', 'total_amount', 'purchases')
     process_qs(expenses_qs, 'expense_date', 'amount', 'expenses')
 
-    # 6. Compute Profit per Month
+    # Compute Profit per Month
     final_monthly_data = []
     
     for sort_key in sorted(monthly_data.keys()):
@@ -700,13 +671,11 @@ def annual_report_view(request):
             'profit': m_profit
         })
 
-    # 7. Extract data para sa Chart.js
     chart_labels = [d['month'] for d in final_monthly_data]
     chart_sales = [d['sales'] for d in final_monthly_data]
     chart_expenses = [d['purchases'] + d['expenses'] for d in final_monthly_data]
     chart_profit = [d['profit'] for d in final_monthly_data]
 
-    # 8. PAGINATION LOGIC
     annual_per_page = request.GET.get('annual_per_page', 6)
     try: annual_per_page = int(annual_per_page)
     except ValueError: annual_per_page = 6
@@ -721,14 +690,12 @@ def annual_report_view(request):
         'total_opex': total_opex,
         'net_profit': net_profit,
         
-        # Dagdag para sa Executive Summary
         'total_expenses_combined': total_expenses_combined,
         'profit_margin': profit_margin,
         'expense_ratio': expense_ratio,
         
         'monthly_records': monthly_records_page,
         
-        # JSON dumps para mabasa ng JS
         'chart_labels': json.dumps(chart_labels),
         'chart_sales': json.dumps(chart_sales),
         'chart_expenses': json.dumps(chart_expenses),
@@ -759,7 +726,6 @@ def annual_report_view(request):
 def reports_hub(request):
     """Main hub para sa lahat ng reports."""
     
-    # Check if the user is an employee and if they have approval
     if getattr(request.user, "role", "employee") == "employee":
         profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
             
