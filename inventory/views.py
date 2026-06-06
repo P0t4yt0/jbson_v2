@@ -244,7 +244,7 @@ def confirm_csv_import(request):
                 if duplicate_item and duplicate_item.product_id != row['product_id']:
                     return JsonResponse({
                         'status': 'error', 
-                        'message': f"Ang Barcode '{current_barcode}' ay ginagamit na ng produktong '{duplicate_item.item_name}' ({duplicate_item.product_id}). Pakiaayos ang inyong CSV file."
+                        'message': f"The Barcode '{current_barcode}' is already used by item '{duplicate_item.item_name}' ({duplicate_item.product_id}). Please fix your CSV file."
                     })
 
                 category, _ = Category.objects.get_or_create(
