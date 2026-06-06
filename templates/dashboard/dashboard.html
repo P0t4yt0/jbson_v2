@@ -143,7 +143,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative; /* For background accents */
+            position: relative; 
         }
 
         /* Header */
@@ -303,7 +303,7 @@
         .btn-logout {
             background: transparent; 
             border: none; 
-            width: 89%; 
+            width: 100%; 
             text-align: left;
             cursor: pointer; 
             font-family: inherit; 
@@ -359,6 +359,11 @@
         </a>
 
         <div class="nav-category">Sales</div>
+
+        <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
+            <i class="ph ph-desktop"></i> Checkout
+        </a>
+
         <a href="{% url 'billing:sales_list' %}" class="nav-item {% if request.resolver_match.view_name == 'billing:sales_list' %}active{% endif %}">
             <i class="ph ph-shopping-cart"></i> Sales
         </a>
@@ -375,10 +380,6 @@
             <span>Sales Return</span>
         </a>
 
-        
-        <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
-            <i class="ph ph-desktop"></i> Point Of Sales
-        </a>
         <a href="{% url 'billing_payment:customer_list' %}" class="nav-item {% if '/customers/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Trade Credit
         </a>
@@ -628,7 +629,7 @@
                     <i class="ph ph-plus-circle"></i> Add Product
                 </a>
                 <a href="{% url 'pos:pos_index' %}" class="btn btn-secondary" style="text-decoration: none;">
-                    <i class="ph ph-desktop"></i> POS
+                    <i class="ph ph-desktop"></i> Checkout
                 </a>
 
                 <div style="position: relative;">
@@ -694,6 +695,22 @@
                 {% block content %}
                 
                 <style>
+                    /* KPI Links */
+                    .kpi-link {
+                        text-decoration: none !important;
+                        color: inherit !important;
+                        display: block;
+                    }
+                    .kpi-link .kpi-card {
+                        transition: transform 0.2s ease, box-shadow 0.2s ease;
+                        height: 100%;
+                    }
+                    .kpi-link:hover .kpi-card {
+                        transform: translateY(-5px);
+                        box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.3);
+                        cursor: pointer;
+                    }
+
                     /* KPI CARDS */
                     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
                     
@@ -705,10 +722,7 @@
                         display: flex; 
                         flex-direction: column; 
                         gap: 12px; 
-                        transition: transform 0.3s ease, box-shadow 0.3s ease; 
                     }
-                    
-                    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.2); }
 
                     .kpi-card.sales { background-color:#ffc832; }
                     .kpi-card.sales .kpi-title, .kpi-card.sales .kpi-value { color: #1E293B; }
@@ -780,34 +794,45 @@
                 </div>
 
                 <div class="kpi-grid">
-                    <div class="kpi-card sales">
-                        <div class="kpi-title-wrapper">
-                            <div class="icon-bg"><i class="ph ph-trend-up"></i></div>
-                            <div class="kpi-title">Gross Sales</div>
+                    <a href="{% url 'reports_analytics:sales_report' %}" class="kpi-link">
+                        <div class="kpi-card sales">
+                            <div class="kpi-title-wrapper">
+                                <div class="icon-bg"><i class="ph ph-trend-up"></i></div>
+                                <div class="kpi-title">Gross Sales</div>
+                            </div>
+                            <div class="kpi-value">₱{{ metrics.total_sales|default:"0.00"|floatformat:"2g" }}</div>
                         </div>
-                        <div class="kpi-value">₱{{ metrics.total_sales|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
-                    <div class="kpi-card profit">
-                        <div class="kpi-title-wrapper">
-                            <div class="icon-bg"><i class="ph ph-wallet"></i></div>
-                            <div class="kpi-title">Net Profit</div>
+                    </a>
+
+                    <a href="{% url 'reports_analytics:profit_loss_report' %}" class="kpi-link">
+                        <div class="kpi-card profit">
+                            <div class="kpi-title-wrapper">
+                                <div class="icon-bg"><i class="ph ph-wallet"></i></div>
+                                <div class="kpi-title">Net Profit</div>
+                            </div>
+                            <div class="kpi-value">₱{{ metrics.net_profit|default:"0.00"|floatformat:"2g" }}</div>
                         </div>
-                        <div class="kpi-value">₱{{ metrics.net_profit|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
-                    <div class="kpi-card outflow">
-                        <div class="kpi-title-wrapper">
-                            <div class="icon-bg"><i class="ph ph-shopping-cart"></i></div>
-                            <div class="kpi-title">Cash Outflow</div>
+                    </a>
+
+                    <a href="{% url 'reports_analytics:purchase_report' %}" class="kpi-link">
+                        <div class="kpi-card outflow">
+                            <div class="kpi-title-wrapper">
+                                <div class="icon-bg"><i class="ph ph-shopping-cart"></i></div>
+                                <div class="kpi-title">Cash Outflow</div>
+                            </div>
+                            <div class="kpi-value">₱{{ metrics.total_outflow|default:"0.00"|floatformat:"2g" }}</div>
                         </div>
-                        <div class="kpi-value">₱{{ metrics.total_outflow|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
-                    <div class="kpi-card due">
-                        <div class="kpi-title-wrapper">
-                            <div class="icon-bg"><i class="ph ph-receipt"></i></div>
-                            <div class="kpi-title">Unpaid Receivables</div>
+                    </a>
+
+                    <a href="{% url 'reports_analytics:invoice_report' %}" class="kpi-link">
+                        <div class="kpi-card due">
+                            <div class="kpi-title-wrapper">
+                                <div class="icon-bg"><i class="ph ph-receipt"></i></div>
+                                <div class="kpi-title">Unpaid Receivables</div>
+                            </div>
+                            <div class="kpi-value">₱{{ metrics.invoice_due|default:"0.00"|floatformat:"2g" }}</div>
                         </div>
-                        <div class="kpi-value">₱{{ metrics.invoice_due|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="chart-row">
@@ -925,7 +950,6 @@
             });
         }
 
-        // Toggle User Menu
         if (userBtn) {
             userBtn.addEventListener('click', (e) => {
                 e.stopPropagation();

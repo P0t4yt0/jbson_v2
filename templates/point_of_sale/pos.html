@@ -1,6 +1,24 @@
 {% extends 'dashboard/dashboard.html' %}
 {% block content %}
 
+<script>
+    (function() {
+        const savedCat = sessionStorage.getItem('activeCategory');
+        if (savedCat && savedCat !== 'All') {
+            const style = document.createElement('style');
+            style.id = 'anti-flicker-style';
+            const safeCat = savedCat.replace(/"/g, '\\"');
+            
+            style.innerHTML = `
+                .product-card:not([data-category="${safeCat}"]) { display: none !important; }
+                .category-tabs .tab { background: rgba(255, 255, 255, 0.7) !important; color: var(--text-secondary) !important; border-color: var(--border-color) !important; box-shadow: none !important; }
+                .category-tabs .tab[data-name="${safeCat}"] { background: var(--french-blue) !important; color: white !important; border-color: var(--french-blue) !important; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2) !important; }
+            `;
+            document.head.appendChild(style);
+        }
+    })();
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
@@ -91,13 +109,13 @@
                 <i class="ph ph-barcode"></i>
                 <input type="text" id="barcode-input" class="search-input" placeholder="Scan Barcode..." autofocus>
             </div>
-            <input type="text" class="text-search" placeholder="Enter product name or ID..." oninput="filterProducts(this.value)">
+            <input type="text" class="text-search" placeholder="Enter product name or ID...">
         </div>
 
         <div class="category-tabs">
-            <button class="tab active" onclick="filterCategory('All')">All Categories</button>
+            <button class="tab" data-name="All" onclick="filterCategory('All')">All Categories</button>
             {% for category in categories %}
-                <button class="tab" onclick="filterCategory('{{ category.name|escapejs }}')">{{ category.name }}</button>
+                <button class="tab" data-name="{{ category.name|escapejs }}" onclick="filterCategory('{{ category.name|escapejs }}')">{{ category.name }}</button>
             {% endfor %}
         </div>
 
@@ -277,6 +295,23 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedCategory = sessionStorage.getItem('activeCategory') || 'All';
+        
+        // Setup classes for tabs
+        document.querySelectorAll('.tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.name === savedCategory);
+        });
+
+        const searchTerm = document.querySelector('.text-search').value.toLowerCase();
+        applyFilters(savedCategory, searchTerm);
+
+        const antiFlicker = document.getElementById('anti-flicker-style');
+        if (antiFlicker) {
+            requestAnimationFrame(() => antiFlicker.remove());
+        }
+    });
+
     {% if messages %}
         {% for message in messages %}
             let swalIcon = 'info';
@@ -387,14 +422,17 @@
 
     document.querySelector('.text-search').addEventListener('input', function () {
         const searchTerm = this.value.toLowerCase();
-        const activeTabText = document.querySelector('.tab.active').innerText;
-        applyFilters(activeTabText === 'All Categories' ? 'All' : activeTabText, searchTerm);
+        // Gumagamit na tayo ngayon ng data-name para mas accurate
+        const activeCategory = document.querySelector('.tab.active').dataset.name;
+        applyFilters(activeCategory, searchTerm);
     });
 
     function filterCategory(name) {
+        sessionStorage.setItem('activeCategory', name);
+
         const searchTerm = document.querySelector('.text-search').value.toLowerCase();
         document.querySelectorAll('.tab').forEach(t => {
-            t.classList.toggle('active', t.innerText === name || (name === 'All' && t.innerText === 'All Categories'));
+            t.classList.toggle('active', t.dataset.name === name);
         });
         applyFilters(name, searchTerm);
     }
