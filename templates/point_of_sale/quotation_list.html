@@ -5,6 +5,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inconsolata:wght@200..900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     .table-container, .filter-container {
@@ -29,6 +30,11 @@
     .table-action-btn:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15); }
     .btn-view { color: var(--french-blue); }
     .btn-view:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+    
+    /* Added Print Button Style */
+    .btn-print { color: #10b981; }
+    .btn-print:hover { background-color: #10b981; color: white; border-color: #10b981; }
+
     .btn-load { color: var(--amber-flame); }
     .btn-load:hover { background-color: var(--amber-flame); color: white; border-color: var(--amber-flame); }
 
@@ -99,9 +105,14 @@
                             <button type="button" onclick="openModal('{{ quote.transaction_ref }}')" class="table-action-btn btn-view" title="View Details">
                                 <i class="ph ph-eye"></i>
                             </button>
-                            <a href="{% url 'point_of_sale:load_quotation' quote.id %}" class="table-action-btn btn-load" title="Load to POS">
-                                <i class="ph ph-shopping-cart"></i>
+                            
+                            <a href="{% url 'point_of_sale:print_quotation' quote.id %}" target="_blank" class="table-action-btn btn-print" title="Print Quotation">
+                                <i class="ph ph-printer"></i>
                             </a>
+                            
+                            <button type="button" onclick="confirmLoad('{% url 'point_of_sale:load_quotation' quote.id %}', '{{ quote.transaction_ref }}')" class="table-action-btn btn-load" title="Load to POS">
+                                <i class="ph ph-shopping-cart"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -221,6 +232,23 @@
         urlParams.set('per_page', value);
         urlParams.set('page', 1); 
         window.location.search = urlParams.toString();
+    }
+
+    // New Function for SweetAlert Confirmation
+    function confirmLoad(loadUrl, refNo) {
+        Swal.fire({
+            title: 'Load to POS?',
+            text: `Are you sure you want to load quotation ${refNo} to the Point of Sale?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#2F3F7B', 
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Yes, load it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = loadUrl;
+            }
+        });
     }
 </script>
 {% endblock %}

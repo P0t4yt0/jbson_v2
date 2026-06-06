@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print Quotation - {{ transaction.transaction_ref }}</title>
+</head>
+<body onload="window.print(); setTimeout(function(){ window.close(); }, 1000);" style="font-family: 'Courier New', Courier, monospace; width: 280px; padding: 10px; color: #000;">
+    
+    <div style="text-align: center;">
+        <h2 style="margin-bottom: 5px;">JBSON HARDWARE</h2>
+        <p style="font-size: 12px; margin-top: 0;">Quality Tools & Supplies</p>
+    </div>
+
+    <div style="font-size: 13px;">
+        <p>Ref: {{ transaction.transaction_ref }}</p>
+        <p>Date: {{ transaction.date_created|date:"Y-m-d H:i" }}</p>
+        <p>Prepared by: {{ transaction.processed_by.get_full_name|default:transaction.processed_by.username }}</p>
+    </div>
+
+    <hr style="border-top: 1px dashed #000;">
+    <div style="font-size: 13px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid #000;">
+                    <th style="text-align: left;">Item</th>
+                    <th style="text-align: center;">Qty</th>
+                    <th style="text-align: right;">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in transaction.sold_items.all %}
+                <tr>
+                    <td style="padding: 5px 0;">{{ item.inventory_item.item_name }}</td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">₱{{ item.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <hr style="border-top: 1px dashed #000;">
+
+    <div style="font-size: 14px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+            <span>TOTAL AMOUNT:</span>
+            <span>₱{{ transaction.total_amount|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 25px; font-size: 11px; border-top: 1px dashed #000; padding-top: 15px;">
+        <p style="font-weight: bold; margin-bottom: 5px; font-size: 13px;">THIS IS A QUOTATION ONLY</p>
+        <p style="margin: 3px 0;">This document does not serve as an official receipt.</p>
+        <p style="margin: 3px 0;">Prices and availability are subject to change without prior notice.</p>
+    </div>
+
+</body>
+</html>

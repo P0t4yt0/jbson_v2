@@ -20,6 +20,7 @@ urlpatterns = [
     path('save-quotation/<int:transaction_id>/', views.save_as_quotation, name='save_quotation'),
     path('load-quotation/<int:transaction_id>/', views.load_quotation_to_pos, name='load_quotation'),
     path('get-quotation-details/', views.get_quotation_details, name='get_quotation_details'),
+    path('print-quotation/<int:transaction_id>/', views.print_quotation, name='print_quotation'),
 
     # Receipts / Invoicing Utilities
     path('receipt/reprint/<int:txn_id>/', views.reprint_receipt, name='reprint_receipt'),

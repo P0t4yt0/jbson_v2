@@ -482,3 +482,13 @@ def reprint_receipt(request, txn_id):
         'ref_num': ref_num
     }
     return render(request, 'point_of_sale/receipts/thermal_print.html', context)
+
+@login_required
+def print_quotation(request, transaction_id):
+    transaction = get_object_or_404(Transaction, id=transaction_id, status='quotation')
+    
+    context = {
+        'transaction': transaction,
+    }
+    
+    return render(request, 'point_of_sale/receipts/print_quotation.html', context)
