@@ -549,11 +549,10 @@
                     .kpi-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
                     .kpi-value { font-size: 32px; font-weight: 800; font-family: 'Inconsolata', monospace !important; letter-spacing: -1px; }
 
-                    .chart-row { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 24px; margin-bottom: 32px; }
+                    .action-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
                     .panel { background: var(--bg-card); border-radius: var(--border-radius); padding: 32px; border: 1px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-subtle); }
                     .panel-title { font-size: 18px; font-weight: 800; color: var(--french-blue); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
 
-                    .action-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
                     .modern-list { list-style: none; padding: 0; margin: 0; }
                     .modern-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8FAFC; border-radius: 12px; margin-bottom: 8px; border: 1px solid transparent; transition: all 0.2s ease; }
                     .modern-list li:hover { background: #FFFFFF; border-color: var(--border-color); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.05); transform: translateX(4px); }
@@ -583,56 +582,48 @@
                 </div>
 
                 <div class="kpi-grid">
-                    <div class="kpi-card sales">
-                        <div class="kpi-title-wrapper">
-                            <div class="icon-bg"><i class="ph ph-trend-up"></i></div>
-                            <div class="kpi-title">Gross Sales</div>
-                        </div>
-                        <div class="kpi-value">₱{{ metrics.total_sales|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
-                    <div class="kpi-card profit">
-                        <div class="kpi-title-wrapper">
-                            <div class="icon-bg"><i class="ph ph-wallet"></i></div>
-                            <div class="kpi-title">Net Profit</div>
-                        </div>
-                        <div class="kpi-value">₱{{ metrics.net_profit|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
-                    <div class="kpi-card outflow">
-                        <div class="kpi-title-wrapper">
-                            <div class="icon-bg"><i class="ph ph-shopping-cart"></i></div>
-                            <div class="kpi-title">Cash Outflow</div>
-                        </div>
-                        <div class="kpi-value">₱{{ metrics.total_outflow|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
-                    <div class="kpi-card due">
+                    
+
+                    <a href="{% url 'billing:sales_list' %}" class="kpi-card profit" style="text-decoration: none; cursor: pointer;">
                         <div class="kpi-title-wrapper">
                             <div class="icon-bg"><i class="ph ph-receipt"></i></div>
-                            <div class="kpi-title">Unpaid Receivables</div>
+                            <div class="kpi-title">Today's Transactions</div>
                         </div>
-                        <div class="kpi-value">₱{{ metrics.invoice_due|default:"0.00"|floatformat:"2g" }}</div>
-                    </div>
+                        <div class="kpi-value">{{ metrics.todays_transactions|default:"0" }}</div>
+                    </a>
+
+                    <a href="{% url 'inventory:inventory_list' %}" class="kpi-card sales" style="text-decoration: none; cursor: pointer;">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-package"></i></div>
+                            <div class="kpi-title">Total Active Products</div>
+                        </div>
+                        <div class="kpi-value">{{ metrics.total_active_products|default:"0" }}</div>
+                    </a>
+
+                    <a href="{% url 'inventory:create_po' %}" class="kpi-card outflow" style="text-decoration: none; cursor: pointer;">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-truck"></i></div>
+                            <div class="kpi-title">Pending Deliveries</div>
+                        </div>
+                        <div class="kpi-value">{{ metrics.pending_deliveries|default:"0" }}</div>
+                    </a>
+
+                    <a href="{% url 'inventory:inventory_list' %}?low_stock=on" class="kpi-card due" style="text-decoration: none; cursor: pointer;">
+                        <div class="kpi-title-wrapper">
+                            <div class="icon-bg"><i class="ph ph-warning-circle"></i></div>
+                            <div class="kpi-title">Low Stock Items</div>
+                        </div>
+                        <div class="kpi-value">{{ metrics.low_stock_count|default:"0" }}</div>
+                    </a>
                 </div>
 
-                <div class="chart-row">
-                    <div class="panel">
-                        <h3 class="panel-title">
-                            <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-bar" style="color: var(--french-blue);"></i></span>
-                            7-Day Financial Overview
-                        </h3>
-                        <div style="position: relative; height: 320px; width: 100%;">
-                            <canvas id="financialChart"></canvas>
-                        </div>
-                    </div>
-                    
+                <div class="action-row">
                     <div class="panel" style="display: flex; flex-direction: column;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                             <h3 class="panel-title" style="margin: 0;">
                                 <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-pie-slice" style="color: var(--french-blue);"></i></span>
-                                Top Selling
+                                Top Selling Products
                             </h3>
-                            {% if request.user.is_superuser or request.user.role|lower == 'admin' or request.user.profile.has_valid_reports_access %}
-                                <a href="{% url 'reports_analytics:sales_report' %}" style="font-size: 13px; font-weight: 700; color: var(--french-blue); background: rgba(47, 63, 123, 0.1); padding: 8px 16px; border-radius: 10px; transition: background 0.2s;">View Full</a>
-                            {% endif %}
                         </div>
                         
                         <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
@@ -656,9 +647,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="action-row">
                     <div class="panel">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                             <h3 class="panel-title" style="margin: 0;">
@@ -680,31 +669,6 @@
                             </li>
                             {% empty %}
                             <li style="justify-content: center; color: var(--text-secondary); font-size: 14px; background: transparent; border: 1px dashed #E2E8F0;">Inventory levels are healthy.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h3 class="panel-title" style="margin: 0;">
-                                <span style="background: rgba(255, 211, 88, 0.2); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-file-dashed" style="color: #B38F00;"></i></span>
-                                Due Invoices
-                            </h3>
-                            <a href="{% url 'billing_payment:invoice_list' %}" style="font-size: 13px; font-weight: 700; color: #B38F00; background: rgba(255, 211, 88, 0.1); padding: 8px 16px; border-radius: 10px;">Collect &rarr;</a>
-                        </div>
-                        <ul class="modern-list">
-                            {% for invoice in unpaid_invoices %}
-                            <li>
-                                <div>
-                                    <span class="item-main">{% if invoice.customer.first_name %}{{ invoice.customer.first_name }} {{ invoice.customer.last_name }}{% elif invoice.customer.name %}{{ invoice.customer.name }}{% else %}{{ invoice.customer }}{% endif %}</span>
-                                    <span class="item-sub">Due: {{ invoice.due_date|date:"M d" }}</span>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="item-val" style="color: #B38F00;">₱{{ invoice.balance_due }}</span>
-                                </div>
-                            </li>
-                            {% empty %}
-                            <li style="justify-content: center; color: var(--text-secondary); font-size: 13px; background: transparent; border: 1px dashed #E2E8F0;">No pending receivables.</li>
                             {% endfor %}
                         </ul>
                     </div>

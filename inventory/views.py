@@ -1083,6 +1083,7 @@ def employee_dashboard_view(request):
 
     today = timezone.now().date()
     
+    # 1. Date Filter Logic (Para sa Top Selling)
     date_filter = request.GET.get('filter', 'all_time')
     if date_filter == 'today': start_date = today
     elif date_filter == 'this_week': start_date = today - timedelta(days=today.weekday())
@@ -1090,64 +1091,16 @@ def employee_dashboard_view(request):
     elif date_filter == 'this_year': start_date = today.replace(month=1, day=1)
     else: start_date = None 
 
-    tx_base = Transaction.objects.filter(status__in=['completed', 'paid'])
-    po_base = PurchaseOrder.objects.filter(status='received')
-    expense_base = Expense.objects.all()
-
-    if start_date:
-        tx_base = tx_base.filter(date_created__date__gte=start_date)
-        po_base = po_base.filter(order_date__gte=start_date)
-        if expense_base is not None: expense_base = expense_base.filter(expense_date__gte=start_date)
-
-    total_sales = tx_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-    total_purchase = po_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-    sales_return = SalesReturn.objects.aggregate(t=Coalesce(Sum('total_refund'), Decimal('0.00'), output_field=DecimalField()))['t']
-    invoice_due = Invoice.objects.filter(status='unpaid').aggregate(t=Coalesce(Sum('balance_due'), Decimal('0.00'), output_field=DecimalField()))['t']
+    # 2. General Metrics
+    todays_transactions = Transaction.objects.filter(date_created__date=today).count()
+    total_active_products = InventoryItem.objects.count()
+    pending_deliveries = PurchaseOrder.objects.filter(status='pending').count()
     
-    expenses = Decimal('0.00')
-    if expense_base is not None:
-        expenses = expense_base.aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
+    low_stock_qs = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')
+    low_stock_count = low_stock_qs.count()
+    low_stock_items = low_stock_qs[:5]
 
-    total_outflow = total_purchase + expenses
-    net_profit = total_sales - total_outflow - sales_return
-
-    chart_labels = []
-    chart_sales_data = []
-    chart_outflow_data = []
-    chart_profit_data = []
-
-    for i in range(6, -1, -1):
-        current_day = today - timedelta(days=i)
-        next_day = current_day + timedelta(days=1)
-        
-        chart_labels.append(current_day.strftime('%b %d'))
-        
-        d_sales = Transaction.objects.filter(
-            date_created__gte=current_day,
-            date_created__lt=next_day,
-            status__in=['completed', 'credit']
-        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-        
-        d_purchases = PurchaseOrder.objects.filter(
-            status='received', 
-            order_date__gte=current_day,
-            order_date__lt=next_day
-        ).aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-        
-        d_expenses = Decimal('0.00')
-        if expense_base is not None:
-            d_expenses = expense_base.filter(
-                expense_date__gte=current_day,
-                expense_date__lt=next_day
-            ).aggregate(t=Coalesce(Sum('amount'), Decimal('0.00'), output_field=DecimalField()))['t']
-            
-        d_outflow = d_purchases + d_expenses
-        d_profit = d_sales - d_outflow
-
-        chart_sales_data.append(float(d_sales))
-        chart_outflow_data.append(float(d_outflow))
-        chart_profit_data.append(float(d_profit))
-
+    # 3. Top Selling Products (Bilang lang ng unit ang kinukuha, hindi amount)
     top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'credit'])
     if start_date:
         top_items_base = top_items_base.filter(transaction__date_created__gte=start_date)
@@ -1157,14 +1110,11 @@ def employee_dashboard_view(request):
     donut_labels = [p['inventory_item__item_name'] for p in top_products_qs]
     donut_data = [float(p['total_sold']) for p in top_products_qs]
 
-    low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
-    unpaid_invoices = Invoice.objects.filter(status='unpaid').order_by('due_date')[:5]
-
     metrics = {
-        'total_sales': total_sales,
-        'total_outflow': total_outflow,
-        'net_profit': net_profit,
-        'invoice_due': invoice_due,
+        'low_stock_count': low_stock_count,
+        'todays_transactions': todays_transactions,
+        'total_active_products': total_active_products,
+        'pending_deliveries': pending_deliveries,
         'current_filter': date_filter,
     }
 
@@ -1172,11 +1122,6 @@ def employee_dashboard_view(request):
         'metrics': metrics,
         'low_stock_items': low_stock_items,
         'top_products': top_products_qs,
-        'unpaid_invoices': unpaid_invoices,
-        'chart_labels': json.dumps(chart_labels),
-        'chart_sales_data': json.dumps(chart_sales_data),
-        'chart_outflow_data': json.dumps(chart_outflow_data),
-        'chart_profit_data': json.dumps(chart_profit_data),
         'donut_labels': json.dumps(donut_labels),
         'donut_data': json.dumps(donut_data),
     }
