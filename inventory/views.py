@@ -36,7 +36,7 @@ def generate_unique_barcode():
 def is_admin_check(user):
     return user.is_authenticated and getattr(user, "role", "employee") == "admin"
 
-@login_required         
+@login_required        
 def inventory_list(request):
     search_query = request.GET.get('search', '').strip()
     category_id = request.GET.get('category', '')
@@ -186,15 +186,21 @@ def preview_csv_import(request):
             for row in reader:
                 cat_name = row.get('CATEGORY', '').strip()
                 category = Category.objects.filter(name__iexact=cat_name).first()
-                prefix = category.prefix.upper() if category else cat_name[:3].upper().ljust(3, 'X')
                 
+                # FIX: Added .strip() to avoid invisible space issues in prefix
+                prefix = category.prefix.strip().upper() if category and category.prefix else cat_name[:3].upper().ljust(3, 'X')
+                
+                # FIX: Use Max Number logic instead of order_by('id').last()
                 if prefix not in category_counters:
-                    last_item = InventoryItem.objects.filter(product_id__startswith=prefix).order_by('id').last()
-                    if last_item:
-                        numeric_matches = re.findall(r'\d+', last_item.product_id)
-                        category_counters[prefix] = int(numeric_matches[-1]) if numeric_matches else 0
-                    else:
-                        category_counters[prefix] = 0
+                    existing_items = InventoryItem.objects.filter(product_id__startswith=prefix)
+                    max_num = 0
+                    for item in existing_items:
+                        numeric_matches = re.findall(r'\d+', item.product_id)
+                        if numeric_matches:
+                            num = int(numeric_matches[-1])
+                            if num > max_num:
+                                max_num = num
+                    category_counters[prefix] = max_num
                 
                 category_counters[prefix] += 1
                 new_product_id = f"{prefix}{str(category_counters[prefix]).zfill(3)}"

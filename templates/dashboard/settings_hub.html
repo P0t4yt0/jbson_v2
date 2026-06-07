@@ -8,7 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-
     .settings-panel {
         background: rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(12px);
@@ -249,8 +248,11 @@
 
                 <form id="backupForm" action="{% url 'maintenance:trigger_backup' %}" method="POST" style="margin: 0;">
                     {% csrf_token %}
+                    <div style="margin-bottom: 12px;">
+                        <input type="password" id="encryption_key" name="encryption_key" class="encryption-input" placeholder="Set an encryption password" required>
+                    </div>
                     <div style="margin-bottom: 16px;">
-                        <input type="password" name="encryption_key" class="encryption-input" placeholder="Set an encryption password" required>
+                        <input type="password" id="confirm_encryption_key" name="confirm_encryption_key" class="encryption-input" placeholder="Re-enter password to confirm" required>
                         <small style="color: var(--text-secondary); font-size: 12px; font-weight: 500; margin-top: 8px; display: block;">* Don't forget this password. You will need it to restore data.</small>
                     </div>
                     <button type="submit" class="settings-btn btn-french">
@@ -302,54 +304,70 @@
 </div>
 
 <script>
-    // Django Messages 
+    // 1. DJANGO MESSAGES (For Restore, Wipe, and Errors)
     document.addEventListener("DOMContentLoaded", function() {
         {% if messages %}
             {% for message in messages %}
-                var iconType = 'info';
-                var titleText = 'Notification';
+                (function() {
+                    let iconType = 'info';
+                    let titleText = 'Notification';
+                    let msgTags = "{{ message.tags }}".toLowerCase();
 
-                {% if message.tags == 'success' %}
-                    iconType = 'success';
-                    titleText = 'Success!';
-                {% elif message.tags == 'error' %}
-                    iconType = 'error';
-                    titleText = 'Oops!';
-                {% elif message.tags == 'warning' %}
-                    iconType = 'warning';
-                    titleText = 'Warning!';
-                {% endif %}
+                    // Mas safe na includes() imbes na strict '=='
+                    if (msgTags.includes('success')) {
+                        iconType = 'success';
+                        titleText = 'Success!';
+                    } else if (msgTags.includes('error')) {
+                        iconType = 'error';
+                        titleText = 'Oops!';
+                    } else if (msgTags.includes('warning')) {
+                        iconType = 'warning';
+                        titleText = 'Warning!';
+                    }
 
-                Swal.fire({
-                    title: titleText,
-                    text: "{{ message|escapejs }}",
-                    icon: iconType,
-                    confirmButtonColor: '#2F3F7B', 
-                    timer: 3500,
-                    timerProgressBar: true
-                });
-                
-                var messageContent = "{{ message|escapejs }}".toLowerCase();
-                if (messageContent.includes('optimiz')) {
-                    document.getElementById('scan-init').style.display = 'none';
-                    document.getElementById('pro-loader').style.display = 'none';
-                    document.getElementById('pro-results').style.display = 'block';
-                }
+                    Swal.fire({
+                        title: titleText,
+                        text: "{{ message|escapejs }}",
+                        icon: iconType,
+                        confirmButtonColor: '#2F3F7B', 
+                        timer: 4000,
+                        timerProgressBar: true
+                    });
+                    
+                    let messageContent = "{{ message|escapejs }}".toLowerCase();
+                    if (messageContent.includes('optimiz')) {
+                        document.getElementById('scan-init').style.display = 'none';
+                        document.getElementById('pro-loader').style.display = 'none';
+                        document.getElementById('pro-results').style.display = 'block';
+                    }
+                })();
             {% endfor %}
         {% endif %}
     });
 
-    // Scanner Animation
+    // 2. SCANNER ANIMATION
     function runProScan() {
         document.getElementById('scan-init').style.display = 'none';
         document.getElementById('pro-loader').style.display = 'block';
        
         setTimeout(() => {
+            // Itago yung loader at ipakita yung results
             document.getElementById('pro-loader').style.display = 'none';
             document.getElementById('pro-results').style.display = 'block';
+
+            // DITO IPAPASOK YUNG MANUAL SWEET ALERT
+            Swal.fire({
+                title: 'Scan Complete!',
+                text: 'System check is finished.',
+                icon: 'success',
+                confirmButtonColor: '#2F3F7B',
+                timer: 3000,
+                timerProgressBar: true
+            });
         }, 2000);
     }
 
+    // 3. WIPE DATA CONFIRMATION
     function confirmWipeData(event) {
         event.preventDefault();
         Swal.fire({
@@ -365,26 +383,55 @@
         });
     }
 
-
-    // BACKUP PASSWORD VALIDATION
+    // 4. BACKUP FORM VALIDATION & ALERT WORKAROUND
     document.addEventListener("DOMContentLoaded", function() {
         const backupForm = document.getElementById('backupForm');
         
         if (backupForm) {
             backupForm.addEventListener('submit', function(event) {
-
-                const passwordInput = backupForm.querySelector('input[name="encryption_key"]').value;
+                const passwordInput = document.getElementById('encryption_key').value;
+                const confirmPasswordInput = document.getElementById('confirm_encryption_key').value;
                 
+                // Password Length Check
                 if (passwordInput.length < 8) {
                     event.preventDefault(); 
-                    
                     Swal.fire({
                         title: 'Weak Password',
                         text: 'For your security, the encryption password must be at least 8 characters long.',
                         icon: 'warning',
                         confirmButtonColor: '#EF4444', 
                     });
+                    return; 
                 }
+
+                // Password Mismatch Check
+                if (passwordInput !== confirmPasswordInput) {
+                    event.preventDefault(); 
+                    Swal.fire({
+                        title: 'Passwords Mismatch',
+                        text: 'The passwords you entered do not match. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#EF4444', 
+                    });
+                    return;
+                }
+
+                // IF VALIDATION PASSES: 
+                // Since FileResponse won't reload the page, manually trigger the success alert.
+                setTimeout(() => {
+                    Swal.fire({
+                        title: 'Generating Backup...',
+                        text: 'Your encrypted backup is being securely downloaded. Do not forget your password!',
+                        icon: 'success',
+                        confirmButtonColor: '#2F3F7B',
+                        timer: 5000,
+                        timerProgressBar: true
+                    });
+                    
+                    // Clear the inputs for safety after submission
+                    document.getElementById('encryption_key').value = '';
+                    document.getElementById('confirm_encryption_key').value = '';
+                }, 1000); // 1-second delay so the download initializes first
             });
         }
     });

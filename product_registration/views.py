@@ -1,4 +1,5 @@
 import json
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
@@ -55,7 +56,26 @@ def create_product(request, pk=None):
                 messages.error(request, f"Cannot add product: Barcode '{barcode_id}' is already registered to an existing item.")
                 return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
 
+            # BULLETPROOF ID GENERATOR: Force clean prefix and find max number
+            if category and category.prefix:
+                prefix = category.prefix.replace(" ", "").strip().upper()
+            else:
+                safe_name = category.name.replace(" ", "").strip()
+                prefix = safe_name[:3].upper().ljust(3, 'X')
+
+            existing_items = InventoryItem.objects.filter(product_id__icontains=prefix)
+            max_num = 0
+            for ext_item in existing_items:
+                numeric_matches = re.findall(r'\d+', ext_item.product_id)
+                if numeric_matches:
+                    num = int(numeric_matches[-1])
+                    if num > max_num:
+                        max_num = num
+            
+            new_product_id = f"{prefix}{str(max_num + 1).zfill(3)}"
+
             InventoryItem.objects.create(
+                product_id=new_product_id, # Pinasok na natin ang malinis na ID dito
                 item_name=item_name,
                 category=category,
                 supplier=supplier,

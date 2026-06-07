@@ -10,11 +10,14 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from security.views import settings_access_required
+from django.utils import timezone
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login # ADDED: import login
 User = get_user_model()
 
 from activity_log.utils import log_system_activity
+from .models import BackupRecord, RestoreRecord
+
 BUFFER_SIZE = 64 * 1024
 
 # HELPER FUNCTIONS
@@ -26,23 +29,31 @@ def get_current_db_size():
         return result[0] if result and result[0] else 0
 
 def get_last_backup_time():
-    backup_dir = os.path.join(settings.BASE_DIR, 'secure_backups')
+    # 1. First, check the database for accuracy
+    try:
+        last_backup = BackupRecord.objects.filter(status='success').order_by('-date_created').first()
+        if last_backup:
+            # FIX: I-convert muna sa local timezone bago i-format (UTC to Local Time)
+            local_time = timezone.localtime(last_backup.date_created)
+            return local_time.strftime('%B %d, %Y, %I:%M %p')
+    except Exception:
+        pass
 
+    # 2. Fallback: Filter strictly for .enc files only
+    backup_dir = os.path.join(settings.BASE_DIR, 'secure_backups')
     if not os.path.exists(backup_dir):
         return "Never"
 
-    valid_files = []
-    for f in os.listdir(backup_dir):
-        file_path = os.path.join(backup_dir, f)
-        if os.path.isfile(file_path) and not f.startswith('.'):
-            valid_files.append(file_path)
+    valid_files = [
+        os.path.join(backup_dir, f) for f in os.listdir(backup_dir)
+        if os.path.isfile(os.path.join(backup_dir, f)) and f.endswith('.enc')
+    ]
 
     if not valid_files:
         return "Never"
 
     latest_file = max(valid_files, key=os.path.getmtime)
     timestamp = os.path.getmtime(latest_file)
-
     return datetime.fromtimestamp(timestamp).strftime('%B %d, %Y, %I:%M %p')
 
 # Main View
@@ -101,9 +112,14 @@ def maintenance_dashboard(request):
 def trigger_backup(request):
     if request.method == 'POST':
         encryption_key = request.POST.get('encryption_key')
+        confirm_key = request.POST.get('confirm_encryption_key')
         
-        if not encryption_key:
-            messages.error(request, 'Encryption password is required.')
+        if not encryption_key or not confirm_key:
+            messages.error(request, 'Encryption passwords are required.')
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        if encryption_key != confirm_key:
+            messages.error(request, 'Passwords do not match. Backup cancelled.')
             return redirect(request.META.get('HTTP_REFERER', '/'))
 
         try:
@@ -128,6 +144,18 @@ def trigger_backup(request):
                 action="DATABASE BACKUP",
                 description="Successfully generated and downloaded an ENCRYPTED database backup."
             )
+            
+            try:
+                BackupRecord.objects.create(
+                    created_by=request.user,
+                    backup_type='manual',
+                    file_name=os.path.basename(encrypted_file),
+                    file_path=encrypted_file,
+                    file_size_kb=os.path.getsize(encrypted_file) // 1024,
+                    status='success'
+                )
+            except Exception:
+                pass
             
             response = FileResponse(open(encrypted_file, 'rb'), as_attachment=True)
             return response
@@ -158,42 +186,49 @@ def trigger_restore(request):
             except ValueError:
                 raise Exception("Incorrect decryption password or corrupted backup file.")
 
+            # 1. SAFELY SAVE THE CURRENT ADMIN'S CREDENTIALS (NO EMAIL INCLUDED)
+            current_admin = request.user
+            preserved_admin_data = {
+                'username': getattr(current_admin, 'username', 'admin'),
+                'password': getattr(current_admin, 'password', ''), 
+                'is_superuser': getattr(current_admin, 'is_superuser', True),
+                'is_staff': getattr(current_admin, 'is_staff', True),
+                'is_active': getattr(current_admin, 'is_active', True),
+            }
 
-            jbson_data = None
-            try:
-                jbson_user = User.objects.get(username__iexact='jbson') 
-                jbson_data = {'password': jbson_user.password}
-                
-                if hasattr(jbson_user, 'email'):
-                    jbson_data['email'] = jbson_user.email
-                if hasattr(jbson_user, 'is_superuser'):
-                    jbson_data['is_superuser'] = jbson_user.is_superuser
-                if hasattr(jbson_user, 'is_staff'):
-                    jbson_data['is_staff'] = jbson_user.is_staff
-            except User.DoesNotExist:
-                pass
-
-            # Restore using the decrypted file
+            # 2. OVERWRITE DB (This deletes current sessions and accounts)
             call_command('restore_db', decrypted_filepath)
             
-            if jbson_data:
-                user_obj, created = User.objects.get_or_create(username='JBSON')
-                user_obj.password = jbson_data['password']
+            # 3. SAFELY PUT THE ADMIN ACCOUNT BACK
+            user_obj, created = User.objects.get_or_create(username=preserved_admin_data['username'])
+            user_obj.password = preserved_admin_data['password']
+            
+            if hasattr(user_obj, 'is_superuser'):
+                user_obj.is_superuser = preserved_admin_data['is_superuser']
+            if hasattr(user_obj, 'is_staff'):
+                user_obj.is_staff = preserved_admin_data['is_staff']
+            if hasattr(user_obj, 'is_active'):
+                user_obj.is_active = preserved_admin_data['is_active']
                 
-                if 'email' in jbson_data:
-                    user_obj.email = jbson_data['email']
-                if 'is_superuser' in jbson_data:
-                    user_obj.is_superuser = jbson_data['is_superuser']
-                if 'is_staff' in jbson_data:
-                    user_obj.is_staff = jbson_data['is_staff']
-                    
-                user_obj.save()
+            user_obj.save()
+            
+            # 4. FORCE LOGIN THE ADMIN
+            login(request, user_obj, backend='django.contrib.auth.backends.ModelBackend')
             
             log_system_activity(
-                user=request.user,
+                user=user_obj,
                 action="DATABASE RESTORE",
                 description=f"Restored the database using encrypted backup file: '{uploaded_file.name}'."
             )
+
+            try:
+                RestoreRecord.objects.create(
+                    restored_by=user_obj,
+                    file_used=uploaded_file.name,
+                    status='success'
+                )
+            except Exception:
+                pass
             
             messages.success(request, 'System successfully restored from encrypted backup!')
             

@@ -82,14 +82,25 @@ class InventoryItem(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.product_id:
-            prefix = self.category.prefix.upper()
-            last_item = InventoryItem.objects.filter(category=self.category).order_by('id').last()
-            if not last_item:
-                new_no = 1
+            # FIX 1: Tanggalin ang mga spaces sa prefix
+            if self.category and self.category.prefix:
+                prefix = self.category.prefix.replace(" ", "").strip().upper()
             else:
-                numeric_matches = re.findall(r'\d+', last_item.product_id)
-                new_no = int(numeric_matches[-1]) + 1 if numeric_matches else 1
-            self.product_id = f"{prefix}{new_no:03d}"
+                safe_name = self.category.name.replace(" ", "").strip()
+                prefix = safe_name[:3].upper().ljust(3, 'X')
+
+            # FIX 2: Hanapin ang pinakamataas na number kahit anong order pa nai-save sa database
+            existing_items = InventoryItem.objects.filter(product_id__icontains=prefix)
+            max_num = 0
+            for item in existing_items:
+                numeric_matches = re.findall(r'\d+', item.product_id)
+                if numeric_matches:
+                    num = int(numeric_matches[-1])
+                    if num > max_num:
+                        max_num = num
+                        
+            # Siguradong space-free at incremented from the real maximum
+            self.product_id = f"{prefix}{(max_num + 1):03d}"
 
         avg_sales = float(self.average_daily_sales or 0)
         max_sales = float(self.max_daily_sales or 0)
@@ -160,11 +171,17 @@ class PurchaseOrder(models.Model):
     def save(self, *args, **kwargs):
         if not self.po_number:
             today = timezone.now().strftime('%Y%m%d')
-            last = PurchaseOrder.objects.filter(
-                po_number__startswith=f'PO-{today}'
-            ).order_by('id').last()
-            seq = (int(last.po_number.split('-')[-1]) + 1) if last else 1
-            self.po_number = f'PO-{today}-{seq:03d}'
+            # Applied max_num logic here as well for safety
+            existing_pos = PurchaseOrder.objects.filter(po_number__startswith=f'PO-{today}')
+            max_num = 0
+            for po in existing_pos:
+                try:
+                    num = int(po.po_number.split('-')[-1])
+                    if num > max_num:
+                        max_num = num
+                except ValueError:
+                    continue
+            self.po_number = f'PO-{today}-{(max_num + 1):03d}'
         super().save(*args, **kwargs)
 
     def __str__(self):
