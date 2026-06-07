@@ -6,9 +6,9 @@
     <h2 style="font-family: var(--font-heading); color: var(--french-blue); margin-bottom: 12px; font-weight: 800;">Settings Access Restricted</h2>
     
     {% if was_expired %}
-    <p style="color: var(--status-red); font-weight: 700; margin-bottom: 20px; background: rgba(239,68,68,0.1); padding: 10px; border-radius: 8px;">
-        <i class="ph ph-clock"></i> Your previous 1-hour access has expired.
-    </p>
+        <p style="color: var(--status-red); font-weight: 700; margin-bottom: 20px; background: rgba(239,68,68,0.1); padding: 10px; border-radius: 8px;">
+            <i class="ph ph-clock"></i> Your previous 1-hour access has expired.
+        </p>
     {% endif %}
 
     {% if profile.settings_access_requested %}
@@ -16,13 +16,14 @@
         <button disabled style="background: #E5E7EB; color: #9CA3AF; padding: 14px 28px; border: none; border-radius: 12px; font-weight: 700; font-family: var(--font-main); cursor: not-allowed;">
             <i class="ph ph-hourglass-high"></i> Request Pending...
         </button>
-        <script>
 
+        <script>
+            // Magre-reload ang page every 5 seconds para i-check kung approved na
             setTimeout(function() {
                 window.location.reload();
             }, 5000);
         </script>
-        {% else %}
+
     {% else %}
         <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 15px;">You need to request 1-hour access from an administrator to view and modify General Settings.</p>
         <form method="POST" action="{% url 'security:request_settings_access' %}">
