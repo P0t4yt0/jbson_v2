@@ -8,229 +8,132 @@
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 <style>
+    #single-print-area, #bulk-print-area {
+        display: none;
+    }
+
     @media print {
-        body * { visibility: hidden; }
-        .no-print { display: none !important; }
+        ::-webkit-scrollbar {
+            display: none !important;
+        }
+        * {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        @page {
+            margin: 5mm; 
+            size: A4 portrait;
+        }
         
-        .print-active, .print-active * {
-            visibility: visible;
-        }
-        .print-active {
-            position: absolute;
-            left: 50%;
-            top: 40%;
-            transform: translate(-50%, -40%);
-            width: fit-content; 
-            border: none !important;
-            box-shadow: none !important;
+        html, body {
+            height: auto !important;
+            min-height: 100% !important;
             background: white !important;
-            text-align: center;
+            margin: 0 !important; 
+            padding: 0 !important;
+            overflow-x: hidden !important; 
+        }
+
+        nav, header, footer, .sidebar, .no-print, #main-ui { 
+            display: none !important; 
+        }
+        
+        #single-print-area, #bulk-print-area { 
+            display: none !important; 
+        }
+
+        body.print-mode-single #single-print-area {
+            display: flex !important; 
+            flex-direction: column !important; 
+            align-items: center !important;
+            justify-content: center !important;
+            position: fixed !important; 
+            left: 50% !important; 
+            top: 20% !important;
+            transform: translateX(-50%) !important; 
+            background: white !important;
+            border: 1px dashed #999 !important;
+            border-radius: 8px !important;
+            padding: 20px !important;
+            width: 45% !important; 
+            box-sizing: border-box !important;
+        }
+        body.print-mode-single #single-print-area * { 
+            visibility: visible !important; 
+        }
+
+        body.print-mode-bulk #bulk-print-area {
+            display: block !important;
+            width: 100% !important; 
+            background: white !important;
+        }
+        
+        body.print-mode-bulk .bulk-print-page {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important; 
+            grid-template-rows: repeat(5, 1fr) !important; 
+            gap: 8mm 10mm !important; 
+            width: 100% !important;
+            height: 265mm !important; 
+            padding: 10mm 5mm 0 5mm !important; 
+            box-sizing: border-box !important;
+            page-break-after: always !important; 
+            break-after: page !important;
+        }
+
+        body.print-mode-bulk .bulk-print-page:last-child {
+            page-break-after: auto !important;
+            break-after: auto !important;
+        }
+
+        body.print-mode-bulk .bulk-print-item {
+            border: 1px dashed #999 !important; 
+            border-radius: 8px !important; 
+            box-sizing: border-box !important; 
+            display: flex !important; 
+            flex-direction: column !important;
+            align-items: center !important; 
+            justify-content: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 10px !important;
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important;
         }
     }
 
-    .glass-panel, .table-container {
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        border-radius: var(--border-radius, 20px);
-        box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07);
-    }
-
-    .table-container {
-        padding: 30px; 
-        overflow-x: auto; 
-    }
-
-    .glass-input {
-        width: 100%; 
-        padding: 14px 16px; 
-        border: 1px solid rgba(203, 213, 225, 0.8); 
-        border-radius: 12px; 
-        font-family: var(--font-main); 
-        font-size: 14px;
-        color: var(--text-primary);
-        outline: none; 
-        background: rgba(255, 255, 255, 0.8);
-        box-sizing: border-box; 
-        transition: all 0.3s ease;
-    }
-    .glass-input:focus {
-        border-color: var(--french-blue); 
-        background: #FFFFFF;
-        box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1);
-    }
-
-    .page-btn-primary {
-        background-color: var(--french-blue); 
-        color: white; 
-        border: none; 
-        padding: 16px 28px; 
-        border-radius: 12px; 
-        cursor: pointer; 
-        font-weight: 700; 
-        font-size: 15px; 
-        font-family: var(--font-main); 
-        transition: all 0.3s ease; 
-        display: inline-flex; 
-        align-items: center; 
-        justify-content: center; 
-        gap: 10px; 
-        width: 100%; 
-        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2);
-    }
-    .page-btn-primary:hover {
-        background-color: #1a2858; 
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(47, 63, 123, 0.3);
-    }
-
-    .page-btn-secondary {
-        background-color: var(--amber-flame); 
-        color: white; 
-        border: none; 
-        padding: 12px 24px; 
-        border-radius: 10px; 
-        cursor: pointer; 
-        font-size: 14px; 
-        font-weight: 700; 
-        font-family: var(--font-main); 
-        display: inline-flex; 
-        align-items: center; 
-        justify-content: center;
-        gap: 8px; 
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(255, 185, 21, 0.2);
-    }
-    .page-btn-secondary:hover {
-        background-color: #e6a300;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(255, 185, 21, 0.3);
-    }
-
-    .btn-print {
-        background-color: rgba(248, 250, 252, 0.8); 
-        color: var(--french-blue); 
-        border: 1px solid var(--border-color); 
-        padding: 12px 24px; 
-        border-radius: 10px; 
-        cursor: pointer; 
-        font-size: 14px; 
-        font-weight: 700; 
-        font-family: var(--font-main); 
-        display: inline-flex; 
-        align-items: center; 
-        justify-content: center;
-        gap: 8px; 
-        transition: all 0.3s ease;
-    }
-    .btn-print:hover {
-        background-color: #FFFFFF;
-        border-color: var(--french-blue);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1);
-    }
-
-    .table-clean {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .table-clean th, .table-clean td {
-        padding: 16px 14px; 
-        text-align: left;
-        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-        color: var(--text-primary);
-        font-size: 14px; 
-        vertical-align: middle;
-        transition: background-color 0.2s ease;
-    }
-    .table-clean tbody tr:hover td {
-        background-color: rgba(255, 255, 255, 0.6);
-    }
-    .table-clean th {
-        font-weight: 700;
-        color: var(--text-secondary); 
-        font-size: 12px; 
-        text-transform: uppercase; 
-        letter-spacing: 0.5px;
-        border-bottom: 2px solid rgba(226, 232, 240, 0.8); 
-    }
-
-    .table-action-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        background-color: rgba(255, 255, 255, 0.9);
-        border: 1px solid #e2e8f0;
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 18px;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        padding: 0;
-    }
-    .table-action-btn:hover { 
-        transform: translateY(-3px); 
-        box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15);
-    }
-    .swal2-title {
-    font-size: 18px;
-    }
-
-    .btn-view { color: var(--status-green); }
-    .btn-view:hover { background-color: var(--status-green); color: white; border-color: var(--status-green); }
-
-    .btn-copy { color: var(--amber-flame); }
-    .btn-copy:hover { background-color: var(--amber-flame); color: white; border-color: var(--amber-flame); }
-
-    .btn-reprint { color: var(--french-blue); }
-    .btn-reprint:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
-
-    .btn-delete { color: var(--status-red); background-color: #fdf4f4; border-color: #fecaca; }
-    .btn-delete:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
-
-    .pagination-wrapper {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 25px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(226, 232, 240, 0.6);
-    }
-    .page-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 36px;
-        height: 36px;
-        gap: 6px;
-        border: 1px solid rgba(203, 213, 225, 0.8);
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 8px;
-        color: var(--text-secondary);
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-    .page-btn:hover { 
-        border-color: var(--french-blue); 
-        color: var(--french-blue); 
-        background-color: #FFFFFF; 
-        transform: translateY(-2px);
-    }
-    .page-btn.active { 
-        background: var(--mustard); 
-        color: #1E293B; 
-        font-weight: bold; 
-        border-color: var(--mustard); 
-        box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4);
-    }
+    .glass-panel, .table-container { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: var(--border-radius, 20px); box-shadow: 0 8px 32px 0 rgba(47, 63, 123, 0.07); }
+    .table-container { padding: 30px; overflow-x: auto; }
+    .glass-input { width: 100%; padding: 14px 16px; border: 1px solid rgba(203, 213, 225, 0.8); border-radius: 12px; font-family: var(--font-main); font-size: 14px; color: var(--text-primary); outline: none; background: rgba(255, 255, 255, 0.8); box-sizing: border-box; transition: all 0.3s ease; }
+    .glass-input:focus { border-color: var(--french-blue); background: #FFFFFF; box-shadow: 0 0 0 3px rgba(47, 63, 123, 0.1); }
+    .page-btn-primary { background-color: var(--french-blue); color: white; border: none; padding: 16px 28px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 15px; font-family: var(--font-main); transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2); }
+    .page-btn-primary:hover { background-color: #1a2858; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(47, 63, 123, 0.3); }
+    .page-btn-secondary { background-color: var(--amber-flame); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; font-family: var(--font-main); display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(255, 185, 21, 0.2); }
+    .page-btn-secondary:hover { background-color: #e6a300; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(255, 185, 21, 0.3); }
+    .btn-print { background-color: rgba(248, 250, 252, 0.8); color: var(--french-blue); border: 1px solid var(--border-color); padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; font-family: var(--font-main); display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; }
+    .btn-print:hover { background-color: #FFFFFF; border-color: var(--french-blue); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1); }
+    .btn-bulk { padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.3s ease; height: 42px; box-sizing: border-box; font-family: var(--font-main); }
+    .btn-bulk-print { background-color: rgba(248, 250, 252, 0.8); color: var(--french-blue); border: 1px solid var(--border-color, #e2e8f0); }
+    .btn-bulk-print:hover { background-color: #FFFFFF; border-color: var(--french-blue); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(47, 63, 123, 0.1); }
+    .btn-bulk-delete { background-color: #fdf4f4; color: var(--status-red); border: 1px solid #fecaca; }
+    .btn-bulk-delete:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); transform: translateY(-2px); }
+    .table-clean { width: 100%; border-collapse: collapse; }
+    .table-clean th, .table-clean td { padding: 16px 14px; text-align: left; border-bottom: 1px solid rgba(226, 232, 240, 0.6); color: var(--text-primary); font-size: 14px; vertical-align: middle; transition: background-color 0.2s ease; }
+    .table-clean tbody tr:hover td { background-color: rgba(255, 255, 255, 0.6); }
+    .table-clean th { font-weight: 700; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid rgba(226, 232, 240, 0.8); }
+    .table-action-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background-color: rgba(255, 255, 255, 0.9); border: 1px solid #e2e8f0; color: var(--text-secondary); text-decoration: none; font-size: 18px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; padding: 0; }
+    .table-action-btn:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.15); }
+    .btn-view { color: var(--status-green); } .btn-view:hover { background-color: var(--status-green); color: white; border-color: var(--status-green); }
+    .btn-copy { color: var(--amber-flame); } .btn-copy:hover { background-color: var(--amber-flame); color: white; border-color: var(--amber-flame); }
+    .btn-reprint { color: var(--french-blue); } .btn-reprint:hover { background-color: var(--french-blue); color: white; border-color: var(--french-blue); }
+    .btn-delete { color: var(--status-red); background-color: #fdf4f4; border-color: #fecaca; } .btn-delete:hover { background-color: var(--status-red); color: white; border-color: var(--status-red); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+    .pagination-wrapper { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(226, 232, 240, 0.6); }
+    .page-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; gap: 6px; border: 1px solid rgba(203, 213, 225, 0.8); background: rgba(255, 255, 255, 0.8); border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s ease; }
+    .page-btn:hover { border-color: var(--french-blue); color: var(--french-blue); background-color: #FFFFFF; transform: translateY(-2px); }
+    .page-btn.active { background: var(--mustard); color: #1E293B; font-weight: bold; border-color: var(--mustard); box-shadow: 0 4px 10px rgba(255, 211, 88, 0.4); }
     .page-info { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
-    
 </style>
 
 <div id="main-ui" style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0; font-family: var(--font-main);">
@@ -245,18 +148,14 @@
     </div>
     
     <div class="glass-panel" style="padding: 40px; margin-bottom: 30px;">
-        
         <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
-
             <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
                 <form id="barcodeForm" method="POST" style="text-align: left; width: 100%;">
                     {% csrf_token %}
-                    
                     <div style="margin-bottom: 24px;">
                         <label style="font-weight: 700; font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 8px;">Product Name <span style="color: var(--amber-flame);">*</span></label>
                         <input type="text" name="product_name" id="product_name_input" required placeholder="Enter Product Name" class="glass-input">
                     </div>
-
                     <button type="button" onclick="confirmGeneration()" class="page-btn-primary">
                         <i class="ph ph-barcode" style="font-size: 22px;"></i> Generate New Barcode
                     </button>
@@ -277,10 +176,9 @@
                         <p style="margin-bottom: 12px; color: var(--status-green); font-weight: 700; font-size: 15px; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                             <i class="ph ph-check-circle" style="font-size: 22px;"></i> Generation Successful!
                         </p>
-                        <p style="margin: 0 0 24px 0; color: var(--french-blue); font-weight: 800; font-size: 20px; font-family: var(--font-heading);">{{ product_name }}</p>
                         
-                        <div id="new-barcode-print-area" class="print-active" style="background: white; display: inline-block; padding: 25px 35px; border-radius: 12px; border: 1px dashed var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
-                            <p style="font-weight: 700; font-size: 14px; margin: 0 0 10px 0; color: var(--text-primary);">{{ product_name }}</p>
+                        <div style="background: white; display: inline-block; padding: 25px 35px; border-radius: 12px; border: 1px dashed var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                            <p style="font-weight: 700; font-size: 14px; margin: 0 0 10px 0; color: black; font-family: 'Inter', sans-serif;">{{ product_name }}</p>
                             <svg id="barcode-canvas"></svg>
                         </div>
                         
@@ -288,17 +186,15 @@
                             <button onclick="printCurrentBarcode()" class="btn-print">
                                 <i class="ph ph-printer" style="font-size: 20px;"></i> Print Label
                             </button>
-                            
                             <button type="button" onclick="copyBarcodeID('{{ barcode_id }}')" class="page-btn-secondary">
                                 <i class="ph ph-copy" style="font-size: 20px;"></i> Copy Code
                             </button>
                         </div>
                     </div>
-                    
                     <script>
                         document.addEventListener("DOMContentLoaded", function() {
                             JsBarcode("#barcode-canvas", "{{ barcode_id }}", {
-                                format: "EAN13", width: 2, height: 80, displayValue: true, fontSize: 22, margin: 10, textMargin: 8, font: "Inconsolata"
+                                format: "EAN13", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 10, textMargin: 8, font: "Inconsolata"
                             });
                         });
                     </script>
@@ -315,6 +211,20 @@
     <div style="padding-top: 10px;">
         <h3 style="font-family: var(--font-heading); font-weight: 800; color: var(--french-blue); margin: 0 0 20px 0; font-size: 22px;">Barcode History</h3>
         
+        <div id="bulk-action-bar" style="display: none; background: rgba(255, 255, 255, 0.95); padding: 12px 20px; border-radius: 10px; border: 1px solid var(--french-blue); margin-bottom: 15px; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(47, 63, 123, 0.1);">
+            <div style="font-weight: 700; color: var(--french-blue); font-size: 14px;">
+                <span id="selected-count">0</span> item(s) selected
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="button" onclick="printSelectedBarcodes()" class="btn-bulk btn-bulk-print">
+                    <i class="ph ph-printer"></i> Print Selected
+                </button>
+                <button type="button" onclick="confirmBulkDelete(event)" class="btn-bulk btn-bulk-delete">
+                    <i class="ph ph-trash"></i> Delete Selected
+                </button>
+            </div>
+        </div>
+
         <form method="GET" action="{% url 'inventory:generate_barcode_page' %}" id="history-filter-form">
             <input type="hidden" name="page" id="pageInput" value="{{ history.number }}">
 
@@ -322,6 +232,9 @@
                 <table class="table-clean">
                     <thead>
                         <tr>
+                            <th style="width: 40px; text-align: center; padding-right: 0;">
+                                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--french-blue);">
+                            </th>
                             <th>ID</th>
                             <th>Product Name</th>
                             <th>Barcode ID</th>
@@ -332,9 +245,10 @@
                     <tbody>
                         {% for item in history %}
                         <tr>
-                            <td style="font-family: 'Inconsolata', monospace; font-weight: 700; color: var(--french-blue); font-size: 15px;">
-                                {{ item.batch_id|default:"-" }}
+                            <td style="text-align: center; padding-right: 0;">
+                                <input type="checkbox" class="row-checkbox" value="{{ item.id }}" data-barcode="{{ item.barcode_id }}" data-name="{{ item.product_name|escapejs }}" data-delete-url="{% url 'inventory:delete_generated_barcode' item.id %}" onchange="toggleSingleRow(this)" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--french-blue);">
                             </td>
+                            <td style="font-family: 'Inconsolata', monospace; font-weight: 700; color: var(--french-blue); font-size: 15px;">{{ item.batch_id|default:"-" }}</td>
                             <td style="font-weight: 700; color: var(--text-primary); font-size: 15px;">{{ item.product_name }}</td>
                             <td style="font-family: 'Inconsolata', monospace; font-weight: 800; color: var(--text-secondary); font-size: 16px;">{{ item.barcode_id }}</td>
                             <td style="color: var(--text-secondary); font-weight: 500; font-size: 14px;">{{ item.created_at|date:"M d, Y - h:i A" }}</td>
@@ -349,18 +263,16 @@
                                     <button type="button" onclick="reprintHistoryBarcode('{{ item.barcode_id }}', '{{ item.product_name|escapejs }}')" class="table-action-btn btn-reprint" title="Print Barcode">
                                         <i class="ph ph-printer"></i> 
                                     </button>
-                                    <form method="POST" action="{% url 'inventory:delete_generated_barcode' item.id %}" style="margin: 0; display: inline;">
-                                        {% csrf_token %}
-                                        <button type="button" onclick="confirmDeleteHistory(this.parentElement, '{{ item.product_name|escapejs }}')" class="table-action-btn btn-delete" title="Delete History">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                    </form>
+                                    
+                                    <button type="button" onclick="confirmDeleteHistory('{% url 'inventory:delete_generated_barcode' item.id %}', '{{ item.product_name|escapejs }}')" class="table-action-btn btn-delete single-delete-btn" data-delete-url="{% url 'inventory:delete_generated_barcode' item.id %}" title="Delete History">
+                                        <i class="ph ph-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" style="padding: 40px; text-align: center; color: var(--text-secondary); font-style: italic; font-size: 14px;">No barcodes have been generated yet.</td>
+                            <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-secondary); font-style: italic; font-size: 14px;">No barcodes have been generated yet.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -379,11 +291,8 @@
                     
                     <div style="display: flex; gap: 8px;">
                         {% if history.has_previous %}
-                            <a href="javascript:void(0);" onclick="goToPage({{ history.previous_page_number }})" class="page-btn">
-                                <i class="ph ph-caret-left"></i>
-                            </a>
+                            <a href="javascript:void(0);" onclick="goToPage({{ history.previous_page_number }})" class="page-btn"><i class="ph ph-caret-left"></i></a>
                         {% endif %}
-
                         {% for num in history.paginator.page_range %}
                             {% if history.number == num %}
                                 <a href="javascript:void(0);" class="page-btn active">{{ num }}</a>
@@ -391,48 +300,51 @@
                                 <a href="javascript:void(0);" onclick="goToPage({{ num }})" class="page-btn">{{ num }}</a>
                             {% endif %}
                         {% endfor %}
-
                         {% if history.has_next %}
-                            <a href="javascript:void(0);" onclick="goToPage({{ history.next_page_number }})" class="page-btn">
-                                <i class="ph ph-caret-right"></i>
-                            </a>
+                            <a href="javascript:void(0);" onclick="goToPage({{ history.next_page_number }})" class="page-btn"><i class="ph ph-caret-right"></i></a>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </form>
     </div>
-
-<div id="history-print-area" style="display: none; background: white; padding: 25px; text-align: center;">
-    <p id="history-print-name" style="font-weight: 700; font-size: 16px; margin: 0 0 10px 0; color: black;"></p>
-    <svg id="history-barcode-canvas"></svg>
 </div>
 
+<div id="single-print-area">
+    <p id="single-print-name" style="font-weight: 700; font-size: 14px; margin: 0 0 5px 0; color: black; font-family: 'Inter', sans-serif; text-align: center;"></p>
+    <svg id="single-barcode-canvas"></svg>
+</div>
+
+<div id="bulk-print-area"></div>
+
 <script>
+    let allHistoryData = [];
+    try {
+        let rawData = '{{ all_history_json|escapejs }}';
+        if (rawData && rawData.trim() !== '') {
+            allHistoryData = JSON.parse(rawData);
+        }
+    } catch (e) {
+        console.warn("JSON missing. Multi-page print falling back to current page only.");
+    }
+
+    let selectedItems = new Map();
+
     function goToPage(pageNumber) {
         document.getElementById('pageInput').value = pageNumber;
         document.getElementById('history-filter-form').submit();
     }
+    
     function confirmGeneration() {
         const prodName = document.getElementById('product_name_input').value.trim();
         if(!prodName) {
             Swal.fire({ title: 'Missing Information', text: "Please enter a Product Name first.", icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
             return;
         }
-
         Swal.fire({
-            title: 'Generate New Barcode?',
-            text: `Are you sure you want to create a barcode for '${prodName}'?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#FFD358',
-            cancelButtonColor: 'var(--text-secondary)',
-            confirmButtonText: 'Yes, generate it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('barcodeForm').submit();
-            }
-        });
+            title: 'Generate New Barcode?', text: `Are you sure you want to create a barcode for '${prodName}'?`, icon: 'question',
+            showCancelButton: true, confirmButtonColor: '#FFD358', cancelButtonColor: 'var(--text-secondary)', confirmButtonText: 'Yes, generate it!'
+        }).then((result) => { if (result.isConfirmed) document.getElementById('barcodeForm').submit(); });
     }
 
     function copyBarcodeID(code) {
@@ -441,75 +353,299 @@
         }).catch(err => console.error('Failed to copy: ', err));
     }
 
-    // Prints the currently generated barcode
     function printCurrentBarcode() {
-        window.print();
-    }
+        const prodName = "{{ product_name|escapejs }}";
+        const barcodeId = "{{ barcode_id }}";
+        
+        if (!barcodeId) return;
 
-    function confirmDeleteHistory(formElement, productName) {
-        Swal.fire({
-            title: 'Delete History?',
-            text: `Are you sure you want to remove the generated barcode for '${productName}'?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: 'var(--status-red)',
-            cancelButtonColor: 'var(--text-secondary)',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                formElement.submit();
-            }
-        });
-    }
-
-    // specific history barcode
-    function reprintHistoryBarcode(barcodeId, productName) {
-        const currentPrintArea = document.getElementById('new-barcode-print-area');
-        const historyPrintArea = document.getElementById('history-print-area');
-
-        if (currentPrintArea) {
-            currentPrintArea.classList.remove('print-active');
-            currentPrintArea.style.display = 'none';
+        document.getElementById('single-print-name').innerText = prodName.length > 30 ? prodName.substring(0, 30) + '...' : prodName;
+        
+        try {
+            JsBarcode("#single-barcode-canvas", barcodeId, {
+                format: "EAN13", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
+            });
+        } catch(e) {
+            JsBarcode("#single-barcode-canvas", barcodeId, {
+                format: "CODE128", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
+            });
         }
 
-        // Setup the history print area 
-        document.getElementById('history-print-name').innerText = productName;
-        JsBarcode("#history-barcode-canvas", barcodeId, {
-            format: "EAN13", width: 2, height: 80, displayValue: true, fontSize: 22, margin: 10, textMargin: 8, font: "Inconsolata"
+        document.body.classList.remove('print-mode-bulk');
+        document.body.classList.add('print-mode-single');
+        
+        setTimeout(() => { 
+            window.print(); 
+            document.body.classList.remove('print-mode-single'); 
+        }, 300);
+    }
+
+    function confirmDeleteHistory(deleteUrl, productName) {
+        Swal.fire({
+            title: 'Delete History?', 
+            text: `Are you sure you want to remove the generated barcode for '${productName}'?`, 
+            icon: 'warning',
+            showCancelButton: true, 
+            confirmButtonColor: 'var(--status-red)', 
+            cancelButtonColor: 'var(--text-secondary)', 
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => { 
+            if (result.isConfirmed) {
+                if (deleteUrl) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = deleteUrl;
+                    
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    
+                    form.appendChild(csrfInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                } else {
+                    console.error("Delete URL is missing.");
+                }
+            } 
         });
+    }
 
-        // Temporarily show the history area 
-        historyPrintArea.style.display = 'inline-block';
-        historyPrintArea.classList.add('print-active');
+    function reprintHistoryBarcode(barcodeId, productName) {
+        document.getElementById('single-print-name').innerText = productName.length > 30 ? productName.substring(0, 30) + '...' : productName;
+        
+        try {
+            JsBarcode("#single-barcode-canvas", barcodeId, {
+                format: "EAN13", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
+            });
+        } catch(e) {
+            JsBarcode("#single-barcode-canvas", barcodeId, {
+                format: "CODE128", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
+            });
+        }
 
-        // barcode render (time)
+        document.body.classList.remove('print-mode-bulk');
+        document.body.classList.add('print-mode-single');
+        
         setTimeout(() => {
             window.print();
-
-            // Hide and restore the original barcode view
-            historyPrintArea.style.display = 'none';
-            historyPrintArea.classList.remove('print-active');
-            if (currentPrintArea) {
-                currentPrintArea.classList.add('print-active');
-                currentPrintArea.style.display = 'inline-block';
-            }
-        }, 150);
+            document.body.classList.remove('print-mode-single');
+        }, 300);
     }
 
     function viewBarcodeModal(barcodeId, productName) {
         Swal.fire({
             title: `<span style="color: var(--french-blue); font-family: var(--font-heading); font-weight: 800;">${productName}</span>`,
-            html: `
-                <div style="padding: 20px; background: white; border-radius: 12px; display: inline-block; margin-top: 10px; border: 1px dashed rgba(203, 213, 225, 0.8);">
-                    <svg id="swal-barcode"></svg>
-                </div>
-            `,
-            showCloseButton: true,
-            showConfirmButton: false,
-            width: '450px',
+            html: `<div style="padding: 20px; background: white; border-radius: 12px; display: inline-block; margin-top: 10px; border: 1px solid rgba(203, 213, 225, 0.8);"><svg id="swal-barcode"></svg></div>`,
+            showCloseButton: true, showConfirmButton: false, width: '450px',
             didOpen: () => {
-                JsBarcode("#swal-barcode", barcodeId, {
-                    format: "EAN13", width: 2, height: 80, displayValue: true, fontSize: 20, margin: 10, textMargin: 8, font: "Inconsolata"
+                JsBarcode("#swal-barcode", barcodeId, { format: "EAN13", width: 2, height: 80, displayValue: true, fontSize: 20, margin: 10, textMargin: 8, font: "Inconsolata" });
+            }
+        });
+    }
+
+    function toggleSelectAll(source) {
+        const isChecked = source.checked;
+        selectedItems.clear(); 
+        
+        if (isChecked) {
+            if (allHistoryData && allHistoryData.length > 0) {
+                allHistoryData.forEach(item => {
+                    if(item.id) { // Protect against undefined
+                        selectedItems.set(String(item.id), {
+                            barcode_id: item.barcode_id,
+                            product_name: item.product_name
+                        });
+                    }
+                });
+                document.querySelectorAll('.row-checkbox').forEach(cb => {
+                    selectedItems.set(String(cb.value), {
+                        barcode_id: cb.getAttribute('data-barcode'),
+                        product_name: cb.getAttribute('data-name'),
+                        delete_url: cb.getAttribute('data-delete-url')
+                    });
+                });
+            } else {
+                document.querySelectorAll('.row-checkbox').forEach(cb => {
+                    if (cb.value) {
+                        selectedItems.set(String(cb.value), {
+                            barcode_id: cb.getAttribute('data-barcode'),
+                            product_name: cb.getAttribute('data-name'),
+                            delete_url: cb.getAttribute('data-delete-url')
+                        });
+                    }
+                });
+            }
+        }
+        
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.checked = isChecked;
+        });
+        
+        updateBulkActions();
+    }
+
+    function toggleSingleRow(checkbox) {
+        const id = String(checkbox.value);
+        if (checkbox.checked) {
+            selectedItems.set(id, {
+                barcode_id: checkbox.getAttribute('data-barcode'),
+                product_name: checkbox.getAttribute('data-name'),
+                delete_url: checkbox.getAttribute('data-delete-url') 
+            });
+        } else {
+            selectedItems.delete(id);
+            document.getElementById('selectAllCheckbox').checked = false;
+        }
+        updateBulkActions();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            if (selectedItems.has(String(cb.value))) {
+                cb.checked = true;
+            }
+        });
+        updateBulkActions();
+    });
+
+    function updateBulkActions() {
+        const actionBar = document.getElementById('bulk-action-bar');
+        document.getElementById('selected-count').innerText = selectedItems.size;
+        
+        if (selectedItems.size > 0) {
+            actionBar.style.display = 'flex';
+        } else {
+            actionBar.style.display = 'none';
+        }
+        
+        const allCbs = document.querySelectorAll('.row-checkbox');
+        if (allCbs.length > 0) {
+            const allCheckedOnPage = Array.from(allCbs).every(cb => cb.checked);
+            if (allHistoryData && allHistoryData.length > 0 && selectedItems.size !== allHistoryData.length) {
+                document.getElementById('selectAllCheckbox').checked = false;
+            } else {
+                document.getElementById('selectAllCheckbox').checked = allCheckedOnPage;
+            }
+        }
+    }
+
+    function printSelectedBarcodes() {
+        if (selectedItems.size === 0) return;
+
+        const bulkPrintArea = document.getElementById('bulk-print-area');
+        bulkPrintArea.innerHTML = ''; 
+
+        let index = 0;
+        let currentPageDiv = null;
+
+        selectedItems.forEach((data, id) => {
+            if (index % 10 === 0) {
+                currentPageDiv = document.createElement('div');
+                currentPageDiv.className = 'bulk-print-page';
+                bulkPrintArea.appendChild(currentPageDiv);
+            }
+
+            const productName = data.product_name;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'bulk-print-item';
+            
+            const title = document.createElement('p');
+            title.style.fontWeight = '700'; title.style.fontSize = '14px'; title.style.margin = '0 0 5px 0';
+            title.style.color = 'black'; title.style.textAlign = 'center'; title.style.fontFamily = 'Inter, sans-serif';
+            title.innerText = productName.length > 30 ? productName.substring(0, 30) + '...' : productName;
+            
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('id', `bulk-svg-${index}`);
+            
+            wrapper.appendChild(title);
+            wrapper.appendChild(svg);
+            currentPageDiv.appendChild(wrapper);
+            index++;
+        });
+
+        document.body.classList.remove('print-mode-single');
+        document.body.classList.add('print-mode-bulk');
+
+        index = 0;
+        selectedItems.forEach((data, id) => {
+            try {
+                JsBarcode(`#bulk-svg-${index}`, data.barcode_id, {
+                    format: "EAN13", width: 1.8, height: 55, displayValue: true, fontSize: 16, margin: 5, textMargin: 6, font: "Inconsolata"
+                });
+            } catch(e) {
+                JsBarcode(`#bulk-svg-${index}`, data.barcode_id, {
+                    format: "CODE128", width: 1.8, height: 55, displayValue: true, fontSize: 16, margin: 5, textMargin: 6, font: "Inconsolata"
+                });
+            }
+            index++;
+        });
+
+        setTimeout(() => {
+            window.print();
+            document.body.classList.remove('print-mode-bulk');
+            bulkPrintArea.innerHTML = ''; 
+        }, 1000); 
+    }
+
+    function confirmBulkDelete(e) {
+        if (e) e.preventDefault();
+        if (selectedItems.size === 0) return;
+        
+        Swal.fire({
+            title: 'Delete Selected Items?',
+            text: `Are you sure you want to delete ${selectedItems.size} barcode(s)? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--status-red)',
+            cancelButtonColor: 'var(--text-secondary)',
+            confirmButtonText: 'Yes, delete them!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Deleting Barcodes...',
+                    text: 'Please wait while items are being removed.',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                let successCount = 0;
+
+                const sampleBtn = document.querySelector('.single-delete-btn');
+
+                for (let [id, data] of selectedItems.entries()) {
+                    if (!id || id === 'undefined' || id === 'null') continue;
+
+                    let targetUrl = data.delete_url;
+
+                    if (!targetUrl && sampleBtn) {
+                        let sampleUrl = sampleBtn.getAttribute('data-delete-url');
+                        targetUrl = sampleUrl.replace(/\/\d+[\/]?$/, `/${id}/`);
+                    }
+
+                    if (targetUrl) {
+                        try {
+                            let response = await fetch(targetUrl, {
+                                method: 'POST',
+                                headers: { 'X-CSRFToken': csrfToken }
+                            });
+                            if (response.ok) {
+                                successCount++;
+                            }
+                        } catch (err) {
+                            console.error("Failed to delete item ID: ", id);
+                        }
+                    }
+                }
+
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: `Successfully removed ${successCount} barcode(s).`,
+                    icon: 'success',
+                    confirmButtonColor: 'var(--french-blue)'
+                }).then(() => {
+                    window.location.reload();
                 });
             }
         });

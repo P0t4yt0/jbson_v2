@@ -879,29 +879,38 @@
                 </div>
 
                 <div class="action-row">
-                    <div class="panel">
+                    <div class="panel" style="display: flex; flex-direction: column;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                             <h3 class="panel-title" style="margin: 0;">
                                 <span style="background: rgba(255, 185, 21, 0.2); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-warning" style="color: var(--amber-flame);"></i></span>
                                 Critical Stock
                             </h3>
-                            <a href="{% url 'inventory:inventory_list' %}?low_stock=on" style="font-size: 13px; font-weight: 700; color: var(--amber-flame); background: rgba(255, 185, 21, 0.1); padding: 8px 16px; border-radius: 10px;">View All &rarr;</a>
+                            <a href="{% url 'inventory:inventory_list' %}?low_stock=on" style="font-size: 13px; font-weight: 700; color: var(--amber-flame); background: rgba(255, 185, 21, 0.1); padding: 8px 16px; border-radius: 10px; transition: background 0.2s;">View All &rarr;</a>
                         </div>
-                        <ul class="modern-list">
-                            {% for item in low_stock_items %}
-                            <li>
-                                <div>
-                                    <span class="item-main">{{ item.item_name }}</span>
-                                    <span class="item-sub">Reorder Pt: {{ item.reorder_point }}</span>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="item-val" style="color: var(--primary-red);">{{ item.quantity }} left</span>
-                                </div>
-                            </li>
-                            {% empty %}
-                            <li style="justify-content: center; color: var(--text-secondary); font-size: 14px; background: transparent; border: 1px dashed #E2E8F0;">Inventory levels are healthy.</li>
-                            {% endfor %}
-                        </ul>
+                        
+                        <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
+                            <div style="flex: 0.8; position: relative; height: 220px;">
+                                <canvas id="lowStockChart"></canvas>
+                            </div>
+                            
+                            <div style="flex: 1.2;">
+                               <ul class="modern-list" id="lowStockList" style="margin: 0;">
+                                    {% for item in low_stock_items|slice:":5" %}
+                                    <li class="low-stock-item" data-name="{{ item.item_name }}" data-qty="{{ item.quantity }}">
+                                        <div style="max-width: 65%;">
+                                            <span class="item-main" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;" title="{{ item.item_name }}">{{ item.item_name }}</span>
+                                            <span class="item-sub">Reorder: {{ item.reorder_point }}</span>
+                                        </div>
+                                        <div style="text-align: right; white-space: nowrap;">
+                                            <span class="item-val" style="color: var(--primary-red);">{{ item.quantity }} left</span>
+                                        </div>
+                                    </li>
+                                    {% empty %}
+                                    <li style="justify-content: center; color: var(--text-secondary); font-size: 13px; background: transparent; border: 1px dashed #E2E8F0;">Inventory levels are healthy.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="panel">
@@ -1106,6 +1115,7 @@
 
             Chart.defaults.font.family = "'Inconsolata', monospace";
 
+            // Financial Chart
             const finCtx = document.getElementById('financialChart');
             if (finCtx) {
                 new Chart(finCtx, {
@@ -1157,6 +1167,7 @@
                 });
             }
 
+            // Top Products Doughnut
             const donutCtx = document.getElementById('productDoughnut');
             if (donutCtx) {
                 const donutLabels = {{ donut_labels|safe }};
@@ -1185,7 +1196,65 @@
                         }
                     });
                 } else {
-                    donutCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px; font-weight:500;">No sales data available</span>';
+                    donutCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px; font-weight:500; display:flex; height:100%; align-items:center; justify-content:center;">No sales data available</span>';
+                }
+            }
+
+            // DITO NAGBAGO: CRITICAL STOCK JAVASCRIPT (DOUGHNUT WITH 0-VALUE TRICK)
+            const lowStockCtx = document.getElementById('lowStockChart');
+            if (lowStockCtx) {
+                const lowStockLabels = [];
+                const lowStockData = [];
+                const displayData = []; // Ito ang gagamitin natin pang-drawing
+                
+                // Kumukuha ng data sa listahan
+                document.querySelectorAll('.low-stock-item').forEach(function(item) {
+                    let name = item.getAttribute('data-name');
+                    let qty = parseInt(item.getAttribute('data-qty'), 10);
+                    
+                    lowStockLabels.push(name);
+                    lowStockData.push(qty); // Yung totoong stock (e.g., 25, 0)
+                    
+                    // TRICK: Kung 0 ang stock, gagawin nating 0.5 sa chart para lang may manipis na slice na ma-draw
+                    displayData.push(qty === 0 ? 0.5 : qty); 
+                });
+                
+                if(lowStockLabels.length > 0) {
+                    new Chart(lowStockCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: lowStockLabels,
+                            datasets: [{
+                                data: displayData, // Ginamit natin yung may trick
+                                backgroundColor: ['#EF4444', '#F97316', '#FACC15', '#F87171', '#FCA5A5'], 
+                                borderWidth: 1, // Nilagyan natin ng border para mas madaling makita yung maliliit na slice
+                                borderColor: '#ffffff',
+                                hoverOffset: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '75%',
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { 
+                                    bodyFont: { family: 'Inter' }, 
+                                    backgroundColor: 'rgba(30, 41, 59, 0.9)', 
+                                    padding: 12,
+                                    callbacks: {
+                                        // TRICK: Ibabalik natin yung totoong value (lowStockData) sa tooltip
+                                        label: function(context) {
+                                            let actualQty = lowStockData[context.dataIndex];
+                                            return context.label + ': ' + actualQty + ' left';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    lowStockCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px; font-weight:500; display:flex; height:100%; align-items:center; justify-content:center;">Healthy Inventory</span>';
                 }
             }
         });
