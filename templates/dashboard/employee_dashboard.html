@@ -259,7 +259,7 @@
         .btn-logout {
             background: transparent; 
             border: none; 
-            width: 100%; 
+            width: calc(100% - 32px); 
             text-align: left;
             cursor: pointer; 
             font-family: inherit; 
@@ -346,7 +346,7 @@
                 <i class="ph ph-chart-pie-slice"></i> Reports Hub
             </a>
         {% else %}
-            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}" style="opacity: 0.7;">
+            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
                 <i class="ph ph-chart-pie-slice"></i> Reports Hub
             </a>
         {% endif %}
@@ -354,6 +354,10 @@
         <div class="nav-category">Settings</div>
         <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
             <i class="ph ph-book"></i> User Manual
+        </a>
+
+        <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path and '/manual/' not in request.path %}active{% endif %}">
+            <i class="ph ph-gear"></i> General Settings
         </a>
 
         <form action="{% url 'security:logout' %}" method="POST" class="logout-form" onsubmit="confirmLogout(event, this)">

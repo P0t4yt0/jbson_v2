@@ -303,7 +303,7 @@
         .btn-logout {
             background: transparent; 
             border: none; 
-            width: 100%; 
+            width: calc(100% - 32px); 
             text-align: left;
             cursor: pointer; 
             font-family: inherit; 
@@ -391,8 +391,8 @@
         </a>
 
         <div class="nav-category">Reports and Analytics</div>
-            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path and '/manual/' not in request.path %}active{% endif %}">
-                <i class="ph ph-chart-pie-slice"></i> Reports Hub
+            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
+                <i class="ph ph-chart-bar"></i> Reports Hub
             </a>
         
         {% if request.user.role == 'admin' or request.user.is_superuser %}
