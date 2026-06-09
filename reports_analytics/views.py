@@ -44,7 +44,6 @@ def reports_access_required(view_func):
                 
                 was_expired = False
                 if profile.reports_access_approved:
-                    # Auto-revoke their permissions in the database
                     profile.reports_access_approved = False
                     profile.reports_access_expires_at = None
                     profile.save()
@@ -79,7 +78,6 @@ def sales_report_view(request):
         transactions_qs = transactions_qs.filter(date_completed__range=[start_date, end_date])
         returns_qs = returns_qs.filter(created_at__range=[start_date, end_date])
 
-    # BACKEND SEARCH FILTER (SALES) -- MAY REFUNDED LOGIC NA
     if sales_search:
         if sales_search.lower() == 'refunded':
             transactions_qs = transactions_qs.filter(
@@ -91,14 +89,12 @@ def sales_report_view(request):
                 Q(payment_method__icontains=sales_search)
             ).distinct()
 
-    # BACKEND SEARCH FILTER (RETURNS)
     if returns_search:
         returns_qs = returns_qs.filter(
             Q(return_id__icontains=returns_search) |
             Q(transaction__transaction_ref__icontains=returns_search)
         )
 
-    # --- SUMMARY COMPUTATIONS ---
     summary = transactions_qs.aggregate(
         total_rev=Coalesce(Sum('total_amount'), 0, output_field=DecimalField()),
         total_ord=Count('id')
@@ -107,7 +103,7 @@ def sales_report_view(request):
     total_ret_amt = returns_qs.aggregate(total=Coalesce(Sum('total_refund'), 0, output_field=DecimalField()))['total']
     net_revenue = gross_rev - total_ret_amt
 
-    # --- PAYMENT METHOD BREAKDOWN ---
+    #PAYMENT METHOD BREAKDOWN
     payment_methods = transactions_qs.values('payment_method').annotate(
         gross=Sum('total_amount'),
         refunds=Coalesce(Sum('returns__total_refund'), 0, output_field=DecimalField())
@@ -115,7 +111,7 @@ def sales_report_view(request):
         net_collected=F('gross') - F('refunds')
     ).order_by('-net_collected')
 
-    # --- TOP SELLING PRODUCTS ---
+    #TOP SELLING PRODUCTS
     sold_items = TransactionItem.objects.filter(transaction__in=transactions_qs)
     product_sales = sold_items.values(
         'inventory_item__id', 
@@ -125,7 +121,6 @@ def sales_report_view(request):
         total_sold_amount=Sum('subtotal') 
     ).order_by('-total_sold_amount')[:10]
 
-    # --- ANNOTATE & PAGINATE TRANSACTIONS ---
     transactions_final = transactions_qs.annotate(
         refunded_amount=Coalesce(Sum('returns__total_refund'), 0, output_field=DecimalField())
     ).annotate(
@@ -216,7 +211,6 @@ def procurement_report(request):
         )
     ).order_by('-total_spent')
 
-    # BACKEND SEARCH FILTER (PO Number, Supplier, Status)
     if procurement_search:
         po_query = po_query.filter(
             Q(po_number__icontains=procurement_search) |

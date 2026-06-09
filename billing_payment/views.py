@@ -87,7 +87,6 @@ def customer_ledger(request, pk):
 
 @login_required
 def get_payment_history_json(request, invoice_id):
-    """API endpoint para ibalik ang payment history ng isang invoice sa JSON format"""
     invoice = get_object_or_404(Invoice, pk=invoice_id)
     
     if hasattr(invoice, 'payments'):
