@@ -74,7 +74,18 @@ def add_to_cart(request):
         cart_item.save()
 
     transaction.calculate_totals()
-    return JsonResponse({'status': 'success'})
+    
+    # UPDATED: Nagbabalik na ngayon ng detailed data para sa AJAX/Fetch
+    return JsonResponse({
+        'status': 'success',
+        'is_new_item': created,
+        'item_id': cart_item.id,
+        'item_name': product.item_name,
+        'quantity': cart_item.quantity,
+        'unit_price': float(cart_item.unit_price),
+        'item_subtotal': float(cart_item.subtotal),
+        'transaction_total': float(transaction.total_amount)
+    })
 
 @csrf_exempt
 def update_cart_item(request):
@@ -109,11 +120,17 @@ def update_cart_item(request):
                 except (ValueError, TypeError):
                     pass
             
+            # UPDATED: I-save muna ang values bago i-delete para maipasa sa frontend
+            item_qty = 0
+            item_sub = 0
+            
             if action == 'remove':
                 cart_item.delete()
             else:
                 cart_item.subtotal = cart_item.quantity * cart_item.unit_price
                 cart_item.save()
+                item_qty = cart_item.quantity
+                item_sub = float(cart_item.subtotal)
             
             remaining_items = TransactionItem.objects.filter(transaction=transaction)
             new_total = sum(item.subtotal for item in remaining_items)
@@ -121,7 +138,15 @@ def update_cart_item(request):
             transaction.total_amount = new_total
             transaction.save()
             
-            return JsonResponse({'status': 'success'})
+            # UPDATED: Nagbabalik na ng detailed data para sa DOM manipulation
+            return JsonResponse({
+                'status': 'success',
+                'action': action,
+                'item_id': item_id,
+                'quantity': item_qty,
+                'item_subtotal': item_sub,
+                'transaction_total': float(new_total)
+            })
             
         except Exception as e:
             print(f"POS UPDATE ERROR: {str(e)}") 
@@ -163,7 +188,18 @@ def add_by_barcode(request):
         item.save()
 
     transaction.calculate_totals()
-    return JsonResponse({'status': 'success'})
+    
+    # UPDATED: Same format with add_to_cart para madali i-handle sa JS
+    return JsonResponse({
+        'status': 'success',
+        'is_new_item': created,
+        'item_id': item.id,
+        'item_name': product.item_name,
+        'quantity': item.quantity,
+        'unit_price': float(item.unit_price),
+        'item_subtotal': float(item.subtotal),
+        'transaction_total': float(transaction.total_amount)
+    })
 
 @login_required
 def process_payment(request):
