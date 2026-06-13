@@ -1,5 +1,6 @@
 {% load static %}
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -121,7 +122,7 @@
                         <label class="pf-label">Category <span class="req">*</span></label>
                         <a href="javascript:void(0)" onclick="openCatModal()" class="pf-add-new"><i class="ph ph-plus"></i> Add New</a>
                     </div>
-                    <select name="category" required class="pf-select">
+                    <select name="category" id="categorySelect" required class="pf-select">
                         <option value="">Select category</option>
                         {% for cat in categories %}
                         <option value="{{ cat.id }}" {% if item.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
@@ -150,7 +151,10 @@
             <div class="pf-section-label">Pricing & Identification</div>
 
             <div class="pf-full">
-                <label class="pf-label">Barcode ID <span class="req">*</span></label>
+                <div class="pf-label-row">
+                    <label class="pf-label">Barcode ID <span class="req">*</span></label>
+                    <a href="javascript:void(0)" onclick="generateRandomBarcode()" class="pf-add-new"><i class="ph ph-arrows-clockwise"></i> Auto-Generate</a>
+                </div>
                 <div class="pf-barcode-wrap">
                     <input type="text" id="main-barcode-input" name="barcode_id" value="{{ item.barcode_id }}" required class="pf-input">
                     <button type="button" id="trigger-scan-btn" class="pf-scan-btn"><i class="ph ph-barcode"></i> SCAN</button>
@@ -268,30 +272,77 @@
 <script>
 function openCatModal() { document.getElementById('categoryModal').style.display = 'flex'; }
 function closeCatModal() { document.getElementById('categoryModal').style.display = 'none'; }
-function submitNewCategory() {
-    const name = document.getElementById('modal_cat_name').value, prefix = document.getElementById('modal_cat_prefix').value;
-    fetch("{% url 'product_registration:add_category_ajax' %}", {
-        method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-        body: JSON.stringify({ name: name, prefix: prefix })
-    }).then(res => res.json()).then(data => {
-        if (data.status === 'success') {
-            fetch("{% url 'product_registration:get_categories_ajax' %}").then(r => r.json()).then(cats => {
-                const select = document.querySelector('select[name="category"]');
-                select.innerHTML = '<option value="">Select</option>';
-                cats.forEach(c => select.add(new Option(c.name, c.id)));
-                select.value = data.id;
-            });
-            closeCatModal();
-        }
-    });
-}
+
 document.getElementById('modal_cat_name').addEventListener('input', function () {
     const name = this.value.trim();
     if (!name) { document.getElementById('modal_cat_prefix').value = ''; return; }
+    
     const words = name.replace(/[^a-zA-Z ]/g, '').split(' ').filter(Boolean);
-    let prefix = words.length === 1 ? (words[0].replace(/[AEIOUaeiou]/g, '').substring(0, 3) || words[0].substring(0, 3)) : words.map(w => w[0]).join('').substring(0, 3);
+    
+    let prefix = words.length === 1 
+        ? (words[0].replace(/[AEIOUaeiou]/g, '').substring(0, 3) || words[0].substring(0, 3)) 
+        : words.map(w => w[0]).join('').substring(0, 3);
+        
     document.getElementById('modal_cat_prefix').value = prefix.toUpperCase();
 });
+
+function submitNewCategory() {
+    const name = document.getElementById('modal_cat_name').value;
+    const prefix = document.getElementById('modal_cat_prefix').value;
+    
+    if (!name || !prefix) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Details',
+            text: 'Please fill in both Category Name and Prefix.',
+            confirmButtonColor: '#2F3F7B'
+        });
+        return;
+    }
+
+    fetch("{% url 'product_registration:add_category_ajax' %}", {
+        method: "POST", 
+        headers: { 
+            "Content-Type": "application/json", 
+            "X-CSRFToken": "{{ csrf_token }}" 
+        },
+        body: JSON.stringify({ name: name, prefix: prefix })
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) { throw new Error(data.message); }
+        return data;
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            const select = document.getElementById('categorySelect');
+            const newOption = new Option(data.name, data.id, true, true);
+            select.add(newOption);
+            
+            closeCatModal();
+            
+            document.getElementById('modal_cat_name').value = '';
+            document.getElementById('modal_cat_prefix').value = '';
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Category added successfully.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Cannot Add Category',
+            text: error.message,
+            confirmButtonColor: '#2F3F7B'
+        });
+    });
+}
+
 
 function openSupModal() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -302,20 +353,77 @@ function openSupModal() {
 }
 function closeSupModal() { document.getElementById('supModal').style.display = 'none'; }
 function submitNewSupplier() {
-    const supID = document.getElementById('newSupID').value, name = document.getElementById('newSupName').value;
-    if (!supID || !name) return alert("Please fill in both fields");
+    const supID = document.getElementById('newSupID').value;
+    const name = document.getElementById('newSupName').value;
+    
+    if (!supID || !name) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Details',
+            text: 'Please fill in both Supplier ID and Name.',
+            confirmButtonColor: '#2F3F7B'
+        });
+        return;
+    }
+
     fetch("{% url 'product_registration:add_supplier_ajax' %}", {
-        method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        method: "POST", 
+        headers: { 
+            "Content-Type": "application/json", 
+            "X-CSRFToken": "{{ csrf_token }}" 
+        },
         body: JSON.stringify({ supplier_id: supID, name: name })
-    }).then(res => res.json()).then(data => {
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) { throw new Error(data.message); }
+        return data;
+    })
+    .then(data => {
         if (data.status === 'success') {
             const select = document.getElementById('supplierSelect');
-            select.add(new Option(data.name, data.id));
-            select.value = data.id;
+            const newOption = new Option(data.name, data.id, true, true);
+            select.add(newOption);
+            
             closeSupModal();
-            document.getElementById('newSupID').value = document.getElementById('newSupName').value = '';
-        } else alert("Error: " + data.message);
+            
+            document.getElementById('newSupID').value = '';
+            document.getElementById('newSupName').value = '';
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Supplier added successfully.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Cannot Add Supplier',
+            text: error.message,
+            confirmButtonColor: '#2F3F7B'
+        });
     });
+}
+
+
+function generateRandomBarcode() {
+    // Generates a random 12-digit numeric barcode
+    const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+    const mainInp = document.getElementById('main-barcode-input');
+    
+    mainInp.value = randomBarcode;
+    
+
+    mainInp.style.backgroundColor = '#EEF2FF';
+    mainInp.style.borderColor = '#2F3F7B';
+    setTimeout(() => {
+        mainInp.style.backgroundColor = '#F8FAFC';
+        mainInp.style.borderColor = '#D1D5DB';
+    }, 800);
 }
 
 (function() {
@@ -336,6 +444,31 @@ function submitNewSupplier() {
         });
     }
 })();
+
+document.querySelector('input[name="item_name"]').addEventListener('blur', function() {
+    const prodName = this.value.trim();
+    if(prodName) {
+        // Hahanapin sa backend kung may luma ng barcode
+        fetch(`{% url 'product_registration:check_barcode_history' %}?product_name=${encodeURIComponent(prodName)}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'found') {
+                const barcodeInput = document.getElementById('main-barcode-input');
+                barcodeInput.value = data.barcode_id;
+                
+                // Visual feedback para alam mong ni-retrieve niya yung luma
+                barcodeInput.style.backgroundColor = '#d1fae5'; // Light green
+                barcodeInput.style.borderColor = '#059669';
+                
+                setTimeout(() => { 
+                    barcodeInput.style.backgroundColor = '#F8FAFC'; 
+                    barcodeInput.style.borderColor = '#D1D5DB';
+                }, 1500);
+            }
+        })
+        .catch(err => console.log("Error checking barcode history:", err));
+    }
+});
 
 (function() {
     const supSel = document.getElementById('supplierSelect'), avgInp = document.getElementById('id_avg_lead'), maxInp = document.getElementById('id_max_lead');
