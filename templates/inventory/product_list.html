@@ -90,6 +90,7 @@
 
     .stock-badge { padding: 4px 12px; border-radius: 20px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .stock-low { background: #fef2f2; color: var(--status-red); border: 1px solid #fecaca; }   
+    .stock-warning { background: #fffbeb; color: var(--amber-flame); border: 1px solid #fde68a; } 
     .stock-good { background: #f0fdf4; color: var(--status-green); border: 1px solid #bbf7d0; }  
     
     .vertical-stock-wrapper { position: relative; cursor: help; }
@@ -285,12 +286,20 @@
                                 <div class="stock-tooltip">
                                     <strong>Stock Health Details</strong><br>
                                     <span style="color: #34D399;">Green:</span> Safe levels.<br>
-                                    <span style="color: #FBBF24;">Yellow:</span> Getting close.<br>
-                                    <span style="color: #F87171;">Red:</span> Reached restock trigger!<br>
+                                    <span style="color: #FBBF24;">Yellow:</span> Getting close (<= {{ item.reorder_point|add:"5" }}).<br>
+                                    <span style="color: #F87171;">Red:</span> Reached restock trigger (<= {{ item.reorder_point }})!<br>
                                     <hr style="border-color: rgba(255,255,255,0.2); margin: 8px 0;">
                                     <span style="font-size: 11px; color: #94A3B8; font-weight: bold;">Restock threshold: {{ item.reorder_point }}</span>
                                 </div>
-                                <span class="stock-badge {% if item.quantity <= item.reorder_point %}stock-low{% else %}stock-good{% endif %}" style="font-family: 'Inconsolata', monospace; font-size: 15px;">
+                                <span class="stock-badge 
+                                    {% if item.quantity <= item.reorder_point %}
+                                        stock-low
+                                    {% elif item.quantity <= item.reorder_point|add:'5' %}
+                                        stock-warning
+                                    {% else %}
+                                        stock-good
+                                    {% endif %}" 
+                                    style="font-family: 'Inconsolata', monospace; font-size: 15px;">
                                     {{ item.quantity }}
                                 </span>
                             </div>

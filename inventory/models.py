@@ -115,7 +115,10 @@ class InventoryItem(models.Model):
         raw_safety_stock = max_lt_demand - lead_time_demand
         
         self.safety_stock = int(max(0, round(raw_safety_stock)))
-        self.reorder_point = int(round(lead_time_demand)) + self.safety_stock
+        computed_rop = int(round(lead_time_demand)) + self.safety_stock
+
+        MINIMUM_ROP = 5
+        self.reorder_point = max(computed_rop, MINIMUM_ROP)
 
         from django.apps import apps
         Notification = apps.get_model('notifications', 'Notification')
