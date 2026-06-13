@@ -29,8 +29,15 @@ def create_product(request, pk=None):
         average_lead_time_days = int(request.POST.get('average_lead_time_days') or 0)
         max_lead_time_days = int(request.POST.get('max_lead_time_days') or 0)
 
+        if not category_id:
+            messages.error(request, "Error: Please select a valid Category.")
+            return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
+            
         category = get_object_or_404(Category, id=category_id)
-        supplier = Supplier.objects.filter(id=supplier_id).first()
+        
+        supplier = None
+        if supplier_id:
+            supplier = Supplier.objects.filter(id=supplier_id).first()
 
         if item:
             # UNIQUE CHECK FOR UPDATING: Exclude current item
