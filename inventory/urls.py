@@ -14,6 +14,7 @@ urlpatterns = [
     path('run-abc/', views.run_abc_analysis, name='run_abc_analysis'),
     path('low-stocks/', views.low_stock_view, name='low_stock_view'),
     path('product/auto-calibrate/', views.auto_calibrate_rop, name='auto_calibrate_rop'),
+    path('batch/<int:batch_id>/update-dates/', views.update_batch_dates, name='update_batch_dates'),
 
     # Categories
     path('categories/', views.category_list, name='category_list'),

@@ -82,14 +82,12 @@ class InventoryItem(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.product_id:
-            # FIX 1: Tanggalin ang mga spaces sa prefix
             if self.category and self.category.prefix:
                 prefix = self.category.prefix.replace(" ", "").strip().upper()
             else:
                 safe_name = self.category.name.replace(" ", "").strip()
                 prefix = safe_name[:3].upper().ljust(3, 'X')
 
-            # FIX 2: Hanapin ang pinakamataas na number kahit anong order pa nai-save sa database
             existing_items = InventoryItem.objects.filter(product_id__icontains=prefix)
             max_num = 0
             for item in existing_items:
@@ -99,7 +97,6 @@ class InventoryItem(models.Model):
                     if num > max_num:
                         max_num = num
                         
-            # Siguradong space-free at incremented from the real maximum
             self.product_id = f"{prefix}{(max_num + 1):03d}"
 
         avg_sales = float(self.average_daily_sales or 0)
@@ -149,6 +146,25 @@ class InventoryItem(models.Model):
     def __str__(self):
         return f"{self.item_name} ({self.category.prefix})"
 
+# --- BAGONG MODEL PARA SA FIFO BATCH TRACKING ---
+class ProductBatch(models.Model):
+    product = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='batches')
+    batch_code = models.CharField(max_length=50, unique=True)
+    quantity_received = models.PositiveIntegerField(default=0)
+    quantity_on_hand = models.PositiveIntegerField(default=0)
+    
+    date_received = models.DateField(default=timezone.now)
+    manufacturing_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'product_batches'
+        ordering = ['date_received'] 
+
+    def __str__(self):
+        return f"{self.batch_code} - {self.product.item_name}"
+# ------------------------------------------------
+
 class PurchaseOrder(models.Model):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
@@ -171,7 +187,6 @@ class PurchaseOrder(models.Model):
     def save(self, *args, **kwargs):
         if not self.po_number:
             today = timezone.now().strftime('%Y%m%d')
-            # Applied max_num logic here as well for safety
             existing_pos = PurchaseOrder.objects.filter(po_number__startswith=f'PO-{today}')
             max_num = 0
             for po in existing_pos:

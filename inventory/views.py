@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, DecimalField, F, ProtectedError, Q, Sum
+from django.db.models import Count, DecimalField, F, ProtectedError, Q, Sum, Prefetch
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -21,8 +21,8 @@ from billing_payment.models import Invoice, SalesReturn
 from point_of_sale.models import Transaction, TransactionItem
 from reports_analytics.models import Expense
 from security.models import EmployeeProfile
-from .models import Category, GeneratedBarcode, InventoryItem, PurchaseOrder, PurchaseOrderItem, Supplier
-
+from .models import Category, GeneratedBarcode, InventoryItem, PurchaseOrder, PurchaseOrderItem, Supplier, ProductBatch
+from django.views.decorators.http import require_POST
 def generate_unique_barcode():
     while True:
         base_number = f"480{random.randint(100000000, 999999999)}"
@@ -46,7 +46,12 @@ def inventory_list(request):
     supplier_id = request.GET.get('supplier', '')
     per_page = request.GET.get('per_page', 10) 
 
-    items = InventoryItem.objects.all()
+    active_batches_prefetch = Prefetch(
+        'batches',
+        queryset=ProductBatch.objects.filter(quantity_on_hand__gt=0).order_by('date_received')
+    )
+
+    items = InventoryItem.objects.prefetch_related(active_batches_prefetch).all()
 
     if search_query:
         items = items.filter(
@@ -187,10 +192,8 @@ def preview_csv_import(request):
                 cat_name = row.get('CATEGORY', '').strip()
                 category = Category.objects.filter(name__iexact=cat_name).first()
                 
-                # FIX: Added .strip() to avoid invisible space issues in prefix
                 prefix = category.prefix.strip().upper() if category and category.prefix else cat_name[:3].upper().ljust(3, 'X')
                 
-                # FIX: Use Max Number logic instead of order_by('id').last()
                 if prefix not in category_counters:
                     existing_items = InventoryItem.objects.filter(product_id__startswith=prefix)
                     max_num = 0
@@ -860,6 +863,20 @@ def receive_po(request, po_id):
         
         item.quantity_received = item.quantity_ordered
         item.save()
+
+        # --- BAGONG LOGIC PARA SA BATCH CREATION ---
+        today_str = timezone.now().strftime('%y%m%d')
+        batch_seq = ProductBatch.objects.filter(product=product, date_received=timezone.now().date()).count() + 1
+        new_batch_code = f"BCH-{product.product_id}-{today_str}-{batch_seq:02d}"
+
+        ProductBatch.objects.create(
+            product=product,
+            batch_code=new_batch_code,
+            quantity_received=item.quantity_ordered,
+            quantity_on_hand=item.quantity_ordered,
+            date_received=timezone.now().date()
+        )
+        # -------------------------------------------
         
     po.status = 'received'
     po.save()
@@ -867,9 +884,9 @@ def receive_po(request, po_id):
     log_system_activity(
         user=request.user,
         action="RECEIVE PO",
-        description=f"Received delivery for PO {po.po_number}. Inventory stock and average costs updated."
+        description=f"Received delivery for PO {po.po_number}. Inventory stock, average costs, and FIFO batches updated."
     )
-    messages.success(request, f"Delivery for {po.po_number} received! Inventory stock and costs have been safely updated.")
+    messages.success(request, f"Delivery for {po.po_number} received! Inventory stock, costs, and FIFO queue have been safely updated.")
     return redirect('inventory:create_po')
 
 @login_required
@@ -1083,7 +1100,6 @@ def employee_dashboard_view(request):
 
     today = timezone.now().date()
     
-    # 1. Date Filter Logic (Para sa Top Selling)
     date_filter = request.GET.get('filter', 'all_time')
     if date_filter == 'today': start_date = today
     elif date_filter == 'this_week': start_date = today - timedelta(days=today.weekday())
@@ -1091,7 +1107,6 @@ def employee_dashboard_view(request):
     elif date_filter == 'this_year': start_date = today.replace(month=1, day=1)
     else: start_date = None 
 
-    # 2. General Metrics
     todays_transactions = Transaction.objects.filter(date_created__date=today).count()
     total_active_products = InventoryItem.objects.count()
     pending_deliveries = PurchaseOrder.objects.filter(status='pending').count()
@@ -1100,7 +1115,6 @@ def employee_dashboard_view(request):
     low_stock_count = low_stock_qs.count()
     low_stock_items = low_stock_qs[:5]
 
-    # 3. Top Selling Products (Bilang lang ng unit ang kinukuha, hindi amount)
     top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'credit'])
     if start_date:
         top_items_base = top_items_base.filter(transaction__date_created__gte=start_date)
@@ -1150,3 +1164,27 @@ def delete_user(request, user_id):
         messages.success(request, f"User '{username_deleted}' deleted.")
         
     return redirect('security:register')
+
+@login_required
+@require_POST
+def update_batch_dates(request, batch_id):
+    try:
+        data = json.loads(request.body)
+        batch = ProductBatch.objects.get(id=batch_id)
+        
+        mfg = data.get('mfg_date')
+        exp = data.get('expiry_date')
+        
+        batch.manufacturing_date = mfg if mfg else None
+        batch.expiry_date = exp if exp else None
+        batch.save()
+        
+        log_system_activity(
+            user=request.user,
+            action="UPDATE BATCH",
+            description=f"Updated dates for batch {batch.batch_code} ({batch.product.item_name})"
+        )
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
