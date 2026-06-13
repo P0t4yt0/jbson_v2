@@ -89,6 +89,16 @@ def inventory_list(request):
     page_number = request.GET.get('page', 1)
     items_page = paginator.get_page(page_number)
 
+    today = timezone.now().date()
+    time_window = today + timedelta(days=30) 
+
+    expiring_batches = ProductBatch.objects.filter(
+        expiry_date__isnull=False,       
+        expiry_date__gte=today,          
+        expiry_date__lte=time_window,    
+        quantity_on_hand__gt=0           
+    ).order_by('expiry_date')[:6]
+
     context = {
         'items': items_page, 
         'categories': Category.objects.all(),
@@ -100,6 +110,7 @@ def inventory_list(request):
         'current_sort': sort_query,
         'selected_supplier': supplier_id,
         'per_page': per_page,
+        'expiring_batches': expiring_batches,
     }
     return render(request, 'inventory/product_list.html', context)
 
@@ -1183,6 +1194,30 @@ def update_batch_dates(request, batch_id):
             user=request.user,
             action="UPDATE BATCH",
             description=f"Updated dates for batch {batch.batch_code} ({batch.product.item_name})"
+        )
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+    
+@login_required
+@require_POST
+def pull_out_batch(request, batch_id):
+    try:
+        data = json.loads(request.body)
+        reason = data.get('reason', 'Pulled Out')
+        
+        batch = ProductBatch.objects.get(id=batch_id)
+        old_qty = batch.quantity_on_hand
+        
+        batch.quantity_on_hand = 0
+        batch.status = 'pulled_out'
+        batch.save() 
+        
+        log_system_activity(
+            user=request.user,
+            action="PULL OUT BATCH",
+            description=f"Pulled out {old_qty} items from Batch {batch.batch_code} ({batch.product.item_name}). Reason: {reason}"
         )
         
         return JsonResponse({'status': 'success'})

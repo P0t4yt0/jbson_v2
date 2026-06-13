@@ -939,6 +939,40 @@
                     </div>
                 </div>
 
+                <div class="panel" style="margin-top: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 class="panel-title" style="margin: 0;">
+                            <span style="background: rgba(239, 68, 68, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;">
+                                <i class="ph ph-clock-countdown" style="color: var(--status-red);"></i>
+                            </span>
+                            Expiring Soon (Next 30 Days)
+                        </h3>
+                        <a href="{% url 'inventory:inventory_list' %}" style="font-size: 13px; font-weight: 700; color: var(--status-red); background: rgba(239, 68, 68, 0.1); padding: 8px 16px; border-radius: 10px; text-decoration: none; transition: background 0.2s;">Manage Batches &rarr;</a>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                        {% for batch in expiring_batches %}
+                        <div style="padding: 16px; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; background: #FEF2F2; display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s;">
+                            <div>
+                                <strong style="font-size: 14px; color: var(--text-primary); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;" title="{{ batch.product.item_name }}">
+                                    {{ batch.product.item_name }}
+                                </strong>
+                                <span style="font-size: 12px; color: var(--text-secondary);">Batch: {{ batch.batch_code }}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <strong style="font-size: 14px; color: var(--status-red); display: block;">{{ batch.expiry_date|date:"M d, Y" }}</strong>
+                                <span style="font-size: 12px; color: var(--status-red); font-weight: 600;">{{ batch.quantity_on_hand }} qty</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div style="grid-column: 1 / -1; padding: 24px; text-align: center; color: var(--text-secondary); font-size: 14px; border: 1px dashed var(--border-color); border-radius: 12px;">
+                            <i class="ph ph-check-circle" style="font-size: 24px; color: var(--status-green); display: block; margin-bottom: 8px;"></i>
+                            All stocks are fresh. No batches are expiring within the next 30 days.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 {% endblock %}
             </div>
          </div>

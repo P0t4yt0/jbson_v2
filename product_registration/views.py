@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
-from inventory.models import InventoryItem, Category, Supplier, GeneratedBarcode
+from inventory.models import InventoryItem, Category, Supplier, GeneratedBarcode, ProductBatch
 
 def create_product(request, pk=None):
     item = None
@@ -110,7 +110,7 @@ def create_product(request, pk=None):
                 max_num += 1
                 new_product_id = f"{prefix}{str(max_num + 1).zfill(3)}"
 
-            InventoryItem.objects.create(
+            new_item = InventoryItem.objects.create(
                 product_id=new_product_id, 
                 item_name=item_name,
                 category=category,
@@ -125,6 +125,17 @@ def create_product(request, pk=None):
                 average_lead_time_days=average_lead_time_days,
                 max_lead_time_days=max_lead_time_days
             ) 
+
+            qty_int = int(quantity) if quantity else 0
+            exp_date = request.POST.get('expiry_date') 
+            
+            ProductBatch.objects.create(
+                product=new_item,
+                quantity_received=qty_int,
+                quantity_on_hand=qty_int,
+                expiry_date=exp_date if exp_date else None,
+                status='active'
+            )
 
             today_str = timezone.now().strftime('%Y%m%d')
             manual_batch_id = f"MA{today_str}"

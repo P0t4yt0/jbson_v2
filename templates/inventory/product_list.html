@@ -509,6 +509,13 @@
                                    title="Edit MFG and Expiry Dates"
                                    onmouseover="this.style.color='var(--amber-flame)'" 
                                    onmouseout="this.style.color='var(--french-blue)'"></i>
+
+                                <i class="ph ph-trash" 
+                                   onclick="pullOutBatch('{{ batch.id }}', '{{ batch.batch_code }}', {{ batch.quantity_on_hand }})" 
+                                   style="cursor: pointer; color: var(--status-red); font-size: 16px; transition: 0.2s; padding: 4px; margin-left: 5px;" 
+                                   title="Pull Out / Dispose Batch"
+                                   onmouseover="this.style.color='darkred'" 
+                                   onmouseout="this.style.color='var(--status-red)'"></i>
                             </td>
                         </tr>
                     {% empty %}
@@ -1042,6 +1049,46 @@ window.editBatchDates = function(batchId, batchCode, currentMfg, currentExp) {
             .then(data => {
                 if(data.status === 'success') {
                     Swal.fire('Saved!', 'Batch dates have been updated.', 'success').then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            });
+        }
+    });
+};
+
+window.pullOutBatch = function(batchId, batchCode, qty) {
+    Swal.fire({
+        title: 'Pull Out Batch?',
+        html: `<p style="font-size: 14px; color: var(--text-secondary);">Are you sure you want to pull out/dispose <strong>Batch ${batchCode}</strong>?</p>
+               <p style="font-size: 13px; color: var(--status-red);">This will remove <strong>${qty} items</strong> from your active inventory.</p>
+               <input type="text" id="swal-reason" class="filter-input" placeholder="Reason (e.g., Expired, Damaged, QA Check)" style="margin-top: 10px;">`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--status-red)',
+        cancelButtonColor: 'var(--text-secondary)',
+        confirmButtonText: 'Yes, Pull Out',
+        preConfirm: () => {
+            return document.getElementById('swal-reason').value || 'Pulled Out';
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch(`/inventory/batch/${batchId}/pull-out/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ reason: result.value })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    Swal.fire('Pulled Out!', 'Batch has been removed from active stock.', 'success').then(() => {
                         window.location.reload();
                     });
                 } else {

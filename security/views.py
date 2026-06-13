@@ -26,6 +26,7 @@ from inventory.models import InventoryItem
 from notifications.models import Notification
 from point_of_sale.models import Transaction
 from .models import ActivityLog, EmployeeProfile
+from inventory.models import ProductBatch
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -331,6 +332,16 @@ def admin_dashboard(request):
     profit = total_sales - sales_return
     low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
 
+    today = timezone.now().date()
+    time_window = today + timedelta(days=30) 
+
+    expiring_batches = ProductBatch.objects.filter(
+        expiry_date__isnull=False,       
+        expiry_date__gte=today,          
+        expiry_date__lte=time_window,    
+        quantity_on_hand__gt=0           
+    ).order_by('expiry_date')[:6]
+
     metrics = {
         'total_sales': total_sales,
         'sales_return': sales_return,
@@ -345,6 +356,7 @@ def admin_dashboard(request):
     context = {
         'metrics': metrics,
         'low_stock_items': low_stock_items,
+        'expiring_batches': ProductBatch.objects.all()[:5],
         'pending_resets': [], 
         'pending_reset_count': 0,
     }

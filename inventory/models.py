@@ -146,24 +146,59 @@ class InventoryItem(models.Model):
     def __str__(self):
         return f"{self.item_name} ({self.category.prefix})"
 
-# --- BAGONG MODEL PARA SA FIFO BATCH TRACKING ---
 class ProductBatch(models.Model):
-    product = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='batches')
-    batch_code = models.CharField(max_length=50, unique=True)
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('near_expiry', 'Near Expiry'),
+        ('expired', 'Expired'),
+        ('pulled_out', 'Pulled Out/Disposed'),
+    )
+
+    product = models.ForeignKey('InventoryItem', on_delete=models.CASCADE, related_name='batches')
+    batch_code = models.CharField(max_length=50, unique=True, blank=True) 
     quantity_received = models.PositiveIntegerField(default=0)
     quantity_on_hand = models.PositiveIntegerField(default=0)
     
     date_received = models.DateField(default=timezone.now)
     manufacturing_date = models.DateField(null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
 
     class Meta:
         db_table = 'product_batches'
-        ordering = ['date_received'] 
+        ordering = ['expiry_date', 'date_received'] 
+
+    def save(self, *args, **kwargs):
+        if not self.batch_code:
+            today_str = timezone.now().strftime('%y%m%d')
+            prefix = self.product.product_id if self.product.product_id else 'UNK'
+            
+            existing_batches_today = ProductBatch.objects.filter(
+                product=self.product, 
+                date_received=self.date_received
+            ).count()
+            
+            sequence = f"{(existing_batches_today + 1):02d}"
+            self.batch_code = f"BCH-{prefix}-{today_str}-{sequence}"
+
+        super().save(*args, **kwargs)
+        
+        self.update_parent_stock()
+
+    def update_parent_stock(self):
+        usable_batches = ProductBatch.objects.filter(
+            product=self.product, 
+            status__in=['active', 'near_expiry']
+        )
+        
+        total_qty = sum(batch.quantity_on_hand for batch in usable_batches)
+        
+        self.product.quantity = total_qty
+
+        self.product.save(update_fields=['quantity'])
 
     def __str__(self):
         return f"{self.batch_code} - {self.product.item_name}"
-# ------------------------------------------------
 
 class PurchaseOrder(models.Model):
     STATUS_CHOICES = (
