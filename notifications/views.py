@@ -7,9 +7,10 @@ from django.utils import timezone
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
+from datetime import timedelta
 
 from .models import Notification
-from inventory.models import PurchaseOrder
+from inventory.models import PurchaseOrder, ProductBatch
 from django.views.decorators.http import require_POST
 
 def live_notifications_api(request):
@@ -52,6 +53,53 @@ def live_notifications_api(request):
                         'title': 'Overdue Delivery Alert',
                         'message': f"PO {po.po_number} from {po.supplier.name} was due on {po.expected_delivery.strftime('%b %d')}. Please mark as received if it arrived.",
                         'action_url': reverse('inventory:create_po')
+                    }
+                )
+
+
+        # C. Check for Expiring Batches
+        window_30_days = today + timedelta(days=30)
+        window_7_days = today + timedelta(days=7)
+
+        # 30 Days Warning 
+        expiring_30 = ProductBatch.objects.filter(
+            expiry_date__isnull=False,
+            expiry_date__gt=window_7_days,
+            expiry_date__lte=window_30_days, 
+            quantity_on_hand__gt=0
+        )
+        for batch in expiring_30:
+            for admin_user in admins:
+                Notification.objects.get_or_create(
+                    user=admin_user,
+                    notification_type='stock_alert',
+                    source_id=f"exp_30_{batch.id}", 
+                    defaults={
+                        'priority': 'medium',
+                        'title': f"Expiring Soon: {batch.product.item_name} (Batch {batch.batch_code})",
+                        'message': f"Expires on {batch.expiry_date.strftime('%b %d, %Y')}. Offering a discount or scheduling a clearance sale is recommended to avoid wastage.",
+                        'action_url': '#' 
+                    }
+                )
+
+        # 7 Days Warning 
+        expiring_7 = ProductBatch.objects.filter(
+            expiry_date__isnull=False,
+            expiry_date__gte=today,
+            expiry_date__lte=window_7_days, 
+            quantity_on_hand__gt=0
+        )
+        for batch in expiring_7:
+            for admin_user in admins:
+                Notification.objects.get_or_create(
+                    user=admin_user,
+                    notification_type='stock_alert',
+                    source_id=f"exp_7_{batch.id}",
+                    defaults={
+                        'priority': 'high',
+                        'title': f"Critical Expiry: {batch.product.item_name} (Batch {batch.batch_code})",
+                        'message': f"The Batch will expire on ({batch.expiry_date.strftime('%b %d, %Y')}). Prepare for stock pull-out or immediate clearance.",
+                        'action_url': '#'
                     }
                 )
 
