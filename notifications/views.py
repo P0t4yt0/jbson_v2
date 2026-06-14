@@ -97,8 +97,8 @@ def live_notifications_api(request):
                     source_id=f"exp_7_{batch.id}",
                     defaults={
                         'priority': 'high',
-                        'title': f"Critical Expiry: {batch.product.item_name} (Batch {batch.batch_code})",
-                        'message': f"The Batch will expire on ({batch.expiry_date.strftime('%b %d, %Y')}). Prepare for stock pull-out or immediate clearance.",
+                        'title': f"Expiring Very Soon: {batch.product.item_name} (Batch {batch.batch_code})",
+                        'message': f"Expires on {batch.expiry_date.strftime('%b %d, %Y')}. Immediate action is required. Conduct a clearance sale or prepare for stock pull-out to avoid wastage.",
                         'action_url': '#'
                     }
                 )

@@ -47,6 +47,10 @@ def global_search_api(request):
         add_shortcut("Products", "inventory:inventory_list", "Inventory", True)
         add_shortcut("Categories", "inventory:category_list", "Inventory", True)
         add_shortcut("Checkout", "pos:pos_index", "Sales", True)
+        add_shortcut("Sales Record", "billing:sales_list", "Sales", True)
+        add_shortcut("Sales Return", "billing:sales_return_list", "Sales", True)
+        add_shortcut("Quotations", "pos:quotation_list", "Sales", True)
+
         
         # User Manual ay default na rin!
         add_shortcut("User Manual Hub", "user_manual:hub", "Help & Guides", True)
@@ -65,11 +69,8 @@ def global_search_api(request):
         add_shortcut("General Settings", "settings_hub", "Settings", getattr(p, 'has_valid_settings_access', False))
         add_shortcut("Purchase Orders", "inventory:create_po", "Inventory", getattr(p, 'has_inv_po_access', False))
         add_shortcut("Generate Barcode", "inventory:generate_barcode_page", "Inventory", getattr(p, 'has_inv_barcode_access', False))
-        add_shortcut("Sales Record", "billing:sales_list", "Sales", getattr(p, 'has_sales_sales_access', False))
         add_shortcut("Invoices", "billing:invoice_list", "Sales", getattr(p, 'has_sales_invoices_access', False))
-        add_shortcut("Sales Return", "billing:sales_return_list", "Sales", getattr(p, 'has_sales_return_access', False))
         add_shortcut("Trade Credit", "billing:customer_list", "Sales", getattr(p, 'has_sales_trade_credit_access', False))
-        add_shortcut("Quotations", "pos:quotation_list", "Sales", getattr(p, 'has_sales_quotations_access', False))
 
         has_reports = getattr(p, 'has_valid_reports_access', False)
         add_shortcut("Sales Report", "reports_analytics:sales_report", "Reports and Analytics", has_reports)

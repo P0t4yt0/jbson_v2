@@ -48,15 +48,15 @@ def employee_sidebar_access(request):
             'show_inv_categories': True,
             'show_sales_checkout': True,
             'show_user_manual': True,
+            'show_sales_sales': True,
+            'show_sales_return': True,
+            'show_sales_quotations': True,
 
             # --- 1-HOUR TEMPORARY MENUS ---
             'show_inv_po': profile.has_inv_po_access,
             'show_inv_barcode': profile.has_inv_barcode_access,
-            'show_sales_sales': profile.has_sales_sales_access,
             'show_sales_invoices': profile.has_sales_invoices_access,
-            'show_sales_return': profile.has_sales_return_access,
             'show_sales_trade_credit': profile.has_sales_trade_credit_access,
-            'show_sales_quotations': profile.has_sales_quotations_access,
             'show_sales_suppliers': profile.has_sales_suppliers_access,
             'show_reports': profile.has_valid_reports_access,
             'show_um_users': profile.has_um_users_access, 
