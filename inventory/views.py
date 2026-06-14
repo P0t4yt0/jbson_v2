@@ -23,6 +23,7 @@ from reports_analytics.models import Expense
 from security.models import EmployeeProfile
 from .models import Category, GeneratedBarcode, InventoryItem, PurchaseOrder, PurchaseOrderItem, Supplier, ProductBatch
 from django.views.decorators.http import require_POST
+
 def generate_unique_barcode():
     while True:
         base_number = f"480{random.randint(100000000, 999999999)}"
@@ -117,6 +118,10 @@ def inventory_list(request):
 @login_required
 def edit_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
+
+    if not request.user.is_superuser and not request.user.profile.can_edit_product:
+        messages.error(request, "You do not have authorization to edit this product.")
+        return redirect('inventory:inventory_list') # O kung ano man ang pangalan ng inventory page mo
     
     if request.method == 'POST':
         item.item_name = request.POST.get('item_name') or item.item_name
@@ -152,6 +157,9 @@ def edit_product(request, pk):
 @login_required
 def delete_product(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
+    if not request.user.is_superuser and not request.user.employeeprofile.can_delete_product:
+        messages.error(request, "You do not have authorization to delete this product.")
+        return redirect('inventory:inventory_list')
     try:
         item_name = item.item_name
         item.delete()
@@ -168,6 +176,7 @@ def delete_product(request, pk):
 
 @login_required
 def bulk_delete_products(request):
+
     if request.method == 'POST':
         ids_string = request.POST.get('product_ids', '')
         if ids_string:
@@ -187,6 +196,10 @@ def bulk_delete_products(request):
 
 @login_required
 def preview_csv_import(request):
+    if not request.user.is_superuser and not request.user.profile.can_import_csv:
+        messages.error(request, "You do not have the authorization to import csv.")
+        return redirect('inventory:inventory_list')
+    
     if request.method == 'POST':
         csv_file = request.FILES.get('csv_file')
         if not csv_file or not csv_file.name.endswith('.csv'):

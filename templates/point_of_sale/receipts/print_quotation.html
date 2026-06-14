@@ -14,7 +14,7 @@
     <div style="font-size: 13px;">
         <p>Ref: {{ transaction.transaction_ref }}</p>
         <p>Date: {{ transaction.date_created|date:"Y-m-d H:i" }}</p>
-        <p>Prepared by: {{ transaction.processed_by.get_full_name|default:transaction.processed_by.username }}</p>
+        <p>Prepared by: {% if transaction.processed_by %}{{ transaction.processed_by.get_full_name|default:transaction.processed_by.username }}{% else %}System / Unknown{% endif %}</p>
     </div>
 
     <hr style="border-top: 1px dashed #000;">

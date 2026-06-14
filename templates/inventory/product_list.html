@@ -185,9 +185,11 @@
                 
                 <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                     
+                    {% if request.user.profile.can_delete_product or request.user.is_superuser %}
                     <button type="button" id="bulk-delete-btn" class="action-btn-custom btn-grey" style="display: none;">
                         <i class="ph ph-trash"></i> Delete Selected (<span id="delete-count">0</span>)
                     </button>
+                    {% endif %}
 
                     {% if low_stock != 'on' %}
                         <button type="button" class="action-btn-custom btn-red" onclick="document.getElementById('lowStockInput').value='on'; document.getElementById('pageInput').value=1; document.getElementById('inventory-filter-form').submit();">
@@ -207,9 +209,11 @@
                         <i class="ph ph-barcode"></i> Scan Barcode
                     </a>
 
+                    {% if request.user.profile.can_import_csv or request.user.is_superuser %}
                     <a href="#" id="import-csv-btn" class="action-btn-custom btn-grey">
                         <i class="ph ph-file-csv"></i> Import CSV
                     </a>
+                    {% endif %}
                 </div>
 
                 <div>
@@ -228,7 +232,9 @@
                 <thead>
                     <tr>
                         <th style="width: 45px; text-align: center;">
+                            {% if request.user.profile.can_delete_product or request.user.is_superuser %}
                             <input type="checkbox" id="selectAll" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--french-blue);">
+                            {% endif %}
                         </th>
                         <th style="width: 10%;">ID</th>
                         <th style="width: 22%;">Product Name</th>
@@ -254,7 +260,9 @@
                     {% for item in items %}
                     <tr>
                         <td style="text-align: center;">
+                            {% if request.user.profile.can_delete_product or request.user.is_superuser %}
                             <input type="checkbox" class="rowCheckbox" value="{{ item.pk }}" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--french-blue);">
+                            {% endif %}
                         </td>
 
                         <td style="font-size: 15px; font-family: 'Inconsolata', monospace; font-weight: 700; color: var(--french-blue);">{{ item.product_id }}</td>
@@ -316,9 +324,11 @@
                                     <i class="ph ph-printer"></i>
                                 </a>
 
+                                {% if request.user.profile.can_edit_product or request.user.is_superuser %}
                                 <a href="#" class="edit-product-btn table-action-btn btn-edit" data-url="{% url 'inventory:edit_product' item.pk %}" title="Edit Product">
                                     <i class="ph ph-pencil-simple"></i>
                                 </a>
+                                {% endif %}
                                 
                             </div>
                         </td>
@@ -512,6 +522,7 @@
                             <td style="text-align: right; font-weight: 800; font-family: 'Inconsolata', monospace; font-size: 14px;">{{ batch.quantity_on_hand }}</td>
                             
                             <td style="text-align: center; padding-right: 16px;">
+                                {% if request.user.profile.can_edit_product or request.user.is_superuser %}
                                 <i class="ph ph-pencil-simple" 
                                    onclick="editBatchDates('{{ batch.id }}', '{{ batch.batch_code }}', '{{ batch.manufacturing_date|date:'Y-m-d'|default:'' }}', '{{ batch.expiry_date|date:'Y-m-d'|default:'' }}')" 
                                    style="cursor: pointer; color: var(--french-blue); font-size: 16px; transition: 0.2s; padding: 4px;" 
@@ -525,6 +536,7 @@
                                    title="Pull Out / Dispose Batch"
                                    onmouseover="this.style.color='darkred'" 
                                    onmouseout="this.style.color='var(--status-red)'"></i>
+                                {% endif %}
                             </td>
                         </tr>
                     {% empty %}

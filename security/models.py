@@ -169,6 +169,11 @@ class EmployeeProfile(models.Model):
     user_manual_access_approved = models.BooleanField(default=False)
     user_manual_access_expires_at = models.DateTimeField(null=True, blank=True)
 
+    can_edit_product = models.BooleanField(default=False)
+    can_delete_product = models.BooleanField(default=False)
+    can_import_csv = models.BooleanField(default=False)
+
+    
     class Meta:
         db_table = "security_employee_profile"
         verbose_name = "Employee Profile"

@@ -587,6 +587,10 @@ def edit_user_view(request):
             is_granted = request.POST.get(post_key) == 'on'
             setattr(profile, f'{field_prefix}_access_approved', is_granted)
             setattr(profile, f'{field_prefix}_access_expires_at', one_hour_from_now if is_granted else None)
+
+        profile.can_edit_product = request.POST.get('can_edit_product') == 'on'
+        profile.can_delete_product = request.POST.get('can_delete_product') == 'on'
+        profile.can_import_csv = request.POST.get('can_import_csv') == 'on'
             
         profile.save()
         # ==========================================

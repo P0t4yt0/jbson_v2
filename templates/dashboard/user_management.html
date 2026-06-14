@@ -269,6 +269,41 @@
     .checkbox-item label { 
         cursor: pointer; font-size: 13px; color: var(--text-primary); margin: 0; font-weight: 500;
     }
+
+    .permission-section .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;              /* remove Bootstrap spacing */
+        padding: 0;
+    }
+
+    /* Normalize checkbox size */
+    .permission-section .form-check-input {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+    }
+
+    /* Match label style */
+    .permission-section .form-check-label {
+        margin: 0;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    /* Ensure checkbox-item is identical */
+    .permission-section .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .permission-section .checkbox-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+    }
 </style>
 
 <div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
@@ -346,7 +381,10 @@
                                         grant_um_users: {{ user.profile.has_um_users_access|yesno:'true,false,false' }},
                                         grant_um_activity_logs: {{ user.profile.has_um_activity_logs_access|yesno:'true,false,false' }},
                                         grant_settings: {{ user.profile.has_valid_settings_access|yesno:'true,false,false' }},
-                                        grant_user_manual: {{ user.profile.has_user_manual_access|yesno:'true,false,false' }}
+                                        grant_user_manual: {{ user.profile.has_user_manual_access|yesno:'true,false,false' }},
+                                        can_edit_product: {{ user.profile.can_edit_product|yesno:'true,false,false' }},
+                                        can_delete_product: {{ user.profile.can_delete_product|yesno:'true,false,false' }},
+                                        can_import_csv: {{ user.profile.can_import_csv|yesno:'true,false,false' }}
                                     }); return false;" class="table-action-btn btn-edit" title="Edit User Account">
                                         <i class="ph ph-pencil-simple"></i>
                                     </a>
@@ -548,27 +586,46 @@
                 <div class="permissions-grid">
                     
                     <div class="permission-section">
-                        <div class="section-header">🏠 Dashboard</div>
+                        <div class="section-header">Dashboard</div>
                         <div class="checkbox-item"><input type="checkbox" name="grant_dashboard" id="grant_dashboard"><label for="grant_dashboard">Main Dashboard</label></div>
                     </div>
 
                     <div class="permission-section">
-                        <div class="section-header">📊 Reports</div>
+                        <div class="section-header">Reports</div>
                         <div class="checkbox-item"><input type="checkbox" name="grant_reports" id="grant_reports"><label for="grant_reports">Reports Hub</label></div>
                     </div>
 
                     <div class="permission-section" style="grid-column: span 2;">
-                        <div class="section-header">📦 Inventory Management</div>
+                        <div class="section-header">Inventory Management</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div class="checkbox-item"><input type="checkbox" name="grant_inv_products" id="grant_inv_products"><label for="grant_inv_products">Products</label></div>
                             <div class="checkbox-item"><input type="checkbox" name="grant_inv_categories" id="grant_inv_categories"><label for="grant_inv_categories">Categories</label></div>
                             <div class="checkbox-item"><input type="checkbox" name="grant_inv_po" id="grant_inv_po"><label for="grant_inv_po">Purchase Orders</label></div>
                             <div class="checkbox-item"><input type="checkbox" name="grant_inv_barcode" id="grant_inv_barcode"><label for="grant_inv_barcode">Generate Barcode</label></div>
                         </div>
+        
                     </div>
 
                     <div class="permission-section" style="grid-column: span 2;">
-                        <div class="section-header">💳 Sales & Transactions</div>
+                        <div class="section-header">Action-Level Access (Products)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_edit_product" id="can_edit_product">
+                                <label for="can_edit_product">Edit Product Button</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_delete_product" id="can_delete_product">
+                                <label for="can_delete_product">Delete Product/s</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_import_csv" id="can_import_csv">
+                                <label for="can_import_csv">Import CSV Button</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="permission-section" style="grid-column: span 2;">
+                        <div class="section-header">Sales & Transactions</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div class="checkbox-item"><input type="checkbox" name="grant_sales_checkout" id="grant_sales_checkout"><label for="grant_sales_checkout">Checkout</label></div>
                             <div class="checkbox-item"><input type="checkbox" name="grant_sales_sales" id="grant_sales_sales"><label for="grant_sales_sales">Sales Record</label></div>
@@ -581,13 +638,13 @@
                     </div>
 
                     <div class="permission-section">
-                        <div class="section-header">👥 Users</div>
+                        <div class="section-header">Users</div>
                         <div class="checkbox-item"><input type="checkbox" name="grant_um_users" id="grant_um_users"><label for="grant_um_users">User Accounts</label></div>
                         <div class="checkbox-item"><input type="checkbox" name="grant_um_activity_logs" id="grant_um_activity_logs"><label for="grant_um_activity_logs">Activity Logs</label></div>
                     </div>
 
                     <div class="permission-section">
-                        <div class="section-header">⚙️ System</div>
+                        <div class="section-header">System</div>
                         <div class="checkbox-item"><input type="checkbox" name="grant_settings" id="grant_settings"><label for="grant_settings">General Settings</label></div>
                         <div class="checkbox-item"><input type="checkbox" name="grant_user_manual" id="grant_user_manual"><label for="grant_user_manual">User Manual</label></div>
                     </div>

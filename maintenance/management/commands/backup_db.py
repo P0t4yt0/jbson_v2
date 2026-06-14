@@ -52,6 +52,11 @@ class Command(BaseCommand):
                 r'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe',
                 r'C:\Program Files\MySQL\MySQL Server 8.1\bin\mysqldump.exe',
                 r'C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqldump.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe',
+                r'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe',
+                r'"D:\xampp\mysql\bin\mysqldump.exe"',
+                r'"D:\xampp\mysql\bin\mysql.exe"',
+                r'C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe',
             ]
             
             mysqldump_exe = None
