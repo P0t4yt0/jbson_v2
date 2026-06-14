@@ -233,6 +233,42 @@
         overflow-y: auto;
         border: 1px solid rgba(255, 255, 255, 0.5);
     }
+
+    /* GRANULAR PERMISSIONS UI */
+    .permissions-container { 
+        margin-top: 24px; padding-top: 20px; 
+        border-top: 1px dashed var(--border-color); 
+    }
+    .permissions-container-title { 
+        font-size: 14px; color: var(--french-blue); font-weight: 800; 
+        margin-bottom: 4px; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.5px; 
+    }
+    .permissions-grid { 
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;
+    }
+    .permission-section {
+        background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(203, 213, 225, 0.8);
+        border-radius: 12px; padding: 12px 16px; transition: all 0.2s ease;
+    }
+    .permission-section:hover { 
+        border-color: var(--french-blue); background: rgba(255, 255, 255, 0.9); 
+        box-shadow: 0 4px 6px rgba(47, 63, 123, 0.05);
+    }
+    .section-header { 
+        font-size: 12px; font-weight: 800; color: var(--text-secondary); 
+        margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; 
+        display: flex; align-items: center; gap: 6px;
+    }
+    .checkbox-item { 
+        display: flex; align-items: center; gap: 8px; margin-bottom: 8px; 
+    }
+    .checkbox-item:last-child { margin-bottom: 0; }
+    .checkbox-item input[type="checkbox"] { 
+        cursor: pointer; width: 16px; height: 16px; accent-color: var(--french-blue); 
+    }
+    .checkbox-item label { 
+        cursor: pointer; font-size: 13px; color: var(--text-primary); margin: 0; font-weight: 500;
+    }
 </style>
 
 <div style="max-width: 1500px; width: 100%; margin: 0 auto; padding: 0 0 30px 0;">
@@ -293,7 +329,25 @@
                             
                             <td>
                                 <div class="action-group">
-                                    <a href="#" onclick="openEditModalFlow('{{ user.id }}', '{{ user.full_name|escapejs }}', '{{ user.username|escapejs }}', '{{ user.is_superuser|yesno:"Admin,Employee" }}'); return false;" class="table-action-btn btn-edit" title="Edit User Account">
+                                    <a href="#" onclick="openEditModalFlow('{{ user.id }}', '{{ user.full_name|escapejs }}', '{{ user.username|escapejs }}', '{{ user.is_superuser|yesno:"Admin,Employee" }}', {
+                                        grant_dashboard: {{ user.profile.has_dashboard_access|yesno:'true,false,false' }},
+                                        grant_inv_products: {{ user.profile.has_inv_products_access|yesno:'true,false,false' }},
+                                        grant_inv_categories: {{ user.profile.has_inv_categories_access|yesno:'true,false,false' }},
+                                        grant_inv_po: {{ user.profile.has_inv_po_access|yesno:'true,false,false' }},
+                                        grant_inv_barcode: {{ user.profile.has_inv_barcode_access|yesno:'true,false,false' }},
+                                        grant_sales_checkout: {{ user.profile.has_sales_checkout_access|yesno:'true,false,false' }},
+                                        grant_sales_sales: {{ user.profile.has_sales_sales_access|yesno:'true,false,false' }},
+                                        grant_sales_invoices: {{ user.profile.has_sales_invoices_access|yesno:'true,false,false' }},
+                                        grant_sales_return: {{ user.profile.has_sales_return_access|yesno:'true,false,false' }},
+                                        grant_sales_trade_credit: {{ user.profile.has_sales_trade_credit_access|yesno:'true,false,false' }},
+                                        grant_sales_quotations: {{ user.profile.has_sales_quotations_access|yesno:'true,false,false' }},
+                                        grant_sales_suppliers: {{ user.profile.has_sales_suppliers_access|yesno:'true,false,false' }},
+                                        grant_reports: {{ user.profile.has_valid_reports_access|yesno:'true,false,false' }},
+                                        grant_um_users: {{ user.profile.has_um_users_access|yesno:'true,false,false' }},
+                                        grant_um_activity_logs: {{ user.profile.has_um_activity_logs_access|yesno:'true,false,false' }},
+                                        grant_settings: {{ user.profile.has_valid_settings_access|yesno:'true,false,false' }},
+                                        grant_user_manual: {{ user.profile.has_user_manual_access|yesno:'true,false,false' }}
+                                    }); return false;" class="table-action-btn btn-edit" title="Edit User Account">
                                         <i class="ph ph-pencil-simple"></i>
                                     </a>
 
@@ -449,7 +503,7 @@
                 </div>
                 <div class="form-group" style="flex: 1; margin-bottom: 0;">
                     <label>Role</label>
-                    <select name="edit_role" id="edit_role" class="form-control" required style="cursor:pointer;">
+                    <select name="edit_role" id="edit_role" class="form-control" required style="cursor:pointer;" onchange="togglePermissionsBlock()">
                         <option value="Employee">Employee</option>
                         <option value="Admin">Admin</option>
                     </select>
@@ -487,6 +541,60 @@
                 </div>
             </div>
 
+            <div class="permissions-container" id="permissions_block">
+                <h4 class="permissions-container-title">Temporary Access (1 Hour)</h4>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-top: -8px; margin-bottom: 16px;">Check the specific modules you want to grant temporary access to this employee.</p>
+
+                <div class="permissions-grid">
+                    
+                    <div class="permission-section">
+                        <div class="section-header">🏠 Dashboard</div>
+                        <div class="checkbox-item"><input type="checkbox" name="grant_dashboard" id="grant_dashboard"><label for="grant_dashboard">Main Dashboard</label></div>
+                    </div>
+
+                    <div class="permission-section">
+                        <div class="section-header">📊 Reports</div>
+                        <div class="checkbox-item"><input type="checkbox" name="grant_reports" id="grant_reports"><label for="grant_reports">Reports Hub</label></div>
+                    </div>
+
+                    <div class="permission-section" style="grid-column: span 2;">
+                        <div class="section-header">📦 Inventory Management</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item"><input type="checkbox" name="grant_inv_products" id="grant_inv_products"><label for="grant_inv_products">Products</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_inv_categories" id="grant_inv_categories"><label for="grant_inv_categories">Categories</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_inv_po" id="grant_inv_po"><label for="grant_inv_po">Purchase Orders</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_inv_barcode" id="grant_inv_barcode"><label for="grant_inv_barcode">Generate Barcode</label></div>
+                        </div>
+                    </div>
+
+                    <div class="permission-section" style="grid-column: span 2;">
+                        <div class="section-header">💳 Sales & Transactions</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_checkout" id="grant_sales_checkout"><label for="grant_sales_checkout">Checkout</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_sales" id="grant_sales_sales"><label for="grant_sales_sales">Sales Record</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_invoices" id="grant_sales_invoices"><label for="grant_sales_invoices">Invoices</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_return" id="grant_sales_return"><label for="grant_sales_return">Sales Return</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_trade_credit" id="grant_sales_trade_credit"><label for="grant_sales_trade_credit">Trade Credit</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_quotations" id="grant_sales_quotations"><label for="grant_sales_quotations">Quotations</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_suppliers" id="grant_sales_suppliers"><label for="grant_sales_suppliers">Suppliers</label></div>
+                        </div>
+                    </div>
+
+                    <div class="permission-section">
+                        <div class="section-header">👥 Users</div>
+                        <div class="checkbox-item"><input type="checkbox" name="grant_um_users" id="grant_um_users"><label for="grant_um_users">User Accounts</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="grant_um_activity_logs" id="grant_um_activity_logs"><label for="grant_um_activity_logs">Activity Logs</label></div>
+                    </div>
+
+                    <div class="permission-section">
+                        <div class="section-header">⚙️ System</div>
+                        <div class="checkbox-item"><input type="checkbox" name="grant_settings" id="grant_settings"><label for="grant_settings">General Settings</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="grant_user_manual" id="grant_user_manual"><label for="grant_user_manual">User Manual</label></div>
+                    </div>
+
+                </div>
+            </div>
+
             <div style="display:flex; gap:12px; margin-top:30px;">
                 <button type="button" onclick="closeEditModal()" style="flex:1; background:rgba(248, 250, 252, 0.8); color:var(--text-secondary); border:1px solid rgba(203, 213, 225, 0.8); padding:14px; border-radius:12px; cursor:pointer; font-weight:600; font-family: var(--font-main); transition:all 0.3s ease;" onmouseover="this.style.background='#FFFFFF'; this.style.color='var(--french-blue)';" onmouseout="this.style.background='rgba(248, 250, 252, 0.8)'; this.style.color='var(--text-secondary)';">Cancel</button>
                 
@@ -510,7 +618,6 @@
         }
     }
 
-    // FOR REAL-TIME VALIDATION
     function updateRuleState(ruleId, isValid, isNeutral = false) {
         const ruleElement = document.getElementById(ruleId);
         const iconElement = ruleElement.querySelector('i');
@@ -527,7 +634,6 @@
         }
     }
 
-    // REGISTER FORM 
     const passInput = document.getElementById('main_password');
     const confirmInput = document.getElementById('confirm_password');
 
@@ -552,14 +658,11 @@
     passInput.addEventListener('input', checkRules);
     confirmInput.addEventListener('input', checkRules);
 
-    // Initial neutral state for register rules
     updateRuleState('rule-length', false, true);
     updateRuleState('rule-upper', false, true);
     updateRuleState('rule-number', false, true);
     updateRuleState('rule-match', false, true);
 
-
-    // MODAL FORM CHECKER (Optional Password) 
     const modalPassInput = document.getElementById('modal_new_password');
     const modalConfirmInput = document.getElementById('modal_confirm_password');
 
@@ -584,10 +687,21 @@
     modalPassInput.addEventListener('input', checkModalRules);
     modalConfirmInput.addEventListener('input', checkModalRules);
 
-
+    function togglePermissionsBlock() {
+        const roleDropdown = document.getElementById('edit_role');
+        const permissionsBlock = document.getElementById('permissions_block');
+        
+        if (roleDropdown.value === 'Admin') {
+            permissionsBlock.style.display = 'none';
+            const checkboxes = permissionsBlock.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+        } else {
+            permissionsBlock.style.display = 'block';
+        }
+    }
     
-    // MULTI-STEP EDIT FLOW
-    function openEditModalFlow(userId, fullName, username, role) {
+    // UPDATE: Tumatanggap na tayo ng current permissions!
+    function openEditModalFlow(userId, fullName, username, role, currentPerms) {
         Swal.fire({
             html: `
                 <div style="margin-bottom: 20px;">
@@ -637,7 +751,6 @@
                 const ruleMatch = popup.querySelector('#swal-rule-match');
                 const ruleIcon = ruleMatch.querySelector('i');
 
-     
                 toggle1.addEventListener('click', () => {
                     const type = pass1.getAttribute('type') === 'password' ? 'text' : 'password';
                     pass1.setAttribute('type', type);
@@ -652,7 +765,6 @@
                     toggle2.style.color = type === 'password' ? 'var(--text-secondary)' : 'var(--french-blue)';
                 });
 
-       
                 const checkMatch = () => {
                     const val1 = pass1.value;
                     const val2 = pass2.value;
@@ -681,19 +793,16 @@
                 const pass1 = popup.querySelector('#swal_pass1').value;
                 const pass2 = popup.querySelector('#swal_pass2').value;
 
-                // 1. Check kung may laman
                 if (!pass1 || !pass2) {
                     Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 6px; font-size: 18px;"></i> Both fields are required');
                     return false; 
                 }
                 
-                // 2. Check kung magkaparehas
                 if (pass1 !== pass2) {
                     Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 6px; font-size: 18px;"></i> Passwords do not match');
                     return false; 
                 }
                 
-                // 3. Kunin ang CSRF token
                 const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
                 if (!csrfInput) {
                     Swal.showValidationMessage('<i class="ph ph-warning-circle" style="margin-right: 6px; font-size: 18px;"></i> Security token missing. Please refresh.');
@@ -701,7 +810,6 @@
                 }
                 const csrfToken = csrfInput.value;
                 
-                // 4. Send sa backend
                 return fetch("{% url 'security:verify_admin_password' %}", {
                     method: 'POST',
                     headers: {
@@ -737,7 +845,8 @@
                         showConfirmButton: false,
                         customClass: { popup: 'custom-swal-popup' }
                     }).then(() => {
-                        showEditModal(userId, fullName, username, role);
+                        // UPDATE: Ipinasa ang currentPerms dito!
+                        showEditModal(userId, fullName, username, role, currentPerms);
                     });
                 } else {
                     Swal.fire({
@@ -747,22 +856,22 @@
                         confirmButtonColor: 'var(--status-red)',
                         customClass: { popup: 'custom-swal-popup' }
                     }).then(() => {
-                        openEditModalFlow(userId, fullName, username, role);
+                        // UPDATE: Ipinasa ang currentPerms dito rin kung babalik!
+                        openEditModalFlow(userId, fullName, username, role, currentPerms);
                     });
                 }
             }
         });
     }
 
-    function showEditModal(userId, fullName, username, role) {
+    // UPDATE: Ina-apply ang currentPerms sa checkboxes
+    function showEditModal(userId, fullName, username, role, currentPerms) {
         document.getElementById('modalUserId').value = userId;
         document.getElementById('modalUsernameDisplay').innerText = username;
         
-        // Auto-fill current profile data
         document.getElementById('edit_full_name').value = fullName;
         document.getElementById('edit_username').value = username;
         
-        // Set the correct option for Role dropdown
         const roleDropdown = document.getElementById('edit_role');
         for(let i=0; i < roleDropdown.options.length; i++) {
             if(roleDropdown.options[i].value === role) {
@@ -771,9 +880,21 @@
             }
         }
 
-        // Clear password fields
+        togglePermissionsBlock();
+
         document.getElementById('modal_new_password').value = '';
         document.getElementById('modal_confirm_password').value = '';
+        
+        // FIX: Hahanapin niya kung ano yung naka-check sa DB at ia-apply sa UI
+        const checkboxes = document.getElementById('permissions_block').querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            if (currentPerms && currentPerms.hasOwnProperty(cb.name)) {
+                cb.checked = currentPerms[cb.name];
+            } else {
+                cb.checked = false;
+            }
+        });
+
         checkModalRules(); 
         
         document.getElementById('editModal').style.display = 'flex';
@@ -784,7 +905,6 @@
     }
 
 
-    // SWEETALERT DELETE CONFIRMATION
     function showDeleteAlert(deleteUrl, username) {
         Swal.fire({
             title: 'Delete User?',

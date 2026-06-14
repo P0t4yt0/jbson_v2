@@ -520,6 +520,7 @@ def verify_admin_password(request):
             
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+@login_required
 def edit_user_view(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
@@ -530,18 +531,54 @@ def edit_user_view(request):
         
         role = request.POST.get('edit_role')
         user.is_superuser = (role == 'Admin')
+        user.role = 'admin' if role == 'Admin' else 'employee'
         
         new_pass = request.POST.get('new_password')
         if new_pass:
             user.set_password(new_pass)
             
         user.save()
+
+        # ==========================================
+        # GRANULAR PERMISSIONS HANDLING
+        # ==========================================
+        profile, created = EmployeeProfile.objects.get_or_create(user=user)
+        one_hour_from_now = timezone.now() + timedelta(minutes=60)
+        
+        permissions_map = {
+            'grant_dashboard': 'dashboard',
+            'grant_inv_products': 'inv_products',
+            'grant_inv_categories': 'inv_categories',
+            'grant_inv_po': 'inv_po',
+            'grant_inv_barcode': 'inv_barcode',
+            'grant_sales_checkout': 'sales_checkout',
+            'grant_sales_sales': 'sales_sales',
+            'grant_sales_invoices': 'sales_invoices',
+            'grant_sales_return': 'sales_return',
+            'grant_sales_trade_credit': 'sales_trade_credit',
+            'grant_sales_quotations': 'sales_quotations',
+            'grant_sales_suppliers': 'sales_suppliers',
+            'grant_reports': 'reports',
+            'grant_um_users': 'um_users',
+            'grant_um_activity_logs': 'um_activity_logs',
+            'grant_settings': 'settings',
+            'grant_user_manual': 'user_manual',
+        }
+
+        for post_key, field_prefix in permissions_map.items():
+            is_granted = request.POST.get(post_key) == 'on'
+            setattr(profile, f'{field_prefix}_access_approved', is_granted)
+            setattr(profile, f'{field_prefix}_access_expires_at', one_hour_from_now if is_granted else None)
+            
+        profile.save()
+        # ==========================================
+
         log_system_activity(
             user=request.user,
             action='EDIT USER',
             description=f"Modified account details/permissions for user '{user.username}'."
         )
-        messages.success(request, f'User {user.username} updated successfully!')
+        messages.success(request, f'User {user.username} and temporary permissions updated successfully!')
         
     return redirect('user_management')
 

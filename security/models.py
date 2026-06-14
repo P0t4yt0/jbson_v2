@@ -103,25 +103,71 @@ class ActivityLog(models.Model):
             raise PermissionError("ActivityLog entries cannot be modified once created.")
         super().save(*args, **kwargs)
 
+
 class EmployeeProfile(models.Model):
-    user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name="profile"
-    )
-    recovery_key = models.CharField(
-        max_length=19, 
-        default=generate_recovery_key, 
-        unique=True
-    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    recovery_key = models.CharField(max_length=19, default=generate_recovery_key, unique=True)
     reset_requested = models.BooleanField(default=False)
     reset_approved_by_admin = models.BooleanField(default=False)
+    
+    # --- DASHBOARD ---
+    dashboard_access_approved = models.BooleanField(default=False)
+    dashboard_access_expires_at = models.DateTimeField(null=True, blank=True)
+
+    # --- INVENTORY ---
+    inv_products_access_approved = models.BooleanField(default=False)
+    inv_products_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    inv_categories_access_approved = models.BooleanField(default=False)
+    inv_categories_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    inv_po_access_approved = models.BooleanField(default=False)
+    inv_po_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    inv_barcode_access_approved = models.BooleanField(default=False)
+    inv_barcode_access_expires_at = models.DateTimeField(null=True, blank=True)
+
+    # --- SALES & TRANSACTIONS ---
+    sales_checkout_access_approved = models.BooleanField(default=False)
+    sales_checkout_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    sales_sales_access_approved = models.BooleanField(default=False)
+    sales_sales_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    sales_invoices_access_approved = models.BooleanField(default=False)
+    sales_invoices_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    sales_return_access_approved = models.BooleanField(default=False)
+    sales_return_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    sales_trade_credit_access_approved = models.BooleanField(default=False)
+    sales_trade_credit_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    sales_quotations_access_approved = models.BooleanField(default=False)
+    sales_quotations_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    sales_suppliers_access_approved = models.BooleanField(default=False)
+    sales_suppliers_access_expires_at = models.DateTimeField(null=True, blank=True)
+
+    # --- REPORTS & ANALYTICS ---
     reports_access_requested = models.BooleanField(default=False)
-    reports_access_expires_at = models.DateTimeField(null=True, blank=True)
     reports_access_approved = models.BooleanField(default=False)
+    reports_access_expires_at = models.DateTimeField(null=True, blank=True)
+
+    # --- USER MANAGEMENT ---
+    um_users_access_approved = models.BooleanField(default=False)
+    um_users_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    um_activity_logs_access_approved = models.BooleanField(default=False)
+    um_activity_logs_access_expires_at = models.DateTimeField(null=True, blank=True)
+
+    # --- SETTINGS & MANUAL ---
     settings_access_requested = models.BooleanField(default=False)
-    settings_access_expires_at = models.DateTimeField(null=True, blank=True)
     settings_access_approved = models.BooleanField(default=False)
+    settings_access_expires_at = models.DateTimeField(null=True, blank=True)
+    
+    user_manual_access_approved = models.BooleanField(default=False)
+    user_manual_access_expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "security_employee_profile"
@@ -130,21 +176,85 @@ class EmployeeProfile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
-    
-    @property
-    def has_valid_reports_access(self):
-        if not self.reports_access_approved:
+
+    # DRY Helper function para sa expiration checking
+    def _is_valid(self, is_approved, expires_at):
+        if not is_approved:
             return False
-        if self.reports_access_expires_at and timezone.now() > self.reports_access_expires_at:
-            return False
-        return True
-    
-    @property
-    def has_valid_settings_access(self):
-        if not self.settings_access_approved:
-            return False
-        if self.settings_access_expires_at and timezone.now() > self.settings_access_expires_at:
+        if expires_at and timezone.now() > expires_at:
             return False
         return True
+
+    # ==========================================
+    # PROPERTIES PARA SA CONTEXT PROCESSORS
+    # ==========================================
+    
+    @property
+    def has_dashboard_access(self):
+        return self._is_valid(self.dashboard_access_approved, self.dashboard_access_expires_at)
+
+    @property
+    def has_inv_products_access(self): 
+        return self._is_valid(self.inv_products_access_approved, self.inv_products_access_expires_at)
+        
+    @property
+    def has_inv_categories_access(self): 
+        return self._is_valid(self.inv_categories_access_approved, self.inv_categories_access_expires_at)
+        
+    @property
+    def has_inv_po_access(self): 
+        return self._is_valid(self.inv_po_access_approved, self.inv_po_access_expires_at)
+        
+    @property
+    def has_inv_barcode_access(self): 
+        return self._is_valid(self.inv_barcode_access_approved, self.inv_barcode_access_expires_at)
+
+    @property
+    def has_sales_checkout_access(self): 
+        return self._is_valid(self.sales_checkout_access_approved, self.sales_checkout_access_expires_at)
+        
+    @property
+    def has_sales_sales_access(self): 
+        return self._is_valid(self.sales_sales_access_approved, self.sales_sales_access_expires_at)
+        
+    @property
+    def has_sales_invoices_access(self): 
+        return self._is_valid(self.sales_invoices_access_approved, self.sales_invoices_access_expires_at)
+        
+    @property
+    def has_sales_return_access(self): 
+        return self._is_valid(self.sales_return_access_approved, self.sales_return_access_expires_at)
+        
+    @property
+    def has_sales_trade_credit_access(self): 
+        return self._is_valid(self.sales_trade_credit_access_approved, self.sales_trade_credit_access_expires_at)
+        
+    @property
+    def has_sales_quotations_access(self): 
+        return self._is_valid(self.sales_quotations_access_approved, self.sales_quotations_access_expires_at)
+        
+    @property
+    def has_sales_suppliers_access(self): 
+        return self._is_valid(self.sales_suppliers_access_approved, self.sales_suppliers_access_expires_at)
+
+    @property
+    def has_valid_reports_access(self): 
+        return self._is_valid(self.reports_access_approved, self.reports_access_expires_at)
+
+    @property
+    def has_um_users_access(self): 
+        return self._is_valid(self.um_users_access_approved, self.um_users_access_expires_at)
+        
+    @property
+    def has_um_activity_logs_access(self): 
+        return self._is_valid(self.um_activity_logs_access_approved, self.um_activity_logs_access_expires_at)
+
+    @property
+    def has_valid_settings_access(self): 
+        return self._is_valid(self.settings_access_approved, self.settings_access_expires_at)
+        
+    @property
+    def has_user_manual_access(self): 
+        return self._is_valid(self.user_manual_access_approved, self.user_manual_access_expires_at)
 
 auditlog.register(User, exclude_fields=['password', 'last_login'])

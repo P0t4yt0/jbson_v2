@@ -11,11 +11,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
         :root {
-            /* Color Palette */
             --french-blue: #2F3F7B;
             --mustard: #FFD358;
             --amber-flame: #FFB915;
-
             --bg-main: #F4F6F9;
             --bg-card: #FFFFFF;
             --primary-red: #891C1C;
@@ -27,258 +25,107 @@
             --status-green: #22C55E;
             --status-red: #EF4444;
             --status-yellow: #FACC15;
-            
-            /* Typography & Spacing */
             --font-main: 'Inter', sans-serif; 
             --font-heading: 'Inter', sans-serif;
             --border-radius: 20px;
             --shadow-subtle: 0 10px 30px -10px rgba(47, 63, 123, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: var(--font-main);
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: var(--font-heading);
-            font-weight: 700;
-        }
-
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 700; }
+        body { background-color: var(--bg-main); color: var(--text-primary); display: flex; height: 100vh; overflow: hidden; }
 
         /* Sidebar Navigation */
-        .sidebar {
-            width: 260px;
-            background-color: var(--bg-card);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 0;
-            flex-shrink: 0;
-            overflow-y: auto;
-        }
-
+        .sidebar { width: 260px; background-color: var(--bg-card); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px 0; flex-shrink: 0; overflow-y: auto; }
         .sidebar::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb {
-            background-color: #E5E7EB; 
-            border-radius: 10px;
-        }
+        .sidebar::-webkit-scrollbar-thumb { background-color: #E5E7EB; border-radius: 10px; }
         .sidebar::-webkit-scrollbar-thumb:hover { background-color: #D1D5DB; }
 
-        .logo-container {
-            padding: 0 24px 24px 24px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-        }
+        .logo-container { padding: 0 24px 24px 24px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .nav-category { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; margin: 16px 24px 8px 24px; letter-spacing: 0.5px; }
 
-        .nav-category {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            text-transform: uppercase;
-            margin: 16px 24px 8px 24px;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            margin: 4px 16px; 
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 12px; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            position: relative;
-            background: transparent;
-        }
-
-        .nav-item i {
-            margin-right: 12px;
-            font-size: 20px;
-            transition: transform 0.3s ease;
-        }
-
-        .nav-item:hover { 
-            background-color: rgba(230, 230, 250, 0.5); 
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            color: var(--french-blue);
-            transform: translateX(4px); 
-        }
-
-        .nav-item:hover i {
-            transform: scale(1.1); 
-        }
-
-        .nav-item.active {
-            background: linear-gradient(135deg, var(--french-blue), #3d5096);
-            color: #FFFFFF;
-            box-shadow: 0 4px 15px rgba(47, 63, 123, 0.25); 
-        }
-
-        .nav-item.active i {
-            color: #FFFFFF;
-        }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; margin: 4px 16px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; position: relative; background: transparent; }
+        .nav-item i { margin-right: 12px; font-size: 20px; transition: transform 0.3s ease; }
+        .nav-item:hover { background-color: rgba(230, 230, 250, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: var(--french-blue); transform: translateX(4px); }
+        .nav-item:hover i { transform: scale(1.1); }
+        .nav-item.active { background: linear-gradient(135deg, var(--french-blue), #3d5096); color: #FFFFFF; box-shadow: 0 4px 15px rgba(47, 63, 123, 0.25); }
+        .nav-item.active i { color: #FFFFFF; }
 
         /* Main Content Area */
-        .main-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 
         /* Header */
-        .top-header {
-            height: 70px;
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 32px;
-            flex-shrink: 0;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            transition: opacity 0.2s;
-        }
-
+        .top-header { height: 70px; background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; flex-shrink: 0; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer; border: none; transition: opacity 0.2s; }
         .btn:hover { opacity: 0.9; }
         .btn-primary { background-color: var(--french-blue); color: #FFF; }
         .btn-secondary { background-color: var(--amber-flame); color: #FFF; }
 
-        .icon-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 20px;
-            position: relative;
-        }
+        .icon-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); font-size: 20px; position: relative; }
 
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 50px;
-            right: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: var(--shadow-subtle);
-            width: 280px; 
-            padding: 12px;
-            z-index: 100;
-        }
+        .dropdown-menu { display: none; position: absolute; top: 50px; right: 0; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-subtle); width: 280px; padding: 12px; z-index: 100; }
         .dropdown-menu.show { display: block; }
         .dropdown-item { padding: 8px; font-size: 13px; border-bottom: 1px solid #eee; }
         .dropdown-item:last-child { border-bottom: none; }
 
         /* Scrollable Content Grid */
-        .content-scroll {
-            flex: 1;
-            overflow-y: auto;
-            padding: 36px 48px;
-            background-color: var(--bg-main);
-            background-image: radial-gradient(rgba(47, 63, 123, 0.08) 1.5px, transparent 1.5px);
-            background-size: 24px 24px;
-            position: relative;
-        }
-
-        .bg-shape {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(100px);
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.6;
-        }
+        .content-scroll { flex: 1; overflow-y: auto; padding: 36px 48px; background-color: var(--bg-main); background-image: radial-gradient(rgba(47, 63, 123, 0.08) 1.5px, transparent 1.5px); background-size: 24px 24px; position: relative; }
+        .bg-shape { position: fixed; border-radius: 50%; filter: blur(100px); z-index: 0; pointer-events: none; opacity: 0.6; }
         .shape-1 { width: 450px; height: 450px; background: rgba(255, 211, 88, 0.4); top: -10%; left: 25%; }
         .shape-2 { width: 600px; height: 600px; background: rgba(47, 63, 123, 0.2); bottom: -20%; right: -5%; }
         .shape-3 { width: 350px; height: 350px; background: rgba(255, 185, 21, 0.3); top: 40%; left: -5%; }
 
-        .welcome-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .date-filter {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-card);
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-subtle);
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
+        .welcome-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .date-filter { display: flex; align-items: center; gap: 8px; background: var(--bg-card); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-subtle); font-size: 14px; color: var(--text-secondary); }
         a { text-decoration: none; }
-
         .logout-form { width: 100%; margin: 0; padding: 0; margin-top: 40px; padding-bottom: 20px;}
-        .btn-logout {
-            background: transparent; 
-            border: none; 
-            width: calc(100% - 32px); 
-            text-align: left;
-            cursor: pointer; 
-            font-family: inherit; 
-            font-size: inherit; 
-            color: var(--french-blue); 
-        }
+        .btn-logout { background: transparent; border: none; width: calc(100% - 32px); text-align: left; cursor: pointer; font-family: inherit; font-size: inherit; color: var(--french-blue); }
 
-        #toast-container {
-            position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;
-        }
-        .toast {
-            background: #fff; border-left: 5px solid var(--status-green); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            padding: 15px 20px; border-radius: 6px; min-width: 280px; transform: translateX(120%); transition: transform 0.3s ease-out;
-        }
+        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #fff; border-left: 5px solid var(--status-green); box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px 20px; border-radius: 6px; min-width: 280px; transform: translateX(120%); transition: transform 0.3s ease-out; }
         .toast.show { transform: translateX(0); }
         .toast-critical { border-left-color: var(--status-red); }
         .toast-high { border-left-color: #F97316; } 
         .toast-medium { border-left-color: var(--status-yellow); }
         .toast-low { border-left-color: #3B82F6; } 
+
+        /* ==================================================
+           DASHBOARD SPECIFIC GRID & CARD STYLES
+           ================================================== */
+        /* Exact 4-column layout for KPIs */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
+        .kpi-card { border-radius: var(--border-radius); padding: 28px; border: none; box-shadow: var(--shadow-subtle); display: flex; flex-direction: column; gap: 12px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.2); }
+        .kpi-card.sales { background-color:#ffc832; }
+        .kpi-card.sales .kpi-title, .kpi-card.sales .kpi-value { color: #1E293B; }
+        .kpi-card.sales .icon-bg { background: rgba(0,0,0,0.1); color: #1E293B; }
+        .kpi-card.profit { background-color: var(--mustard); }
+        .kpi-card.profit .kpi-title, .kpi-card.profit .kpi-value { color: #1E293B; }
+        .kpi-card.profit .icon-bg { background: rgba(255,255,255,0.15); color: #1E293B; }
+        .kpi-card.outflow { background-color: var(--french-blue); }
+        .kpi-card.outflow .kpi-title, .kpi-card.outflow .kpi-value { color: #ffffff; }
+        .kpi-card.outflow .icon-bg { background: rgba(0,0,0,0.1); color: #ffffff; }
+        .kpi-card.due { background-color: #1a2858 ; }
+        .kpi-card.due .kpi-title, .kpi-card.due .kpi-value { color: #FFFFFF; }
+        .kpi-card.due .icon-bg { background: rgba(255,255,255,0.15); color: #FFFFFF; }
+        .kpi-title-wrapper { display: flex; align-items: center; gap: 12px; }
+        .icon-bg { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .kpi-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-value { font-size: 32px; font-weight: 800; font-family: 'Inconsolata', monospace !important; letter-spacing: -1px; }
+
+        /* Exact 2-column layout for Action Rows */
+        .action-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 12px; }
+        .panel { background: var(--bg-card); border-radius: var(--border-radius); padding: 32px; border: 1px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-subtle); display: flex; flex-direction: column; }
+        .panel-title { font-size: 18px; font-weight: 800; color: var(--french-blue); margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+
+        .modern-list { list-style: none; padding: 0; margin: 0; }
+        .modern-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8FAFC; border-radius: 12px; margin-bottom: 8px; border: 1px solid transparent; transition: all 0.2s ease; }
+        .modern-list li:hover { background: #FFFFFF; border-color: var(--border-color); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.05); transform: translateX(4px); }
+        .item-main { font-size: 13px; font-weight: 600; color: #1E293B; display: block; }
+        .item-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: block; }
+        .item-val { font-size: 13px; font-weight: 700; font-family: 'Inconsolata', monospace;}
     </style>
 </head>
 <body>
@@ -290,75 +137,129 @@
             </a>
         </div>
         
-        <a href="{% url 'employee_dashboard' %}" class="nav-item {% if request.path == '/dashboard/employee/' %}active{% endif %}">
+        {% if request.user.role|lower == 'admin' or request.user.is_superuser %}
+        <a href="{% url 'admin_dashboard' %}" class="nav-item {% if '/dashboard/admin/' in request.path %}active{% endif %}">
             <i class="ph ph-squares-four"></i> Dashboard
         </a>
+        {% else %}
+        <a href="{% url 'employee_dashboard' %}" class="nav-item {% if '/dashboard/employee/' in request.path %}active{% endif %}">
+            <i class="ph ph-squares-four"></i> Dashboard
+        </a>
+        {% endif %}
 
+        {% if show_inv_products or show_inv_categories or show_inv_po or show_inv_barcode %}
         <div class="nav-category">Inventory</div>
+        {% endif %}
+        
+        {% if show_inv_products %}
         <a href="{% url 'inventory:inventory_list' %}" class="nav-item {% if '/products/' in request.path %}active{% endif %}">
             <i class="ph ph-package"></i> Products
         </a>
+        {% endif %}
         
+        {% if show_inv_categories %}
         <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
             <i class="ph ph-folders"></i> <span>Categories</span>
         </a>    
+        {% endif %}
 
+        {% if show_inv_po %}
         <a href="{% url 'inventory:create_po' %}" class="nav-item {% if '/inventory/purchase-orders/' in request.path %}active{% endif %}">
-            <i class="ph ph-shopping-cart"></i> <span>Purchase Orders</span>
+            <i class="ph ph-shopping-cart"></i>
+            <span>Purchase Orders</span>
         </a>
+        {% endif %}
 
+        {% if show_inv_barcode %}
         <a href="{% url 'inventory:generate_barcode_page' %}" class="nav-item {% if '/generate-barcode/' in request.path %}active{% endif %}">
             <i class="ph ph-barcode"></i> <span>Generate Barcode</span>
         </a>
+        {% endif %}
 
+        {% if show_sales_checkout or show_sales_sales or show_sales_invoices or show_sales_return or show_sales_trade_credit or show_sales_quotations or show_sales_suppliers %}
         <div class="nav-category">Sales</div>
+        {% endif %}
+
+        {% if show_sales_checkout %}
+        <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
+            <i class="ph ph-desktop"></i> Checkout
+        </a>
+        {% endif %}
+
+        {% if show_sales_sales %}
         <a href="{% url 'billing:sales_list' %}" class="nav-item {% if request.resolver_match.view_name == 'billing:sales_list' %}active{% endif %}">
             <i class="ph ph-shopping-cart"></i> Sales
         </a>
+        {% endif %}
 
+        {% if show_sales_invoices %}
         <a href="{% url 'billing_payment:invoice_list' %}" class="nav-item {% if 'invoice_list' in request.resolver_match.view_name %}active{% endif %}">
-            <i class="ph ph-receipt"></i> <span>Invoices</span>
+            <i class="ph ph-receipt"></i>
+            <span>Invoices</span>
         </a>
+        {% endif %}
         
+        {% if show_sales_return %}
         <a href="{% url 'billing_payment:sales_return_list' %}" class="nav-item {% if 'sales_return_list' in request.resolver_match.view_name %}active{% endif %}">
-            <i class="ph ph-arrow-counter-clockwise"></i> <span>Sales Return</span>
+            <i class="ph ph-arrow-counter-clockwise"></i>
+            <span>Sales Return</span>
         </a>
+        {% endif %}
 
-        <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
-            <i class="ph ph-desktop"></i> Point Of Sales
-        </a>
-
+        {% if show_sales_trade_credit %}
         <a href="{% url 'billing_payment:customer_list' %}" class="nav-item {% if '/customers/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Trade Credit
         </a>
-        
+        {% endif %}
+
+        {% if show_sales_quotations %}
         <a href="{% url 'pos:quotation_list' %}" class="nav-item {% if '/pos/quotations/' in request.path %}active{% endif %}">
             <i class="ph ph-files"></i> Quotations
         </a>      
-        
+        {% endif %}
+
+        {% if show_sales_suppliers %}
         <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
             <i class="ph ph-truck"></i> Suppliers
         </a>
-
-        <div class="nav-category">Reports and Analytics</div>
-        {% if request.user.is_superuser or request.user.role|lower == 'admin' or request.user.profile.has_valid_reports_access %}
-            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
-                <i class="ph ph-chart-pie-slice"></i> Reports Hub
-            </a>
-        {% else %}
-            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
-                <i class="ph ph-chart-pie-slice"></i> Reports Hub
-            </a>
         {% endif %}
 
-        <div class="nav-category">Settings</div>
-        <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
-            <i class="ph ph-book"></i> User Manual
-        </a>
+        {% if show_reports %}
+        <div class="nav-category">Reports and Analytics</div>
+            <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
+                <i class="ph ph-chart-bar"></i> Reports Hub
+            </a>
+        {% endif %}
+        
+        {% if show_um_users or show_um_activity_logs %}
+        <div class="nav-category">User Management</div>
+            {% if show_um_users %}
+            <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
+                <i class="ph ph-users"></i> Users
+            </a> 
+            {% endif %}
+            
+            {% if show_um_activity_logs %}
+            <a href="{% url 'activity_logs' %}" class="nav-item {% if '/activity-logs/' in request.path %}active{% endif %}">
+                <i class="ph ph-clock-counter-clockwise"></i> Activity Logs
+            </a>
+            {% endif %}
+        {% endif %}     
 
-        <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path and '/manual/' not in request.path %}active{% endif %}">
-            <i class="ph ph-gear"></i> General Settings
-        </a>
+        {% if show_user_manual or show_settings %}
+        <div class="nav-category">Settings</div>
+            {% if show_user_manual %}
+            <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
+                <i class="ph ph-book"></i> User Manual
+            </a>
+            {% endif %}
+
+            {% if show_settings %}
+            <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path and '/manual/' not in request.path %}active{% endif %}">
+                <i class="ph ph-gear"></i> General Settings
+            </a>
+            {% endif %}
+        {% endif %}
 
         <form action="{% url 'security:logout' %}" method="POST" class="logout-form" onsubmit="confirmLogout(event, this)">
             {% csrf_token %}
@@ -521,46 +422,6 @@
             <div style="position: relative; z-index: 1;">
                 {% block content %}
                 
-                <style>
-                    /* KPI CARDS */
-                    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
-                    
-                    .kpi-card { border-radius: var(--border-radius); padding: 28px; border: none; box-shadow: var(--shadow-subtle); display: flex; flex-direction: column; gap: 12px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-                    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -12px rgba(47, 63, 123, 0.2); }
-
-                    .kpi-card.sales { background-color:#ffc832; }
-                    .kpi-card.sales .kpi-title, .kpi-card.sales .kpi-value { color: #1E293B; }
-                    .kpi-card.sales .icon-bg { background: rgba(0,0,0,0.1); color: #1E293B; }
-                    
-                    .kpi-card.profit { background-color: var(--mustard); }
-                    .kpi-card.profit .kpi-title, .kpi-card.profit .kpi-value { color: #1E293B; }
-                    .kpi-card.profit .icon-bg { background: rgba(255,255,255,0.15); color: #1E293B; }
-
-                    .kpi-card.outflow { background-color: var(--french-blue); }
-                    .kpi-card.outflow .kpi-title, .kpi-card.outflow .kpi-value { color: #ffffff; }
-                    .kpi-card.outflow .icon-bg { background: rgba(0,0,0,0.1); color: #ffffff; }
-
-                    .kpi-card.due { background-color: #1a2858 ; }
-                    .kpi-card.due .kpi-title, .kpi-card.due .kpi-value { color: #FFFFFF; }
-                    .kpi-card.due .icon-bg { background: rgba(255,255,255,0.15); color: #FFFFFF; }
-                    
-                    .kpi-title-wrapper { display: flex; align-items: center; gap: 12px; }
-                    .icon-bg { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-                    .kpi-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-                    .kpi-value { font-size: 32px; font-weight: 800; font-family: 'Inconsolata', monospace !important; letter-spacing: -1px; }
-
-                    .action-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
-                    .panel { background: var(--bg-card); border-radius: var(--border-radius); padding: 32px; border: 1px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-subtle); }
-                    .panel-title { font-size: 18px; font-weight: 800; color: var(--french-blue); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
-
-                    .modern-list { list-style: none; padding: 0; margin: 0; }
-                    .modern-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8FAFC; border-radius: 12px; margin-bottom: 8px; border: 1px solid transparent; transition: all 0.2s ease; }
-                    .modern-list li:hover { background: #FFFFFF; border-color: var(--border-color); box-shadow: 0 4px 12px rgba(47, 63, 123, 0.05); transform: translateX(4px); }
-                    .item-main { font-size: 13px; font-weight: 600; color: #1E293B; display: block; }
-                    .item-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; display: block; }
-                    .item-val { font-size: 13px; font-weight: 700; font-family: 'Inconsolata', monospace;}
-                </style>
-
                 <div class="welcome-header">
                     <div>
                         <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: var(--french-blue); letter-spacing: -0.5px;">Welcome, {{ request.user.first_name|default:request.user.username|default:"Employee" }}!</h1>
@@ -616,24 +477,24 @@
                 </div>
 
                 <div class="action-row">
-                    <div class="panel" style="display: flex; flex-direction: column;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h3 class="panel-title" style="margin: 0;">
+                    <div class="panel">
+                        <div class="panel-title">
+                            <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="background: rgba(47, 63, 123, 0.1); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-chart-pie-slice" style="color: var(--french-blue);"></i></span>
-                                Top Selling Products
-                            </h3>
+                                <h3 style="margin: 0; font-size: inherit;">Top Selling Products</h3>
+                            </div>
                         </div>
                         
                         <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
-                            <div style="flex: 0.8; position: relative; height: 220px;">
+                            <div style="flex: 0.8; position: relative; height: 220px; min-width: 0;">
                                 <canvas id="productDoughnut"></canvas>
                             </div>
                             
-                            <div style="flex: 1.2;">
+                            <div style="flex: 1.2; min-width: 0; overflow: hidden;">
                                 <ul class="modern-list" style="margin: 0;">
                                     {% for product in top_products|slice:":5" %}
                                     <li>
-                                        <span class="item-main" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;" title="{{ product.inventory_item__item_name }}">
+                                        <span class="item-main" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="{{ product.inventory_item__item_name }}">
                                             {{ product.inventory_item__item_name }}
                                         </span>
                                         <span class="item-val" style="color: var(--french-blue);">{{ product.total_sold }} units</span>
@@ -646,21 +507,21 @@
                         </div>
                     </div>
 
-                    <div class="panel" style="display: flex; flex-direction: column;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h3 class="panel-title" style="margin: 0;">
+                    <div class="panel">
+                        <div class="panel-title">
+                            <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="background: rgba(255, 185, 21, 0.2); padding: 8px; border-radius: 10px; display: inline-flex;"><i class="ph ph-warning" style="color: var(--amber-flame);"></i></span>
-                                Critical Stock
-                            </h3>
+                                <h3 style="margin: 0; font-size: inherit;">Critical Stock</h3>
+                            </div>
                             <a href="{% url 'inventory:inventory_list' %}?low_stock=on" style="font-size: 13px; font-weight: 700; color: var(--amber-flame); background: rgba(255, 185, 21, 0.1); padding: 8px 16px; border-radius: 10px; transition: background 0.2s;">View All &rarr;</a>
                         </div>
                         
                         <div style="display: flex; gap: 20px; align-items: center; flex: 1;">
-                            <div style="flex: 0.8; position: relative; height: 220px;">
+                            <div style="flex: 0.8; position: relative; height: 220px; min-width: 0;">
                                 <canvas id="lowStockChart"></canvas>
                             </div>
                             
-                            <div style="flex: 1.2;">
+                            <div style="flex: 1.2; min-width: 0; overflow: hidden;">
                                <ul class="modern-list" id="lowStockList" style="margin: 0;">
                                     {% for item in low_stock_items|slice:":5" %}
                                     <li class="low-stock-item" data-name="{{ item.item_name }}" data-qty="{{ item.quantity }}">
@@ -822,32 +683,6 @@
 
             Chart.defaults.font.family = "'Inconsolata', monospace";
 
-            const finCtx = document.getElementById('financialChart');
-            if (finCtx) {
-                new Chart(finCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: {{ chart_labels|safe|default:"[]" }},
-                        datasets: [
-                            { type: 'line', label: 'Net Profit', data: {{ chart_profit_data|safe|default:"[]" }}, borderColor: frenchBlue, backgroundColor: frenchBlue, borderWidth: 3, tension: 0.4, yAxisID: 'y' },
-                            { type: 'bar', label: 'Gross Sales', data: {{ chart_sales_data|safe|default:"[]" }}, backgroundColor: mustard, borderRadius: 8, yAxisID: 'y' },
-                            { type: 'bar', label: 'Expenses + POs', data: {{ chart_outflow_data|safe|default:"[]" }}, backgroundColor: amberFlame, borderRadius: 8, yAxisID: 'y' }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12, weight: '500' } } },
-                            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)', padding: 12, bodyFont: { family: 'Inter' }, callbacks: { label: function(context) { return context.dataset.label + ': ₱' + context.raw.toLocaleString(); } } }
-                        },
-                        scales: {
-                            x: { grid: { display: false }, ticks: { font: { family: 'Inter', color: '#64748B' } } },
-                            y: { beginAtZero: true, grid: { color: '#F1F5F9', borderDash: [6, 4] }, ticks: { font: { family: 'Inter', color: '#64748B' }, callback: function(value) { return '₱' + value.toLocaleString(); } } }
-                        }
-                    }
-                });
-            }
-
             const donutCtx = document.getElementById('productDoughnut');
             if (donutCtx) {
                 const donutLabels = {{ donut_labels|safe|default:"[]" }};
@@ -859,7 +694,7 @@
                         options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false }, tooltip: { bodyFont: { family: 'Inter' }, backgroundColor: 'rgba(30, 41, 59, 0.9)', padding: 12 } } }
                     });
                 } else {
-                    donutCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px; font-weight:500;">No sales data available</span>';
+                    donutCtx.parentElement.innerHTML = '<span style="color:#9CA3AF; font-size:13px; font-weight:500; display:flex; height:100%; align-items:center; justify-content:center;">No sales data available</span>';
                 }
             }
 

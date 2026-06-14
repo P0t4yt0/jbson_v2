@@ -331,89 +331,134 @@
     <aside class="sidebar">
         <div class="logo-container" style="display: flex; justify-content: center; align-items: center; padding: 5px;">
             <a href="/">
-            <img src="{% static 'images/jbson-logo.png' %}"
-                alt="JBSON Hardware Logo"
-                style="max-width: 100%; height: auto; max-height: 100px; object-fit: contain;">
-         </a>
+                <img src="{% static 'images/jbson-logo.png' %}" alt="JBSON Hardware Logo" style="max-width: 100%; height: auto; max-height: 100px; object-fit: contain;">
+            </a>
         </div>
-        <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.path == '/dashboard/admin/' %}active{% endif %}">
+        
+        {% if request.user.role|lower == 'admin' or request.user.is_superuser %}
+        <a href="{% url 'admin_dashboard' %}" class="nav-item {% if '/dashboard/admin/' in request.path %}active{% endif %}">
             <i class="ph ph-squares-four"></i> Dashboard
         </a>
+        {% else %}
+        <a href="{% url 'employee_dashboard' %}" class="nav-item {% if '/dashboard/employee/' in request.path %}active{% endif %}">
+            <i class="ph ph-squares-four"></i> Dashboard
+        </a>
+        {% endif %}
+
+        {% if show_inv_products or show_inv_categories or show_inv_po or show_inv_barcode %}
         <div class="nav-category">Inventory</div>
+        {% endif %}
+        
+        {% if show_inv_products %}
         <a href="{% url 'inventory:inventory_list' %}" class="nav-item {% if '/products/' in request.path %}active{% endif %}">
             <i class="ph ph-package"></i> Products
         </a>
+        {% endif %}
         
+        {% if show_inv_categories %}
         <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
             <i class="ph ph-folders"></i> <span>Categories</span>
         </a>    
+        {% endif %}
 
+        {% if show_inv_po %}
         <a href="{% url 'inventory:create_po' %}" class="nav-item {% if '/inventory/purchase-orders/' in request.path %}active{% endif %}">
             <i class="ph ph-shopping-cart"></i>
             <span>Purchase Orders</span>
         </a>
+        {% endif %}
 
-  
+        {% if show_inv_barcode %}
         <a href="{% url 'inventory:generate_barcode_page' %}" class="nav-item {% if '/generate-barcode/' in request.path %}active{% endif %}">
             <i class="ph ph-barcode"></i> <span>Generate Barcode</span>
         </a>
+        {% endif %}
 
+        {% if show_sales_checkout or show_sales_sales or show_sales_invoices or show_sales_return or show_sales_trade_credit or show_sales_quotations or show_sales_suppliers %}
         <div class="nav-category">Sales</div>
+        {% endif %}
 
+        {% if show_sales_checkout %}
         <a href="{% url 'pos:pos_index' %}" class="nav-item {% if request.path == '/pos/' %}active{% endif %}">
             <i class="ph ph-desktop"></i> Checkout
         </a>
+        {% endif %}
 
+        {% if show_sales_sales %}
         <a href="{% url 'billing:sales_list' %}" class="nav-item {% if request.resolver_match.view_name == 'billing:sales_list' %}active{% endif %}">
             <i class="ph ph-shopping-cart"></i> Sales
         </a>
+        {% endif %}
 
-        <a href="{% url 'billing_payment:invoice_list' %}" 
-        class="nav-item {% if 'invoice_list' in request.resolver_match.view_name %}active{% endif %}">
+        {% if show_sales_invoices %}
+        <a href="{% url 'billing_payment:invoice_list' %}" class="nav-item {% if 'invoice_list' in request.resolver_match.view_name %}active{% endif %}">
             <i class="ph ph-receipt"></i>
             <span>Invoices</span>
         </a>
+        {% endif %}
         
-        <a href="{% url 'billing_payment:sales_return_list' %}" 
-        class="nav-item {% if 'sales_return_list' in request.resolver_match.view_name %}active{% endif %}">
+        {% if show_sales_return %}
+        <a href="{% url 'billing_payment:sales_return_list' %}" class="nav-item {% if 'sales_return_list' in request.resolver_match.view_name %}active{% endif %}">
             <i class="ph ph-arrow-counter-clockwise"></i>
             <span>Sales Return</span>
         </a>
+        {% endif %}
 
+        {% if show_sales_trade_credit %}
         <a href="{% url 'billing_payment:customer_list' %}" class="nav-item {% if '/customers/' in request.path %}active{% endif %}">
             <i class="ph ph-users"></i> Trade Credit
         </a>
+        {% endif %}
+
+        {% if show_sales_quotations %}
         <a href="{% url 'pos:quotation_list' %}" class="nav-item {% if '/pos/quotations/' in request.path %}active{% endif %}">
             <i class="ph ph-files"></i> Quotations
         </a>      
+        {% endif %}
+
+        {% if show_sales_suppliers %}
         <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
             <i class="ph ph-truck"></i> Suppliers
         </a>
+        {% endif %}
 
+        {% if show_reports %}
         <div class="nav-category">Reports and Analytics</div>
             <a href="{% url 'reports_analytics:reports_hub' %}" class="nav-item {% if '/reports/' in request.path %}active{% endif %}">
                 <i class="ph ph-chart-bar"></i> Reports Hub
             </a>
+        {% endif %}
         
-        {% if request.user.role == 'admin' or request.user.is_superuser %}
+        {% if show_um_users or show_um_activity_logs %}
         <div class="nav-category">User Management</div>
+            {% if show_um_users %}
             <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
                 <i class="ph ph-users"></i> Users
             </a> 
+            {% endif %}
             
+            {% if show_um_activity_logs %}
             <a href="{% url 'activity_logs' %}" class="nav-item {% if '/activity-logs/' in request.path %}active{% endif %}">
                 <i class="ph ph-clock-counter-clockwise"></i> Activity Logs
             </a>
+            {% endif %}
         {% endif %}     
-        
 
+        {% if show_user_manual or show_settings %}
         <div class="nav-category">Settings</div>
-        <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
-            <i class="ph ph-book"></i> User Manual
-        </a>
-        <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path and '/manual/' not in request.path %}active{% endif %}">
-            <i class="ph ph-gear"></i> General Settings
-        </a>
+            {% if show_user_manual %}
+            <a href="{% url 'user_manual:hub' %}" class="nav-item {% if '/manual/' in request.path %}active{% endif %}">
+                <i class="ph ph-book"></i> User Manual
+            </a>
+            {% endif %}
+
+            {% if show_settings %}
+            <a href="{% url 'maintenance:maintenance_dashboard' %}" class="nav-item {% if 'settings' in request.path and '/manual/' not in request.path %}active{% endif %}">
+                <i class="ph ph-gear"></i> General Settings
+            </a>
+            {% endif %}
+        {% endif %}
+
         <form action="{% url 'security:logout' %}" method="POST" class="logout-form" onsubmit="confirmLogout(event, this)">
             {% csrf_token %}
             <button type="submit" class="nav-item btn-logout">
