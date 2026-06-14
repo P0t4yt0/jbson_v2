@@ -384,7 +384,10 @@
                                         grant_user_manual: {{ user.profile.has_user_manual_access|yesno:'true,false,false' }},
                                         can_edit_product: {{ user.profile.can_edit_product|yesno:'true,false,false' }},
                                         can_delete_product: {{ user.profile.can_delete_product|yesno:'true,false,false' }},
-                                        can_import_csv: {{ user.profile.can_import_csv|yesno:'true,false,false' }}
+                                        can_import_csv: {{ user.profile.can_import_csv|yesno:'true,false,false' }},
+                                        can_add_category: {{ user.profile.can_add_category|yesno:'true,false,false' }},
+                                        can_edit_category: {{ user.profile.can_edit_category|yesno:'true,false,false' }},
+                                        can_delete_category: {{ user.profile.can_delete_category|yesno:'true,false,false' }}
                                     }); return false;" class="table-action-btn btn-edit" title="Edit User Account">
                                         <i class="ph ph-pencil-simple"></i>
                                     </a>
@@ -620,6 +623,24 @@
                             <div class="checkbox-item">
                                 <input type="checkbox" name="can_import_csv" id="can_import_csv">
                                 <label for="can_import_csv">Import CSV Button</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="permission-section" style="grid-column: span 2;">
+                        <div class="section-header">Action-Level Access (Categories)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_add_category" id="can_add_category">
+                                <label for="can_add_category">Add Category</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_edit_category" id="can_edit_category">
+                                <label for="can_edit_category">Edit Category</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_delete_category" id="can_delete_category">
+                                <label for="can_delete_category">Delete Category</label>
                             </div>
                         </div>
                     </div>

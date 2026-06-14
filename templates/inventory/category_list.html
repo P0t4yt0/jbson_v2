@@ -193,9 +193,11 @@
             </p>
         </div>
         
+        {% if request.user.profile.can_add_category or request.user.is_superuser %}
         <button onclick="openAddModal()" class="page-btn-primary">
             <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Add Category
         </button>
+        {% endif %}
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -229,16 +231,20 @@
                     <div style="height: 24px; width: 1px; background: var(--border-color); margin: 0 8px;"></div>
 
                     <div class="action-group">
+                        {% if request.user.profile.can_edit_category or request.user.is_superuser %}
                         <button class="table-action-btn btn-edit" onclick="openEditModal('{{ category.id }}', '{{ category.name|escapejs }}')" title="Edit Category">
                             <i class="ph ph-pencil-simple"></i>
                         </button>
-
+                        {% endif %}
+                        
+                        {% if request.user.profile.can_delete_category or request.user.is_superuser %}
                         <form action="{% url 'inventory:delete_category' category.id %}" method="POST" onsubmit="confirmDelete(event, this, '{{ category.name|escapejs }}');" style="margin: 0;">                    
                             {% csrf_token %}
                             <button type="submit" class="table-action-btn btn-delete" title="Delete Category">
                                 <i class="ph ph-trash"></i>
                             </button>
                         </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>

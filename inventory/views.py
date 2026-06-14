@@ -421,6 +421,10 @@ def auto_calibrate_rop(request):
 @login_required
 def category_list(request):
     if request.method == 'POST':
+        if not request.user.is_superuser and not request.user.profile.can_add_category:
+            messages.error(request, "You do not have authorization to add a category.")
+            return redirect('inventory:category_list')
+        
         new_name = request.POST.get('name')
         new_prefix = request.POST.get('prefix')
         
@@ -446,6 +450,10 @@ def category_list(request):
 @login_required
 def edit_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
+    if not request.user.is_superuser and not request.user.profile.can_edit_category:
+        messages.error(request, "You do not have authorization to edit this category.")
+        return redirect('inventory:category_list')
+
     if request.method == 'POST':
         new_name = request.POST.get('name')
         if new_name:
@@ -464,6 +472,10 @@ def edit_category(request, pk):
 @login_required
 def delete_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
+    if not request.user.is_superuser and not request.user.profile.can_delete_category:
+        messages.error(request, "You do not have authorization to delete this category.")
+        return redirect('inventory:category_list')
+
     try:
         cat_name = category.name
         category.delete()

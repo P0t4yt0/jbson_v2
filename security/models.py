@@ -173,6 +173,10 @@ class EmployeeProfile(models.Model):
     can_delete_product = models.BooleanField(default=False)
     can_import_csv = models.BooleanField(default=False)
 
+    can_add_category = models.BooleanField(default=False)
+    can_edit_category = models.BooleanField(default=False)
+    can_delete_category = models.BooleanField(default=False)
+
     
     class Meta:
         db_table = "security_employee_profile"

@@ -591,6 +591,10 @@ def edit_user_view(request):
         profile.can_edit_product = request.POST.get('can_edit_product') == 'on'
         profile.can_delete_product = request.POST.get('can_delete_product') == 'on'
         profile.can_import_csv = request.POST.get('can_import_csv') == 'on'
+
+        profile.can_add_category = request.POST.get('can_add_category') == 'on'
+        profile.can_edit_category = request.POST.get('can_edit_category') == 'on'
+        profile.can_delete_category = request.POST.get('can_delete_category') == 'on'
             
         profile.save()
         # ==========================================
