@@ -610,6 +610,15 @@ def edit_user_view(request):
         profile.save()
         # ==========================================
 
+        Notification.objects.create(
+            user=profile.user, 
+            notification_type='info', 
+            priority='medium',
+            title='Temporary Access Granted',
+            message='Admin has granted you new system access. Please note that this access is valid for 1 hour only.',
+            action_url='javascript:window.location.reload();' 
+        )
+
         log_system_activity(
             user=request.user,
             action='EDIT USER',
