@@ -604,6 +604,8 @@ def edit_user_view(request):
         profile.can_edit_supplier = request.POST.get('can_edit_supplier') == 'on'
         profile.can_archive_supplier = request.POST.get('can_archive_supplier') == 'on'
         profile.can_restore_supplier = request.POST.get('can_restore_supplier') == 'on'
+
+        profile.can_add_product = request.POST.get('can_add_product') == 'on'
             
         profile.save()
         # ==========================================

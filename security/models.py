@@ -185,6 +185,7 @@ class EmployeeProfile(models.Model):
     can_edit_supplier = models.BooleanField(default=False)
     can_archive_supplier = models.BooleanField(default=False)
     can_restore_supplier = models.BooleanField(default=False)
+    can_add_product = models.BooleanField(default=False)
 
     
     class Meta:

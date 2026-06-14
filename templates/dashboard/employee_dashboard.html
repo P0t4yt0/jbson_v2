@@ -355,12 +355,14 @@
             </script>
 
             <div class="header-actions">
+                {% if request.user.profile.can_add_product or request.user.is_superuser %}
                 <a href="#" class="btn btn-primary" onclick="openCreateProduct(event)">
                     <i class="ph ph-plus-circle"></i> Add Product
                 </a>
+                {% endif %}
                 
                 <a href="{% url 'pos:pos_index' %}" class="btn btn-secondary" style="text-decoration: none;">
-                    <i class="ph ph-desktop"></i> POS
+                    <i class="ph ph-desktop"></i> Checkout
                 </a>
 
                 <div style="position: relative;">

@@ -394,7 +394,8 @@
                                         can_add_supplier: {{ user.profile.can_add_supplier|yesno:'true,false,false' }},
                                         can_edit_supplier: {{ user.profile.can_edit_supplier|yesno:'true,false,false' }},
                                         can_archive_supplier: {{ user.profile.can_archive_supplier|yesno:'true,false,false' }},
-                                        can_restore_supplier: {{ user.profile.can_restore_supplier|yesno:'true,false,false' }}
+                                        can_restore_supplier: {{ user.profile.can_restore_supplier|yesno:'true,false,false' }},
+                                        can_add_product: {{ user.profile.can_add_product|yesno:'true,false,false' }},
                                     }); return false;" class="table-action-btn btn-edit" title="Edit User Account">
                                         <i class="ph ph-pencil-simple"></i>
                                     </a>
@@ -594,22 +595,10 @@
                 <p style="font-size: 12px; color: var(--text-secondary); margin-top: -8px; margin-bottom: 16px;">Check the specific modules you want to grant temporary access to this employee.</p>
 
                 <div class="permissions-grid">
-                    
-                    <div class="permission-section">
-                        <div class="section-header">Dashboard</div>
-                        <div class="checkbox-item"><input type="checkbox" name="grant_dashboard" id="grant_dashboard"><label for="grant_dashboard">Main Dashboard</label></div>
-                    </div>
-
-                    <div class="permission-section">
-                        <div class="section-header">Reports</div>
-                        <div class="checkbox-item"><input type="checkbox" name="grant_reports" id="grant_reports"><label for="grant_reports">Reports Hub</label></div>
-                    </div>
 
                     <div class="permission-section" style="grid-column: span 2;">
                         <div class="section-header">Inventory Management</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <div class="checkbox-item"><input type="checkbox" name="grant_inv_products" id="grant_inv_products"><label for="grant_inv_products">Products</label></div>
-                            <div class="checkbox-item"><input type="checkbox" name="grant_inv_categories" id="grant_inv_categories"><label for="grant_inv_categories">Categories</label></div>
                             <div class="checkbox-item"><input type="checkbox" name="grant_inv_po" id="grant_inv_po"><label for="grant_inv_po">Purchase Orders</label></div>
                             <div class="checkbox-item"><input type="checkbox" name="grant_inv_barcode" id="grant_inv_barcode"><label for="grant_inv_barcode">Generate Barcode</label></div>
                         </div>
@@ -617,8 +606,12 @@
                     </div>
 
                     <div class="permission-section" style="grid-column: span 2;">
-                        <div class="section-header">Action-Level Access (Products)</div>
+                        <div class="section-header">Advanced Product Settings</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_add_product" id="can_add_product">
+                                <label for="can_add_product">Add Product Button</label>
+                            </div>
                             <div class="checkbox-item">
                                 <input type="checkbox" name="can_edit_product" id="can_edit_product">
                                 <label for="can_edit_product">Edit Product Button</label>
@@ -635,7 +628,7 @@
                     </div>
 
                     <div class="permission-section" style="grid-column: span 2;">
-                        <div class="section-header">Action-Level Access (Categories)</div>
+                        <div class="section-header">Advanced Category Settings</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                             <div class="checkbox-item">
                                 <input type="checkbox" name="can_add_category" id="can_add_category">
@@ -652,8 +645,22 @@
                         </div>
                     </div>
 
+                    
+
                     <div class="permission-section" style="grid-column: span 2;">
-                        <div class="section-header">Action-Level Access (Trade Credit)</div>
+                        <div class="section-header">Sales & Transactions</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_sales" id="grant_sales_sales"><label for="grant_sales_sales">Sales Record</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_invoices" id="grant_sales_invoices"><label for="grant_sales_invoices">Invoices</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_return" id="grant_sales_return"><label for="grant_sales_return">Sales Return</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_trade_credit" id="grant_sales_trade_credit"><label for="grant_sales_trade_credit">Trade Credit</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_quotations" id="grant_sales_quotations"><label for="grant_sales_quotations">Quotations</label></div>
+                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_suppliers" id="grant_sales_suppliers"><label for="grant_sales_suppliers">Suppliers</label></div>
+                        </div>
+                    </div>
+
+                    <div class="permission-section" style="grid-column: span 2;">
+                        <div class="section-header">Advanced Trade Credit Settings</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                             <div class="checkbox-item">
                                 <input type="checkbox" name="can_add_customer" id="can_add_customer">
@@ -671,7 +678,7 @@
                     </div>
 
                     <div class="permission-section" style="grid-column: span 2;">
-                        <div class="section-header">Action-Level Access (Suppliers)</div>
+                        <div class="section-header">Advanced Supplier Settings</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                             <div class="checkbox-item">
                                 <input type="checkbox" name="can_add_supplier" id="can_add_supplier">
@@ -693,21 +700,12 @@
                     </div>
 
                     <div class="permission-section" style="grid-column: span 2;">
-                        <div class="section-header">Sales & Transactions</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_checkout" id="grant_sales_checkout"><label for="grant_sales_checkout">Checkout</label></div>
-                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_sales" id="grant_sales_sales"><label for="grant_sales_sales">Sales Record</label></div>
-                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_invoices" id="grant_sales_invoices"><label for="grant_sales_invoices">Invoices</label></div>
-                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_return" id="grant_sales_return"><label for="grant_sales_return">Sales Return</label></div>
-                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_trade_credit" id="grant_sales_trade_credit"><label for="grant_sales_trade_credit">Trade Credit</label></div>
-                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_quotations" id="grant_sales_quotations"><label for="grant_sales_quotations">Quotations</label></div>
-                            <div class="checkbox-item"><input type="checkbox" name="grant_sales_suppliers" id="grant_sales_suppliers"><label for="grant_sales_suppliers">Suppliers</label></div>
-                        </div>
+                        <div class="section-header">Reports</div>
+                        <div class="checkbox-item"><input type="checkbox" name="grant_reports" id="grant_reports"><label for="grant_reports">Reports Hub</label></div>
                     </div>
 
                     <div class="permission-section">
                         <div class="section-header">Users</div>
-                        <div class="checkbox-item"><input type="checkbox" name="grant_um_users" id="grant_um_users"><label for="grant_um_users">User Accounts</label></div>
                         <div class="checkbox-item"><input type="checkbox" name="grant_um_activity_logs" id="grant_um_activity_logs"><label for="grant_um_activity_logs">Activity Logs</label></div>
                     </div>
 

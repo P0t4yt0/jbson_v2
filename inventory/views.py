@@ -39,6 +39,7 @@ def is_admin_check(user):
 
 @login_required        
 def inventory_list(request):
+    
     search_query = request.GET.get('search', '').strip()
     category_id = request.GET.get('category', '')
     low_stock = request.GET.get('low_stock', '')

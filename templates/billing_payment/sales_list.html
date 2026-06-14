@@ -285,9 +285,11 @@
                                 
                             {% elif txn.status == 'credit' %}
                                 {% if txn.customer %}
+                                    {% if request.user.profile.can_receive_payment or request.user.is_superuser %}
                                     <a href="{% url 'billing:customer_ledger' pk=txn.customer.id %}" class="table-action-btn btn-settle" title="Settle Invoice">
                                         <i class="ph ph-hand-coins"></i>
                                     </a>
+                                    {% endif %}
                                 {% else %}
                                     <span class="table-action-btn disabled" title="No Customer Assigned">
                                         <i class="ph ph-hand-coins"></i>
