@@ -564,6 +564,14 @@ def edit_supplier(request, supplier_id):
             messages.error(request, "You do not have the authorization to edit supplier.")
             return redirect('inventory:supplier_list')
 
+        supplier.name = request.POST.get('name')
+        supplier.contact_name = request.POST.get('contact_name')
+        supplier.phone = request.POST.get('phone')
+        supplier.email = request.POST.get('email')
+        supplier.address = request.POST.get('address')
+        supplier.default_lead_time_days = request.POST.get('default_lead_time_days', supplier.default_lead_time_days)
+        supplier.max_lead_time_days = request.POST.get('max_lead_time_days', supplier.max_lead_time_days)
+
         supplier.save()
         
         for product in InventoryItem.objects.filter(supplier=supplier):
@@ -1203,6 +1211,14 @@ def employee_dashboard_view(request):
     donut_labels = [p['inventory_item__item_name'] for p in top_products_qs]
     donut_data = [float(p['total_sold']) for p in top_products_qs]
 
+    time_window = today + timedelta(days=30) 
+    expiring_batches = ProductBatch.objects.filter(
+        expiry_date__isnull=False,       
+        expiry_date__gte=today,          
+        expiry_date__lte=time_window,    
+        quantity_on_hand__gt=0           
+    ).order_by('expiry_date')[:6]
+
     metrics = {
         'low_stock_count': low_stock_count,
         'todays_transactions': todays_transactions,
@@ -1217,6 +1233,7 @@ def employee_dashboard_view(request):
         'top_products': top_products_qs,
         'donut_labels': json.dumps(donut_labels),
         'donut_data': json.dumps(donut_data),
+        'expiring_batches': expiring_batches,
     }
 
     return render(request, 'dashboard/employee_dashboard.html', context)

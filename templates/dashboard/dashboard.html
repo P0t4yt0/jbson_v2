@@ -1199,6 +1199,9 @@
             // Financial Chart
             const finCtx = document.getElementById('financialChart');
             if (finCtx) {
+                const rawProfitData = {{ chart_profit_data|safe }};
+                const displayProfitData = rawProfitData.map(val => val < 0 ? 0 : val);
+
                 new Chart(finCtx, {
                     type: 'bar',
                     data: {
@@ -1207,7 +1210,7 @@
                             {
                                 type: 'line',
                                 label: 'Net Profit',
-                                data: {{ chart_profit_data|safe }},
+                                data: displayProfitData, 
                                 borderColor: frenchBlue,
                                 backgroundColor: frenchBlue,
                                 borderWidth: 3,
@@ -1238,17 +1241,28 @@
                         interaction: { mode: 'index', intersect: false },
                         plugins: {
                             legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12, weight: '500' } } },
-                            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.9)', padding: 12, bodyFont: { family: 'Inter' }, callbacks: { label: function(context) { return context.dataset.label + ': ₱' + context.raw.toLocaleString(); } } }
+                            tooltip: { 
+                                backgroundColor: 'rgba(30, 41, 59, 0.9)', 
+                                padding: 12, 
+                                bodyFont: { family: 'Inter' }, 
+                                callbacks: { 
+                                    label: function(context) { 
+                                        let val = context.raw;
+                                        if (context.dataset.label === 'Net Profit') {
+                                            val = rawProfitData[context.dataIndex]; 
+                                        }
+                                        return context.dataset.label + ': ₱' + val.toLocaleString(); 
+                                    } 
+                                } 
+                            }
                         },
                         scales: {
                             x: { grid: { display: false }, ticks: { font: { family: 'Inter', color: '#64748B' } } },
-                            y: { beginAtZero: true, grid: { color: '#F1F5F9', borderDash: [6, 4] }, ticks: { font: { family: 'Inter', color: '#64748B' }, callback: function(value) { return '₱' + value.toLocaleString(); } } }
+                            y: { min: 0, beginAtZero: true, grid: { color: '#F1F5F9', borderDash: [6, 4] }, ticks: { font: { family: 'Inter', color: '#64748B' }, callback: function(value) { return '₱' + value.toLocaleString(); } } }
                         }
                     }
                 });
             }
-
-            // Top Products Doughnut
             const donutCtx = document.getElementById('productDoughnut');
             if (donutCtx) {
                 const donutLabels = {{ donut_labels|safe }};
@@ -1281,22 +1295,19 @@
                 }
             }
 
-            // DITO NAGBAGO: CRITICAL STOCK JAVASCRIPT (DOUGHNUT WITH 0-VALUE TRICK)
             const lowStockCtx = document.getElementById('lowStockChart');
             if (lowStockCtx) {
                 const lowStockLabels = [];
                 const lowStockData = [];
-                const displayData = []; // Ito ang gagamitin natin pang-drawing
+                const displayData = []; 
                 
-                // Kumukuha ng data sa listahan
                 document.querySelectorAll('.low-stock-item').forEach(function(item) {
                     let name = item.getAttribute('data-name');
                     let qty = parseInt(item.getAttribute('data-qty'), 10);
                     
                     lowStockLabels.push(name);
-                    lowStockData.push(qty); // Yung totoong stock (e.g., 25, 0)
+                    lowStockData.push(qty); 
                     
-                    // TRICK: Kung 0 ang stock, gagawin nating 0.5 sa chart para lang may manipis na slice na ma-draw
                     displayData.push(qty === 0 ? 0.5 : qty); 
                 });
                 
@@ -1306,9 +1317,9 @@
                         data: {
                             labels: lowStockLabels,
                             datasets: [{
-                                data: displayData, // Ginamit natin yung may trick
+                                data: displayData, 
                                 backgroundColor: ['#EF4444', '#F97316', '#FACC15', '#F87171', '#FCA5A5'], 
-                                borderWidth: 1, // Nilagyan natin ng border para mas madaling makita yung maliliit na slice
+                                borderWidth: 1, 
                                 borderColor: '#ffffff',
                                 hoverOffset: 6
                             }]
@@ -1324,7 +1335,6 @@
                                     backgroundColor: 'rgba(30, 41, 59, 0.9)', 
                                     padding: 12,
                                     callbacks: {
-                                        // TRICK: Ibabalik natin yung totoong value (lowStockData) sa tooltip
                                         label: function(context) {
                                             let actualQty = lowStockData[context.dataIndex];
                                             return context.label + ': ' + actualQty + ' left';
