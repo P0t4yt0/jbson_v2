@@ -255,9 +255,11 @@
                 Manage the companies that supply your hardware inventory.
             </p>
         </div>
+        {% if request.user.profile.can_add_supplier or request.user.is_superuser %}
         <button onclick="document.getElementById('addSupplierModal').style.display='flex'" class="page-btn-primary">
             <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Add New Supplier
         </button>
+        {% endif %}
     </div>
 
     <div class="filter-container">
@@ -274,9 +276,12 @@
             </a>
             {% endif %}
 
+            {% if request.user.profile.can_archive_supplier or request.user.is_superuser %}
             <a href="{% url 'inventory:archived_supplier_list' %}" style="margin-left: auto; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; background: #fff1f2; color: var(--status-red); padding: 12px 20px; border: 1px solid #fecdd3; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: var(--font-main); transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#ffe4e6'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#fff1f2'; this.style.transform='translateY(0)';">
                 <i class="ph ph-archive" style="font-size: 18px;"></i> View Archived
             </a>
+            {% endif %}
+            
         </form>
     </div>
 
@@ -308,15 +313,19 @@
                                 <i class="ph ph-eye"></i>
                             </a>
 
+                            {% if request.user.profile.can_edit_supplier or request.user.is_superuser %}
                             <button type="button" onclick="document.getElementById('editSupplierModal-{{ supplier.id }}').style.display='flex'" class="table-action-btn btn-edit" title="Edit Profile">
                                 <i class="ph ph-pencil"></i>
                             </button>
+                            {% endif %}
 
                             <form method="POST" action="{% url 'inventory:delete_supplier' supplier.id %}" class="archive-form" style="margin: 0;">
                                 {% csrf_token %}
+                                {% if request.user.profile.can_archive_supplier or request.user.is_superuser %}
                                 <button type="button" class="table-action-btn btn-archive archive-btn" data-name="{{ supplier.name|escapejs }}" title="Archive Supplier">
                                     <i class="ph ph-archive"></i>
                                 </button>
+                                {% endif %}
                             </form>
                         </div>
                     </td>

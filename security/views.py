@@ -599,6 +599,11 @@ def edit_user_view(request):
         profile.can_add_customer = request.POST.get('can_add_customer') == 'on'
         profile.can_view_ledger = request.POST.get('can_view_ledger') == 'on'
         profile.can_receive_payment = request.POST.get('can_receive_payment') == 'on'
+
+        profile.can_add_supplier = request.POST.get('can_add_supplier') == 'on'
+        profile.can_edit_supplier = request.POST.get('can_edit_supplier') == 'on'
+        profile.can_archive_supplier = request.POST.get('can_archive_supplier') == 'on'
+        profile.can_restore_supplier = request.POST.get('can_restore_supplier') == 'on'
             
         profile.save()
         # ==========================================

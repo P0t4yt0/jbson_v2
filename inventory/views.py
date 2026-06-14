@@ -493,6 +493,10 @@ def delete_category(request, pk):
 @login_required
 def supplier_list(request):
     if request.method == 'POST':
+        if not request.user.is_superuser and not request.user.profile.can_add_supplier:
+            messages.error(request, "You do not have the authorization to add supplier.")
+            return redirect('inventory:supplier_list')
+        
         name = request.POST.get('name')
         contact_name = request.POST.get('contact_name')
         phone = request.POST.get('phone')
@@ -555,6 +559,10 @@ def edit_supplier(request, supplier_id):
     supplier = get_object_or_404(Supplier, id=supplier_id)
     
     if request.method == 'POST':
+        if not request.user.is_superuser and not request.user.profile.can_edit_supplier:
+            messages.error(request, "You do not have the authorization to edit supplier.")
+            return redirect('inventory:supplier_list')
+
         supplier.save()
         
         for product in InventoryItem.objects.filter(supplier=supplier):
@@ -590,6 +598,10 @@ def delete_supplier(request, supplier_id):
 
 @login_required
 def archived_supplier_list(request):
+    if not request.user.is_superuser and not request.user.profile.can_archive_supplier:
+        messages.error(request, "You do not have the authorization to archive supplier.")
+        return redirect('inventory:supplier_list')
+    
     search_query = request.GET.get('search', '').strip()
     per_page = request.GET.get('per_page', 10)
 
@@ -621,6 +633,10 @@ def archived_supplier_list(request):
 @login_required
 def unarchive_supplier(request, supplier_id):
     if request.method == 'POST':
+        if not request.user.is_superuser and not request.user.profile.can_restore_supplier:
+            messages.error(request, "You do not have the authorization to restore supplier.")
+            return redirect('inventory:archived_supplier_list')
+
         supplier = get_object_or_404(Supplier, id=supplier_id)
         supplier.is_active = True
         supplier.save()

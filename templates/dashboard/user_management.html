@@ -390,7 +390,11 @@
                                         can_delete_category: {{ user.profile.can_delete_category|yesno:'true,false,false' }},
                                         can_add_customer: {{ user.profile.can_add_customer|yesno:'true,false,false' }},
                                         can_view_ledger: {{ user.profile.can_view_ledger|yesno:'true,false,false' }},
-                                        can_receive_payment: {{ user.profile.can_receive_payment|yesno:'true,false,false' }}
+                                        can_receive_payment: {{ user.profile.can_receive_payment|yesno:'true,false,false' }},
+                                        can_add_supplier: {{ user.profile.can_add_supplier|yesno:'true,false,false' }},
+                                        can_edit_supplier: {{ user.profile.can_edit_supplier|yesno:'true,false,false' }},
+                                        can_archive_supplier: {{ user.profile.can_archive_supplier|yesno:'true,false,false' }},
+                                        can_restore_supplier: {{ user.profile.can_restore_supplier|yesno:'true,false,false' }}
                                     }); return false;" class="table-action-btn btn-edit" title="Edit User Account">
                                         <i class="ph ph-pencil-simple"></i>
                                     </a>
@@ -662,6 +666,28 @@
                             <div class="checkbox-item">
                                 <input type="checkbox" name="can_receive_payment" id="can_receive_payment">
                                 <label for="can_receive_payment">Receive Payment</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="permission-section" style="grid-column: span 2;">
+                        <div class="section-header">Action-Level Access (Suppliers)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_add_supplier" id="can_add_supplier">
+                                <label for="can_add_supplier">Add Supplier</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_edit_supplier" id="can_edit_supplier">
+                                <label for="can_edit_supplier">Edit Supplier</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_archive_supplier" id="can_archive_supplier">
+                                <label for="can_archive_supplier">Archive Supplier</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_restore_supplier" id="can_restore_supplier">
+                                <label for="can_restore_supplier">Restore Supplier</label>
                             </div>
                         </div>
                     </div>

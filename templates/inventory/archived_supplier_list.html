@@ -239,9 +239,11 @@
                     <td>
                         <form method="POST" action="{% url 'inventory:unarchive_supplier' supplier.id %}" class="restore-form" style="margin: 0;">
                             {% csrf_token %}
+                            {% if request.user.profile.can_restore_supplier or request.user.is_superuser %}
                             <button type="button" class="table-action-btn btn-restore restore-btn" data-name="{{ supplier.name|escapejs }}" title="Restore Supplier">
                                 <i class="ph ph-arrow-counter-clockwise"></i>
                             </button>
+                            {% endif %}
                         </form>
                     </td>
                 </tr>
