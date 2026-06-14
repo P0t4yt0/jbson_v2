@@ -1002,8 +1002,33 @@ def fetch_barcode_batch(request, batch_id):
 def admin_dashboard_view(request):
     if getattr(request.user, "role", "employee") != "admin":
         return redirect('employee_dashboard')
-    today = timezone.now().date()
     
+    today = timezone.now().date()
+
+    expired_batches = ProductBatch.objects.filter(
+        expiry_date__isnull=False,
+        expiry_date__lte=today, 
+        quantity_on_hand__gt=0
+    )
+    for batch in expired_batches:
+        batch.quantity_on_hand = 0
+        batch.status = 'pulled_out'
+        batch.save()
+        log_system_activity(
+            user=request.user,
+            action='AUTO PULL OUT',
+            description=f"System automatically pulled out expired batch {batch.batch_code} ({batch.product.item_name})."
+        )
+
+
+    time_window = today + timedelta(days=30) 
+    expiring_batches = ProductBatch.objects.filter(
+        expiry_date__isnull=False,       
+        expiry_date__gte=today,          
+        expiry_date__lte=time_window,    
+        quantity_on_hand__gt=0           
+    ).order_by('expiry_date')[:6]
+
     date_filter = request.GET.get('filter', 'all_time')
     if date_filter == 'today': start_date = today
     elif date_filter == 'this_week': start_date = today - timedelta(days=today.weekday())
@@ -1100,6 +1125,7 @@ def admin_dashboard_view(request):
         'chart_profit_data': json.dumps(chart_profit_data),
         'donut_labels': json.dumps(donut_labels),
         'donut_data': json.dumps(donut_data),
+        'expiring_batches': expiring_batches,
     }
 
     return render(request, 'dashboard/dashboard.html', context)

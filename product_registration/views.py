@@ -40,7 +40,6 @@ def create_product(request, pk=None):
             supplier = Supplier.objects.filter(id=supplier_id).first()
 
         if item:
-            # UNIQUE CHECK FOR UPDATING: Exclude current item
             if InventoryItem.objects.filter(barcode_id=barcode_id).exclude(pk=item.pk).exists():
                 messages.error(request, f"Update failed: Barcode '{barcode_id}' is already used by another product.")
                 return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
@@ -63,7 +62,6 @@ def create_product(request, pk=None):
             item.max_lead_time_days = max_lead_time_days
             item.save() 
 
-            # I-SAVE SA BARCODE HISTORY
             today_str = timezone.now().strftime('%Y%m%d')
             manual_batch_id = f"MA{today_str}"
             
@@ -78,7 +76,7 @@ def create_product(request, pk=None):
             messages.success(request, f"Product '{item.item_name}' updated successfully.")
             
         else:
-            # UNIQUE CHECK FOR CREATING NEW ITEM
+
             if InventoryItem.objects.filter(barcode_id=barcode_id).exists():
                 messages.error(request, f"Cannot add product: Barcode '{barcode_id}' is already registered to an existing item.")
                 return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
@@ -87,7 +85,6 @@ def create_product(request, pk=None):
                 messages.error(request, f"Cannot add product: Product name '{item_name}' already exists.")
                 return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
 
-            # BULLETPROOF ID GENERATOR: Force clean prefix and find max number
             if category and category.prefix:
                 prefix = category.prefix.replace(" ", "").strip().upper()
             else:
@@ -104,8 +101,7 @@ def create_product(request, pk=None):
                         max_num = num
             
             new_product_id = f"{prefix}{str(max_num + 1).zfill(3)}"
-            
-            # STRICT FALLBACK: Verify the generated ID doesn't exist just to be 100% sure
+
             while InventoryItem.objects.filter(product_id=new_product_id).exists():
                 max_num += 1
                 new_product_id = f"{prefix}{str(max_num + 1).zfill(3)}"

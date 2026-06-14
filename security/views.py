@@ -333,6 +333,24 @@ def admin_dashboard(request):
     low_stock_items = InventoryItem.objects.filter(quantity__lte=F('reorder_point')).order_by('quantity')[:5]
 
     today = timezone.now().date()
+
+    expired_batches = ProductBatch.objects.filter(
+        expiry_date__isnull=False,
+        expiry_date__lte=today, 
+        quantity_on_hand__gt=0
+    )
+    
+    for batch in expired_batches:
+        batch.quantity_on_hand = 0
+        batch.status = 'pulled_out'
+        batch.save()
+
+        log_system_activity(
+            user=request.user,
+            action='AUTO PULL OUT',
+            description=f"System automatically pulled out expired batch {batch.batch_code} ({batch.product.item_name})."
+        )
+
     time_window = today + timedelta(days=30) 
 
     expiring_batches = ProductBatch.objects.filter(
@@ -356,7 +374,7 @@ def admin_dashboard(request):
     context = {
         'metrics': metrics,
         'low_stock_items': low_stock_items,
-        'expiring_batches': ProductBatch.objects.all()[:5],
+        'expiring_batches': expiring_batches, 
         'pending_resets': [], 
         'pending_reset_count': 0,
     }
