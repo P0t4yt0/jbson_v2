@@ -595,6 +595,10 @@ def edit_user_view(request):
         profile.can_add_category = request.POST.get('can_add_category') == 'on'
         profile.can_edit_category = request.POST.get('can_edit_category') == 'on'
         profile.can_delete_category = request.POST.get('can_delete_category') == 'on'
+
+        profile.can_add_customer = request.POST.get('can_add_customer') == 'on'
+        profile.can_view_ledger = request.POST.get('can_view_ledger') == 'on'
+        profile.can_receive_payment = request.POST.get('can_receive_payment') == 'on'
             
         profile.save()
         # ==========================================

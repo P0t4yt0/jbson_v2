@@ -177,6 +177,10 @@ class EmployeeProfile(models.Model):
     can_edit_category = models.BooleanField(default=False)
     can_delete_category = models.BooleanField(default=False)
 
+    can_add_customer = models.BooleanField(default=False)
+    can_view_ledger = models.BooleanField(default=False)
+    can_receive_payment = models.BooleanField(default=False)
+
     
     class Meta:
         db_table = "security_employee_profile"

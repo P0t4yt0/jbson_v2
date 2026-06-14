@@ -271,9 +271,11 @@
                     <td>
                         <div class="action-group">
                             {% if invoice.status != 'paid' %}
+                                {% if request.user.profile.can_receive_payment or request.user.is_superuser %}
                                 <button type="button" onclick="openPayModal('{{ invoice.id }}', '{{ invoice.invoice_no }}', '{{ invoice.balance_due }}')" class="table-action-btn btn-settle" title="Receive Payment">
                                     <i class="ph ph-hand-coins"></i>
                                 </button>
+                                {% endif %}
                             {% endif %}
 
                             {% if invoice.payments.all or invoice.invoicepayment_set.all %}

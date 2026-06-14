@@ -230,9 +230,11 @@
                 Manage contractor balances, limits, and terms.
             </p>
         </div>
+        {% if request.user.profile.can_add_customer or request.user.is_superuser %}
         <button onclick="document.getElementById('addCustomerModal').style.display='flex'" class="page-btn-primary">
             <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Add Customer
         </button>
+        {% endif %}
     </div>
     
     <div class="filter-container">
@@ -286,9 +288,11 @@
                     
                     <td>
                         <div class="action-group">
+                            {% if request.user.profile.can_view_ledger or request.user.is_superuser %}
                             <a href="{% url 'billing_payment:customer_ledger' customer.pk %}" class="table-action-btn btn-view" title="View Ledger">
-                                <i class="ph ph-eye"></i>
+                                <i class="ph ph-book-open"></i>
                             </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

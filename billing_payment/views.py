@@ -18,6 +18,10 @@ from django.contrib.auth.decorators import login_required
 def customer_list(request):
     # Handle Adding a New Customer
     if request.method == 'POST':
+        if not request.user.is_superuser and not request.user.profile.can_add_customer:
+            messages.error(request, "You do not have authorization to add a customer.")
+            return redirect('billing_payment:customer_list')
+        
         name = request.POST.get('name')
         phone = request.POST.get('phone')
         limit = request.POST.get('credit_limit')
@@ -75,6 +79,11 @@ def customer_list(request):
     
 @login_required         
 def customer_ledger(request, pk):
+
+    if not request.user.is_superuser and not request.user.profile.can_view_ledger:
+        messages.error(request, "You do not have authorization to view this ledger.")
+        return redirect('billing_payment:customer_list')
+    
     customer = get_object_or_404(Customer, pk=pk)
     
     invoices = customer.invoices.all().order_by('-issue_date', '-id')
@@ -111,6 +120,10 @@ def get_payment_history_json(request, invoice_id):
 @login_required
 def pay_invoice(request, invoice_id):
     if request.method == 'POST':
+        if not request.user.is_superuser and not request.user.profile.can_receive_payment:
+            messages.error(request, "You do not have authorization to receive payments.")
+            return redirect('billing_payment:customer_list')
+        
         invoice = get_object_or_404(Invoice, id=invoice_id)
         
         try:

@@ -387,7 +387,10 @@
                                         can_import_csv: {{ user.profile.can_import_csv|yesno:'true,false,false' }},
                                         can_add_category: {{ user.profile.can_add_category|yesno:'true,false,false' }},
                                         can_edit_category: {{ user.profile.can_edit_category|yesno:'true,false,false' }},
-                                        can_delete_category: {{ user.profile.can_delete_category|yesno:'true,false,false' }}
+                                        can_delete_category: {{ user.profile.can_delete_category|yesno:'true,false,false' }},
+                                        can_add_customer: {{ user.profile.can_add_customer|yesno:'true,false,false' }},
+                                        can_view_ledger: {{ user.profile.can_view_ledger|yesno:'true,false,false' }},
+                                        can_receive_payment: {{ user.profile.can_receive_payment|yesno:'true,false,false' }}
                                     }); return false;" class="table-action-btn btn-edit" title="Edit User Account">
                                         <i class="ph ph-pencil-simple"></i>
                                     </a>
@@ -641,6 +644,24 @@
                             <div class="checkbox-item">
                                 <input type="checkbox" name="can_delete_category" id="can_delete_category">
                                 <label for="can_delete_category">Delete Category</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="permission-section" style="grid-column: span 2;">
+                        <div class="section-header">Action-Level Access (Trade Credit)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_add_customer" id="can_add_customer">
+                                <label for="can_add_customer">Add Customer</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_view_ledger" id="can_view_ledger">
+                                <label for="can_view_ledger">View Ledger</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="can_receive_payment" id="can_receive_payment">
+                                <label for="can_receive_payment">Receive Payment</label>
                             </div>
                         </div>
                     </div>
