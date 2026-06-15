@@ -16,7 +16,6 @@ def employee_sidebar_access(request):
         
     user_role = getattr(request.user, 'role', '').lower()
 
-    # Kung admin ang naka-login, automatic True lahat ng access
     if user_role == 'admin' or request.user.is_superuser:
         return {
             'show_dashboard': True,
@@ -24,7 +23,9 @@ def employee_sidebar_access(request):
             'show_inv_categories': True,
             'show_inv_po': True,
             'show_inv_barcode': True,
-            'show_sales_checkout': True,
+            
+            'show_sales_checkout': False, 
+            
             'show_sales_sales': True,
             'show_sales_invoices': True,
             'show_sales_return': True,
@@ -38,11 +39,10 @@ def employee_sidebar_access(request):
             'show_user_manual': True,
         }
         
-    # Kung employee, naka-hardcode as TRUE ang mga DEFAULTS!
     if user_role == 'employee':
         profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
         return {
-            # --- DEFAULT MENUS (Laging True) ---
+            # --- DEFAULT MENUS ---
             'show_dashboard': True,
             'show_inv_products': True,
             'show_inv_categories': True,

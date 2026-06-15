@@ -110,9 +110,11 @@
                                 <i class="ph ph-printer"></i>
                             </a>
                             
+                            {% if request.user.role.lower != 'admin' and not request.user.is_superuser %}
                             <button type="button" onclick="confirmLoad('{% url 'point_of_sale:load_quotation' quote.id %}', '{{ quote.transaction_ref }}')" class="table-action-btn btn-load" title="Load to POS">
                                 <i class="ph ph-shopping-cart"></i>
                             </button>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

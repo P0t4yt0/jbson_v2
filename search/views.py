@@ -36,23 +36,24 @@ def global_search_api(request):
                 except NoReverseMatch:
                     pass
 
-        # ==========================================
+# ==========================================
         # DEFAULT SHORTCUTS (Laging True sa Employee)
         # ==========================================
         
-        # DYNAMIC DASHBOARD URL FIX
         dashboard_target = "admin_dashboard" if is_admin else "employee_dashboard"
         add_shortcut("Dashboard", dashboard_target, "Main", True) 
         
         add_shortcut("Products", "inventory:inventory_list", "Inventory", True)
         add_shortcut("Categories", "inventory:category_list", "Inventory", True)
-        add_shortcut("Checkout", "pos:pos_index", "Sales", True)
+        
+        if not is_admin:
+            add_shortcut("Checkout", "pos:pos_index", "Sales", True)
+        
         add_shortcut("Sales Record", "billing:sales_list", "Sales", True)
         add_shortcut("Sales Return", "billing:sales_return_list", "Sales", True)
         add_shortcut("Quotations", "pos:quotation_list", "Sales", True)
 
         
-        # User Manual ay default na rin!
         add_shortcut("User Manual Hub", "user_manual:hub", "Help & Guides", True)
         add_shortcut("Dashboard Guide", "user_manual:dashboard", "Help & Guides", True)
         add_shortcut("Inventory Guide", "user_manual:inventory", "Help & Guides", True)

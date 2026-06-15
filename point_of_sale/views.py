@@ -16,9 +16,13 @@ from billing_payment.models import Customer, Invoice, InvoiceItem, Payment
 from inventory.models import Category, InventoryItem
 from notifications.models import Notification
 from .models import Transaction, TransactionItem
+from django.http import HttpResponseForbidden
 
 @login_required
 def pos_view(request):
+    if getattr(request.user, 'role', '').lower() == 'admin' or request.user.is_superuser:
+        return HttpResponseForbidden("Security Alert: Administrators are not allowed to access the Checkout module to prevent internal fraud.")
+    
     products = InventoryItem.objects.all()
     categories = Category.objects.all()
     credit_customers = Customer.objects.filter(is_credit_customer=True, credit_status='active')
@@ -462,6 +466,8 @@ def save_as_quotation(request, transaction_id):
 
 @login_required
 def load_quotation_to_pos(request, transaction_id):
+    if getattr(request.user, 'role', '').lower() == 'admin' or request.user.is_superuser:
+        return HttpResponseForbidden("Security Alert: Administrators cannot convert quotations into active checkout transactions.")
     transaction = get_object_or_404(Transaction, id=transaction_id, status='quotation')
     transaction.status = 'open'
     transaction.save()
