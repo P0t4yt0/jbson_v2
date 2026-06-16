@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from decimal import Decimal
 import uuid
+from django.core.exceptions import ValidationError
 
 from .models import Customer, Invoice, InvoicePayment, SalesReturn, SalesReturnItem
 from point_of_sale.models import Transaction
@@ -77,7 +78,7 @@ def customer_list(request):
         'per_page': per_page,
     })
     
-@login_required         
+@login_required        
 def customer_ledger(request, pk):
 
     if not request.user.is_superuser and not request.user.profile.can_view_ledger:
@@ -206,7 +207,7 @@ def transaction_details(request, txn_id):
     }
     return render(request, 'billing_payment/transaction_details.html', context)
 
-@login_required         
+@login_required        
 
 def get_sale_details_api(request, txn_id):
     try:
@@ -347,7 +348,7 @@ def invoice_items_json(request, invoice_id):
         'due_date': invoice.due_date.strftime("%B %d, %Y") if invoice.due_date else "N/A",
         'items_subtotal': str(items_subtotal),
         'interest_amount': str(invoice.interest_amount),  
-        'grand_total': str(invoice.total_amount),         
+        'grand_total': str(invoice.total_amount),        
         'items': items_data
     }
     return JsonResponse(data)
@@ -392,7 +393,7 @@ def sales_return_list(request):
     }
     return render(request, 'billing_payment/sales_return_list.html', context)
 
-@login_required         
+@login_required        
 def process_return(request):
     if request.method == 'POST':
         txn_ref = request.POST.get('transaction_ref')
@@ -403,47 +404,59 @@ def process_return(request):
         txn = get_object_or_404(Transaction, transaction_ref=txn_ref)
         return_id = f"RET-{uuid.uuid4().hex[:6].upper()}"
 
-        sales_return = SalesReturn.objects.create(
-            transaction=txn,
-            return_id=return_id,
-            reason=reasons[0] if reasons else "Multiple Items",
-            total_refund=0 
-        )
-
-        running_total = 0 
-
-        for i, prod_id in enumerate(product_ids):
-            qty = int(return_qtys[i])
-            if qty > 0:
-                product = InventoryItem.objects.get(id=prod_id)
-                item_in_txn = txn.sold_items.get(inventory_item=product)
-                
-                line_total = item_in_txn.unit_price * qty
-                running_total += line_total 
-
-                SalesReturnItem.objects.create(
-                    sales_return=sales_return,
-                    product=product,
-                    quantity=qty,
-                    subtotal=line_total
+        try:
+            with transaction.atomic():
+                sales_return = SalesReturn.objects.create(
+                    transaction=txn,
+                    return_id=return_id,
+                    reason=reasons[0] if reasons else "Multiple Items",
+                    total_refund=0 
                 )
 
-                product.quantity += qty
-                product.save()
+                running_total = Decimal('0.00')
 
-        sales_return.total_refund = running_total
-        sales_return.save()
+                for i, prod_id in enumerate(product_ids):
+                    qty = int(return_qtys[i])
+                    if qty > 0:
+                        product = InventoryItem.objects.get(id=prod_id)
+                        item_in_txn = txn.sold_items.get(inventory_item=product)
+                        
+                        line_total = item_in_txn.unit_price * qty
+                        running_total += line_total 
 
-        log_system_activity(
-            user=request.user,
-            action="SALES RETURN",
-            description=f"Processed return {return_id} for Transaction {txn_ref}. Refund: ₱{running_total}"
-        )
-        
-        messages.success(request, f"Return {return_id} processed! Refund Amount: ₱{running_total}")
-        return redirect('billing_payment:sales_return_list')
+                        return_item = SalesReturnItem(
+                            sales_return=sales_return,
+                            transaction_item=item_in_txn,
+                            quantity=qty,
+                            subtotal=line_total
+                        )
 
-@login_required         
+                        return_item.full_clean()
+                        return_item.save()
+
+                sales_return.total_refund = running_total
+                sales_return.save()
+
+                log_system_activity(
+                    user=request.user,
+                    action="SALES RETURN",
+                    description=f"Processed return {return_id} for Transaction {txn_ref}. Refund: ₱{running_total}"
+                )
+                
+                messages.success(request, f"Return {return_id} processed! Refund Amount: ₱{running_total}")
+                return redirect('billing_payment:sales_return_list')
+
+        except ValidationError as e:
+            error_msg = str(e.message if hasattr(e, 'message') else e.messages[0])
+            messages.error(request, error_msg)
+            return redirect('billing_payment:sales_return_list')
+        except Exception as e:
+            messages.error(request, f"A system error occurred: {str(e)}")
+            return redirect('billing_payment:sales_return_list')
+
+    return redirect('billing_payment:sales_return_list')
+
+@login_required        
 def verify_transaction(request):
     txn_ref = request.GET.get('txn_ref')
     try:
@@ -454,7 +467,7 @@ def verify_transaction(request):
             
             returned_qty = SalesReturnItem.objects.filter(
                 sales_return__transaction=txn,
-                product=sold_item.inventory_item
+                transaction_item=sold_item
             ).aggregate(Sum('quantity'))['quantity__sum'] or 0
 
             remaining_qty = sold_item.quantity - returned_qty

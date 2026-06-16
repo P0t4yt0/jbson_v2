@@ -150,7 +150,7 @@
     <div class="glass-panel" style="padding: 40px; margin-bottom: 30px;">
         <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
             <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
-                <form id="barcodeForm" method="POST" style="text-align: left; width: 100%;">
+                <form id="barcodeForm" method="POST" action="{% url 'inventory:generate_barcode_page' %}" style="text-align: left; width: 100%;">
                     {% csrf_token %}
                     <div style="margin-bottom: 24px;">
                         <label style="font-weight: 700; font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 8px;">Product Name <span style="color: var(--amber-flame);">*</span></label>
@@ -178,7 +178,7 @@
                         </p>
                         
                         <div style="background: white; display: inline-block; padding: 25px 35px; border-radius: 12px; border: 1px dashed var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
-                            <p style="font-weight: 700; font-size: 14px; margin: 0 0 10px 0; color: black; font-family: 'Inter', sans-serif;">{{ product_name }}</p>
+                            <p style="font-weight: 700; font-size: 14px; margin: 0 0 10px 0; color: black; font-family: 'Inter', sans-serif; word-wrap: break-word; max-width: 250px;">{{ product_name }}</p>
                             <svg id="barcode-canvas"></svg>
                         </div>
                         
@@ -311,7 +311,7 @@
 </div>
 
 <div id="single-print-area">
-    <p id="single-print-name" style="font-weight: 700; font-size: 14px; margin: 0 0 5px 0; color: black; font-family: 'Inter', sans-serif; text-align: center;"></p>
+    <p id="single-print-name" style="font-weight: 700; font-size: 13px; margin: 0 0 5px 0; color: black; font-family: 'Inter', sans-serif; text-align: center; word-wrap: break-word; max-width: 100%; padding: 0 10px; line-height: 1.2;"></p>
     <svg id="single-barcode-canvas"></svg>
 </div>
 
@@ -359,17 +359,11 @@
         
         if (!barcodeId) return;
 
-        document.getElementById('single-print-name').innerText = prodName.length > 30 ? prodName.substring(0, 30) + '...' : prodName;
+        document.getElementById('single-print-name').innerText = prodName;
         
-        try {
-            JsBarcode("#single-barcode-canvas", barcodeId, {
-                format: "EAN13", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
-            });
-        } catch(e) {
-            JsBarcode("#single-barcode-canvas", barcodeId, {
-                format: "CODE128", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
-            });
-        }
+        JsBarcode("#single-barcode-canvas", barcodeId, {
+            format: "EAN13", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
+        });
 
         document.body.classList.remove('print-mode-bulk');
         document.body.classList.add('print-mode-single');
@@ -412,17 +406,11 @@
     }
 
     function reprintHistoryBarcode(barcodeId, productName) {
-        document.getElementById('single-print-name').innerText = productName.length > 30 ? productName.substring(0, 30) + '...' : productName;
+        document.getElementById('single-print-name').innerText = productName;
         
-        try {
-            JsBarcode("#single-barcode-canvas", barcodeId, {
-                format: "EAN13", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
-            });
-        } catch(e) {
-            JsBarcode("#single-barcode-canvas", barcodeId, {
-                format: "CODE128", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
-            });
-        }
+        JsBarcode("#single-barcode-canvas", barcodeId, {
+            format: "EAN13", width: 2, height: 60, displayValue: true, fontSize: 18, margin: 5, textMargin: 6, font: "Inconsolata"
+        });
 
         document.body.classList.remove('print-mode-bulk');
         document.body.classList.add('print-mode-single');
@@ -434,15 +422,54 @@
     }
 
     function viewBarcodeModal(barcodeId, productName) {
-        Swal.fire({
-            title: `<span style="color: var(--french-blue); font-family: var(--font-heading); font-weight: 800;">${productName}</span>`,
-            html: `<div style="padding: 20px; background: white; border-radius: 12px; display: inline-block; margin-top: 10px; border: 1px solid rgba(203, 213, 225, 0.8);"><svg id="swal-barcode"></svg></div>`,
-            showCloseButton: true, showConfirmButton: false, width: '450px',
-            didOpen: () => {
-                JsBarcode("#swal-barcode", barcodeId, { format: "EAN13", width: 2, height: 80, displayValue: true, fontSize: 20, margin: 10, textMargin: 8, font: "Inconsolata" });
-            }
-        });
-    }
+    // Nililinis natin yung product name para hindi mag-break ang HTML string lalo na kung may apostrophes (e.g., "Men's Tools")
+    const safeProductName = productName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+    Swal.fire({
+        html: `
+            <div style="text-align: center; font-family: 'Inter', sans-serif; padding-top: 10px;">
+                
+                <h3 style="margin: 0 0 6px 0; color: #1E293B; font-size: 20px; font-weight: 700; line-height: 1.2; word-wrap: break-word; padding: 0 10px;">
+                    ${productName}
+                </h3>
+                <p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 24px 0; letter-spacing: 1.5px;">BARCODE PREVIEW</p>
+
+                <div style="background: #FFFFFF; padding: 25px 32px; border-radius: 16px; border: 2px dashed #C7D2FE; box-shadow: 0 10px 25px -5px rgba(47, 63, 123, 0.08); display: inline-block;">
+                    <svg id="swal-barcode" style="max-width: 100%; height: auto;"></svg>
+                </div>
+
+                <div style="margin-top: 28px;">
+                    <button onclick="Swal.close(); printSingleBarcode('${barcodeId}', '${safeProductName}')" 
+                            style="background: #2F3F7B; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(47, 63, 123, 0.2); transition: all 0.2s ease;" 
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#212C59';" 
+                            onmouseout="this.style.transform='none'; this.style.background='#2F3F7B';">
+                        <i class="ph ph-printer" style="font-size: 18px;"></i> Print Label
+                    </button>
+                </div>
+            </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '480px',
+        background: '#F8FAFC',
+        padding: '24px',
+        didOpen: () => {
+            const svgNode = document.querySelector("#swal-barcode");
+            const safeBarcodeId = barcodeId.trim();
+
+                JsBarcode(svgNode, safeBarcodeId, { 
+                    format: "EAN13", 
+                    width: 2, 
+                    height: 65, 
+                    displayValue: true, 
+                    fontSize: 16, 
+                    margin: 0, 
+                    font: "Inconsolata",
+                    lineColor: "#0F172A"
+                });
+        }
+    });
+}
 
     function toggleSelectAll(source) {
         const isChecked = source.checked;
@@ -451,7 +478,7 @@
         if (isChecked) {
             if (allHistoryData && allHistoryData.length > 0) {
                 allHistoryData.forEach(item => {
-                    if(item.id) { // Protect against undefined
+                    if(item.id) { 
                         selectedItems.set(String(item.id), {
                             barcode_id: item.barcode_id,
                             product_name: item.product_name
@@ -551,9 +578,11 @@
             wrapper.className = 'bulk-print-item';
             
             const title = document.createElement('p');
-            title.style.fontWeight = '700'; title.style.fontSize = '14px'; title.style.margin = '0 0 5px 0';
+            // FIX: Nilagyan ng word-wrap at tinanggal ang limitation para pumasok nang buo
+            title.style.fontWeight = '700'; title.style.fontSize = '12px'; title.style.margin = '0 0 5px 0';
             title.style.color = 'black'; title.style.textAlign = 'center'; title.style.fontFamily = 'Inter, sans-serif';
-            title.innerText = productName.length > 30 ? productName.substring(0, 30) + '...' : productName;
+            title.style.wordWrap = 'break-word'; title.style.lineHeight = '1.2'; title.style.padding = '0 4px';
+            title.innerText = productName; 
             
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('id', `bulk-svg-${index}`);
@@ -569,15 +598,10 @@
 
         index = 0;
         selectedItems.forEach((data, id) => {
-            try {
-                JsBarcode(`#bulk-svg-${index}`, data.barcode_id, {
-                    format: "EAN13", width: 1.8, height: 55, displayValue: true, fontSize: 16, margin: 5, textMargin: 6, font: "Inconsolata"
-                });
-            } catch(e) {
-                JsBarcode(`#bulk-svg-${index}`, data.barcode_id, {
-                    format: "CODE128", width: 1.8, height: 55, displayValue: true, fontSize: 16, margin: 5, textMargin: 6, font: "Inconsolata"
-                });
-            }
+            // STRICT EAN13 ONLY
+            JsBarcode(`#bulk-svg-${index}`, data.barcode_id, {
+                format: "EAN13", width: 1.8, height: 55, displayValue: true, fontSize: 16, margin: 5, textMargin: 6, font: "Inconsolata"
+            });
             index++;
         });
 

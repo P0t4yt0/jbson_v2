@@ -11,7 +11,13 @@ class Transaction(models.Model):
         ('credit', 'On Credit'),
         ('voided', 'Voided'),
     ]
+    PAYMENT_CHOICES = [
+        ('Cash', 'Cash'),
+        ('Online Wallet', 'Online Wallet'),
+        ('credit', 'Trade Credit'),
+    ]
 
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='Cash')
     customer = models.ForeignKey('billing_payment.Customer', on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
     transaction_ref = models.CharField(max_length=20, unique=True, editable=False)
     processed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='transactions')

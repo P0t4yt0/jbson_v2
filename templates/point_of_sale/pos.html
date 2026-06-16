@@ -25,6 +25,11 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+<script>
+    window.productStocks = {}; // Store raw database stock
+    window.cartQtys = {};      // Store current cart quantity
+</script>
+
 <style>
     body { background-color: var(--bg-main, #F4F6F9); margin: 0; overflow: hidden; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -52,9 +57,14 @@
     .product-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; overflow-y: auto; align-content: start; padding-right: 8px; padding-bottom: 24px; }
     .product-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 16px; padding: 16px; text-align: left; border: 1px solid rgba(255, 255, 255, 0.6); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 24px -8px rgba(47, 63, 123, 0.08); display: flex; flex-direction: column; justify-content: space-between; height: 130px; }
     .product-card:hover { border-color: var(--amber-flame); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(47, 63, 123, 0.15); background: rgba(255, 255, 255, 0.95); }
+    
+    /* NEW CSS: Disabled styles para sa ubos na stock */
+    .product-card.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(80%); border-color: var(--border-color); }
+    .product-card.disabled .qty-badge { color: var(--status-red) !important; font-weight: 900; }
+    
     .product-card .pid-row { display: flex; justify-content: space-between; align-items: center; }
     .product-card .pid { font-size: 12px; font-family: 'Inconsolata', monospace; color: var(--text-secondary); font-weight: 600; }
-    .product-card .qty-badge {font-size: 12px; font-family: 'Inconsolata', monospace; color: var(--french-blue); font-weight: 800; }
+    .product-card .qty-badge {font-size: 12px; font-family: 'Inconsolata', monospace; color: var(--french-blue); font-weight: 800; transition: color 0.3s ease; }
     .product-card .name { font-weight: 700; color: var(--text-primary); font-size: 14px; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: center; }
     .product-card .price { color: #e6a300; font-family: 'Inconsolata', monospace; font-weight: 800; font-size: 18px; margin-top: auto; text-align: center; }
 
@@ -68,8 +78,12 @@
     .cart-item-name { margin: 0; font-size: 14px; color: var(--text-primary); font-weight: 700; margin-bottom: 6px; }
     .cart-item-price { color: var(--text-secondary); font-size: 14px; font-family: 'Inconsolata', monospace; font-weight: 600; }
     .qty-controls { display: flex; align-items: center; gap: 6px; background: rgba(248, 250, 252, 0.8); padding: 6px; border-radius: 10px; border: 1px solid var(--border-color); }
+    
     .qty-btn { background: white; border: 1px solid var(--border-color); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: 900; font-size: 16px; color: var(--text-secondary); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-    .qty-btn:hover { background: var(--french-blue); color: white; border-color: var(--french-blue); }
+    .qty-btn:hover:not(:disabled) { background: var(--french-blue); color: white; border-color: var(--french-blue); }
+    /* NEW CSS: Disabled state para sa plus button sa cart */
+    .qty-btn:disabled { opacity: 0.3; cursor: not-allowed; background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+    
     .qty-input { width: 44px; height: 30px; text-align: center; font-family: 'Inconsolata', monospace; font-weight: 700; font-size: 15px; border: none; background: transparent; outline: none; color: var(--french-blue); }
     .delete-btn { background: #FFF5F5; border: 1px solid #FECACA; color: var(--status-red); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
     .delete-btn:hover { background: var(--status-red); color: white; border-color: var(--status-red); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
@@ -123,12 +137,13 @@
 
         <div class="product-grid">
             {% for item in products %}
+                <script>window.productStocks["{{ item.id }}"] = {{ item.quantity }};</script>
                 {% if item.quantity > 0 %}
-                <div class="product-card" data-category="{{ item.category.name|escapejs }}" onclick="addToCart('{{ item.id }}')">
+                <div class="product-card" id="prod-card-{{ item.id }}" data-category="{{ item.category.name|escapejs }}" onclick="addToCart('{{ item.id }}')">
                     <div>
                         <div class="pid-row">
                             <span class="pid">ID: {{ item.product_id }}</span>
-                            <span class="qty-badge">Qty: {{ item.quantity }}</span>
+                            <span class="qty-badge" id="prod-qty-{{ item.id }}">Qty: {{ item.quantity }}</span>
                         </div>
                         <div class="name">{{ item.item_name }}</div>
                     </div>
@@ -156,7 +171,8 @@
                 </div>
 
                 {% for item in sold_items %}
-                <div class="cart-item" id="cart-item-{{ item.id }}">
+                <script>window.cartQtys["{{ item.inventory_item.id }}"] = {{ item.quantity }};</script>
+                <div class="cart-item" id="cart-item-{{ item.id }}" data-product-id="{{ item.inventory_item.id }}">
                     <div style="flex:1; padding-right:12px;">
                         <h5 class="cart-item-name">{{ item.inventory_item.item_name }}</h5>
                         <div class="cart-item-price">₱{{ item.unit_price }} each</div>
@@ -164,11 +180,11 @@
 
                     <div style="display:flex; align-items:center; gap:12px;">
                         <div class="qty-controls">
-                            <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'decrease')">-</button>
-                            <input type="number" min="1" class="qty-input" value="{{ item.quantity }}" onchange="setQty('{{ item.id }}', this.value)">
-                            <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'increase')">+</button>
+                            <button type="button" class="qty-btn" onclick="updateQty('{{ item.id }}', 'decrease', '{{ item.inventory_item.id }}')">-</button>
+                            <input type="number" min="1" class="qty-input" value="{{ item.quantity }}" onchange="setQty('{{ item.id }}', this.value, '{{ item.inventory_item.id }}')">
+                            <button type="button" class="qty-btn btn-plus" onclick="updateQty('{{ item.id }}', 'increase', '{{ item.inventory_item.id }}')">+</button>
                         </div>
-                        <button type="button" class="delete-btn" onclick="confirmRemoveItem('{{ item.id }}', '{{ item.inventory_item.item_name|escapejs }}')">
+                        <button type="button" class="delete-btn" onclick="confirmRemoveItem('{{ item.id }}', '{{ item.inventory_item.item_name|escapejs }}', '{{ item.inventory_item.id }}')">
                             <i class="ph ph-trash"></i>
                         </button>
                     </div>
@@ -301,6 +317,38 @@
 </div>
 
 <script>
+    // NEW CORE LOGIC: Visual Stock Engine
+    function updateVisualStock(productId) {
+        let baseStock = window.productStocks[productId] || 0;
+        let cartQty = window.cartQtys[productId] || 0;
+        let available = baseStock - cartQty;
+
+        // I-update ang product card sa listahan
+        let card = document.getElementById('prod-card-' + productId);
+        let badge = document.getElementById('prod-qty-' + productId);
+        if (card && badge) {
+            badge.innerText = 'Qty: ' + available;
+            if (available <= 0) {
+                card.classList.add('disabled');
+            } else {
+                card.classList.remove('disabled');
+            }
+        }
+
+        // I-update ang cart '+' button (idisable kung 0 na ang stock)
+        let cartRow = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+        if (cartRow) {
+            let plusBtn = cartRow.querySelector('.btn-plus');
+            if (plusBtn) {
+                if (available <= 0) {
+                    plusBtn.setAttribute('disabled', 'true');
+                } else {
+                    plusBtn.removeAttribute('disabled');
+                }
+            }
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const savedCategory = sessionStorage.getItem('activeCategory') || 'All';
         
@@ -315,6 +363,11 @@
         if (antiFlicker) {
             requestAnimationFrame(() => antiFlicker.remove());
         }
+
+        // Initialize visual stocks sa pag-load ng page
+        Object.keys(window.productStocks).forEach(pid => {
+            updateVisualStock(pid);
+        });
     });
 
     {% if messages %}
@@ -337,21 +390,20 @@
     let selectedMethod = "Cash";
     let selectedTerm   = 60;
 
-    // HELPER FUNCTION: Gumagawa ng HTML row para sa bagong cart item
-    function renderCartItemHTML(data) {
+    function renderCartItemHTML(data, productId) {
         return `
-            <div class="cart-item" id="cart-item-${data.item_id}">
+            <div class="cart-item" id="cart-item-${data.item_id}" data-product-id="${productId}">
                 <div style="flex:1; padding-right:12px;">
                     <h5 class="cart-item-name">${data.item_name}</h5>
                     <div class="cart-item-price">₱${data.unit_price} each</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div class="qty-controls">
-                        <button type="button" class="qty-btn" onclick="updateQty('${data.item_id}', 'decrease')">-</button>
-                        <input type="number" min="1" class="qty-input" value="${data.quantity}" onchange="setQty('${data.item_id}', this.value)">
-                        <button type="button" class="qty-btn" onclick="updateQty('${data.item_id}', 'increase')">+</button>
+                        <button type="button" class="qty-btn" onclick="updateQty('${data.item_id}', 'decrease', '${productId}')">-</button>
+                        <input type="number" min="1" class="qty-input" value="${data.quantity}" onchange="setQty('${data.item_id}', this.value, '${productId}')">
+                        <button type="button" class="qty-btn btn-plus" onclick="updateQty('${data.item_id}', 'increase', '${productId}')">+</button>
                     </div>
-                    <button type="button" class="delete-btn" onclick="confirmRemoveItem('${data.item_id}', '${data.item_name}')">
+                    <button type="button" class="delete-btn" onclick="confirmRemoveItem('${data.item_id}', '${data.item_name}', '${productId}')">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>
@@ -359,8 +411,12 @@
             </div>`;
     }
 
-    // UPDATED: No more page refresh!
     function addToCart(productId) {
+        // Pre-flight check kung available ba talaga bago tumawag sa server
+        let baseStock = window.productStocks[productId] || 0;
+        let cartQty = window.cartQtys[productId] || 0;
+        if ((baseStock - cartQty) <= 0) return; // Prevent clicking disabled card
+
         fetch("{% url 'point_of_sale:add_to_cart' %}?product_id=" + productId)
             .then(r => r.json())
             .then(data => {
@@ -375,8 +431,13 @@
                         existingItem.querySelector('.qty-input').value = data.quantity;
                         existingItem.querySelector('.item-subtotal').innerText = '₱' + parseFloat(data.item_subtotal).toFixed(2);
                     } else {
-                        document.getElementById('cart-container').insertAdjacentHTML('beforeend', renderCartItemHTML(data));
+                        document.getElementById('cart-container').insertAdjacentHTML('beforeend', renderCartItemHTML(data, productId));
                     }
+                    
+                    // Update visual stock Engine
+                    window.cartQtys[productId] = data.quantity;
+                    updateVisualStock(productId);
+
                 } else {
                     Swal.fire({ title: 'Cannot Add Item', text: data.message || 'Insufficient stock or item is unavailable.', icon: 'warning', confirmButtonColor: 'var(--amber-flame)' });
                 }
@@ -412,8 +473,7 @@
         return cookieValue;
     }
 
-    // UPDATED: No more page refresh!
-    function updateQty(itemId, action) {
+    function updateQty(itemId, action, productId) {
         const url = "{% url 'point_of_sale:update_cart_item' %}";
         fetch(url, {
             method: 'POST',
@@ -428,7 +488,7 @@
                 let itemRow = document.getElementById('cart-item-' + data.item_id);
                 if (data.action === 'remove' || data.quantity === 0) {
                     if (itemRow) itemRow.remove();
-                    // Show empty state cart if 0 items left
+                    window.cartQtys[productId] = 0; // Reset visual engine
                     if (document.querySelectorAll('.cart-item').length === 0) {
                          document.getElementById('empty-cart-msg').style.display = 'flex';
                     }
@@ -436,14 +496,16 @@
                     if (itemRow) {
                         itemRow.querySelector('.qty-input').value = data.quantity;
                         itemRow.querySelector('.item-subtotal').innerText = '₱' + parseFloat(data.item_subtotal).toFixed(2);
+                        window.cartQtys[productId] = data.quantity; // Update visual engine
                     }
                 }
+                updateVisualStock(productId);
             } else { Swal.fire('Oops!', data.message || 'Failed to update item.', 'error'); }
         })
         .catch(() => Swal.fire('Error', 'Cannot connect to server.', 'error'));
     }
 
-    function confirmRemoveItem(itemId, itemName) {
+    function confirmRemoveItem(itemId, itemName, productId) {
         Swal.fire({
             title: 'Remove Item?',
             text: `Are you sure you want to remove '${itemName}'?`,
@@ -452,19 +514,29 @@
             confirmButtonColor: 'var(--status-red)',
             cancelButtonColor: 'var(--text-secondary)',
             confirmButtonText: 'Yes, remove it!'
-        }).then(result => { if (result.isConfirmed) updateQty(itemId, 'remove'); });
+        }).then(result => { if (result.isConfirmed) updateQty(itemId, 'remove', productId); });
     }
 
-    // UPDATED: No more page refresh!
-    function setQty(itemId, newQty) {
-        const url = "{% url 'point_of_sale:update_cart_item' %}";
-        if (!newQty || isNaN(newQty) || newQty <= 0) {
-             location.reload(); return; // fallback if typed invalid characters
+    function setQty(itemId, newQty, productId) {
+        // Pre-validation to prevent server errors
+        let maxAvailable = window.productStocks[productId] || 0;
+        let requestedQty = parseInt(newQty);
+        
+        if (!requestedQty || isNaN(requestedQty) || requestedQty <= 0) {
+            requestedQty = 1; // Fallback default
         }
+        
+        if (requestedQty > maxAvailable) {
+            Swal.fire('Insufficient Stock', `Only ${maxAvailable} units of this item are available.`, 'warning');
+            document.querySelector(`#cart-item-${itemId} .qty-input`).value = window.cartQtys[productId];
+            return;
+        }
+
+        const url = "{% url 'point_of_sale:update_cart_item' %}";
         fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-            body: JSON.stringify({ item_id: itemId, action: 'set', quantity: newQty })
+            body: JSON.stringify({ item_id: itemId, action: 'set', quantity: requestedQty })
         })
         .then(async r => {
             const data = await r.json();
@@ -477,6 +549,7 @@
                 let itemRow = document.getElementById('cart-item-' + data.item_id);
                 if (data.action === 'remove' || data.quantity === 0) {
                     if (itemRow) itemRow.remove();
+                    window.cartQtys[productId] = 0;
                     if (document.querySelectorAll('.cart-item').length === 0) {
                          document.getElementById('empty-cart-msg').style.display = 'flex';
                     }
@@ -484,8 +557,10 @@
                     if (itemRow) {
                         itemRow.querySelector('.qty-input').value = data.quantity;
                         itemRow.querySelector('.item-subtotal').innerText = '₱' + parseFloat(data.item_subtotal).toFixed(2);
+                        window.cartQtys[productId] = data.quantity;
                     }
                 }
+                updateVisualStock(productId);
             } else { Swal.fire('Oops!', data.message, 'warning'); }
         })
         .catch(err => Swal.fire('System Error', err.message, 'error'));
@@ -534,13 +609,12 @@
                             let emptyMsg = document.getElementById('empty-cart-msg');
                             if (emptyMsg) emptyMsg.style.display = 'none';
 
-                            let existingItem = document.getElementById('cart-item-' + data.item_id);
-                            if (existingItem) {
-                                existingItem.querySelector('.qty-input').value = data.quantity;
-                                existingItem.querySelector('.item-subtotal').innerText = '₱' + parseFloat(data.item_subtotal).toFixed(2);
-                            } else {
-                                document.getElementById('cart-container').insertAdjacentHTML('beforeend', renderCartItemHTML(data));
-                            }
+                            // Ang barcode API ay nagbabalik ng productId indirectly via item ID, 
+                            // pero para mapagana ang visual stock sa barcode scan, 
+                            // dadaanin natin ang pahina sa isang mabilis na reload OR ide-depende 
+                            // ang tracking sa manual sync kung gagamit ka talaga nito. 
+                            // In this case, i-reload muna kapag scanner ang ginamit para safety check.
+                            location.reload(); 
                         }
                         else { Swal.fire({ title: 'Scan Error', text: data.message, icon: 'error', confirmButtonColor: 'var(--amber-flame)' }); }
                     });

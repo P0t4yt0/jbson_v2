@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ValidationError
 import barcode
 from activity_log.utils import log_system_activity
 from billing_payment.models import Customer, Invoice, InvoiceItem, Payment
@@ -62,24 +63,32 @@ def add_to_cart(request):
     )
     request.session['transaction_id'] = transaction.id
 
-    cart_item, created = TransactionItem.objects.get_or_create(
-        transaction=transaction,
-        inventory_item=product,
-        defaults={
-            'unit_price': product.price,
-            'quantity': 1,
-            'subtotal': product.price
-        }
-    )
+    cart_item = TransactionItem.objects.filter(transaction=transaction, inventory_item=product).first()
+    current_qty = cart_item.quantity if cart_item else 0
 
-    if not created:
+    if current_qty + 1 > product.quantity:
+        return JsonResponse({
+            'status': 'error',
+            'message': f"Insufficient stock. Only {product.quantity} items available."
+        })
+
+    if cart_item:
         cart_item.quantity += 1
         cart_item.subtotal = cart_item.quantity * cart_item.unit_price
         cart_item.save()
+        created = False
+    else:
+        cart_item = TransactionItem.objects.create(
+            transaction=transaction,
+            inventory_item=product,
+            unit_price=product.price,
+            quantity=1,
+            subtotal=product.price
+        )
+        created = True
 
     transaction.calculate_totals()
     
-    # UPDATED: Nagbabalik na ngayon ng detailed data para sa AJAX/Fetch
     return JsonResponse({
         'status': 'success',
         'is_new_item': created,
@@ -106,8 +115,11 @@ def update_cart_item(request):
                 return JsonResponse({'status': 'success'})
                 
             transaction = cart_item.transaction
+            product = cart_item.inventory_item
             
             if action == 'increase':
+                if cart_item.quantity + 1 > product.quantity:
+                    return JsonResponse({'status': 'error', 'message': f"Cannot exceed available stock ({product.quantity})."})
                 cart_item.quantity += 1
             elif action == 'decrease':
                 if cart_item.quantity > 1:
@@ -117,6 +129,8 @@ def update_cart_item(request):
             elif action == 'set':
                 try:
                     qty_val = int(new_qty)
+                    if qty_val > product.quantity:
+                        return JsonResponse({'status': 'error', 'message': f"Cannot exceed available stock ({product.quantity})."})
                     if qty_val > 0:
                         cart_item.quantity = qty_val
                     else:
@@ -124,7 +138,6 @@ def update_cart_item(request):
                 except (ValueError, TypeError):
                     pass
             
-            # UPDATED: I-save muna ang values bago i-delete para maipasa sa frontend
             item_qty = 0
             item_sub = 0
             
@@ -142,7 +155,6 @@ def update_cart_item(request):
             transaction.total_amount = new_total
             transaction.save()
             
-            # UPDATED: Nagbabalik na ng detailed data para sa DOM manipulation
             return JsonResponse({
                 'status': 'success',
                 'action': action,
@@ -176,32 +188,38 @@ def add_by_barcode(request):
         )
         request.session['transaction_id'] = transaction.id
 
-    item, created = TransactionItem.objects.get_or_create(
-        transaction=transaction,
-        inventory_item=product,
-        defaults={
-            'unit_price': product.price,
-            'quantity': 1,
-            'subtotal': product.price
-        }
-    )
+    # BACKEND VALIDATION: Kapag iniscan ang barcode
+    cart_item = TransactionItem.objects.filter(transaction=transaction, inventory_item=product).first()
+    current_qty = cart_item.quantity if cart_item else 0
 
-    if not created:
-        item.quantity += 1
-        item.subtotal = item.quantity * item.unit_price
-        item.save()
+    if current_qty + 1 > product.quantity:
+        return JsonResponse({'status': 'error', 'message': f"Insufficient stock. Only {product.quantity} items available."})
+
+    if cart_item:
+        cart_item.quantity += 1
+        cart_item.subtotal = cart_item.quantity * cart_item.unit_price
+        cart_item.save()
+        created = False
+    else:
+        cart_item = TransactionItem.objects.create(
+            transaction=transaction,
+            inventory_item=product,
+            unit_price=product.price,
+            quantity=1,
+            subtotal=product.price
+        )
+        created = True
 
     transaction.calculate_totals()
     
-    # UPDATED: Same format with add_to_cart para madali i-handle sa JS
     return JsonResponse({
         'status': 'success',
         'is_new_item': created,
-        'item_id': item.id,
+        'item_id': cart_item.id,
         'item_name': product.item_name,
-        'quantity': item.quantity,
-        'unit_price': float(item.unit_price),
-        'item_subtotal': float(item.subtotal),
+        'quantity': cart_item.quantity,
+        'unit_price': float(cart_item.unit_price),
+        'item_subtotal': float(cart_item.subtotal),
         'transaction_total': float(transaction.total_amount)
     })
 
@@ -221,15 +239,11 @@ def process_payment(request):
 
     try:
         with db_transaction.atomic():
-            for item in transaction.sold_items.all():
-                if item.inventory_item.quantity < item.quantity:
-                    messages.error(request, f"Insufficient stock for {item.inventory_item.item_name}. Only {item.inventory_item.quantity} left.")
-                    return redirect('point_of_sale:pos_index')
-
+            # FEFO Batch Deduction Integration
             for item in transaction.sold_items.all():
                 product = item.inventory_item
-                product.quantity -= item.quantity
-                product.save()
+                # Tinatawag na natin yung Custom ValidationError sa Models para sa SweetAlert
+                product.deduct_stock_fefo(item.quantity)
 
                 if product.quantity <= 10: 
                     alert_exists = Notification.objects.filter(
@@ -247,24 +261,21 @@ def process_payment(request):
                             source_table='inventory',
                             source_id=str(product.id),
                             action_url='/inventory/purchase-orders/create/?auto=true' 
-                       )
+                        )
 
             invoice = None
 
             if method == 'Trade Credit':
                 if not customer_id:
-                    messages.error(request, "Select a customer for Trade Credit.")
-                    return redirect('point_of_sale:pos_index')
+                    raise ValidationError("Select a customer for Trade Credit.")
 
                 customer = get_object_or_404(Customer, id=customer_id)
 
                 if not customer.is_credit_customer:
-                    messages.error(request, "Customer not approved for Trade Credit.")
-                    return redirect('point_of_sale:pos_index')
+                    raise ValidationError("Customer not approved for Trade Credit.")
 
                 if customer.check_overdue_status() or customer.credit_status == 'hold':
-                    messages.error(request, "Customer account is on HOLD.")
-                    return redirect('point_of_sale:pos_index')
+                    raise ValidationError("Customer account is currently on HOLD due to overdue balances.")
 
                 try:
                     terms = int(customer.payment_terms)
@@ -282,8 +293,7 @@ def process_payment(request):
                 new_total = transaction.subtotal + interest_amount
 
                 if customer.credit_balance + new_total > customer.credit_limit:
-                    messages.error(request, "Credit limit exceeded including interest.")
-                    return redirect('point_of_sale:pos_index')
+                    raise ValidationError("Credit limit exceeded including computed interest.")
 
                 transaction.payment_method = 'credit'
                 transaction.customer = customer
@@ -306,8 +316,7 @@ def process_payment(request):
 
             else:
                 if method == 'Online Wallet' and not ref_num:
-                    messages.error(request, "Reference number required for Online Bank/Wallet.")
-                    return redirect('point_of_sale:pos_index')
+                    raise ValidationError("Reference number required for Online Bank/Wallet transactions.")
 
                 transaction.payment_method = 'cash' if method == 'Cash' else 'bank'
                 transaction.status = 'completed'
@@ -375,9 +384,13 @@ def process_payment(request):
             'ref_num': ref_num
         })
 
+    except ValidationError as e:
+        error_msg = str(e.message if hasattr(e, 'message') else e.messages[0])
+        messages.error(request, error_msg)
+        return redirect('point_of_sale:pos_index')
     except Exception as e:
         traceback.print_exc()
-        messages.error(request, f"Transaction Error: {str(e)}")
+        messages.error(request, "A system error occurred while processing payment. The transaction was cancelled.")
         return redirect('point_of_sale:pos_index')
 
 @login_required

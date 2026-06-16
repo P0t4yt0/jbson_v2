@@ -130,11 +130,40 @@
     
     @media print {
         body * { visibility: hidden; }
-        #print-section, #print-section * { visibility: visible; }
-        #print-section { position: absolute; left: 0; top: 0; width: 100%; display: grid !important; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; justify-items: center; }
+        
+        body:not(.print-mode-single) #print-section, 
+        body:not(.print-mode-single) #print-section * { visibility: visible; }
+        body:not(.print-mode-single) #print-section { 
+            position: absolute; left: 0; top: 0; width: 100%; 
+            display: grid !important; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 20px; justify-items: center; 
+        }
+
+        body.print-mode-single #single-print-area, 
+        body.print-mode-single #single-print-area * { visibility: visible; }
+        
+        body.print-mode-single #single-print-area {
+            display: flex !important; 
+            flex-direction: column !important; 
+            align-items: center !important;
+            justify-content: center !important;
+            position: fixed !important; 
+            left: 50% !important; 
+            top: 20% !important;
+            transform: translateX(-50%) !important; 
+            background: white !important;
+            border: 1px dashed #999 !important;
+            border-radius: 8px !important;
+            padding: 20px !important;
+            width: 45% !important; 
+            box-sizing: border-box !important;
+        }
+
+        body.print-mode-single #single-print-area .barcode-title {
+            font-size: 14px; font-weight: bold; font-family: 'Inter', sans-serif; margin-bottom: 12px; text-align: center;
+        }
+        
         .blur-modal { display: none !important; }
-        .barcode-card { text-align: center; page-break-inside: avoid; margin-bottom: 20px; }
-        .barcode-title { font-size: 12px; font-weight: bold; font-family: 'Inter', sans-serif; margin-bottom: 5px; }
     }
 </style>
 
@@ -391,6 +420,7 @@
 </form>
 
 <div id="print-section" style="display: none;"></div>
+<div id="single-print-area" style="display: none;"></div>
 
 <div id="edit-product-modal" class="blur-modal">
     <div class="modal-box" style="width: 650px; padding: 0; position: relative;">
@@ -541,7 +571,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-secondary); font-style: italic;">No active batches available. Item is out of stock.</td>
+                            <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-secondary); font-style: italic;">No active batches retrieved.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -913,7 +943,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-// --- BAGONG LOGIC PARA SA FIFO BATCH MODAL ---
+// --- UPDATED FIFO BATCH MODAL ---
 window.openFifoModal = function(productId) {
     const modalId = `fifo-modal-${productId}`;
     const modalEl = document.getElementById(modalId);
@@ -926,7 +956,6 @@ window.openFifoModal = function(productId) {
         
         if (barcodeValue && barcodeValue !== "None" && barcodeValue.trim() !== "") {
             try {
-                // Subukan muna as EAN13 (Standard Retail)
                 JsBarcode(barcodeSvg, barcodeValue.trim(), {
                     format: "EAN13", 
                     width: 1.5, 
@@ -936,26 +965,16 @@ window.openFifoModal = function(productId) {
                     margin: 0, 
                     font: "Inconsolata"
                 });
-            } catch (e1) {
-                try {
-                    // Kung hindi EAN13 format, subukan as CODE128 (Universal/Alphanumeric)
-                    JsBarcode(barcodeSvg, barcodeValue.trim(), {
-                        format: "CODE128", 
-                        width: 1.5, 
-                        height: 50, 
-                        displayValue: true, 
-                        fontSize: 13, 
-                        margin: 0, 
-                        font: "Inconsolata"
-                    });
-                } catch (e2) {
-                    // Kung ayaw talaga i-drawing, ito ang bagong text na ipapakita
-                    barcodeSvg.outerHTML = `
-                    <div style="color: var(--french-blue); padding: 10px; border: 1px dashed var(--french-blue); border-radius: 6px; font-family: var(--font-main);">
-                        <span style="font-size: 11px; font-weight: bold;">MANUFACTURER BARCODE</span><br>
-                        <span style="font-size: 15px; font-weight: 800; font-family: 'Inconsolata', monospace; color: var(--text-primary);">${barcodeValue.trim()}</span>
-                    </div>`;
-                }
+            } catch (e) {
+                JsBarcode(barcodeSvg, barcodeValue.trim(), {
+                    format: "CODE128", 
+                    width: 1.5, 
+                    height: 50, 
+                    displayValue: true, 
+                    fontSize: 13, 
+                    margin: 0, 
+                    font: "Inconsolata"
+                });
             }
         }
     }
@@ -974,7 +993,6 @@ document.addEventListener('click', function(event) {
         event.target.style.display = 'none';
     }
 });
-// ---------------------------------------------
 
 window.printSingleBarcode = function(barcodeId, productName) {
     if (!barcodeId || barcodeId === "None" || barcodeId.trim() === "") {
@@ -993,40 +1011,50 @@ window.printSingleBarcode = function(barcodeId, productName) {
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
-            const printSection = document.getElementById('print-section');
+            const printArea = document.getElementById('single-print-area');
             
-            printSection.innerHTML = `
-                <div class="barcode-card" style="margin: 0 auto; padding: 20px; text-align: center;">
-                    <div class="barcode-title" style="font-weight: bold; margin-bottom: 10px;">${productName}</div>
-                    <svg id="single-print-barcode"></svg>
-                </div>
+            printArea.innerHTML = `
+                <div class="barcode-title">${productName}</div>
+                <svg id="single-print-barcode"></svg>
             `;
             
             try {
                 JsBarcode("#single-print-barcode", barcodeId.trim(), {
-                    format: "EAN13",
-                    width: 1.5,
-                    height: 50,
-                    displayValue: true,
-                    fontSize: 14,
-                    margin: 0
+                    format: "EAN13", 
+                    width: 2, 
+                    height: 60, 
+                    displayValue: true, 
+                    fontSize: 18, 
+                    margin: 5, 
+                    textMargin: 6, 
+                    font: "Inconsolata"
                 });
-                
-                setTimeout(() => {
-                    window.print();
-                }, 200);
-
             } catch (e) {
-                Swal.fire({
-                    title: 'Label Printing Not Required',
-                    text: `This product already comes with an international or manufacturer barcode (${barcodeId.trim()}). You can scan the factory label directly at the POS checkout without printing a new one!`,
-                    icon: 'info',
-                    confirmButtonColor: 'var(--french-blue)'
+                JsBarcode("#single-print-barcode", barcodeId.trim(), {
+                    format: "CODE128",
+                    width: 2, 
+                    height: 60, 
+                    displayValue: true, 
+                    fontSize: 18, 
+                    margin: 5, 
+                    textMargin: 6, 
+                    font: "Inconsolata"
                 });
             }
+
+            document.body.classList.add('print-mode-single');
+
+            setTimeout(() => {
+                window.print();
+                
+                setTimeout(() => {
+                    document.body.classList.remove('print-mode-single');
+                }, 1000);
+            }, 500);
         }
     });
 };
+
 window.editBatchDates = function(batchId, batchCode, currentMfg, currentExp) {
     Swal.fire({
         title: 'Update Batch Dates',

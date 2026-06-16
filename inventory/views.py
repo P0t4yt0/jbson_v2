@@ -24,11 +24,28 @@ from security.models import EmployeeProfile
 from .models import Category, GeneratedBarcode, InventoryItem, PurchaseOrder, PurchaseOrderItem, Supplier, ProductBatch
 from django.views.decorators.http import require_POST
 
+
+def calculate_ean13_checksum(base_12_digits):
+
+    total = 0
+    for i, digit in enumerate(base_12_digits):
+        weight = 1 if i % 2 == 0 else 3
+        total += int(digit) * weight
+    
+    remainder = total % 10
+    check_digit = 0 if remainder == 0 else 10 - remainder
+    return str(check_digit)
+
+
 def generate_unique_barcode():
+    """
+    Lumilikha ng 100% compliant na EAN-13 barcode para sa Pilipinas (GS1: 480).
+    """
     while True:
         base_number = f"480{random.randint(100000000, 999999999)}"
-        EAN_class = barcode.get_barcode_class('ean13')
-        full_barcode = EAN_class(base_number).get_fullcode()
+        
+        check_digit = calculate_ean13_checksum(base_number)
+        full_barcode = f"{base_number}{check_digit}"
         
         if not GeneratedBarcode.objects.filter(barcode_id=full_barcode).exists() and \
            not InventoryItem.objects.filter(barcode_id=full_barcode).exists():
@@ -925,7 +942,6 @@ def receive_po(request, po_id):
         item.quantity_received = item.quantity_ordered
         item.save()
 
-        # --- BAGONG LOGIC PARA SA BATCH CREATION ---
         today_str = timezone.now().strftime('%y%m%d')
         batch_seq = ProductBatch.objects.filter(product=product, date_received=timezone.now().date()).count() + 1
         new_batch_code = f"BCH-{product.product_id}-{today_str}-{batch_seq:02d}"
@@ -937,7 +953,6 @@ def receive_po(request, po_id):
             quantity_on_hand=item.quantity_ordered,
             date_received=timezone.now().date()
         )
-        # -------------------------------------------
         
     po.status = 'received'
     po.save()

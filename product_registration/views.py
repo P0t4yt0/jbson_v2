@@ -1,10 +1,27 @@
 import json
 import re
+import random  # NEW: Kailangan for generating random digits
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from inventory.models import InventoryItem, Category, Supplier, GeneratedBarcode, ProductBatch
+
+def generate_ean13_480():
+    prefix = "480"
+    middle = "".join([str(random.randint(0, 9)) for _ in range(9)])
+    twelve_digits = prefix + middle
+    
+    total_sum = 0
+    for i, digit in enumerate(twelve_digits):
+        if i % 2 == 0:
+            total_sum += int(digit)
+        else:
+            total_sum += int(digit) * 3 
+            
+    check_digit = (10 - (total_sum % 10)) % 10
+    return twelve_digits + str(check_digit)
+
 
 def create_product(request, pk=None):
     item = None
@@ -19,7 +36,14 @@ def create_product(request, pk=None):
         category_id = request.POST.get('category')
         supplier_id = request.POST.get('supplier')
         quantity = request.POST.get('quantity', 0)
-        barcode_id = request.POST.get('barcode_id')
+        
+        barcode_id = request.POST.get('barcode_id', '').strip()
+        
+        if barcode_id:
+            if not barcode_id.isdigit() or len(barcode_id) != 13:
+                messages.error(request, "Error: Barcode must be exactly 13 numeric digits.")
+                return redirect(request.META.get('HTTP_REFERER', 'inventory:inventory_list'))
+        
         price = request.POST.get('price', 0)
         unit_cost = request.POST.get('unit_cost', 0)
         annual_demand = request.POST.get('annual_demand', 0)
@@ -38,6 +62,14 @@ def create_product(request, pk=None):
         supplier = None
         if supplier_id:
             supplier = Supplier.objects.filter(id=supplier_id).first()
+
+        if not barcode_id:
+            while True:
+                new_barcode = generate_ean13_480()
+                if not InventoryItem.objects.filter(barcode_id=new_barcode).exists() and \
+                   not GeneratedBarcode.objects.filter(barcode_id=new_barcode).exists():
+                    barcode_id = new_barcode
+                    break
 
         if item:
             if InventoryItem.objects.filter(barcode_id=barcode_id).exclude(pk=item.pk).exists():

@@ -156,7 +156,7 @@
                     <a href="javascript:void(0)" onclick="generateRandomBarcode()" class="pf-add-new"><i class="ph ph-arrows-clockwise"></i> Auto-Generate</a>
                 </div>
                 <div class="pf-barcode-wrap">
-                    <input type="text" id="main-barcode-input" name="barcode_id" value="{{ item.barcode_id }}" required class="pf-input">
+                    <input type="text" id="main-barcode-input" name="barcode_id" value="{{ item.barcode_id }}" required maxlength="13" minlength="13" pattern="\d{13}" title="Please enter exactly 13 digits" class="pf-input">
                     <button type="button" id="trigger-scan-btn" class="pf-scan-btn"><i class="ph ph-barcode"></i> SCAN</button>
                 </div>
             </div>
@@ -411,13 +411,32 @@ function submitNewSupplier() {
 
 
 function generateRandomBarcode() {
-    // Generates a random 12-digit numeric barcode
-    const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
-    const mainInp = document.getElementById('main-barcode-input');
+    let prefix = "480";
     
+    let middle = "";
+    for(let i = 0; i < 9; i++) {
+        middle += Math.floor(Math.random() * 10).toString();
+    }
+    
+    let twelveDigits = prefix + middle;
+    
+    let totalSum = 0;
+    for (let i = 0; i < 12; i++) {
+        let digit = parseInt(twelveDigits[i]);
+        if (i % 2 === 0) {
+            totalSum += digit;
+        } else {
+            totalSum += digit * 3;
+        }
+    }
+    
+    let checkDigit = (10 - (totalSum % 10)) % 10;
+    
+    const randomBarcode = twelveDigits + checkDigit.toString();
+    
+    const mainInp = document.getElementById('main-barcode-input');
     mainInp.value = randomBarcode;
     
-
     mainInp.style.backgroundColor = '#EEF2FF';
     mainInp.style.borderColor = '#2F3F7B';
     setTimeout(() => {

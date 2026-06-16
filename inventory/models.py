@@ -47,7 +47,6 @@ class InventoryItem(models.Model):
         ('U', 'Unclassified'),
     ]
 
-    # Fix #6: Strict 13-Digit EAN Barcode Validation Rule
     barcode_validator = RegexValidator(
         regex=r'^\d{13}$',
         message="Barcode must be exactly 13 digits long and contain only numbers (EAN-13 standard)."
