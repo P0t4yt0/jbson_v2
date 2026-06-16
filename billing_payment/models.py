@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -53,6 +52,7 @@ class Invoice(models.Model):
     
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     balance_due = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    
     interest_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
     issue_date = models.DateField(default=timezone.now)
@@ -71,13 +71,6 @@ class Invoice(models.Model):
         if not self.due_date and self.customer_id:
             self.due_date = self.issue_date + timedelta(days=self.customer.payment_terms)
             
-        if self.status == 'overdue' and self.balance_due > 0 and self.due_date:
-            days_overdue = (timezone.now().date() - self.due_date).days
-            if days_overdue > 0:
-                interest_rate = Decimal('0.02')
-                calculated_interest = (self.balance_due * interest_rate)
-                self.interest_amount = calculated_interest
-                self.balance_due = self.balance_due + self.interest_amount
 
         super().save(*args, **kwargs)
 
@@ -117,7 +110,6 @@ class InvoicePayment(models.Model):
             self.invoice.save()
 
             self.invoice.customer.credit_balance -= self.amount
-            # Fix #3: Check for Overdue Status instead of Total Balance to un-hold
             self.invoice.customer.check_overdue_status() 
             
         super().save(*args, **kwargs)
@@ -198,7 +190,6 @@ class SalesReturnItem(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
 
     def clean(self):
-        # Fix #2 Anti-Fraud Validation
         if self.transaction_item:
             previously_returned = sum(item.quantity for item in self.transaction_item.return_records.exclude(pk=self.pk))
             max_returnable = self.transaction_item.quantity - previously_returned
@@ -207,7 +198,7 @@ class SalesReturnItem(models.Model):
                 raise ValidationError(f"Fraud Alert: Cannot return {self.quantity} units. Only {max_returnable} units of this specific item remain eligible for return from this transaction.")
 
     def save(self, *args, **kwargs):
-        self.clean() # Run validation before saving
+        self.clean()
         if self.transaction_item:
              self.transaction_item.inventory_item.add_stock_fefo(self.quantity)
         super().save(*args, **kwargs)
