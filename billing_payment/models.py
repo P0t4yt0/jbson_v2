@@ -1,22 +1,17 @@
-"""
-Module 5 — Billing & Payment
-Processes payment for a completed POS transaction.
-Supports: Cash | Mobile Wallet (GCash, Maya, etc.)
-Generates official receipts and updates inventory on success.
-"""
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 import uuid
-from point_of_sale.models import Transaction
+from point_of_sale.models import Transaction, TransactionItem
+from django.core.exceptions import ValidationError
+from decimal import Decimal
 
-# ---  CUSTOMER TABLE ---
 class Customer(models.Model):
     name = models.CharField(max_length=150, unique=True)
     phone = models.CharField(max_length=20, blank=True)
     
-    # Trade Credit Core Fields
     is_credit_customer = models.BooleanField(default=False)
     credit_limit = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     credit_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
@@ -38,14 +33,15 @@ class Customer(models.Model):
         return self.credit_limit - self.credit_balance
 
     def check_overdue_status(self):
-        """Rule 3: Overdue protection. Puts account on hold if invoices are overdue."""
         if self.invoices.filter(status='overdue').exists():
             self.credit_status = 'hold'
             self.save(update_fields=['credit_status'])
             return True
-        return False
+        else:
+            self.credit_status = 'active'
+            self.save(update_fields=['credit_status'])
+            return False
 
-# --- INVOICE TABLE ---
 class Invoice(models.Model):
     SOURCE_CHOICES = [('manual', 'Manual Entry'), ('pos', 'POS System')]
     STATUS_CHOICES = [('unpaid', 'Unpaid'), ('overdue', 'Overdue'), ('paid', 'Paid')]
@@ -75,13 +71,20 @@ class Invoice(models.Model):
         if not self.due_date and self.customer_id:
             self.due_date = self.issue_date + timedelta(days=self.customer.payment_terms)
             
+        if self.status == 'overdue' and self.balance_due > 0 and self.due_date:
+            days_overdue = (timezone.now().date() - self.due_date).days
+            if days_overdue > 0:
+                interest_rate = Decimal('0.02')
+                calculated_interest = (self.balance_due * interest_rate)
+                self.interest_amount = calculated_interest
+                self.balance_due = self.balance_due + self.interest_amount
+
         super().save(*args, **kwargs)
 
     def __str__(self):
         customer_name = self.customer.name if self.customer else "Walk-in"
         return f"{self.invoice_no} - {customer_name}"
 
-# --- INVOICE ITEMS (Para sa Manual Create Invoice) ---
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
     product_name = models.CharField(max_length=255)
@@ -96,7 +99,6 @@ class InvoiceItem(models.Model):
     def __str__(self):
         return f"{self.product_name} on {self.invoice.invoice_no}"
 
-# --- PAYMENTS AGAINST TRADE CREDIT ---
 class InvoicePayment(models.Model):
     invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='payments')    
     amount = models.DecimalField(max_digits=12, decimal_places=2)
@@ -115,13 +117,11 @@ class InvoicePayment(models.Model):
             self.invoice.save()
 
             self.invoice.customer.credit_balance -= self.amount
-            if self.invoice.customer.credit_balance <= 0:
-                self.invoice.customer.credit_status = 'active'
-            self.invoice.customer.save()
+            # Fix #3: Check for Overdue Status instead of Total Balance to un-hold
+            self.invoice.customer.check_overdue_status() 
             
         super().save(*args, **kwargs)
 
-# --- POS PAYMENTS & RECEIPTS ---
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('cash',   'Cash'),
@@ -192,7 +192,22 @@ class SalesReturn(models.Model):
 class SalesReturnItem(models.Model):
     sales_return = models.ForeignKey(SalesReturn, on_delete=models.CASCADE, related_name='returned_items')
     
-    product = models.ForeignKey('inventory.InventoryItem', on_delete=models.CASCADE)
+    transaction_item = models.ForeignKey(TransactionItem, on_delete=models.CASCADE, related_name='return_records', null=True) 
     
     quantity = models.PositiveIntegerField()
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def clean(self):
+        # Fix #2 Anti-Fraud Validation
+        if self.transaction_item:
+            previously_returned = sum(item.quantity for item in self.transaction_item.return_records.exclude(pk=self.pk))
+            max_returnable = self.transaction_item.quantity - previously_returned
+            
+            if self.quantity > max_returnable:
+                raise ValidationError(f"Fraud Alert: Cannot return {self.quantity} units. Only {max_returnable} units of this specific item remain eligible for return from this transaction.")
+
+    def save(self, *args, **kwargs):
+        self.clean() # Run validation before saving
+        if self.transaction_item:
+             self.transaction_item.inventory_item.add_stock_fefo(self.quantity)
+        super().save(*args, **kwargs)

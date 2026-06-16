@@ -153,13 +153,13 @@
         
         {% if show_inv_products %}
         <a href="{% url 'inventory:inventory_list' %}" class="nav-item {% if '/products/' in request.path %}active{% endif %}">
-            <i class="ph ph-package"></i> Products
+            <i class="ph ph-package"></i> Product Management
         </a>
         {% endif %}
         
         {% if show_inv_categories %}
         <a href="{% url 'inventory:category_list' %}" class="nav-item {% if '/categories/' in request.path %}active{% endif %}">
-            <i class="ph ph-folders"></i> <span>Categories</span>
+            <i class="ph ph-folders"></i> <span>Category Management</span>
         </a>    
         {% endif %}
 
@@ -188,7 +188,7 @@
 
         {% if show_sales_sales %}
         <a href="{% url 'billing:sales_list' %}" class="nav-item {% if request.resolver_match.view_name == 'billing:sales_list' %}active{% endif %}">
-            <i class="ph ph-shopping-cart"></i> Sales
+            <i class="ph ph-shopping-cart"></i> Sales and Transactions
         </a>
         {% endif %}
 
@@ -202,13 +202,13 @@
         {% if show_sales_return %}
         <a href="{% url 'billing_payment:sales_return_list' %}" class="nav-item {% if 'sales_return_list' in request.resolver_match.view_name %}active{% endif %}">
             <i class="ph ph-arrow-counter-clockwise"></i>
-            <span>Sales Return</span>
+            <span>Sales Returns</span>
         </a>
         {% endif %}
 
         {% if show_sales_trade_credit %}
         <a href="{% url 'billing_payment:customer_list' %}" class="nav-item {% if '/customers/' in request.path %}active{% endif %}">
-            <i class="ph ph-users"></i> Trade Credit
+            <i class="ph ph-users"></i> Trade Credit Accounts
         </a>
         {% endif %}
 
@@ -220,7 +220,7 @@
 
         {% if show_sales_suppliers %}
         <a href="{% url 'inventory:supplier_list' %}" class="nav-item {% if '/suppliers/' in request.path %}active{% endif %}">
-            <i class="ph ph-truck"></i> Suppliers
+            <i class="ph ph-truck"></i> Supplier Directory
         </a>
         {% endif %}
 
@@ -235,7 +235,7 @@
         <div class="nav-category">User Management</div>
             {% if show_um_users %}
             <a href="{% url 'user_management' %}" class="nav-item {% if '/admin/users/' in request.path %}active{% endif %}">
-                <i class="ph ph-users"></i> Users
+                <i class="ph ph-users"></i> User Management
             </a> 
             {% endif %}
             

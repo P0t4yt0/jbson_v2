@@ -2,7 +2,8 @@ import re
 from decimal import Decimal
 from django.db import models
 from django.utils import timezone
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
 from auditlog.registry import auditlog
 
 class Category(models.Model):
@@ -46,12 +47,18 @@ class InventoryItem(models.Model):
         ('U', 'Unclassified'),
     ]
 
+    # Fix #6: Strict 13-Digit EAN Barcode Validation Rule
+    barcode_validator = RegexValidator(
+        regex=r'^\d{13}$',
+        message="Barcode must be exactly 13 digits long and contain only numbers (EAN-13 standard)."
+    )
+
     product_id = models.CharField(max_length=20, unique=True, editable=False) 
     item_name = models.CharField(max_length=200)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='items')
     supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True, related_name='items')
     description = models.TextField(blank=True)
-    barcode_id = models.CharField(max_length=50, unique=True)
+    barcode_id = models.CharField(max_length=50, unique=True, validators=[barcode_validator])
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(Decimal('0.00'))])
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(Decimal('0.00'))])
     quantity = models.PositiveIntegerField(default=0)
@@ -80,7 +87,53 @@ class InventoryItem(models.Model):
     def annual_consumption_value(self):
         return self.unit_cost * self.annual_demand
 
+    # Fix #1: Engine helper para sa automated FEFO Allocation tuwing may bawas mula sa POS Checkout
+    def deduct_stock_fefo(self, qty_to_deduct):
+        """
+        Deducts stock smoothly across underlying batches using First-Expired, First-Out (FEFO).
+        Saves changes instantly to avoid synchronization loops.
+        """
+        if qty_to_deduct > self.quantity:
+            raise ValidationError(f"Cannot deduct {qty_to_deduct} units. Only {self.quantity} items available on hand.")
+        
+        # Kunin ang mga usable batches na may stock pa, unahin ang pinakamalapit mag-expire
+        usable_batches = self.batches.filter(status__in=['active', 'near_expiry'], quantity_on_hand__gt=0).order_index_fefo()
+        
+        remaining_deduction = qty_to_deduct
+        for batch in usable_batches:
+            if remaining_deduction <= 0:
+                break
+            
+            if batch.quantity_on_hand >= remaining_deduction:
+                batch.quantity_on_hand -= remaining_deduction
+                remaining_deduction = 0
+            else:
+                remaining_deduction -= batch.quantity_on_hand
+                batch.quantity_on_hand = 0
+                
+            batch.save(update_stock_master=False) # Iwas looping overwrite
+
+        # I-update ang global cache quantity
+        self.quantity = max(0, self.quantity - qty_to_deduct)
+        self.save(skip_batch_recalc=True)
+
+    def add_stock_fefo(self, qty_to_add):
+        """
+        Handles returns or stock additions gracefully by putting the inventory back 
+        into the oldest active batch or latest batch received.
+        """
+        target_batch = self.batches.filter(status__in=['active', 'near_expiry']).order_by('expiry_date', 'date_received').first()
+        if target_batch:
+            target_batch.quantity_on_hand += qty_to_add
+            target_batch.save(update_stock_master=False)
+        
+        self.quantity += qty_to_add
+        self.save(skip_batch_recalc=True)
+
     def save(self, *args, **kwargs):
+        # Flag parameter to bypass automatic batch calculation locks if running custom FEFO pipeline
+        skip_batch_recalc = kwargs.pop('skip_batch_recalc', False)
+
         if not self.product_id:
             if self.category and self.category.prefix:
                 prefix = self.category.prefix.replace(" ", "").strip().upper()
@@ -98,6 +151,11 @@ class InventoryItem(models.Model):
                         max_num = num
                         
             self.product_id = f"{prefix}{(max_num + 1):03d}"
+
+        # Huwag i-recalculate kung pinigilan ng dynamic logic system natin
+        if not skip_batch_recalc and self.pk:
+            usable_batches = self.batches.filter(status__in=['active', 'near_expiry'])
+            self.quantity = sum(batch.quantity_on_hand for batch in usable_batches)
 
         avg_sales = float(self.average_daily_sales or 0)
         max_sales = float(self.max_daily_sales or 0)
@@ -149,6 +207,13 @@ class InventoryItem(models.Model):
     def __str__(self):
         return f"{self.item_name} ({self.category.prefix})"
 
+
+class ProductBatchQuerySet(models.QuerySet):
+    def order_index_fefo(self):
+        # Custom prioritization framework: Expiry dates first, then order sequence
+        return self.order_by('expiry_date', 'date_received', 'id')
+
+
 class ProductBatch(models.Model):
     STATUS_CHOICES = (
         ('active', 'Active'),
@@ -167,11 +232,15 @@ class ProductBatch(models.Model):
     expiry_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
 
+    objects = ProductBatchQuerySet.as_manager()
+
     class Meta:
         db_table = 'product_batches'
         ordering = ['expiry_date', 'date_received'] 
 
     def save(self, *args, **kwargs):
+        update_stock_master = kwargs.pop('update_stock_master', True)
+
         if not self.batch_code:
             today_str = timezone.now().strftime('%y%m%d')
             prefix = self.product.product_id if self.product.product_id else 'UNK'
@@ -186,19 +255,19 @@ class ProductBatch(models.Model):
 
         super().save(*args, **kwargs)
         
-        self.update_parent_stock()
+        if update_stock_master:
+            self.update_parent_stock()
 
     def update_parent_stock(self):
         usable_batches = ProductBatch.objects.filter(
             product=self.product, 
             status__in=['active', 'near_expiry']
         )
-        
         total_qty = sum(batch.quantity_on_hand for batch in usable_batches)
         
+        # Gamitin ang override flag para maiwasan ang operational deadlocks sa model save state
         self.product.quantity = total_qty
-
-        self.product.save(update_fields=['quantity'])
+        self.product.save(update_fields=['quantity'], skip_batch_recalc=True)
 
     def __str__(self):
         return f"{self.batch_code} - {self.product.item_name}"
@@ -258,7 +327,13 @@ class PurchaseOrderItem(models.Model):
         return f"{self.quantity_ordered}x {self.product.item_name} for {self.purchase_order.po_number}"
 
 class GeneratedBarcode(models.Model):
-    barcode_id = models.CharField(max_length=50, unique=True)
+    # Fix #6: I-apply din ang strict 13-digit pattern validation sa generated tracking module
+    barcode_validator = RegexValidator(
+        regex=r'^\d{13}$',
+        message="Barcode must be exactly 13 digits long and contain only numbers."
+    )
+
+    barcode_id = models.CharField(max_length=50, unique=True, validators=[barcode_validator])
     product_name = models.CharField(max_length=200)
     batch_id = models.CharField(max_length=50, default='MANUAL')
     created_at = models.DateTimeField(auto_now_add=True)

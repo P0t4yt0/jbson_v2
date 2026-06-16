@@ -63,6 +63,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return self.full_name or self.username
 
+class ActivityLogQuerySet(models.QuerySet):
+    def delete(self):
+        raise PermissionError("Bulk deletion of ActivityLogs is strictly prohibited to ensure audit integrity.")
+
+class ActivityLogManager(models.Manager):
+    def get_queryset(self):
+        return ActivityLogQuerySet(self.model, using=self._db)
+
 class ActivityLog(models.Model):
     ACTION_LOGIN = "LOGIN"
     ACTION_LOGOUT = "LOGOUT"
@@ -87,6 +95,8 @@ class ActivityLog(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(default=timezone.now)
 
+    objects = ActivityLogManager()
+
     class Meta:
         db_table = "security_activity_log"
         ordering = ["-timestamp"]
@@ -102,6 +112,9 @@ class ActivityLog(models.Model):
         if self.pk is not None:
             raise PermissionError("ActivityLog entries cannot be modified once created.")
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise PermissionError("ActivityLog entries cannot be deleted to ensure audit integrity.")
 
 
 class EmployeeProfile(models.Model):
@@ -204,9 +217,6 @@ class EmployeeProfile(models.Model):
             return False
         return True
 
-    # ==========================================
-    # PROPERTIES PARA SA CONTEXT PROCESSORS
-    # ==========================================
     
     @property
     def has_dashboard_access(self):
