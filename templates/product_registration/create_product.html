@@ -163,7 +163,7 @@
 
             <div class="pf-full">
                 <label class="pf-label">Price <span class="req">*</span></label>
-                <input type="number" name="price" step="0.01" value="{{ item.price }}" required class="pf-input" placeholder="0.00">
+                <input type="number" name="price" step="0.01" min="0" value="{{ item.price }}" required class="pf-input" placeholder="0.00">
             </div>
 
             <div class="pf-intel-section">
@@ -177,22 +177,22 @@
                 <div class="pf-row" style="margin-bottom: 14px;">
                     <div class="pf-col">
                         <label class="pf-intel-label">Unit Cost (₱)</label>
-                        <input type="number" name="unit_cost" step="0.01" value="{{ item.unit_cost|default:'0.00' }}" class="pf-intel-input">
+                        <input type="number" name="unit_cost" step="0.01" min="0" value="{{ item.unit_cost|default:'0.00' }}" class="pf-intel-input">
                     </div>
                     <div class="pf-col">
                         <label class="pf-intel-label">Est. Yearly Sales</label>
-                        <input type="number" name="annual_demand" value="{{ item.annual_demand|default:'0' }}" class="pf-intel-input">
+                        <input type="number" name="annual_demand" min="0" value="{{ item.annual_demand|default:'0' }}" class="pf-intel-input">
                     </div>
                 </div>
 
                 <div class="pf-row" style="margin-bottom: 0;">
                     <div class="pf-col">
                         <label class="pf-intel-label">Avg. Daily Sales</label>
-                        <input type="number" name="average_daily_sales" step="0.01" value="{{ item.average_daily_sales|default:'0' }}" class="pf-intel-input">
+                        <input type="number" name="average_daily_sales" min="0" step="0.01" value="{{ item.average_daily_sales|default:'0' }}" class="pf-intel-input">
                     </div>
                     <div class="pf-col">
                         <label class="pf-intel-label">Max Daily Sales</label>
-                        <input type="number" name="max_daily_sales" step="0.01" value="{{ item.max_daily_sales|default:'0' }}" class="pf-intel-input">
+                        <input type="number" name="max_daily_sales" step="0.01" min="0" value="{{ item.max_daily_sales|default:'0' }}" class="pf-intel-input">
                     </div>
                 </div>
 
