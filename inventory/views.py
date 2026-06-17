@@ -2,7 +2,7 @@ import csv
 import json
 import random
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime, time
 from decimal import Decimal
 import barcode
 from django.apps import apps
@@ -23,6 +23,8 @@ from reports_analytics.models import Expense
 from security.models import EmployeeProfile
 from .models import Category, GeneratedBarcode, InventoryItem, PurchaseOrder, PurchaseOrderItem, Supplier, ProductBatch
 from django.views.decorators.http import require_POST
+from datetime import datetime, time, timedelta
+from django.utils import timezone
 
 
 def calculate_ean13_checksum(base_12_digits):
@@ -1085,7 +1087,6 @@ def admin_dashboard_view(request):
             description=f"System automatically pulled out expired batch {batch.batch_code} ({batch.product.item_name})."
         )
 
-
     time_window = today + timedelta(days=30) 
     expiring_batches = ProductBatch.objects.filter(
         expiry_date__isnull=False,       
@@ -1106,9 +1107,12 @@ def admin_dashboard_view(request):
     expense_base = Expense.objects.all()
 
     if start_date:
-        tx_base = tx_base.filter(date_created__date__gte=start_date)
+        start_datetime = timezone.make_aware(datetime.combine(start_date, time.min))
+        
+        tx_base = tx_base.filter(date_created__gte=start_datetime)
         po_base = po_base.filter(order_date__gte=start_date)
-        if expense_base is not None: expense_base = expense_base.filter(expense_date__gte=start_date)
+        if expense_base is not None: 
+            expense_base = expense_base.filter(expense_date__gte=start_date)
 
     total_sales = tx_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
     total_purchase = po_base.aggregate(t=Coalesce(Sum('total_amount'), Decimal('0.00'), output_field=DecimalField()))['t']
@@ -1161,7 +1165,7 @@ def admin_dashboard_view(request):
 
     top_items_base = TransactionItem.objects.filter(transaction__status__in=['completed', 'credit'])
     if start_date:
-        top_items_base = top_items_base.filter(transaction__date_created__gte=start_date)
+        top_items_base = top_items_base.filter(transaction__date_created__gte=start_datetime)
 
     top_products_qs = top_items_base.values('inventory_item__item_name').annotate(total_sold=Sum('quantity')).order_by('-total_sold')[:5]
     
@@ -1172,10 +1176,10 @@ def admin_dashboard_view(request):
     unpaid_invoices = Invoice.objects.filter(status='unpaid').order_by('due_date')[:5]
 
     metrics = {
-        'total_sales': total_sales,
-        'total_outflow': total_outflow,
-        'net_profit': net_profit,
-        'invoice_due': invoice_due,
+        'total_sales': abs(total_sales),
+        'total_outflow': abs(total_outflow),
+        'net_profit': abs(net_profit),
+        'invoice_due': abs(invoice_due),
         'current_filter': date_filter,
     }
 
