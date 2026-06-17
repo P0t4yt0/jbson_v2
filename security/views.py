@@ -193,9 +193,8 @@ def forgot_password_view(request):
                 user = User.objects.get(username=username)
                 profile, created = EmployeeProfile.objects.get_or_create(user=user)
                 
-                profile.reset_requested = True
-                profile.reset_approved_by_admin = False 
-                profile.save()
+                profile.reset_approved_by_admin = False
+                profile.request_new_recovery_key() 
                 
                 request.session['reset_username'] = username
                 request.session['key_verified'] = False
@@ -557,9 +556,6 @@ def edit_user_view(request):
             
         user.save()
 
-        # ==========================================
-        # GRANULAR PERMISSIONS HANDLING
-        # ==========================================
         profile, created = EmployeeProfile.objects.get_or_create(user=user)
         one_hour_from_now = timezone.now() + timedelta(minutes=60)
         
@@ -608,7 +604,6 @@ def edit_user_view(request):
         profile.can_add_product = request.POST.get('can_add_product') == 'on'
             
         profile.save()
-        # ==========================================
 
         Notification.objects.create(
             user=profile.user, 

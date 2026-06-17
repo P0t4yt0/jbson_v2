@@ -384,7 +384,7 @@ def run_abc_analysis(request):
         else:
             item.abc_classification = 'C'
         
-        item.save()
+        item.save(skip_batch_recalc=True)
 
     log_system_activity(
         user=request.user,

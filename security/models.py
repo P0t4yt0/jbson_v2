@@ -2,12 +2,13 @@ import uuid
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from auditlog.registry import auditlog
 
 def generate_recovery_key():
     raw_key = uuid.uuid4().hex[:16].upper()
-    return f"{raw_key[:4]}-{raw_key[4:8]}-{raw_key[8:12]}-{raw_key[12:]}"
+    return get_random_string(length=16, allowed_chars='0123456789')
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, role="employee", **extra_fields):
@@ -119,7 +120,7 @@ class ActivityLog(models.Model):
 
 class EmployeeProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    recovery_key = models.CharField(max_length=19, default=generate_recovery_key, unique=True)
+    recovery_key = models.CharField(max_length=16, null=True, blank=True, unique=True)
     reset_requested = models.BooleanField(default=False)
     reset_approved_by_admin = models.BooleanField(default=False)
     
@@ -208,8 +209,14 @@ class EmployeeProfile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+    
+    def request_new_recovery_key(self):
 
-    # DRY Helper function para sa expiration checking
+        self.recovery_key = generate_recovery_key()
+        self.reset_requested = True
+        self.save(update_fields=['recovery_key', 'reset_requested'])
+        return self.recovery_key
+    
     def _is_valid(self, is_approved, expires_at):
         if not is_approved:
             return False
